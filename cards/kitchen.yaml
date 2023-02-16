@@ -1,0 +1,146 @@
+- entity: light.kitchen_lights_group
+  name: All Kitchen Lights
+  template: view_lightgroup_button_style
+  type: custom:button-card
+- entity: light.kitchen_wall_switch_light
+  template:
+    - hue_color_bulb
+    - view_bulb_downlight
+  type: custom:button-card
+  custom_fields:
+    power_icon:
+      card:
+        entity: light.kitchen_wall_switch_light
+        template: view_power_icon_style
+        type: custom:button-card
+- custom_fields:
+    power_icon:
+      card:
+        entity: light.pantry_left
+        template: view_power_icon_style
+        type: custom:button-card
+    slider:
+      card:
+        entity: light.pantry_left
+        full_row: true
+        toggle: false
+        type: custom:slider-entity-row
+  entity: light.pantry_left
+  template:
+    - hue_color_bulb
+    - view_bulb_downlight
+  type: custom:button-card
+- custom_fields:
+    power_icon:
+      card:
+        entity: light.pantry_right
+        template: view_power_icon_style
+        type: custom:button-card
+    slider:
+      card:
+        entity: light.pantry_right
+        full_row: true
+        toggle: false
+        type: custom:slider-entity-row
+  entity: light.pantry_right
+  template:
+    - hue_color_bulb
+    - view_bulb_downlight
+  type: custom:button-card
+- type: entities
+  entities:
+    - entity: select.cabinet_lighting_preset
+
+- entity: light.cabinet_lighting
+  template:
+    - hue_color_bulb
+    - hue_led_strip
+  type: custom:button-card
+  custom_fields:
+    power_icon:
+      card:
+        entity: light.cabinet_lighting
+        template: view_power_icon_style
+        type: custom:button-card
+    slider:
+      card:
+        entity: light.cabinet_lighting
+        full_row: true
+        toggle: false
+        type: custom:slider-entity-row
+- entity: switch.kitchen_tubes
+  template:
+    - hue_color_bulb
+    - hue_led_strip
+  type: custom:button-card
+  custom_fields:
+    power_icon:
+      card:
+        entity: switch.kitchen_tubes
+        template: view_power_icon_style
+        type: custom:button-card
+
+- type: grid
+  columns: 3
+  cards:
+    - entity: binary_sensor.kitchen_motion_sensor_occupancy
+      template:
+        - view_sensor_button
+      name: Motion
+      type: custom:button-card
+    - entity: sensor.slavehassio01_indoor_temperature_sensor
+      template: temperature
+      name: Kitchen Temperature
+      type: custom:button-card
+
+    - entity: media_player.kitchen_display
+      type: custom:button-card
+
+# - type: custom:button-card
+#   entity: fan.red_series_fan_light_switch_2
+#   template:
+#     - view_light_layout
+#     - ceiling_fan_icon
+#   icon: mdi:ceiling-fan
+#   name: Ceiling Fan
+#   custom_fields:
+#     power_icon:
+#       card:
+#         entity: fan.red_series_fan_light_switch_2
+#         template: view_power_icon_style
+#         type: custom:button-card
+#     slider:
+#       card:
+#         entity: fan.red_series_fan_light_switch_2
+#         full_row: true
+#         toggle: false
+#         type: custom:slider-entity-row
+# - type: custom:button-card
+#   icon: mdi:ceiling-light
+#   template:
+#     - hue_gu10_bulb
+#     - view_gu10_downlight
+#   entity: light.red_series_fan_light_switch_2
+#   name: Ceiling Light
+#   custom_fields:
+#     power_icon:
+#       card:
+#         entity: light.red_series_fan_light_switch_2
+#         template: view_power_icon_style
+#         type: custom:button-card
+#     slider:
+#       card:
+#         entity: light.red_series_fan_light_switch_2
+#         full_row: true
+#         toggle: false
+#         type: custom:slider-entity-row
+
+- type: grid
+  columns: 4
+  cards:
+    - type: custom:button-card
+      template: view_button
+      icon: mdi:list-status
+      name: Details
+      tap_action:
+        navigation_path: ../../dash-room-details/kitchen

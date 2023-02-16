@@ -1,0 +1,10 @@
+
+- name: Ethan's Amcrest Camera
+  host: 10.0.0.16
+  username: admin
+  password: bailee00
+  binary_sensors:
+    - motion_detected
+    - online
+  sensors:
+    - ptz_preset

@@ -1,0 +1,114 @@
+button_card_templates: !include_dir_merge_named button-card-templates/
+views:
+  - title: Landing Page
+    path: landing
+    type: custom:grid-layout
+    layout:
+      grid-gap: var(--custom-layout-card-padding)
+      grid-template-columns: 12.5% 12.5% 12.5% 12.5% 12.5% 12.5% 12.5% 12.5%
+      grid-template-rows: auto
+      mediaquery:
+        "(max-width: 1000px)":
+          grid-gap: calc(var(--custom-layout-card-padding) * 1.7)
+          grid-template-columns: 50% 50%
+        "(max-width: 1800px)":
+          grid-gap: var(--custom-layout-card-padding)
+          grid-template-columns: 25% 25% 25% 25%
+
+    cards:
+      - !include complete_btns/security_sensor_btn.yaml
+      - !include complete_btns/main_area_lights_btn.yaml
+      - !include complete_btns/kitchen_sq.yaml
+      - !include complete_btns/living_room_sq.yaml
+      - !include complete_btns/main_tv_sq.yaml
+      - !include complete_btns/bedroom_btn.yaml
+      - !include complete_btns/dinning_room_light_sq.yaml
+
+      - !include complete_btns/office_lights_sq.yaml
+      - !include complete_btns/family_room_sq.yaml
+      - !include complete_btns/ethans_room_sq.yaml
+
+      - !include complete_btns/outdoor_sq.yaml
+      - !include complete_btns/garbage_sq_btn.yaml
+
+
+      - type: weather-forecast
+        entity: weather.home
+        show_forecast: false
+      - type: "custom:button-card"
+        aspect_ratio: 2/1
+        name: Outdoor
+        entity: sensor.slavehassio01_outdoor_temperature_sensor
+        template:
+          - complete_half_square_sensor
+          - temperature-outdoor
+      - !include complete_btns/garage_door.yaml
+
+  - title: Security
+    path: security
+    type: custom:grid-layout
+    layout:
+      grid-gap: var(--custom-layout-card-padding)
+      grid-template-columns: 50% 50%
+      grid-template-rows: auto
+      # mediaquery:
+      #   "(max-width: 1000px)":
+      #     grid-gap: calc(var(--custom-layout-card-padding) * 1.7)
+      #     grid-template-columns: 50% 50%
+      #   "(max-width: 1800px)":
+      #     grid-gap: var(--custom-layout-card-padding)
+      #     grid-template-columns: 25% 25% 25% 25%
+    cards:
+      - type: vertical-stack
+        cards:
+          - !include complete_btns/security_btn.yaml
+
+          - type: horizontal-stack
+            cards:
+              - entity: binary_sensor.whole_house_motion_group
+                type: custom:button-card
+                show_name: false
+                tap_action: !include popup/motion_overview.yaml
+                template:
+                  - alerter-dual
+                  - motion_icon_state
+              - entity: binary_sensor.any_door_open_group
+                type: custom:button-card
+                show_name: false
+                template:
+                  - alerter-dual
+                  - door_icon_state
+              - entity: binary_sensor.window_open_group
+                type: custom:button-card
+                show_name: false
+                template:
+                  - alerter-dual
+                  - window_icon_state
+  - title: Cameras
+    path: cameras
+    type: custom:grid-layout
+    layout:
+      grid-gap: var(--custom-layout-card-padding)
+      grid-template-columns: 90% 10%
+      grid-template-rows: auto
+      # mediaquery:
+      #   "(max-width: 1000px)":
+      #     grid-gap: calc(var(--custom-layout-card-padding) * 1.7)
+      #     grid-template-columns: 50% 50%
+      #   "(max-width: 1800px)":
+      #     grid-gap: var(--custom-layout-card-padding)
+      #     grid-template-columns: 25% 25% 25% 25%
+    cards:
+      - type: custom:surveillance-card
+        thumb_interval: 15 # update in sec. 0.5 is min.
+        update_interval: 2 # update main image in sec. 0.5 is min
+        focus_motion: true # switch to camera when motion detected
+        cameras:
+          - entity: camera.blueiris_ethan_bedroom
+            motion_entity: binary_sensor.blueiris_ethan_bedroom_motion
+          - entity: camera.blueiris_family_room_couch
+            motion_entity: binary_sensor.blueiris_family_room_couch_motion
+          - entity: camera.blueiris_family_room_tv_new
+            motion_entity: binary_sensor.blueiris_family_room_tv_new_motion
+          - entity: camera.blueiris_office
+            motion_entity: binary_sensor.blueiris_office

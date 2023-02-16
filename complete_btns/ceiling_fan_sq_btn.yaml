@@ -1,0 +1,26 @@
+entity: fan.ceiling_fan_2
+type: "custom:button-card"
+name: Ceiling Fan
+icon: mdi:fan
+template:
+  - standard_btn_layout
+  - standard_btn_states
+  - standard_btn_states_on
+  - fan_btn
+custom_fields:
+  s2: |
+    [[[
+      return " "
+    ]]]
+  power_icon:
+    card:
+      entity: fan.ceiling_fan_2
+      type: "custom:button-card"
+      template: view_power_icon_style
+  slider:
+    card:
+      entity: fan.ceiling_fan_2
+      full_row: true
+      toggle: false
+      hide_state: true
+      type: "custom:slider-entity-row"

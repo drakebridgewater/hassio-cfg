@@ -1,0 +1,64 @@
+blueprint:
+  name: ZHA - Ecosmart 4 button remote - control 3 devices/scenes/etc
+  description: Control devices with an Ecosmart 4-button Zigbee remote
+  domain: automation
+  input:
+    device_ieee:
+      name: Remote ID
+      description: To find this, listen for zha_event in Developer Tools > Events, then press a button on your remote and identify the value of "device_ieee". It should look like "xx:xx:xx:xx:xx:xx:xx:xx"
+    light_target_1:
+      name: Button 1
+      description: Select which light or light group you wish to control with button 1
+      default: []
+      selector:
+        action: null
+    light_target_2:
+      name: Button 2
+      description: Select which light or light group you wish to control with button 2
+      default: []
+      selector:
+        action: null
+    light_target_3:
+      name: Button 3
+      description: Select which light or light group you wish to control with button 3
+      default: []
+      selector:
+        action: null
+    light_target_4:
+      name: Button 4
+      description: Select which light or light group you wish to control with button 4
+      default: []
+      selector:
+        action: null
+mode: restart
+trigger:
+- platform: event
+  event_type: zha_event
+  event_data:
+    device_ieee: !input device_ieee
+condition: []
+action:
+- variables:
+    command: '{{ trigger.event.data.command }}'
+    args: '{{ trigger.event.data.args }}'
+- choose:
+  - conditions:
+    - condition: or
+      conditions:
+      - condition: template
+        value_template: '{{ command == ''on'' }}'
+      - condition: template
+        value_template: '{{ command == ''off'' }}'
+    sequence: !input 'light_target_1'
+  - conditions:
+    - condition: template
+      value_template: '{{ command == ''move_to_level'' }}'
+    sequence: !input 'light_target_2'
+  - conditions:
+    - condition: template
+      value_template: '{{ command == ''move_to_color_temp'' }}'
+    sequence: !input 'light_target_3'
+  - conditions:
+    - condition: template
+      value_template: '{{ command == ''move_to_level_with_on_off'' }}'
+    sequence: !input 'light_target_4'

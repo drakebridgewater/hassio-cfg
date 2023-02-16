@@ -1,0 +1,21 @@
+
+drake_s_pixel_4a_5g:
+  name: Drake's Pixel 4a (5G)
+  mac: BT_58:24:29:75:45:2F
+  icon:
+  picture:
+  track: true
+
+magic_mouse_2:
+  name: Magic Mouse 2
+  mac: BT_0C:E4:41:08:4F:32
+  icon:
+  picture:
+  track: true
+
+guest:
+  name: guest
+  mac:
+  icon:
+  picture:
+  track: true

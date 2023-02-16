@@ -1,0 +1,105 @@
+type: custom:button-card
+template: container
+color: '#ff9555'
+name: Lighting
+custom_fields:
+  buttons:
+    card:
+      type: vertical-stack
+      cards:
+        - type: horizontal-stack
+          cards:
+            - entity: light.ambiance_light_group
+              type: custom:button-card
+              template: standard
+              styles:
+                card:
+                  - height: 50px
+        - type: horizontal-stack
+          cards:
+            - entity: light.pantry_left
+              type: custom:button-card
+              template: standard
+              styles:
+                card:
+                  - height: 100px
+            - entity: light.pantry_right
+              type: custom:button-card
+              template: standard
+              styles:
+                card:
+                  - height: 100px
+            - entity: light.cabinet_lighting
+              type: custom:button-card
+              template: standard
+              styles:
+                card:
+                  - height: 100px
+        - type: horizontal-stack
+          cards:
+            - entity: fan.red_series_fan_light_switch_2
+              name: Ceiling Fan
+              type: custom:button-card
+              template: rotater
+              styles:
+                card:
+                  - height: 100px
+            - entity: light.red_series_fan_light_switch_2
+              name: Ceiling Fan Light
+              type: custom:button-card
+              template: standard
+              styles:
+                card:
+                  - height: 100px
+            - entity: light.tv_lights_group
+              name: TV Lamps
+              type: custom:button-card
+              template: standard
+              styles:
+                card:
+                  - height: 100px
+            - entity: light.stair_lights_group
+              name: Stair Lamps
+              type: custom:button-card
+              template: standard
+              styles:
+                card:
+                  - height: 100px
+            - entity: light.awning_lights_group
+              name: Stairs
+              type: custom:button-card
+              template: standard
+              styles:
+                card:
+                  - height: 100px
+        - type: horizontal-stack
+          cards:
+            - entity: media_player.living_room_tv_2
+              type: custom:button-card
+              styles:
+                card:
+                  - height: 100px
+            - entity: media_player.kitchen_display
+              type: custom:button-card
+              styles:
+                card:
+                  - height: 100px
+            - type: vertical-stack
+              cards:
+                - entity: binary_sensor.lumi_lumi_sensor_motion_aq2_ias_zone
+                  name: Motion
+                  template: alerter-dual
+                  icon: mdi:alert
+                  type: custom:button-card
+                  variables:
+                    color_seconds: 120
+                  styles:
+                    card:
+                      - height: 50px
+                - entity: sensor.living_room_temperature
+                  icon: mdi:ceiling-light
+                  type: custom:button-card
+                  template: temperature
+                  styles:
+                    card:
+                      - height: 40px

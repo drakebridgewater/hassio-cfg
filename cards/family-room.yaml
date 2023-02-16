@@ -1,0 +1,162 @@
+- entity: light.family_room_lights_group
+  name: All Family Room Lights
+  template: view_lightgroup_button_style
+  type: custom:button-card
+  custom_fields:
+    power_icon:
+      card:
+        entity: light.family_room_lights_group
+        template: view_power_icon_style
+        type: custom:button-card
+    slider:
+      card:
+        entity: light.family_room_lights_group
+        full_row: true
+        toggle: false
+        type: custom:slider-entity-row
+
+#################################################
+#                                               #
+#                 Lights                        #
+#                                               #
+#################################################
+
+- entity: light.family_room_shelf_lamp
+  name: Left Floor Lamp
+  template:
+    - hue_color_bulb
+    - view_bulb_downlight
+  type: custom:button-card
+  custom_fields:
+    power_icon:
+      card:
+        entity: light.family_room_shelf_lamp
+        template: view_power_icon_style
+        type: custom:button-card
+    slider:
+      card:
+        entity: light.family_room_shelf_lamp
+        full_row: true
+        toggle: false
+        type: custom:slider-entity-row
+- entity: light.shelf_strip
+  name: Shelf Strip
+  template:
+    - hue_color_bulb
+    - view_bulb_downlight
+  type: custom:button-card
+  custom_fields:
+    power_icon:
+      card:
+        entity: light.shelf_strip
+        template: view_power_icon_style
+        type: custom:button-card
+    slider:
+      card:
+        entity: light.shelf_strip
+        full_row: true
+        toggle: false
+        type: custom:slider-entity-row
+- entity: light.family_room_reading_light
+  template:
+    - hue_color_bulb
+    - view_bulb_downlight
+  type: custom:button-card
+  custom_fields:
+    power_icon:
+      card:
+        entity: light.family_room_reading_light
+        template: view_power_icon_style
+        type: custom:button-card
+    slider:
+      card:
+        entity: light.family_room_reading_light
+        full_row: true
+        toggle: false
+        type: custom:slider-entity-row
+- entity: light.family_room_tv_backdrop_2
+  template:
+    - hue_color_bulb
+    - view_bulb_downlight
+  type: custom:button-card
+  custom_fields:
+    power_icon:
+      card:
+        entity: light.family_room_tv_backdrop_2
+        template: view_power_icon_style
+        type: custom:button-card
+    slider:
+      card:
+        entity: light.family_room_tv_backdrop_2
+        full_row: true
+        toggle: false
+        type: custom:slider-entity-row
+
+#################################################
+#                                               #
+#                 Non-lights                    #
+#                                               #
+#################################################
+
+- type: horizontal-stack
+  cards:        
+    - type: custom:button-card
+      template: container
+      color: "#aaffaa"
+      custom_fields:
+        buttons:
+          card:
+            type: custom:more-info-card
+            entity: media_player.main_apple_tv
+    - entity: media_player.chromecastaudio9624
+      aspect_ratio: 1/1
+      type: custom:button-card
+      styles:
+        card:
+          - height: 100%
+    - type: vertical-stack
+      cards:
+        - name: Motion
+          entity: binary_sensor.basement_motion_detector
+          aspect_ratio: 2/1
+          show_state: false
+          show_last_changed: false
+          show_name: false
+          template:
+            - alerter-dual
+            - motion_icon_state
+          type: custom:button-card
+        - name: Basement Door
+          entity: binary_sensor.basement_sliding_door
+          show_state: false
+          show_last_changed: false
+          show_name: false
+          aspect_ratio: 2/1
+          template:
+            - alerter-dual
+            - door_icon_state
+          type: custom:button-card
+    - type: vertical-stack
+      cards:
+        - name: Door
+          entity: sensor.acurite_tower_11679_temperature
+          type: custom:button-card
+          template: temperature-indoor
+
+- type: custom:button-card
+  template: container
+  color: "#bb00aa"
+  custom_fields:
+    buttons:
+      card:
+        type: custom:more-info-card
+        entity: media_player.roku_yp005v092093
+- type: grid
+  columns: 4
+  cards:
+    - type: custom:button-card
+      template: view_button
+      icon: mdi:list-status
+      name: Details
+      tap_action:
+        navigation_path: ../../dash-room-details/family

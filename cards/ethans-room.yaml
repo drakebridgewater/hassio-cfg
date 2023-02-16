@@ -1,0 +1,180 @@
+- entity: light.ethan_s_lights_group
+  name: All Ethan's Lights
+  template: view_lightgroup_button_style
+  type: custom:button-card
+  custom_fields:
+    power_icon:
+      card:
+        entity: light.ethan_s_lights_group
+        template: view_power_icon_style
+        type: custom:button-card
+    slider:
+      card:
+        entity: light.ethan_s_lights_group
+        full_row: true
+        toggle: false
+        type: custom:slider-entity-row
+
+
+- type: horizontal-stack
+  cards:
+    - entity: switch.ethan_s_changing_table_switch
+      name: Changing Table
+      icon: mdi-human-baby-changing-table
+      template:
+        - complete_square_btn
+        - hue_color_bulb
+        - view_bulb_downlight
+      type: custom:button-card
+      custom_fields:
+        power_icon:
+          card:
+            entity: switch.ethan_s_changing_table_switch
+            template: view_power_icon_style
+            type: custom:button-card
+
+    - entity: switch.ethan_s_cribside_switch
+      name: Cribside Outlet
+      icon: mdi-cradle
+      template:
+        - complete_square_btn
+        - hue_color_bulb
+        - view_bulb_downlight
+      type: custom:button-card
+      custom_fields:
+        power_icon:
+          card:
+            entity: switch.ethan_s_cribside_switch
+            template: view_power_icon_style
+            type: custom:button-card
+
+    - entity: switch.ethan_s_door_switch
+      name: Door Outlet
+      icon: mdi-door-closed
+      template:
+        - complete_square_btn
+        - hue_color_bulb
+        - view_bulb_downlight
+      type: custom:button-card
+      custom_fields:
+        power_icon:
+          card:
+            entity: switch.ethan_s_door_switch
+            template: view_power_icon_style
+            type: custom:button-card
+
+
+- type: horizontal-stack
+  cards:
+  - entity: light.ethan_light_1
+    name: Dinosaur Lamp
+    icon: mdi-google-downasaur
+    template:
+      - light_hold_action
+      - hue_color_bulb
+      - view_bulb_downlight
+    type: custom:button-card
+    custom_fields:
+      power_icon:
+        card:
+          entity: light.ethan_light_1
+          template: view_power_icon_style
+          type: custom:button-card
+  - entity: light.toy_chest_strip
+    template:
+      - light_hold_action
+      - hue_color_bulb
+      - hue_led_strip
+    type: custom:button-card
+    custom_fields:
+      power_icon:
+        card:
+          entity: light.toy_chest_strip
+          template: view_power_icon_style
+          type: custom:button-card
+
+
+
+- type: horizontal-stack
+  cards:
+    - type: vertical-stack
+      cards:
+      - entity: sensor.slavehassio01_ethan_temperature_sensor
+        name: Current
+        type: entity
+      - entity: switch.bedroom_heater
+        aspect_ratio: 3/2
+        name: Heater
+        template:
+          - base
+        type: custom:button-card
+    # - name: Motion
+    #   entity: binary_sensor.ethans_smartsensor_occupancy
+    #   aspect_ratio: 1/1
+    #   show_state: false
+    #   show_last_changed: false
+    #   show_name: false
+    #   template:
+    #     - alerter-dual
+    #     - motion_icon_state
+    - name: Motion
+      entity: binary_sensor.ethan_s_bedroom_occupancy
+      aspect_ratio: 1/1
+      show_state: false
+      show_last_changed: false
+      show_name: false
+      template:
+        - alerter-dual
+        - motion_icon_state
+      type: custom:button-card
+
+      
+- type: horizontal-stack
+  cards:
+    - entity: media_player.ethan_s_echo_show_5
+      aspect_ratio: 1/1
+      type: custom:button-card
+      styles:
+        card:
+          - height: 100%
+    - entity: media_player.master_bathroom_speaker
+      aspect_ratio: 1/1
+      type: custom:button-card
+      styles:
+        card:
+          - height: 100%
+    
+    - type: vertical-stack
+      cards:
+      - entity: sensor.netatmo_my_home_indoor_noise
+        type: gauge
+        min: 60
+        max: 80
+        severity:
+          "blue:": 0
+          white: 69
+          red: 73
+      - entity: sensor.netatmo_my_home_indoor_co2
+        type: gauge
+        min: 0
+        max: 1000
+        severity:
+          green: 0
+          yellow: 100
+          red: 150
+
+#################################################
+#                                               #
+#                 Non-lights                    #
+#                                               #
+#################################################
+
+- type: grid
+  columns: 4
+  cards:
+    - type: custom:button-card
+      template: view_button
+      icon: mdi:list-status
+      name: Details
+      tap_action:
+        navigation_path: ../../dash-room-details/ethan

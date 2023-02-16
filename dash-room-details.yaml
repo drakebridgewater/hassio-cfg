@@ -1,0 +1,477 @@
+title: Home
+icon: mdi:home
+button_card_templates: !include_dir_merge_named button-card-templates/
+views:
+  - title: Entry
+    path: entry
+    icon: hue:room-front-door
+    cards:
+      - type: custom:auto-entities
+        card:
+          type: entities
+          state_color: true
+        filter:
+          include:
+            - area: Entryway
+          exclude: []
+        sort:
+          method: domain
+      - type: grid
+        columns: 4
+        cards:
+          - type: custom:button-card
+            template: view_back_button
+            tap_action:
+              navigation_path: ../../dash-room-by-room/main
+  - title: Living Room
+    path: living_room
+    icon: mdi:sofa
+    cards:
+      - type: custom:auto-entities
+        card:
+          type: entities
+          state_color: true
+          title: Lights/Fans/Switches
+        filter:
+          include:
+            - area: Living Room
+          exclude:
+            - domain: alarm_control_panel
+            - domain: automation
+            - domain: input_boolean
+            - domain: remote
+            - domain: script
+            - domain: binary_sensor
+            - domain: climate
+            - domain: cover
+            - domain: device_tracker
+            - domain: lock
+            - domain: media_player
+            - domain: sensor
+        sort:
+          method: domain
+      - type: custom:auto-entities
+        card:
+          type: entities
+          state_color: true
+        filter:
+          include:
+            - area: Living Room
+          exclude:
+            - domain: light
+            - domain: switch
+            - domain: fan
+        sort:
+          method: domain
+      - type: grid
+        columns: 4
+        cards:
+          - type: custom:button-card
+            template: view_back_button
+            tap_action:
+              navigation_path: ../../dash-room-by-room/living_room
+  - title: kitchen
+    path: kitchen
+    icon: mdi:countertop
+    cards:
+      - type: custom:auto-entities
+        card:
+          type: entities
+          state_color: true
+          title: Lights/Fans/Switches
+        filter:
+          include:
+            - area: Kitchen
+          exclude:
+            - domain: alarm_control_panel
+            - domain: automation
+            - domain: input_boolean
+            - domain: remote
+            - domain: script
+            - domain: binary_sensor
+            - domain: climate
+            - domain: cover
+            - domain: device_tracker
+            - domain: lock
+            - domain: media_player
+            - domain: sensor
+        sort:
+          method: domain
+      - type: custom:auto-entities
+        card:
+          type: entities
+          state_color: true
+        filter:
+          include:
+            - area: Kitchen
+          exclude:
+            - domain: light
+            - domain: switch
+            - domain: fan
+      - type: grid
+        columns: 4
+        cards:
+          - type: custom:button-card
+            template: view_back_button
+            tap_action:
+              navigation_path: ../../dash-room-by-room/kitchen
+
+  - title: Master
+    path: master
+    icon: mdi:bed-king
+    cards:
+      - type: custom:auto-entities
+        card:
+          type: entities
+          state_color: true
+          title: Bedroom Lights
+          show_header_toggle: false
+        filter:
+          include:
+            - area: Master Bedroom
+          exclude:
+            - domain: alarm_control_panel
+            - domain: automation
+            - domain: input_boolean
+            - domain: remote
+            - domain: script
+            - domain: binary_sensor
+            - domain: climate
+            - domain: cover
+            - domain: device_tracker
+            - domain: lock
+            - domain: media_player
+            - domain: sensor
+        sort:
+          method: domain
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: Bathroom
+          state_color: true
+          show_header_toggle: false
+        filter:
+          include:
+            - area: Master Bathroom
+          exclude: []
+        sort:
+          method: domain
+      - type: custom:auto-entities
+        card:
+          type: entities
+          state_color: true
+          title: Bedroom Config
+          show_header_toggle: false
+        filter:
+          include:
+            - area: Master Bedroom
+            - entity_id:
+                - binary_sensor.parents_asleep
+          exclude:
+            - domain: alarm_control_panel
+            - domain: automation
+            - domain: remote
+            - domain: script
+            - domain: binary_sensor
+            - domain: climate
+            - domain: cover
+            - domain: device_tracker
+            - domain: lock
+            - domain: media_player
+            - domain: sensor
+            - domain: light
+            - domain: switch
+            - domain: fan
+        sort:
+          method: domain
+      - type: custom:auto-entities
+        card:
+          type: entities
+          state_color: true
+          title: Bedroom MISC
+          show_header_toggle: false
+        filter:
+          include:
+            - area: Master Bedroom
+          exclude:
+            - domain: light
+            - domain: switch
+            - domain: fan
+        sort:
+          method: domain
+      - type: entities
+        entities:
+          - entity: binary_sensor.home_occupied
+          - entity: binary_sensor.parents_asleep
+
+      - type: grid
+        columns: 4
+        cards:
+          - type: custom:button-card
+            template: view_back_button
+            tap_action:
+              navigation_path: ../../dash-room-by-room/master
+
+  - title: Family Room
+    path: family
+    panel: false
+    icon: hue:room-lounge
+    cards:
+      - type: custom:auto-entities
+        card:
+          type: entities
+          state_color: true
+          show_header_toggle: false
+          title: Family Room Lights
+        filter:
+          include:
+            - area: Family Room
+          exclude:
+            - domain: alarm_control_panel
+            - domain: input_number
+            - domain: input_select
+            - domain: input_boolean
+            - domain: automation
+            - domain: remote
+            - domain: script
+            - domain: binary_sensor
+            - domain: climate
+            - domain: cover
+            - domain: device_tracker
+            - domain: lock
+            - domain: media_player
+            - domain: sensor
+        sort: domain
+      - type: custom:auto-entities
+        card:
+          type: entities
+          state_color: true
+          show_header_toggle: false
+          title: MISC
+        filter:
+          include:
+            - area: Family Room
+          exclude:
+            - domain: light
+            - domain: switch
+            - domain: fan
+        sort: domain
+      - type: custom:auto-entities
+        card:
+          type: entities
+          state_color: true
+          show_header_toggle: false
+          title: Configurations
+        filter:
+          include:
+            - area: Family Room
+          exclude:
+            - domain: alarm_control_panel
+            - domain: automation
+            - domain: remote
+            - domain: script
+            - domain: binary_sensor
+            - domain: climate
+            - domain: cover
+            - domain: device_tracker
+            - domain: lock
+            - domain: media_player
+            - domain: sensor
+            - domain: light
+            - domain: switch
+            - domain: fan
+        sort: domain
+      - type: grid
+        columns: 4
+        cards:
+          - type: custom:button-card
+            template: view_back_button
+            tap_action:
+              navigation_path: ../../dash-room-by-room/family
+
+  - title: Ethan's Room
+    path: ethan
+    icon: hue:room-nursery
+    cards:
+      - type: custom:auto-entities
+        card:
+          type: entities
+        filter:
+          include:
+            - area: Ethan*
+        name: Details
+      - type: grid
+        columns: 4
+        cards:
+          - type: custom:button-card
+            template: view_back_button
+            tap_action:
+              navigation_path: ../../dash-room-by-room/ethan
+
+  - title: Office
+    path: office
+    icon: mdi:desk
+    cards:
+      - type: custom:auto-entities
+        card:
+          type: entities
+        filter:
+          include:
+            - area: Office
+          exclude:
+            - domain: light
+            - domain: switch
+            - domain: fan
+      - type: custom:auto-entities
+        card:
+          type: entities
+        filter:
+          include:
+            - area: Office
+          exclude:
+            - domain: alarm_control_panel
+            - domain: automation
+            - domain: input_boolean
+            - domain: remote
+            - domain: script
+            - domain: binary_sensor
+            - domain: climate
+            - domain: cover
+            - domain: device_tracker
+            - domain: lock
+            - domain: media_player
+            - domain: sensor
+      - type: grid
+        columns: 4
+        cards:
+          - type: custom:button-card
+            template: view_back_button
+            tap_action:
+              navigation_path: ../../dash-room-by-room/office
+  - title: System
+    icon: mdi:desktop-tower
+    path: system
+    cards:
+      - type: custom:auto-entities
+        card:
+          title: System Devicees
+          type: entities
+          state_color: true
+          show_header_toggle: false
+        filter:
+          include:
+            - area: System
+        sort:
+          method: state
+          reverse: true
+        show_empty: true
+      - type: custom:auto-entities
+        card:
+          type: grid
+        card_param: cards
+        sort:
+          method: state
+          reverse: true
+        filter:
+          include:
+            - domain: sensor
+              attributes:
+                device_class: temperature
+              options:
+                type: custom:button-card
+                show_icon: false
+                show_state: true
+                aspect_ratio: 1/1
+          exclude:
+            - state: "unavailable"
+            - state: "unknown"
+            - name: "*KONA*"
+            - name: "*Hyundia*"
+            - name: "*Pixel*"
+            - name: "*Fire*"
+  - title: Bathroom
+    icon: hue:room-toilet
+    path: toilet
+    cards:
+      - type: custom:auto-entities
+        card:
+          title: Master Bathroom
+          type: entities
+          state_color: true
+          show_header_toggle: false
+        filter:
+          include:
+            - area: Master Bathroom
+        sort:
+          method: state
+          reverse: true
+        show_empty: true
+      - type: custom:auto-entities
+        card:
+          title: Main Bathroom
+          type: entities
+          state_color: true
+          show_header_toggle: false
+        filter:
+          include:
+            - area: Main Bathroom
+        sort:
+          method: state
+          reverse: true
+        show_empty: true
+      - type: custom:auto-entities
+        card:
+          title: Basement Bathroom
+          type: entities
+          state_color: true
+          show_header_toggle: false
+        filter:
+          include:
+            - area: Basement Bathroom
+        sort:
+          method: state
+          reverse: true
+        show_empty: true
+  - title: Garage
+    icon: hue:room-carport
+    path: garage
+    cards:
+      - type: custom:auto-entities
+        card:
+          type: entities
+          state_color: true
+          show_header_toggle: false
+        filter:
+          include:
+            - area: Garage*
+          exclude:
+            - name: "*KONA*"
+            - name: "WLED*"
+
+      - type: custom:auto-entities
+        card:
+          type: entities
+          state_color: true
+          show_header_toggle: false
+          title: House Addressable LEDs
+        filter:
+          include:
+            - name: "WLED Garage*"
+
+      - type: custom:auto-entities
+        card:
+          type: entities
+          state_color: true
+          show_header_toggle: false
+          title: Kona
+        filter:
+          include:
+            - name: "*KONA*"
+
+  # - title: Grouped
+  #   path: groups
+  #   icon: mdi:swap-horizontal
+  #   cards:
+  #     - type: entity-filter
+  #       state_filter:
+  #         - "on"

@@ -1,0 +1,102 @@
+type: custom:button-card
+template: container
+color: "#559900"
+name: Misc. Lights
+custom_fields:
+  buttons:
+    card:
+      type: vertical-stack
+      cards:
+        - type: horizontal-stack
+          cards:
+            - type: vertical-stack
+              cards:
+                - entity: light.half_bathroom_lights_group
+                  name: Half Bath Lights
+                  type: "custom:button-card"
+                  template:
+                    - hue_color_bulb
+                    - view_bulb_downlight
+                  variables:
+                    custom_state_display: |
+                      [[[ 
+                        return ""
+                      ]]]
+                  custom_fields:
+                    power_icon:
+                      card:
+                        entity: light.half_bathroom_lights_group
+                        type: "custom:button-card"
+                        template: view_power_icon_layout
+                    slider:
+                      card:
+                        entity: light.half_bathroom_lights_group
+                        full_row: true
+                        toggle: false
+                        type: "custom:slider-entity-row"
+                - entity: light.master_bedroom_closet_light
+                  name: Master Closet
+                  type: "custom:button-card"
+                  template:
+                    - hue_color_bulb
+                    - view_bulb_downlight
+                  variables:
+                    custom_state_display: |
+                      [[[ 
+                        return ""
+                      ]]]
+                  custom_fields:
+                    power_icon:
+                      card:
+                        entity: light.master_bedroom_closet_light
+                        type: "custom:button-card"
+                        template: view_power_icon_layout
+                    slider:
+                      card:
+                        entity: light.master_bedroom_closet_light
+                        full_row: true
+                        toggle: false
+                        type: "custom:slider-entity-row"
+            - type: vertical-stack
+              cards:
+                - type: horizontal-stack
+                  cards:
+                    - entity: >-
+                        binary_sensor.lumi_lumi_sensor_motion_aq2_72d8f706_occupancy
+                      name: Master Bath Lights
+                      type: custom:button-card
+                      template: alerter
+                      styles:
+                        card:
+                          - height: 100px
+                    - entity: >-
+                        binary_sensor.lumi_lumi_sensor_motion_aq2_72d8f706_ias_zone
+                      name: Master Bath Lights
+                      type: custom:button-card
+                      template: alerter
+                      styles:
+                        card:
+                          - height: 100px
+                - entity: light.master_bathroom_lights_group
+                  name: Master Bath Lights
+                  type: "custom:button-card"
+                  template:
+                    - hue_color_bulb
+                    - view_bulb_downlight
+                  variables:
+                    custom_state_display: |
+                      [[[ 
+                        return ""
+                      ]]]
+                  custom_fields:
+                    power_icon:
+                      card:
+                        entity: light.master_bathroom_lights_group
+                        type: "custom:button-card"
+                        template: view_power_icon_layout
+                    slider:
+                      card:
+                        entity: light.master_bathroom_lights_group
+                        full_row: true
+                        toggle: false
+                        type: "custom:slider-entity-row"

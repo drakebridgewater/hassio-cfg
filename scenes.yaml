@@ -1,0 +1,249 @@
+- id: '1670478394705'
+  name: 'Goodnight '
+  entities:
+    light.bedroom_lights_group:
+      min_color_temp_kelvin: 2000
+      max_color_temp_kelvin: 6535
+      min_mireds: 153
+      max_mireds: 500
+      effect_list:
+      - colorloop
+      supported_color_modes:
+      - color_temp
+      - xy
+      entity_id:
+      - light.master_bedroom_drake_s_dresser
+      - light.drake_s_bedside_light
+      - light.shawna_s_bedside_light
+      icon: mdi:lightbulb-group
+      friendly_name: Bedroom Lights [Group]
+      supported_features: 44
+      state: 'off'
+    light.ambiance_light_group:
+      min_color_temp_kelvin: 2000
+      max_color_temp_kelvin: 6535
+      min_mireds: 153
+      max_mireds: 500
+      effect_list:
+      - Android
+      - Aurora
+      - Blends
+      - Blink
+      - Blink Rainbow
+      - Bouncing Balls
+      - Bpm
+      - Breathe
+      - Candle
+      - Candle Multi
+      - Candy Cane
+      - Chase
+      - Chase 2
+      - Chase 3
+      - Chase Flash
+      - Chase Flash Rnd
+      - Chase Rainbow
+      - Chase Random
+      - Chunchun
+      - Colorful
+      - Colorloop
+      - Colortwinkles
+      - Colorwaves
+      - Dancing Shadows
+      - Dissolve
+      - Dissolve Rnd
+      - Drip
+      - Dynamic
+      - Dynamic Smooth
+      - Fade
+      - Fairy
+      - Fairytwinkle
+      - Fill Noise
+      - Fire 2012
+      - Fire Flicker
+      - Fireworks
+      - Fireworks 1D
+      - Fireworks Starburst
+      - Flow
+      - Glitter
+      - Gradient
+      - Halloween
+      - Halloween Eyes
+      - Heartbeat
+      - ICU
+      - Juggle
+      - Lake
+      - Lighthouse
+      - Lightning
+      - Loading
+      - Meteor
+      - Meteor Smooth
+      - Multi Comet
+      - Noise 1
+      - Noise 2
+      - Noise 3
+      - Noise 4
+      - Noise Pal
+      - Oscillate
+      - Pacifica
+      - Palette
+      - Percent
+      - Phased
+      - Phased Noise
+      - Plasma
+      - Police
+      - Popcorn
+      - Pride 2015
+      - Railway
+      - Rain
+      - Rainbow
+      - Rainbow Runner
+      - Random Colors
+      - Ripple
+      - Ripple Rainbow
+      - Running
+      - Running Dual
+      - Saw
+      - Scan
+      - Scan Dual
+      - Scanner
+      - Scanner Dual
+      - Sine
+      - Sinelon
+      - Sinelon Dual
+      - Sinelon Rainbow
+      - Solid
+      - Solid Glitter
+      - Solid Pattern
+      - Solid Pattern Tri
+      - Sparkle
+      - Sparkle Dark
+      - Sparkle+
+      - Spots
+      - Spots Fade
+      - Stream
+      - Stream 2
+      - Strobe
+      - Strobe Mega
+      - Strobe Rainbow
+      - Sunrise
+      - Sweep
+      - Sweep Random
+      - TV Simulator
+      - Tetrix
+      - Theater
+      - Theater Rainbow
+      - Traffic Light
+      - Tri Fade
+      - Tri Wipe
+      - Twinkle
+      - Twinklecat
+      - Twinklefox
+      - Twinkleup
+      - Two Dots
+      - Washing Machine
+      - Wipe
+      - Wipe Random
+      - colorloop
+      supported_color_modes:
+      - color_temp
+      - rgb
+      - xy
+      entity_id:
+      - light.pantry_left
+      - light.pantry_right
+      - light.stairs_1
+      - light.stairs_2
+      - light.cabinet_lighting
+      - light.awning_left
+      - light.awning_right
+      icon: mdi:lightbulb-group
+      friendly_name: Ambiance Light [Group]
+      supported_features: 44
+      state: 'off'
+    light.tv_lights_group:
+      min_color_temp_kelvin: 1700
+      max_color_temp_kelvin: 6535
+      min_mireds: 153
+      max_mireds: 588
+      effect_list:
+      - Alarm
+      - Candle Flicker
+      - Christmas
+      - Date Night
+      - Disco
+      - Facebook
+      - Fast Random Loop
+      - Happy Birthday
+      - Home
+      - LSD
+      - Movie
+      - Night Mode
+      - Police
+      - Police2
+      - RGB
+      - Random Loop
+      - Romance
+      - Slow Temp
+      - Slowdown
+      - Stop
+      - Strobe color
+      - Strobe epilepsy!
+      - Sunrise
+      - Sunset
+      - Twitter
+      - WhatsApp
+      supported_color_modes:
+      - color_temp
+      - hs
+      - rgb
+      entity_id:
+      - light.yeelight_pulley_lamp
+      - light.yeelight_left_tv
+      - light.entertainment_center_backdrop
+      icon: mdi:lightbulb-group
+      friendly_name: TV Lights [Group]
+      supported_features: 44
+      color_mode: hs
+      brightness: 18
+      hs_color:
+      - 269.882
+      - 100
+      rgb_color:
+      - 126
+      - 0
+      - 255
+      xy_color:
+      - 0.216
+      - 0.077
+      state: 'on'
+    switch.entertainment_center_switch:
+      icon: hue:lightstrip-tv
+      friendly_name: Entertainment Center Switch
+      state: 'off'
+    switch.cabinet_switch:
+      friendly_name: Cabinet switch
+      state: 'off'
+    alarm_control_panel.abode_alarm:
+      code_format:
+      changed_by:
+      code_arm_required: false
+      device_id: area_1
+      battery_backup: false
+      cellular_backup: false
+      attribution: Data provided by goabode.com
+      icon: mdi:security
+      friendly_name: Abode Alarm
+      supported_features: 3
+      state: disarmed
+    switch.desk_grow_left:
+      friendly_name: Left greenhouse plug switch
+      state: 'off'
+  metadata:
+    light.bedroom_lights_group:
+      entity_only: true
+    light.ambiance_light_group:
+      entity_only: true
+    light.tv_lights_group:
+      entity_only: true
+    switch.entertainment_center_switch:
+      entity_only: true

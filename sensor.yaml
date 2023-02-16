@@ -1,0 +1,142 @@
+- platform: template
+  sensors:
+    living_room:
+      value_template: '{{ state_attr("remote.livingroom", "current_activity") }}'
+      friendly_name: "Living Room"
+      
+
+###########################################
+# Crypto
+###########################################
+- platform: cryptoinfo
+  id: "eth price"
+  cryptocurrency_name: "ethereum"
+  currency_name: "usd"
+  multiplier: 1
+  update_frequency: 15
+
+###########################################
+# Power usage
+###########################################
+
+- platform: min_max
+  name: Current Power Hog
+  entity_ids:
+    - sensor.ac_usage
+    - sensor.always_on_usage
+    - sensor.dryer_usage
+    - sensor.fridge_usage
+    - sensor.dryer_usage
+    - sensor.oven_usage
+    - sensor.stove_usage
+
+###########################################
+# Date time display options
+###########################################
+
+- platform: time_date
+  display_options:
+    - "time"
+    - "date"
+    - "date_time"
+    - "date_time_utc"
+    - "date_time_iso"
+    - "time_date"
+    - "time_utc"
+    - "beat"
+
+
+- platform: wirelesstag
+  monitored_conditions:
+    - temperature
+    - humidity
+
+
+
+# - platform: integration
+#   name: Grid Import Energy
+#   source: sensor.grid_import_power
+#   unit_prefix: k
+#   unit_time: h
+#   method: left
+  
+# - platform: integration
+#   name: Grid Export Energy
+#   source: sensor.grid_export_power
+#   unit_prefix: k
+#   unit_time: h
+#   method: left
+
+- platform: template
+  sensors:
+    enphase_status:
+      friendly_name: EnPhase Status
+      value_template: >
+        {% if (states("sensor.envoy_202208027163_current_power_production") | int(default=0) < 30) -%} 
+          Sleep
+        {% elif (states("sensor.envoy_202208027163_current_power_production") | int(default=0) > 29) -%} 
+          Wake     
+        {%- endif %}
+      icon_template: >
+        {% if (states("sensor.envoy_202208027163_current_power_production") | int(default=0) < 30) -%} 
+          mdi:weather-night
+        {% else %}
+          mdi:solar-power
+        {%- endif %}
+        
+    sense_calc_grid_return:
+      friendly_name: Sense Grid Return
+      unit_of_measurement: "kWh"
+      device_class: energy
+      value_template:  >
+        {% set grid_usage = states('sensor.daily_usage') | float - states('sensor.daily_production') | float %}
+        {% if grid_usage < 0 %}
+        {{ grid_usage | abs }}
+        {% else %}
+        {{ 0 }}
+        {% endif %}
+
+    enphase_kwh:
+      friendly_name: EnPhase kWh Generated
+      unit_of_measurement: "kWh"
+      device_class: energy
+      value_template: >
+        {{ int(states("sensor.envoy_202208027163_current_power_production")) | abs / 1000 | float }}
+
+    grid_export: # Instant power export for energy dashboard - goes 0 if currently importing (uses Sense)
+      friendly_name: "Grid Export"
+      unit_of_measurement: 'W'
+      value_template: >
+        {% if (states('sensor.energy_usage') | int(0) - states('sensor.energy_production') | int(0)) > 0 %}
+          0
+        {% else -%}
+          {{ (states('sensor.energy_usage') | int(0) - states('sensor.energy_production') | int(0)) | abs }} 
+        {% endif %}      
+    grid_import: # Instant power import for energy dashboard - goes 0 if currently exporting (uses Sense)
+      friendly_name: "Grid Import"
+      unit_of_measurement: 'W'
+      value_template: >
+        {% if (states('sensor.energy_usage') | int(0) - states('sensor.energy_production') | int(0)) > 0 %}
+          {{ (states('sensor.energy_usage') | int(0) - states('sensor.energy_production') | int(0)) }}
+        {% else -%}
+          0
+        {% endif %}
+ 
+ 
+- platform: integration # Grid energy import for Energy dashboard - from forum
+  source: sensor.grid_import
+  name: grid_import_kwh
+  unit_prefix: k
+  round: 2
+- platform: integration # Grid energy export for Energy dashboard - from forum
+  source: sensor.grid_export
+  name: grid_export_kwh
+  unit_prefix: k
+  round: 2
+- platform: integration
+  source: sensor.envoy_202208027163_current_power_production
+  name: solar_output_production_kwh
+  unit_prefix: k
+  unit_time: s
+  
+ 

@@ -1,0 +1,39 @@
+type: custom:button-card
+template: container
+color: "#009050"
+name: Active Devices
+custom_fields:
+  buttons:
+    card:
+        type: custom:auto-entities
+        title: Power
+        state_color: true
+        show_header_toggle: false
+        show_empty: true
+        card:
+          type: grid
+        card_param: cards
+        sort:
+          method: state
+          reverse: true
+        filter:
+          include:
+            - domain: sensor
+              entity_id: "*_usage"
+              options:
+                type: custom:button-card
+                show_icon: false
+                show_state: true
+                aspect_ratio: 1/1
+          exclude:
+            - state: "unavailable"
+            - state: "unknown"
+            - state: "0"
+            - name: "*KONA*"
+            - name: "*Pixel*"
+            - name: "*Fire*"
+            - entity_id: "*daily*"
+            - entity_id: "*weekly*"
+            - entity_id: "*monthly*"
+            - entity_id: "*yearly*"
+            - entity_id: "*always*"

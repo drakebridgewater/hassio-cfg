@@ -1,0 +1,170 @@
+title: Family
+path: family
+icon: mdi:account-group
+badges:
+  - entity: person.drake_bridgewater
+  - entity: person.shawna
+cards:
+  - type: custom:button-card
+    template: container
+    color: "#ff0000"
+    name: Lights ON
+    custom_fields:
+      buttons:
+        card:
+          type: custom:auto-entities
+          show_empty: false
+          sort:
+            method: none
+          card:
+            type: entities
+            state_color: true
+            show_header_toggle: true
+            title: All Lights Toggle -->
+          filter:
+            exclude:
+              - name: "*Group*"
+            include:
+              - domain: light
+                state: "on"
+                options:
+                  tap_action:
+                    action: toggle
+                  type: custom:slider-button-card
+                  slider:
+                    direction: left-right
+                    background: gradient
+                    use_state_color: true
+                    use_percentage_bg_opacity: false
+                    show_track: false
+                    toggle_on_click: false
+                    force_square: false
+                  show_name: true
+                  show_state: true
+                  compact: true
+                  icon:
+                    show: true
+                    use_state_color: true
+                    tap_action:
+                      action: more-info
+                  action_button:
+                    mode: toggle
+                    icon: mdi:power
+                    show: true
+                    show_spinner: true
+                    tap_action:
+                      action: toggle
+  - type: custom:button-card
+    template: container
+    color: "#ff3f60"
+    name: Group Lights ON
+    custom_fields:
+      buttons:
+        card:
+          type: custom:auto-entities
+          show_empty: false
+          card:
+            type: entities
+            state_color: true
+          filter:
+            include:
+              - domain: light
+                state: "on"
+                options:
+                  tap_action:
+                    action: toggle
+                  type: custom:slider-button-card
+                  slider:
+                    direction: left-right
+                    background: gradient
+                    use_state_color: true
+                    use_percentage_bg_opacity: false
+                    show_track: false
+                    toggle_on_click: false
+                    force_square: false
+                  show_name: true
+                  show_state: true
+                  compact: true
+                  icon:
+                    show: true
+                    use_state_color: true
+                    tap_action:
+                      action: more-info
+                  action_button:
+                    mode: toggle
+                    icon: mdi:power
+                    show: true
+                    show_spinner: true
+                    tap_action:
+                      action: toggle
+                name: "*Group*"
+          sort:
+            method: none
+  - type: custom:button-card
+    template: container
+    color: "#0000FF"
+    custom_fields:
+      buttons:
+        card:
+          type: custom:more-info-card
+          entity: vacuum.roomba
+  - type: custom:button-card
+    template: container
+    color: "#00F0F0"
+    custom_fields:
+      buttons:
+        card:
+          type: entities
+          entities:
+            - type: custom:garbage-collection-card
+              entity: sensor.milwaukie_garbage
+              icon_size: 35px
+              icon_color: green
+              hide_date: true
+            - type: custom:garbage-collection-card
+              entity: sensor.recycling_manager
+              icon_color: "#ff4400"
+              icon_size: 35px
+              hide_date: true
+  - type: custom:button-card
+    template: container
+    color: "#8000f0"
+    custom_fields:
+      buttons:
+        card:
+          type: custom:spotify-card
+          spotify_entity: media_player.spotify_thedrake
+          account: default
+          playlist_type: default
+          display_style: grid
+          grid_covers_per_row: "4"
+          limit: 8
+          grid_show_title: true
+          always_play_random_song: true
+    styles:
+      card:
+        - height: 405px
+  - type: custom:button-card
+    template: container
+    color: "#44aa77"
+    custom_fields:
+      buttons:
+        card:
+          type: custom:more-info-card
+          entity: media_player.marantz_sr5012_2
+  - type: custom:button-card
+    template: container
+    color: "#bb00aa"
+    custom_fields:
+      buttons:
+        card:
+          type: custom:more-info-card
+          entity: media_player.roku_yp005v092093
+  - type: custom:button-card
+    template: container
+    color: "#aaffaa"
+    custom_fields:
+      buttons:
+        card:
+          type: custom:more-info-card
+          entity: media_player.living_room_tv_2

@@ -1,0 +1,115 @@
+- entity: light.tv_lights_group
+  name: All Entertainment Center Lights
+  template: view_lightgroup_button_style
+  type: custom:button-card
+- custom_fields:
+    power_icon:
+      card:
+        entity: light.yeelight_theater_left
+        template: view_power_icon_style
+        type: custom:button-card
+    slider:
+      card:
+        entity: light.yeelight_theater_left
+        full_row: true
+        toggle: false
+        type: custom:slider-entity-row
+  entity: light.yeelight_theater_left
+  template:
+    - hue_color_bulb
+    - view_bulb_downlight
+  type: custom:button-card
+- custom_fields:
+    power_icon:
+      card:
+        entity: light.entertainment_center_backdrop
+        template: view_power_icon_style
+        type: custom:button-card
+    slider:
+      card:
+        entity: light.entertainment_center_backdrop
+        full_row: true
+        toggle: false
+        type: custom:slider-entity-row
+  entity: light.entertainment_center_backdrop
+  template:
+    - hue_led_strip
+    - hue_color_bulb
+  type: custom:button-card
+- custom_fields:
+    power_icon:
+      card:
+        entity: light.yeelight_pulley_lamp
+        template: view_power_icon_style
+        type: custom:button-card
+    slider:
+      card:
+        entity: light.yeelight_pulley_lamp
+        full_row: true
+        toggle: false
+        type: custom:slider-entity-row
+  entity: light.yeelight_pulley_lamp
+  template:
+    - hue_color_bulb
+    - view_bulb_downlight
+  type: custom:button-card
+- type: grid
+  columns: 3
+  cards:
+    - entity: media_player.main_apple_tv
+      type: custom:button-card
+    - entity: binary_sensor.lumi_lumi_sensor_motion_aq2_ias_zone
+      name: Motion
+      template: alerter-dual
+      icon: mdi:alert
+      type: custom:button-card
+      variables:
+        color_seconds: 120
+    - entity: sensor.thermostat_temperature
+      type: custom:button-card
+      template: temperature
+# - type: custom:button-card
+#   template: container
+#   color: purple
+#   name: Scenes
+#   custom_fields:
+#     buttons:
+#       card:
+#         type: grid
+#         columns: 4
+#         cards:
+#           - type: button
+#             entity: scene.colorful_main_1
+#             tap_action:
+#               action: call-service
+#               service: scene.turn_on
+#               service_data:
+#                 entity_id: scene.colorful_main_1
+#           - type: button
+#             entity: scene.main_bright
+#             tap_action:
+#               action: call-service
+#               service: scene.turn_on
+#               service_data:
+#                 entity_id: scene.main_bright
+#           - type: button
+#             entity: scene.main_bright_day
+#             tap_action:
+#               action: call-service
+#               service: scene.turn_on
+#               service_data:
+#                 entity_id: scene.main_bright_day
+#           - type: button
+#             entity: scene.main_dark_night
+#             tap_action:
+#               action: call-service
+#               service: scene.turn_on
+#               service_data:
+#                 entity_id: scene.main_dark_night
+#           - type: button
+#             entity: scene.main_evening
+#             tap_action:
+#               action: call-service
+#               service: scene.turn_on
+#               service_data:
+#                 entity_id: scene.main_evening

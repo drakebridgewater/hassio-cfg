@@ -1,0 +1,95 @@
+- type: grid
+  columns: 2
+  cards:
+    - !include ../complete_btns/hvac_sq_btn.yaml
+    - type: custom:button-card
+      template:
+        - container
+      aspect_ratio: 1/1
+      custom_fields:
+        buttons:
+          card:
+            entity: sensor.slavehassio01_indoor_temperature_sensor
+            type: custom:button-card
+            template: temperature
+            name: Actual Indoor
+            show_name: true
+- type: grid
+  columns: 2
+  cards:
+    - !include ../complete_btns/ambiance_main_sq.yaml
+    - !include ../complete_btns/main_tv_sq.yaml
+
+- type: grid
+  columns: 2
+  cards:
+    - !include ../complete_btns/dinning_room_light_sq.yaml
+    - !include ../complete_btns/ceiling_fan_sq_btn.yaml
+
+- type: grid
+  columns: 2
+  cards:
+    - type: weather-forecast
+      entity: weather.home
+      show_forecast: false
+    - entity: sensor.slavehassio01_outdoor_temperature_sensor
+      type: custom:button-card
+      template: temperature-outdoor
+      name: Actual Outdoor
+
+- type: grid
+  columns: 2
+  cards:
+    - type: vertical-stack
+      cards:
+        - entity: sensor.slavehassio01_ble_temperature_garage_sensor
+          type: custom:button-card
+          template: temperature
+          aspect_ratio: 2/1
+          name: Actual Garage
+        - entity: binary_sensor.garage_access_door_ias_zone
+          template: view_sensor_button
+          aspect_ratio: 2/1
+          name: Entry
+          icon: mdi:door
+          type: custom:button-card
+          variables:
+            color_seconds: 120
+          show_name: true
+    - !include ../complete_btns/garage_door.yaml
+
+- type: custom:button-card
+  template: container
+  color: "#aaffaa"
+  custom_fields:
+    buttons:
+      card:
+        type: custom:more-info-card
+        entity: media_player.main_apple_tv
+
+- type: custom:button-card
+  template: container
+  color: "#44aa77"
+  custom_fields:
+    buttons:
+      card:
+        type: custom:more-info-card
+        entity: media_player.marantz_sr5012_2
+        
+- type: custom:button-card
+  template: container
+  color: "#aaffaa"
+  custom_fields:
+    buttons:
+      card:
+        type: custom:more-info-card
+        entity: media_player.main_apple_tv
+
+# - type: custom:button-card
+#   template: container
+#   color: "#0000FF"
+#   custom_fields:
+#     buttons:
+#       card:
+#         type: custom:more-info-card
+#         entity: vacuum.roomba

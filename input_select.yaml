@@ -1,0 +1,18 @@
+spotify_station:
+  name: 'Select Spotify Station:'
+  options:
+    - 'Engagement Playlist'
+    - 'Piano'
+    - 'Daily 1'
+    - 'Starset Radio'
+    - 'X Ambassadors Mix'
+  initial: 'Daily 1'
+spotify_devices:
+  name: 'Select Device to cast to:'
+  options:
+    - Bedroom
+    - Kitchen
+    - Living Room TV
+    - Everywhere
+  initial: Living Room TV
+

@@ -1,0 +1,414 @@
+button_card_templates: !include_dir_merge_named button-card-templates/
+views:
+  - title: Home
+    type: custom:grid-layout
+    layout:
+      #default
+      grid-gap: var(--custom-layout-card-padding)
+      grid-template-columns: 1fr repeat(3, 2fr) 0
+      grid-template-rows: 0 repeat(2, fit-content(100%)) 0fr
+      grid-template-areas: |
+        "sidebar  .           .       .        ."
+        "sidebar  entry       rooms    outdoor   ."
+        "sidebar  media       cameras  basement    ."
+        "sidebar  footer      footer   footer  ."
+      mediaquery:
+        #phone
+        "(max-width: 800px)":
+          grid-gap: calc(var(--custom-layout-card-padding) * 1.7)
+          grid-template-columns: 0 repeat(1, 1fr) 0
+          grid-template-rows: 0 repeat(8, fit-content(100%)) 0fr
+          grid-template-areas: |
+            ".  .           ."
+            ".  sidebar     ."
+            ".  entry       ."
+            ".  rooms       ."
+            ".  media       ."
+            ".  outdoor     ."
+            ".  cameras     ."
+            ".  basement    ."
+            ".  footer      ."
+            ".  .           ."
+        #portrait
+        "(max-width: 1200px)":
+          grid-gap: var(--custom-layout-card-padding)
+          grid-template-columns: 1fr repeat(1, 2fr) 0
+          grid-template-rows: 0 repeat(9, fit-content(100%)) 0fr
+          grid-template-areas: |
+            "sidebar  .           ."
+            "sidebar  entry       ."
+            "sidebar  rooms       ."
+            "sidebar  media       ."
+            "sidebar  ethan       ."
+            "sidebar  office      ."
+            "sidebar  outdoor     ."
+            "sidebar  cameras        ."
+            "sidebar  basement    ."
+            "sidebar  footer      ."
+            "sidebar  .           ."
+        # Tablet - Amazon Fire
+        "(max-width: 2000px)":
+          #default
+          grid-gap: var(--custom-layout-card-padding)
+          grid-template-columns: 1fr repeat(2, 2fr) 0
+          grid-template-rows: 0 repeat(2, fit-content(100%)) 0fr
+          grid-template-areas: |
+            "sidebar  .           .           ."
+            "sidebar  entry       rooms       ."
+            "sidebar  outdoor     cameras     ."
+            "sidebar  media       basement    ."
+            "sidebar  footer      footer      ."
+    cards:
+      - type: custom:button-card #extra_styles fix
+        styles: {card: [display: none]}
+
+      - type: vertical-stack
+        view_layout:
+          grid-area: sidebar
+        cards:
+          - type: horizontal-stack
+            cards: 
+            - !include complete_btns/security_sensor_btn.yaml
+            - !include complete_btns/hvac_sq_btn.yaml
+          - type: horizontal-stack
+            cards: 
+            - type: custom:restriction-card
+              restrictions:
+                confirm:
+                  text: "Click and hold to find phone"
+              duration: 60
+              card: 
+                type: custom:mushroom-person-card
+                entity: person.drake_bridgewater
+                hold_action:
+                  action: call-service
+                  service: script.find_drakes_phone
+            - type: custom:restriction-card
+              restrictions:
+                confirm:
+                  text: "Click and hold to find phone"
+              duration: 60
+              card: 
+                type: custom:mushroom-person-card
+                entity: person.shawna
+                hold_action:
+                  action: call-service
+                  service: script.find_shawnas_phone
+          - type: horizontal-stack
+            cards: 
+              - type: custom:mushroom-person-card
+                entity: person.guest
+              - type: tile
+                name: Enable Guest Mode
+                entity: input_boolean.guest_mode
+                icon: mdi:account
+                show_entity_picture: false
+                tap_action:
+                  action: toggle
+                icon_tap_action:
+                  action: more-info
+          - type: horizontal-stack
+            cards:
+            - !include complete_btns/garage_door.yaml
+            - !include complete_btns/main_area_lights_btn.yaml
+          
+      - type: grid
+        # title: Entry
+        view_layout:
+          grid-area: entry
+        columns: 2
+        cards:
+          - !include complete_btns/kitchen_sq.yaml
+          - !include complete_btns/living_room_sq.yaml
+          - !include complete_btns/dinning_room_light_sq.yaml
+          - !include complete_btns/ceiling_fan_sq_btn.yaml
+
+      - type: grid
+        # title: Rooms
+        view_layout:
+          grid-area: rooms
+        columns: 2
+        cards:
+          - !include complete_btns/bedroom_btn.yaml
+          - !include complete_btns/family_room_sq.yaml
+          - !include complete_btns/office_lights_sq.yaml
+          - !include complete_btns/ethans_room_sq.yaml
+
+      - type: grid
+        # title: Outdoor
+        view_layout:
+          grid-area: outdoor
+        columns: 2
+        cards:
+          - !include complete_btns/garbage_sq_btn.yaml
+          - !include complete_btns/outdoor_sq.yaml
+          - !include complete_btns/garage_door.yaml
+          - !include complete_btns/greenhouse_btn_sq.yaml
+
+      # - type: grid
+      #   title: Media
+      #   view_layout:
+      #     grid-area: media
+      #   columns: 1
+      #   cards:
+      #     - type: vertical-stack
+      #       cards: 
+      #         - type: grid
+      #           columns: 2
+      #           cards:
+      #             - !include complete_btns/main_tv_sq.yaml
+      #         - entity: media_player.living_room_tv_2
+      #           type: custom:mini-media-player
+      #           info: scroll
+      #           artwork: cover
+      #           hide:
+      #             icon: true
+      #             power_state: false
+      #           shortcuts:
+      #             columns: 4 # Max buttons per row
+      #             buttons:
+      #               - icon: mdi:arrow-up
+      #                 type: playlist
+      #                 id: spotify:playlist:37i9dQZF1EUMDoJuT8yJsl
+      #               - icon: mdi:dice-1
+      #                 type: playlist
+      #                 id: spotify:playlist:37i9dQZF1E35s8KYiQEq6p
+      #               - icon: mdi:seat-recline-extra
+      #                 type: playlist
+      #                 id: spotify:playlist:13MCbvcM4FKIQ9AabRYlKY
+                      
+          # - type: custom:button-card
+          #   template: container
+          #   color: "#aaffaa"
+          #   custom_fields:
+          #     buttons:
+          #       card:
+          #         type: custom:more-info-card
+          #         entity: media_player.living_room_tv_2
+
+          # - type: custom:button-card
+          #   template: container
+          #   color: "#44aa77"
+          #   custom_fields:
+          #     buttons:
+          #       card:
+          #         type: custom:more-info-card
+          #         entity: media_player.marantz_sr5012_2
+
+      # - type: grid
+      #   title: cameras
+      #   view_layout:
+      #     grid-area: cameras
+      #   columns: 2
+      #   cards:
+      #     - type: custom:button-card
+      #       template: container
+      #       color: "#0000FF"
+      #       custom_fields:
+      #         buttons:
+      #           card:
+      #             type: custom:more-info-card
+      #             entity: vacuum.roomba
+
+      - type: grid
+        # title: Cameras
+        view_layout:
+          grid-area: cameras
+        columns: 2
+        cards:
+          - type: custom:frigate-card
+            cameras:
+              - camera_entity: camera.frontdoor
+              - camera_entity: camera.ethans_room_camera
+            view:
+              default: live
+            menu:
+              style: outside
+              alignment: right
+              buttons:
+                frigate:
+                  enabled: true
+            live:
+              preload: false
+              auto_pause: hidden
+              auto_play: visible
+
+        # - type: picture-entity
+        #   entity: camera.blueiris_family_room_tv_new
+        #   name: Family Room
+        # - type: picture-entity
+        #   entity: camera.kitchen
+        #   name: Kitchen
+        # - type: picture-entity
+        #   entity: camera.blueiris_office
+        #   name: Office
+
+
+      # - type: grid
+      #   title: MISC.
+      #   view_layout:
+      #     grid-area: basement
+      #   columns: 1
+      #   cards: 
+      #     - type: weather-forecast
+      #       entity: weather.home
+      #       show_forecast: true
+      
+      # - type: vertical-stack
+      #   view_layout:
+      #     grid-area: top
+      #   cards:
+      #     - !include complete_btns/security_sensor_btn.yaml
+      #     - type: custom:mushroom-person-card
+      #       entity: person.guest
+      #     - type: horizontal-stack
+      #       cards:
+      #         - !include complete_btns/security_sensor_btn.yaml
+      #         - !include complete_btns/hvac_sq_btn.yaml
+      #     - type: horizontal-stack
+      #       cards:
+      #         - !include complete_btns/garage_door.yaml
+      #         - !include complete_btns/main_area_lights_btn.yaml
+      #     - type: horizontal-stack
+      #       cards:
+      #         - !include complete_btns/outdoor_sq.yaml
+      #         - !include complete_btns/bedroom_btn.yaml
+  - title: Conf
+    type: custom:vertical-layout
+    cards:         
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: Motion Trigger Configurations
+          state_color: true
+          show_header_toggle: true
+        filter:
+          include:
+            - name: "/^.* ON Disabled$/"
+          exclude: []
+        sort:
+          method: domain
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: Motion Trigger Illuminace Min
+          state_color: true
+          show_header_toggle: false
+        filter:
+          include:
+            - name: "/^.* illuminance cutoff$/"
+          exclude: []
+        sort:
+          method: domain
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: Motion Trigger Illuminace Min
+          state_color: true
+          show_header_toggle: false
+        filter:
+          include:
+            - domain: sensor
+              attributes:
+                device_class: illuminance
+        sort:
+          method: domain
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: How long to keep lights on without motion
+          state_color: true
+          show_header_toggle: false
+        filter:
+          include:
+            - name: "/^.* OFF Duration$/"
+          exclude: []
+        sort:
+          method: domain
+  - title: Scheduling
+    path: scheduling
+    cards:
+      - type: custom:scheduler-card
+        include:
+          - light
+          - sun
+          - switch
+          - input_boolean
+          - scene
+          - binary_sensor
+          - alarm_control_panel
+          - input_number
+  - title: By Room
+    path: room
+    cards: 
+    - type: area
+      area: kitchen
+      show_camera: true
+      navigation_path: /dash-room-by-room/kitchen
+    - type: area
+      area: living_room
+      show_camera: true
+      navigation_path: /dash-room-by-room/living_room
+    - type: area
+      area: ethan_s_bedroom
+      show_camera: true
+      navigation_path: /dash-room-by-room/ethan_s_bedroom
+    - type: area
+      area: dinning_room
+      show_camera: true
+    - type: area
+      area: master_bedroom
+      show_camera: true
+      navigation_path: /dash-room-by-room/bedroom
+    - type: area
+      area: office
+      show_camera: true
+      navigation_path: /dash-room-by-room/office
+    - type: area
+      area: family_room
+      show_camera: true
+      navigation_path: /dash-room-by-room/family_room
+  - title: By Type
+    path: entity_types
+    cards: 
+      - type: custom:auto-entities
+        show_empty: false
+        card:
+          type: entities
+          title: Lighting Groups
+          show_header_toggle: true
+        filter:
+          include:
+            - domain: light
+              name: /Group/
+              state: "on" # Remember that "on" and "off" are magic in yaml, and must always be quoted
+            - name: /[Ll]ight/
+              domain: Switch
+          exclude:
+            - state: "off"
+            - state: "unavailable"
+            - hidden_by: "user"
+      - type: custom:auto-entities
+        show_empty: false
+        card:
+          type: entities
+          title: Lights
+          show_header_toggle: true
+        sort:
+          method: state
+          reverse: true
+        filter:
+          include:
+            - domain: light
+              options:
+                tap_action:
+                  action: toggle
+            - name: /[Ll]ight/
+              domain: Switch
+              options:
+                tap_action:
+                  action: toggle
+          exclude:
+            - name: /Group/
+            - state: "unavailable"
+            - hidden_by: "user"

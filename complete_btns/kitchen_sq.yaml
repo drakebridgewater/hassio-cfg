@@ -1,0 +1,24 @@
+entity: light.kitchen_lights_group
+name: Kitchen
+icon: mdi:silverware-fork-knife
+type: "custom:button-card"
+tap_action:
+  action: navigate
+  navigation_path: ../dash-room-by-room/kitchen
+template: complete_square_btn_light
+triggers_update:
+  - light.kitchen_lights_group
+custom_fields:
+  s2: ""
+  power_icon:
+    card:
+      entity: light.kitchen_lights_group
+      type: "custom:button-card"
+      template: view_power_icon_style
+  slider:
+    card:
+      entity: light.kitchen_lights_group
+      full_row: true
+      toggle: false
+      hide_state: true
+      type: "custom:slider-entity-row"

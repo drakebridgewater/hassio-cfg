@@ -1,0 +1,14 @@
+sequence:
+  - service: notify.mobile_app_dab_pixel_4a_5g
+    data:
+      message: Home Assistant is searching your phone!
+      title: Home Assistant
+      data:
+        timeout: 20
+        priority: high
+        channel: alarm_stream
+        color: '#2DF56D'
+        visibility: public
+        notification_icon: mdi:cellphone
+mode: single
+

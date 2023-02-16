@@ -1,0 +1,43 @@
+action: fire-dom-event
+browser_mod:
+  service: browser_mod.popup
+  data:
+    title: Climate
+    content:
+      style:
+        hui-vertical-stack-card:
+          $hui-entities-card$: |
+            #states {
+              padding-top: 0.5em;
+              padding-bottom: 0em;
+            }
+      type: vertical-stack
+      cards:
+        - type: thermostat
+          entity: climate.thermostat
+
+        - type: custom:auto-entities
+          card:
+            type: grid
+          card_param: cards
+          sort:
+            method: state
+            reverse: true
+          filter:
+            include:
+              - domain: sensor
+                attributes:
+                  device_class: temperature
+                options:
+                  type: custom:button-card
+                  show_icon: false
+                  show_state: true
+                  aspect_ratio: 1/1
+            exclude:
+              - state: "unavailable"
+              - state: "unknown"
+              - name: "*KONA*"
+              - name: "*Hyundia*"
+              - name: "*Pixel*"
+              - name: "*Fire*"
+              - name: "*Apple*"

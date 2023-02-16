@@ -1,0 +1,93 @@
+- platform: group
+  name: Main Floor Lights [Group]
+  entities:
+    - light.stair_light_1
+    - light.stair_light_2
+    - light.awning_left
+    - light.awning_right
+    - light.pantry_left
+    - light.pantry_right
+    - light.cabinet_lighting
+    - light.vaulted_light
+    - light.upstairs_hallway_wall_switch
+    - light.kitchen_wall_switch_light
+    - light.yeelight_pulley_lamp
+    - light.yeelight_theater_left
+    - light.kitchen_sink_lamp
+- platform: group
+  name: Ambiance Light [Group]
+  entities:
+    - light.pantry_left
+    - light.pantry_right
+    - light.stair_light_1
+    - light.stair_light_2
+    - light.cabinet_lighting
+    - light.awning_left
+    - light.awning_right
+    - light.kitchen_sink_lamp
+- platform: group
+  name: Living Room Light [Group]
+  entities:
+    - light.stair_light_1
+    - light.stair_light_2
+    - light.awning_left
+    - light.awning_right
+- platform: group
+  name: Kitchen Lights [Group]
+  entities:
+    - light.pantry_left
+    - light.pantry_right
+    - light.cabinet_lighting
+    - light.kitchen_sink_lamp
+- platform: group
+  name: Dining Room Lights [Group]
+  entities:
+    - light.vaulted_light
+- platform: group
+  name: TV Lights [Group]
+  entities:
+    - light.yeelight_pulley_lamp
+    - light.yeelight_theater_left
+    - light.entertainment_center_backdrop
+- platform: group
+  name: Awning Lights [Group]
+  entities:
+    - light.awning_left
+    - light.awning_right
+- platform: group
+  name: Stair Lights [Group]
+  entities:
+    - light.stair_light_1
+    - light.stair_light_2
+- platform: group
+  name: Bedroom Lights [Group]
+  entities:
+    - light.master_bedroom_dresser_light
+    - light.drake_s_bedside_light
+    - light.shawna_s_bedside_light
+- platform: group
+  name: Ethan's Lights [Group]
+  entities:
+    - light.ethan_light_1
+    - light.toy_chest_strip
+- platform: group
+  name: Porch Lights [Group]
+  entities:
+    - light.outside_garage_left_light
+    - light.outside_garage_right_light
+    - light.front_porch_light
+- platform: group
+  name: Office Lights [Group]
+  entities:
+    - light.office_desk_left_lamp
+    - light.office_desk_right_lamp
+    - light.office_crafting_desk_lamp
+    - light.office_desk_behind_monitor_lamp
+- platform: group
+  name: Family Room Lights [Group]
+  entities:
+    - light.family_room_shelf_lamp
+    - light.family_room_reading_light
+    - light.shelf_strip
+    - light.family_room_tv_backdrop_2
+

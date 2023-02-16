@@ -1,0 +1,11 @@
+- type: grid
+  columns: 2
+  cards:
+    - type: custom:button-card
+      template: temperature-indoor
+      name: Temperature
+      entity: sensor.slavehassio01_ble_temperature_crawl_space_monitor
+    - type: custom:button-card
+      template: humidity
+      name: Humility
+      entity: sensor.slavehassio01_ble_humidity_crawl_space_monitor

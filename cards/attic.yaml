@@ -1,0 +1,11 @@
+- type: grid
+  columns: 2
+  cards:
+    - type: custom:button-card
+      template: temperature-indoor
+      name: Temperature
+      entity: sensor.acurite_tower_attic_sensor_temperature
+    - type: custom:button-card
+      template: humidity
+      name: Humility 
+      entity: sensor.acurite_tower_attic_sensor_humidity

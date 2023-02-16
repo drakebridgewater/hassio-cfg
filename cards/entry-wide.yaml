@@ -1,0 +1,144 @@
+type: custom:button-card
+template: container
+color: "#990606"
+name: House
+view_layout:
+  grid-area: header
+custom_fields:
+  buttons:
+    card:
+      type: horizontal-stack
+      cards:
+        - type: custom:button-card
+          template: container
+          name: Outside
+          styles:
+            card:
+              - height: 125px
+              - width: 450px
+          custom_fields:
+            buttons:
+              card:
+                type: horizontal-stack
+                cards:
+                  - type: weather-forecast
+                    entity: weather.home
+                    show_forecast: false
+                  - entity: sensor.slavehassio01_indoor_temperature_sensor
+                    type: custom:button-card
+                    template: temperature
+                    name: Current
+                    styles:
+                      card:
+                        - height: 100%
+                        - width: 100px
+                      name:
+                        - color: black
+                    show_name: true
+        - type: vertical-stack
+          cards:
+            - type: custom:button-card
+              template: container
+              styles:
+                card:
+                  - height: 125px
+                  - width: 450px
+              custom_fields:
+                buttons:
+                  card:
+                    type: horizontal-stack
+                    cards:
+                      - entity: binary_sensor.front_door_sensor_ias_zone
+                        template: alerter-dual
+                        name: Entry
+                        icon: mdi:door
+                        type: custom:button-card
+                        variables:
+                          color_seconds: 120
+                        styles:
+                          card:
+                            - height: 100%
+                            - width: 100px
+                      - entity: sensor.front_door_sensor_temperature
+                        type: custom:button-card
+                        template: temperature
+                      - type: picture-entity
+                        entity: camera.doorbell
+            - type: custom:button-card
+              template: container
+              styles:
+                card:
+                  - height: 125px
+                  - width: 450px
+              custom_fields:
+                buttons:
+                  card:
+                    type: horizontal-stack
+                    cards:
+                      - entity: binary_sensor.garage_access_door_ias_zone
+                        template: alerter-dual
+                        name: Entry
+                        icon: mdi:door
+                        type: custom:button-card
+                        variables:
+                          color_seconds: 120
+                        styles:
+                          card:
+                            - height: 123px
+                            - width: 100px
+                      - entity: sensor.garage_access_door_temperature
+                        type: custom:button-card
+                        template: temperature
+                      - type: custom:button-card
+                        entity: switch.garage_door_main
+                        name: Garage
+                        show_icon: true
+                        show_name: true
+                        tap_action:
+                          action: call-service
+                          service: switch.toggle
+                          service_data:
+                            entity_id: switch.garage_door_main
+                        icon: hass:garage
+                        state:
+                          - value: "on"
+                            icon: hass:garage-open
+                            color: rgb(255,0,0)
+                          - value: "off"
+                            color: rgb(68,115,159)
+                        styles:
+                          card:
+                            - height: 100%
+                          lock:
+                            - justify-content: start
+                            - align-items: start
+                            - margin: 0px
+                            - color: red
+                        lock:
+                          enabled: true
+                          duration: 20
+        - type: custom:button-card
+          template: container
+          name: Thermostat
+          styles:
+            card:
+              - width: 450px
+          custom_fields:
+            buttons:
+              card:
+                type: horizontal-stack
+                cards:
+                  - type: custom:simple-thermostat
+                    entity: climate.living_room
+                    layout:
+                      step: row
+                      mode:
+                        icons: true
+                        names: true
+                        headings: false
+                    step_size: "1"
+                    decimals: "0"
+                    header: false
+                    control:
+                      hvac:
+                        some_mode: false

@@ -1,0 +1,26 @@
+entity: light.vaulted_light
+icon: mdi:table-chair
+type: "custom:button-card"
+name: Dinning Room
+tap_action:
+  action: None
+template: complete_square_btn_light
+custom_fields:
+  s2: |
+    [[[ 
+      return " "
+    ]]]
+  power_icon:
+    card:
+      entity: light.vaulted_light
+      type: "custom:button-card"
+      template: view_power_icon_style
+  slider:
+    card:
+      entity: light.vaulted_light
+      full_row: true
+      toggle: false
+      hide_state: true
+      type: "custom:slider-entity-row"
+triggers_update:
+  - light.vaulted_light

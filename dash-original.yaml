@@ -1,0 +1,1261 @@
+title: UI Editor
+icon: mdi:home
+views:
+  - title: Main
+    path: main
+    layout:
+      grid-template-columns: 33% 33% 34%
+      grid-template-rows: auto
+      mediaquery:
+        "(max-width: 1000px)":
+          grid-template-columns: 100%
+        "(max-width: 1600px)":
+          grid-template-columns: 50% 50%
+    theme: ""
+    type: custom:grid-layout
+    badges:
+      - entity: person.drake_bridgewater
+      - entity: person.shawna
+    cards:
+      - type: custom:button-card
+        template: container
+        color: "#990606"
+        name: Entry
+        custom_fields:
+          buttons:
+            card:
+              type: vertical-stack
+              cards:
+                - type: horizontal-stack
+                  cards:
+                    - type: weather-forecast
+                      entity: weather.home
+                      show_forecast: false
+                    - entity: sensor.ble_temperature_outdoor_dual_temperature_monitor
+                      type: custom:button-card
+                      template: temperature
+                      name: Current
+                      styles:
+                        card:
+                          - height: 100%
+                          - width: 100px
+                        name:
+                          - color: black
+                      show_name: true
+                - type: custom:simple-thermostat
+                  entity: climate.living_room
+                  layout:
+                    step: row
+                    mode:
+                      icons: true
+                      names: true
+                      headings: false
+                  step_size: "1"
+                  decimals: "0"
+                  header: false
+                  control:
+                    hvac:
+                      some_mode: false
+      - type: custom:button-card
+        template: container
+        color: "#ff9555"
+        name: Kitchen
+        custom_fields:
+          buttons:
+            card:
+              type: vertical-stack
+              cards:
+                - type: horizontal-stack
+                  cards:
+                    - type: custom:slider-button-card
+                      entity: light.pantry_left
+                      slider:
+                        direction: left-right
+                        background: gradient
+                        use_state_color: true
+                        use_percentage_bg_opacity: false
+                        show_track: false
+                        toggle_on_click: false
+                        force_square: false
+                      show_name: true
+                      show_state: true
+                      compact: false
+                      icon:
+                        show: true
+                        use_state_color: true
+                        tap_action:
+                          action: more-info
+                        icon: hue:iris
+                      action_button:
+                        mode: toggle
+                        icon: mdi:power
+                        show: true
+                        show_spinner: true
+                        tap_action:
+                          action: toggle
+                    - type: custom:slider-button-card
+                      entity: light.pantry_right
+                      slider:
+                        direction: left-right
+                        background: gradient
+                        use_state_color: true
+                        use_percentage_bg_opacity: false
+                        show_track: false
+                        toggle_on_click: false
+                        force_square: false
+                      show_name: true
+                      show_state: true
+                      compact: false
+                      icon:
+                        show: true
+                        use_state_color: true
+                        tap_action:
+                          action: more-info
+                        icon: hue:iris
+                      action_button:
+                        mode: toggle
+                        icon: mdi:power
+                        show: true
+                        show_spinner: true
+                        tap_action:
+                          action: toggle
+                    - type: custom:slider-button-card
+                      entity: light.cabinet_lighting
+                      slider:
+                        direction: left-right
+                        background: gradient
+                        use_state_color: true
+                        use_percentage_bg_opacity: false
+                        show_track: false
+                        toggle_on_click: false
+                        force_square: false
+                      show_name: true
+                      show_state: true
+                      compact: false
+                      icon:
+                        show: true
+                        use_state_color: true
+                        tap_action:
+                          action: more-info
+                        icon: hue:gradient-lightstrip
+                      action_button:
+                        mode: toggle
+                        icon: mdi:power
+                        show: true
+                        show_spinner: true
+                        tap_action:
+                          action: toggle
+                - type: horizontal-stack
+                  cards:
+                    - type: vertical-stack
+                      cards:
+                        - entity: binary_sensor.kitchen_motion_sensor_occupancy
+                          template: alerter-dual
+                          name: Motion
+                          type: custom:button-card
+                          icon: mdi:alert
+                          variables:
+                            color_seconds: 120
+                          styles:
+                            card:
+                              - height: 50px
+                - type: horizontal-stack
+                  cards:
+                    - type: custom:slider-button-card
+                      entity: fan.red_series_fan_light_switch_2
+                      name: Ceiling Fan
+                      slider:
+                        direction: left-right
+                        background: gradient
+                        use_state_color: true
+                        use_percentage_bg_opacity: false
+                        show_track: false
+                        toggle_on_click: false
+                        force_square: false
+                      show_name: true
+                      show_state: true
+                      compact: false
+                      icon:
+                        show: true
+                        use_state_color: true
+                        tap_action:
+                          action: more-info
+                        icon: mdi:fan
+                      action_button:
+                        mode: toggle
+                        icon: mdi:power
+                        show: true
+                        show_spinner: true
+                        tap_action:
+                          action: toggle
+                    - entity: media_player.kitchen_display
+                      type: custom:button-card
+                      styles:
+                        card:
+                          - height: 100px
+                    - type: custom:slider-button-card
+                      entity: light.red_series_fan_light_switch_2
+                      name: Ceiling Fan Light
+                      slider:
+                        direction: left-right
+                        background: gradient
+                        use_state_color: true
+                        use_percentage_bg_opacity: false
+                        show_track: false
+                        toggle_on_click: false
+                        force_square: false
+                      show_name: true
+                      show_state: true
+                      compact: false
+                      icon:
+                        show: true
+                        use_state_color: true
+                        tap_action:
+                          action: more-info
+                        icon: hue:amaze
+                      action_button:
+                        mode: toggle
+                        icon: mdi:power
+                        show: true
+                        show_spinner: true
+                        tap_action:
+                          action: toggle
+      - type: custom:button-card
+        template: container
+        color: "#550195"
+        name: Living Room
+        custom_fields:
+          buttons:
+            card:
+              type: vertical-stack
+              cards:
+                - type: horizontal-stack
+                  cards:
+                    - entity: light.tv_lights_group
+                      name: TV Lamps
+                      type: custom:slider-button-card
+                      slider:
+                        direction: left-right
+                        background: gradient
+                        use_state_color: true
+                        use_percentage_bg_opacity: false
+                        show_track: false
+                        toggle_on_click: false
+                        force_square: false
+                      show_name: true
+                      show_state: true
+                      compact: false
+                      icon:
+                        show: true
+                        use_state_color: true
+                        tap_action:
+                          action: more-info
+                        icon: mdi:lamp
+                      action_button:
+                        mode: toggle
+                        icon: mdi:power
+                        show: true
+                        show_spinner: true
+                        tap_action:
+                          action: toggle
+                    - entity: light.stair_lights_group
+                      name: Stair Lamps
+                      type: custom:slider-button-card
+                      slider:
+                        direction: left-right
+                        background: gradient
+                        use_state_color: true
+                        use_percentage_bg_opacity: false
+                        show_track: false
+                        toggle_on_click: false
+                        force_square: false
+                      show_name: true
+                      show_state: true
+                      compact: false
+                      icon:
+                        show: true
+                        use_state_color: true
+                        tap_action:
+                          action: more-info
+                        icon: mdi:stairs
+                      action_button:
+                        mode: toggle
+                        icon: mdi:power
+                        show: true
+                        show_spinner: true
+                        tap_action:
+                          action: toggle
+                    - type: custom:slider-button-card
+                      entity: light.awning_lights_group
+                      slider:
+                        direction: left-right
+                        background: gradient
+                        use_state_color: true
+                        use_percentage_bg_opacity: false
+                        show_track: false
+                        toggle_on_click: false
+                        force_square: false
+                      show_name: true
+                      show_state: true
+                      compact: false
+                      icon:
+                        show: true
+                        use_state_color: true
+                        tap_action:
+                          action: more-info
+                        icon: hue:gradient-lightstrip
+                      action_button:
+                        mode: toggle
+                        icon: mdi:power
+                        show: true
+                        show_spinner: true
+                        tap_action:
+                          action: toggle
+                - type: horizontal-stack
+                  cards:
+                    - entity: media_player.living_room_tv_2
+                      type: custom:button-card
+                      styles:
+                        card:
+                          - height: 100px
+                    - type: vertical-stack
+                      cards:
+                        - entity: binary_sensor.lumi_lumi_sensor_motion_aq2_ias_zone
+                          name: Motion
+                          template: alerter-dual
+                          icon: mdi:alert
+                          type: custom:button-card
+                          variables:
+                            color_seconds: 120
+                          styles:
+                            card:
+                              - height: 50px
+                        - entity: sensor.living_room_temperature
+                          icon: mdi:ceiling-light
+                          type: custom:button-card
+                          template: temperature
+      - type: custom:button-card
+        template: container
+        color: "#1080ff"
+        name: Office
+        custom_fields:
+          buttons:
+            card:
+              type: vertical-stack
+              cards:
+                - type: horizontal-stack
+                  cards:
+                    - type: vertical-stack
+                      cards:
+                        - type: custom:slider-button-card
+                          entity: light.office_lights_group
+                          slider:
+                            direction: left-right
+                            background: gradient
+                            use_state_color: true
+                            use_percentage_bg_opacity: false
+                            show_track: false
+                            toggle_on_click: false
+                            force_square: false
+                          show_name: true
+                          show_state: true
+                          compact: false
+                          icon:
+                            show: true
+                            use_state_color: true
+                            tap_action:
+                              action: more-info
+                            icon: hue:iris
+                          action_button:
+                            mode: toggle
+                            icon: mdi:power
+                            show: true
+                            show_spinner: true
+                            tap_action:
+                              action: toggle
+                        - type: custom:rgb-light-card
+                          entity: light.office_lights_group
+                          colors:
+                            - brightness: 40
+                              kelvin: 2000
+                              transition: 1
+                            - brightness: 170
+                              kelvin: 3000
+                              transition: 1
+                            - brightness: 255
+                              kelvin: 5000
+                              transition: 1
+                            - brightness: 255
+                              kelvin: 7000
+                              transition: 1
+                    - type: vertical-stack
+                      cards:
+                        - entity: >-
+                            binary_sensor.office_multi_sensor_home_security_motion_detection
+                          template: alerter-dual
+                          name: Motion
+                          icon: mdi:alert
+                          type: custom:button-card
+                          variables:
+                            color_seconds: 120
+                          styles:
+                            card:
+                              - height: 70px
+                        - entity: sensor.office_multi_sensor_air_temperature
+                          type: custom:button-card
+                          template: temperature
+                          styles:
+                            card:
+                              - height: 70px
+
+      - type: custom:button-card
+        template: container
+        color: "#990186"
+        name: Master
+        custom_fields:
+          buttons:
+            card:
+              type: vertical-stack
+              cards:
+                - type: horizontal-stack
+                  cards:
+                    - entity: light.master_bedroom_drake_s_dresser
+                      name: Drake
+                      type: custom:slider-button-card
+                      slider:
+                        direction: left-right
+                        background: gradient
+                        use_state_color: true
+                        use_percentage_bg_opacity: false
+                        show_track: false
+                        toggle_on_click: false
+                        force_square: false
+                      show_name: true
+                      show_state: true
+                      compact: false
+                      icon:
+                        show: true
+                        use_state_color: true
+                        tap_action:
+                          action: more-info
+                        icon: mdi:dresser
+                      action_button:
+                        mode: toggle
+                        icon: mdi:power
+                        show: true
+                        show_spinner: true
+                        tap_action:
+                          action: toggle
+                    - type: vertical-stack
+                      cards:
+                        - entity: sensor.ble_temperature_master_bedroom
+                          template: temperature
+                          type: custom:button-card
+                        - entity: >-
+                            binary_sensor.lumi_lumi_sensor_motion_aq2_68fbf606_ias_zone
+                          template: alerter-dual
+                          name: Motion
+                          type: custom:button-card
+                          icon: mdi:alert
+                          variables:
+                            color_seconds: 120
+                          styles:
+                            card:
+                              - height: 100%
+                        - entity: media_player.ethan_s_bedroom_display
+                          type: custom:button-card
+                          styles:
+                            card:
+                              - height: 50px
+                    - entity: light.shawnas_dresser_lamp
+                      name: Shawna
+                      type: custom:slider-button-card
+                      slider:
+                        direction: left-right
+                        background: gradient
+                        use_state_color: true
+                        use_percentage_bg_opacity: false
+                        show_track: false
+                        toggle_on_click: false
+                        force_square: false
+                      show_name: true
+                      show_state: true
+                      compact: false
+                      icon:
+                        show: true
+                        use_state_color: true
+                        tap_action:
+                          action: more-info
+                        icon: mdi:dresser
+                      action_button:
+                        mode: toggle
+                        icon: mdi:power
+                        show: true
+                        show_spinner: true
+                        tap_action:
+                          action: toggle
+      - type: custom:button-card
+        template: container
+        color: "#009155"
+        name: Ethan
+        custom_fields:
+          buttons:
+            card:
+              type: vertical-stack
+              cards:
+                - type: horizontal-stack
+                  cards:
+                    - type: custom:slider-button-card
+                      entity: light.ethan_s_lights_group
+                      name: Ethan's Lights
+                      slider:
+                        direction: left-right
+                        background: gradient
+                        use_state_color: true
+                        use_percentage_bg_opacity: false
+                        show_track: false
+                        toggle_on_click: false
+                        force_square: false
+                      show_name: true
+                      show_state: true
+                      compact: false
+                      icon:
+                        show: true
+                        use_state_color: true
+                        tap_action:
+                          action: more-info
+                        icon: hue:iris
+                      action_button:
+                        mode: toggle
+                        icon: mdi:power
+                        show: true
+                        show_spinner: true
+                        tap_action:
+                          action: toggle
+                    - entity: media_player.master_bathroom_speaker
+                      type: custom:button-card
+                      styles:
+                        card:
+                          - height: 100px
+                          - width: 100px
+                - type: horizontal-stack
+                  cards:
+                    - type: gauge
+                      min: 60
+                      max: 80
+                      entity: sensor.netatmo_my_home_indoor_noise
+                      severity:
+                        "blue:": 0
+                        white: 69
+                        red: 73
+                    - entity: sensor.ethans_bedroom_temp_monitor_temperature
+                      type: custom:button-card
+                      template: temperature
+                    - entity: sensor.netatmo_my_home_indoor_temperature
+                      type: custom:button-card
+                      template: temperature
+                    - type: gauge
+                      min: 0
+                      max: 1000
+                      entity: sensor.netatmo_my_home_indoor_co2
+                      severity:
+                        green: 0
+                        yellow: 100
+                        red: 150
+      - type: custom:button-card
+        template: container
+        color: "#508f5f"
+        name: Family Room
+        custom_fields:
+          buttons:
+            card:
+              type: vertical-stack
+              cards:
+                - type: horizontal-stack
+                  cards:
+                    - type: custom:slider-button-card
+                      entity: light.family_room_lights_group
+                      slider:
+                        direction: left-right
+                        background: gradient
+                        use_state_color: true
+                        use_percentage_bg_opacity: false
+                        show_track: false
+                        toggle_on_click: false
+                        force_square: false
+                      show_name: true
+                      show_state: true
+                      compact: false
+                      icon:
+                        show: true
+                        use_state_color: true
+                        tap_action:
+                          action: more-info
+                        icon: hue:iris
+                      action_button:
+                        mode: toggle
+                        icon: mdi:power
+                        show: true
+                        show_spinner: true
+                        tap_action:
+                          action: toggle
+                - type: horizontal-stack
+                  cards:
+                    - entity: media_player.chromecastaudio9624
+                      type: custom:button-card
+                      styles:
+                        card:
+                          - height: 100%
+                    - type: vertical-stack
+                      cards:
+                        - entity: >-
+                            binary_sensor.family_room_sensor_home_security_motion_detection
+                          template: alerter-dual
+                          name: Motion
+                          icon: mdi:alert
+                          type: custom:button-card
+                          variables:
+                            color_seconds: 120
+                          styles:
+                            card:
+                              - height: 50px
+                        - entity: binary_sensor.basement_patio_door_ias_zone
+                          template: alerter-dual
+                          name: Basement Door
+                          icon: mdi:door
+                          type: custom:button-card
+                          variables:
+                            color_seconds: 120
+                          styles:
+                            card:
+                              - height: 50px
+                    - entity: sensor.basement_patio_door_temperature
+                      type: custom:button-card
+                      template: temperature
+                    - entity: sensor.family_room_sensor_air_temperature
+                      type: custom:button-card
+                      template: temperature
+      # - type: custom:button-card
+      #   template: container
+      #   color: "#99cc00"
+      #   name: Greenhouses
+      #   custom_fields:
+      #     buttons:
+      #       card:
+      #         type: horizontal-stack
+      #         cards:
+      #           - type: custom:button-card
+      #             template: container
+      #             color: "#00c150"
+      #             name: Left Greenhouse
+      #             custom_fields:
+      #               buttons:
+      #                 card:
+      #                   type: vertical-stack
+      #                   cards:
+      #                     - type: horizontal-stack
+      #                       cards:
+      #                         - entity: sensor.ble_humidity_awning_left_greenhouse
+      #                           type: custom:button-card
+      #                           template: humidity
+      #                           styles:
+      #                             card:
+      #                               - height: 100px
+      #                         - entity: sensor.ble_temperature_awning_left_greenhouse
+      #                           type: custom:button-card
+      #                           template: temperature
+      #                           styles:
+      #                             card:
+      #                               - height: 100%
+      #           - type: custom:button-card
+      #             template: container
+      #             color: "#00b165"
+      #             name: Right Greenhouse
+      #             custom_fields:
+      #               buttons:
+      #                 card:
+      #                   type: vertical-stack
+      #                   cards:
+      #                     - type: horizontal-stack
+      #                       cards:
+      #                         - entity: sensor.ble_humidity_awning_right_greenhouse
+      #                           type: custom:button-card
+      #                           template: humidity
+      #                           styles:
+      #                             card:
+      #                               - height: 100px
+      #                         - entity: sensor.ble_temperature_awning_right_greenhouse
+      #                           type: custom:button-card
+      #                           template: temperature
+      #                           styles:
+      #                             card:
+      #                               - height: 100%
+      - type: custom:button-card
+        template: container
+        color: "#559900"
+        name: Misc. Lights
+        custom_fields:
+          buttons:
+            card:
+              type: vertical-stack
+              cards:
+                - type: horizontal-stack
+                  cards:
+                    - type: vertical-stack
+                      cards:
+                        - entity: light.half_bathroom_lights_group
+                          name: Half Bath Lights
+                          type: custom:slider-button-card
+                          slider:
+                            direction: left-right
+                            background: gradient
+                            use_state_color: true
+                            use_percentage_bg_opacity: false
+                            show_track: false
+                            toggle_on_click: false
+                            force_square: false
+                          show_name: true
+                          show_state: true
+                          compact: false
+                          icon:
+                            show: true
+                            use_state_color: true
+                            tap_action:
+                              action: more-info
+                            icon: mdi:toilet
+                          action_button:
+                            mode: toggle
+                            icon: mdi:power
+                            show: true
+                            show_spinner: true
+                            tap_action:
+                              action: toggle
+                        - entity: light.master_bedroom_closet_light
+                          name: Master Closet
+                          type: custom:slider-button-card
+                          slider:
+                            direction: left-right
+                            background: gradient
+                            use_state_color: true
+                            use_percentage_bg_opacity: false
+                            show_track: false
+                            toggle_on_click: false
+                            force_square: false
+                          show_name: true
+                          show_state: true
+                          compact: false
+                          icon:
+                            show: true
+                            use_state_color: true
+                            tap_action:
+                              action: more-info
+                            icon: mdi:door-open
+                          action_button:
+                            mode: toggle
+                            icon: mdi:power
+                            show: true
+                            show_spinner: true
+                            tap_action:
+                              action: toggle
+                    - type: vertical-stack
+                      cards:
+                        - type: horizontal-stack
+                          cards:
+                            - entity: >-
+                                binary_sensor.lumi_lumi_sensor_motion_aq2_72d8f706_occupancy
+                              name: Master Bath Lights
+                              type: custom:button-card
+                              template: alerter
+                              styles:
+                                card:
+                                  - height: 100px
+                            - entity: >-
+                                binary_sensor.lumi_lumi_sensor_motion_aq2_72d8f706_ias_zone
+                              name: Master Bath Lights
+                              type: custom:button-card
+                              template: alerter
+                              styles:
+                                card:
+                                  - height: 100px
+                        - entity: light.master_bathroom_switch
+                          name: Master Bath Lights
+                          type: custom:slider-button-card
+                          slider:
+                            direction: left-right
+                            background: gradient
+                            use_state_color: true
+                            use_percentage_bg_opacity: false
+                            show_track: false
+                            toggle_on_click: false
+                            force_square: false
+                          show_name: true
+                          show_state: true
+                          compact: false
+                          icon:
+                            show: true
+                            use_state_color: true
+                            tap_action:
+                              action: more-info
+                            icon: mdi:shower
+                          action_button:
+                            mode: toggle
+                            icon: mdi:power
+                            show: true
+                            show_spinner: true
+                            tap_action:
+                              action: toggle
+      # - type: custom:button-card
+      #   template: container
+      #   color: "#103390"
+      #   name: Crawl Space
+      #   custom_fields:
+      #     buttons:
+      #       card:
+      #         type: vertical-stack
+      #         cards:
+      #           - type: horizontal-stack
+      #             cards:
+      #               - type: custom:button-card
+      #                 template: temperature
+      #                 entity: sensor.ble_temperature_crawl_space_temperature_monitor
+      #               - type: custom:button-card
+      #                 template: temperature
+      #                 entity: sensor.ble_humidity_crawl_space_temperature_monitor
+      - type: custom:button-card
+        template: container
+        color: "#009050"
+        name: Power
+        custom_fields:
+          buttons:
+            card:
+              type: vertical-stack
+              cards:
+                - type: horizontal-stack
+                  cards:
+                    - type: gauge
+                      min: 0
+                      entity: sensor.energy_usage
+                      severity:
+                        green: 0
+                        yellow: 1500
+                        red: 5000
+                      max: 15000
+                      unit: kW
+                      name: Current
+                      needle: true
+                    - type: gauge
+                      min: 0
+                      entity: sensor.daily_usage
+                      severity:
+                        green: 0
+                        yellow: 10
+                        red: 20
+                      max: 30
+                      needle: true
+                    - type: gauge
+                      min: 0
+                      entity: sensor.weekly_usage
+                      severity:
+                        green: 0
+                        yellow: 50
+                        red: 75
+                      max: 100
+                      needle: true
+                    - type: gauge
+                      min: 0
+                      entity: sensor.monthly_usage
+                      severity:
+                        green: 0
+                        yellow: 1000
+                        red: 1400
+                      max: 2200
+                      needle: true
+
+  - title: Temperatures
+    path: temperatures
+    layout:
+      max_cols: 1
+      width: 1000
+    type: panel
+    badges: []
+    cards:
+      - type: history-graph
+        entities:
+          - entity: climate.living_room
+          - entity: sensor.netatmo_my_home_indoor_temperature
+          - entity: sensor.office_multi_sensor_air_temperature
+          - entity: sensor.ble_temperature_dual_temperature_monitor
+          - entity: sensor.front_door_sensor_temperature
+          - entity: sensor.garage_access_door_temperature
+          - entity: sensor.kitchen_patio_door_temperature
+        refresh_interval: 0
+        title: "Thermostat "
+        hours_to_show: 12
+  - title: Power
+    path: power
+    badges: []
+    cards:
+      - type: custom:auto-entities
+        card:
+          type: entities
+        filter:
+          include:
+            - entity_id: "*usage"
+              state: ">0"
+          exclude:
+            - state: unavailable
+            - name: Daily|Monthly|Weekly|Yearly|Energy*
+        sort:
+          method: state
+          reverse: true
+          numeric: true
+button_card_templates:
+  standard:
+    color_type: card
+    color: auto
+    size: 80%
+    hold_action:
+      action: more-info
+    styles:
+      card:
+        - padding: 0.2em
+        - "--mdc-ripple-color": yellow
+        - "--mdc-ripple-press-opacity": 0.5
+      icon:
+        - opacity: 0.5
+      name:
+        - font-size: 0.65em
+        - white-space: normal
+      state:
+        - font-size: 0.65em
+        - white-space: normal
+        - value: Unavailable
+          icon: hass:sync-alert
+          color: rgb(100,100,100)
+      label:
+        - font-size: 0.4em
+        - white-space: normal
+  wide:
+    template: standard
+    styles:
+      grid:
+        - position: relative
+        - grid-template-areas: '"i n"'
+        - grid-template-columns: 1fr 1fr
+        - grid-template-rows: 1fr
+  temperature:
+    template: standard
+    color: darker
+    show_state: true
+    show_name: false
+    state:
+      - operator: ">"
+        value: 72
+        icon: mdi:fire
+        show_icon: true
+        styles:
+          state:
+            - color: rgb(255,0,0)
+          icon:
+            - color: rgb(255,0,0)
+      - operator: <
+        value: 68
+        icon: mdi:snowflake
+        show_icon: true
+        styles:
+          state:
+            - color: rgb(0,0,255)
+          icon:
+            - color: rgb(0,0,255)
+      - value: Unknown
+        icon: mdi:alert
+        show_icon: true
+        styles:
+          state:
+            - color: rgb(255,255,255)
+          icon:
+            - color: rgb(255,255,255)
+    styles:
+      card:
+        - height: 100%
+      img_cell:
+        - align-self: start
+        - text-align: start
+      state:
+        - font-size: 25px
+  humidity:
+    template: standard
+    color: darker
+    show_state: true
+    show_name: false
+    state:
+      - operator: ">"
+        value: 60
+        icon: mdi:water-plus
+        show_icon: true
+        styles:
+          state:
+            - color: rgb(255,0,0)
+          icon:
+            - color: rgb(255,0,0)
+      - operator: <
+        value: 20
+        icon: mdi:water-minus
+        show_icon: true
+        styles:
+          state:
+            - color: rgb(0,0,255)
+          icon:
+            - color: rgb(0,0,255)
+      - value: Unknown
+        icon: mdi:alert
+        show_icon: true
+        styles:
+          state:
+            - color: rgb(255,255,255)
+          icon:
+            - color: rgb(255,255,255)
+    styles:
+      card:
+        - height: 100%
+      img_cell:
+        - align-self: start
+        - text-align: start
+      state:
+        - font-size: 25px
+  container:
+    color_type: label-card
+    color: dimgray
+    styles:
+      card:
+        - padding: 0
+      name:
+        - border-radius: 0.4em 0.4em 0 0
+        - padding: 0.1em
+        - width: 100%
+        - font-weight: bold
+      state:
+        - value: Unavailable
+          icon: hass:sync-alert
+          color: rgb(100,100,100)
+      grid:
+        - grid-template-areas: '"i" "n" "buttons"'
+        - grid-template-columns: 1fr
+        - grid-template-rows: 1fr min-content min-content
+      custom_fields:
+        buttons:
+          - background-color: rgba(0,0,0,0.3)
+          - margin: 0
+          - padding: 0.3em
+  option-button:
+    template: standard
+    show_icon: false
+    aspect_ratio: 1/1
+    styles:
+      card:
+        - border-radius: 20%
+  dimmer-option:
+    template: option-button
+    tap_action:
+      action: call-service
+      service: light.turn_on
+      service_data:
+        entity_id: entity
+        brightness: "[[[ return variables.set_value ]]]"
+    state:
+      - operator: default
+        styles:
+          card:
+            - background-color: "[[[ return variables.option_button_off_color ]]]"
+            - color: "[[[ return variables.option_text_off_color ]]]"
+      - operator: template
+        value: >-
+          [[[ return (entity.attributes.brightness||0) >= variables.range_start
+          && (entity.attributes.brightness||0) <= variables.range_stop ]]]
+        styles:
+          card:
+            - background-color: "[[[ return variables.option_button_on_color ]]]"
+            - color: "[[[ return variables.option_text_on_color ]]]"
+  presets:
+    template: standard
+    color_type: icon
+    tap_action:
+      action: none
+    styles:
+      card:
+        - background-color: rgba(0,0,0,0.3)
+      icon:
+        - color: white
+      grid:
+        - grid-template-areas: '"i opt1 opt2 opt3 opt4" "n opt1 opt2 opt3 opt4"'
+        - grid-template-columns: 1fr 1fr 1fr 1fr 1fr
+      custom_fields:
+        opt1:
+          - margin: 0.1em
+          - overflow: visible
+        opt2:
+          - margin: 0.1em
+          - overflow: visible
+        opt3:
+          - margin: 0.1em
+          - overflow: visible
+        opt4:
+          - margin: 0.1em
+          - overflow: visible
+    variables:
+      option_template: dimmer-option
+      option_button_on_color: var(--paper-item-icon-active-color)
+      option_text_on_color: white
+      option_button_off_color: var(--paper-card-background-color)
+      option_text_off_color: white
+      option1_name: Low
+      option1_set_value: 51
+      option1_range_start: 1
+      option1_range_stop: 77
+      option2_name: Med
+      option2_set_value: 102
+      option2_range_start: 78
+      option2_range_stop: 170
+      option3_name: High
+      option3_set_value: 255
+      option3_range_start: 171
+      option3_range_stop: 255
+      option4_name: "Off"
+      option4_set_value: 0
+      option4_range_start: 0
+      option4_range_stop: 0
+    custom_fields:
+      opt1:
+        card:
+          type: custom:button-card
+          entity: "[[[ return variables.entity ]]]"
+          template: "[[[ return variables.option_template ]]]"
+          name: "[[[ return variables.option1_name ]]]"
+          variables:
+            set_value: "[[[ return variables.option1_set_value ]]]"
+            range_start: "[[[ return variables.option1_range_start ]]]"
+            range_stop: "[[[ return variables.option1_range_stop ]]]"
+            option_button_on_color: "[[[ return variables.option_button_on_color ]]]"
+            option_button_off_color: "[[[ return variables.option_button_off_color ]]]"
+            option_text_on_color: "[[[ return variables.option_text_on_color ]]]"
+            option_text_off_color: "[[[ return variables.option_text_off_color ]]]"
+      opt2:
+        card:
+          type: custom:button-card
+          entity: "[[[ return variables.entity ]]]"
+          template: "[[[ return variables.option_template ]]]"
+          name: "[[[ return variables.option2_name ]]]"
+          variables:
+            set_value: "[[[ return variables.option2_set_value ]]]"
+            range_start: "[[[ return variables.option2_range_start ]]]"
+            range_stop: "[[[ return variables.option2_range_stop ]]]"
+            option_button_on_color: "[[[ return variables.option_button_on_color ]]]"
+            option_button_off_color: "[[[ return variables.option_button_off_color ]]]"
+            option_text_on_color: "[[[ return variables.option_text_on_color ]]]"
+            option_text_off_color: "[[[ return variables.option_text_off_color ]]]"
+      opt3:
+        card:
+          type: custom:button-card
+          entity: "[[[ return variables.entity ]]]"
+          template: "[[[ return variables.option_template ]]]"
+          name: "[[[ return variables.option3_name ]]]"
+          variables:
+            set_value: "[[[ return variables.option3_set_value ]]]"
+            range_start: "[[[ return variables.option3_range_start ]]]"
+            range_stop: "[[[ return variables.option3_range_stop ]]]"
+            option_button_on_color: "[[[ return variables.option_button_on_color ]]]"
+            option_button_off_color: "[[[ return variables.option_button_off_color ]]]"
+            option_text_on_color: "[[[ return variables.option_text_on_color ]]]"
+            option_text_off_color: "[[[ return variables.option_text_off_color ]]]"
+      opt4:
+        card:
+          type: custom:button-card
+          entity: "[[[ return variables.entity ]]]"
+          template: "[[[ return variables.option_template ]]]"
+          name: "[[[ return variables.option4_name ]]]"
+          variables:
+            set_value: "[[[ return variables.option4_set_value ]]]"
+            range_start: "[[[ return variables.option4_range_start ]]]"
+            range_stop: "[[[ return variables.option4_range_stop ]]]"
+            option_button_on_color: "[[[ return variables.option_button_on_color ]]]"
+            option_button_off_color: "[[[ return variables.option_button_off_color ]]]"
+            option_text_on_color: "[[[ return variables.option_text_on_color ]]]"
+            option_text_off_color: "[[[ return variables.option_text_off_color ]]]"
+  alerter:
+    template: standard
+    show_last_changed: true
+    color_type: icon
+    extra_styles: |
+      [[[ return `
+        @keyframes pulse {
+          20% {
+            background-color: ${variables.color};
+          }
+        }
+      `]]]
+    variables:
+      color: var(--paper-item-icon-active-color)
+    state:
+      - value: "on"
+        id: value_on
+        styles:
+          card:
+            - animation: pulse 1s infinite
+  rotater:
+    template: standard
+    show_last_changed: false
+    color_type: icon
+    state:
+      - value: "on"
+        id: value_on
+        styles:
+          card:
+            - animation: rotation 2s infinite linear
+  alerter-dual:
+    template: standard
+    show_last_changed: true
+    color_type: icon
+    extra_styles: |
+      [[[ return `
+        @keyframes pulse1 {
+          20% {
+            background-color: ${variables.color_initial};
+          }
+        }
+        @keyframes pulse2 {
+          20% {
+            background-color: ${variables.color_extended};
+          }
+        }
+        @keyframes color {
+          0% {
+            color: unset;
+            opacity: 0.5
+          }
+          99% {
+            color: unset;
+            opacity: 0.5
+          }
+          100% {
+            color: ${variables.color_extended};
+          }
+        }
+      `]]]
+    variables:
+      color_initial: var(--paper-item-icon-active-color)
+      color_extended: rgba(240,52,52, 0.9)
+      color_seconds: 60
+    state:
+      - value: "on"
+        id: value_on
+        styles:
+          card:
+            - animation: >-
+                [[[ return `pulse1 1s ${variables.color_seconds}, pulse2 1s
+                ${variables.color_seconds}s infinite` ]]]
+          icon:
+            - color: "[[[ return variables.color_extended ]]]"
+            - opacity: 1
+            - animation: "[[[ return `color ${variables.color_seconds}s 1` ]]]"
+          name:
+            - font-weight: bold

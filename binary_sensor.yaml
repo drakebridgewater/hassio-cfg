@@ -1,0 +1,74 @@
+- platform: group
+  name: Whole House Motion [Group]
+  entities:
+    - binary_sensor.kitchen_motion_sensor_occupancy
+    - binary_sensor.lumi_lumi_sensor_motion_aq2_68fbf606_ias_zone
+    - binary_sensor.lumi_lumi_sensor_motion_aq2_72d8f706_ias_zone
+    - binary_sensor.ethan_s_bedroom_occupancy
+    - binary_sensor.office_multi_sensor_home_security_motion_detection
+    - binary_sensor.entry_motion_sensor
+    - binary_sensor.hallway_motion_sensor
+    - binary_sensor.basement_motion_detector
+    - binary_sensor.ethans_smartsensor_occupancy
+  device_class: motion 
+- platform: group
+  name: Window Open [Group]
+  entities:
+    - binary_sensor.kitchen_window
+    - binary_sensor.dinning_room_window
+    - binary_sensor.master_bedroom_window
+    - binary_sensor.master_bathroom_window
+    - binary_sensor.office_window
+    - binary_sensor.awning_left_window
+    - binary_sensor.awning_right_window
+    - binary_sensor.ethan_s_bedroom_window
+    - binary_sensor.basement_bathroom_window
+  device_class: window 
+
+- platform: group
+  name: Any Door Open [Group]
+  entities:
+    - binary_sensor.garage_portal
+    - binary_sensor.front_door
+    - binary_sensor.kitchen_door
+    - binary_sensor.basement_sliding_door
+  device_class: door 
+- platform: group
+  name: Main Area Motion [Group]
+  entities:
+    - binary_sensor.kitchen_motion_sensor_occupancy
+    - binary_sensor.entry_motion_sensor
+    - binary_sensor.hallway_motion_sensor
+  device_class: motion 
+
+- platform: template
+  sensors:
+    home_occupied:
+      friendly_name: Home Occupied
+      device_class: presence
+      value_template: >
+        {{ is_state('person.drake_bridgewater', 'home') 
+        or is_state('person.shawna', 'home')
+        or is_state('input_boolean.home_guest_mode', 'on') 
+        or is_state('person.guest', 'home') }}
+      delay_off: 00:01:30
+      
+
+- platform: template
+  sensors:
+    parents_asleep:
+      friendly_name: Parents Asleep
+      value_template: >-
+        [[[
+        if is_state('input_boolean.drake_awake','on') && is_state('input_boolean.shawna_awake', 'on')
+          off
+        elif is_state('input_boolean.drake_awake','off') && is_state('input_boolean.shawna_awake', 'off')
+          on
+        else
+          on
+        endif
+        ]]]
+
+- platform: wirelesstag
+  monitored_conditions:
+    - battery

@@ -1,0 +1,34 @@
+button_card_templates: !include_dir_merge_named button-card-templates/
+views:
+  - type: custom:grid-layout
+    path: 0
+    layout: 
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr
+      grid-template-rows: auto
+      mediaquery:
+        "(max-width: 800px)":
+          grid-template-columns: 1fr 1fr
+        "(max-width: 1400px)":
+          grid-template-columns: 1fr 1fr 1fr 1fr
+    cards:
+
+      - !include complete_btns/security_sensor_btn.yaml
+      - !include complete_btns/hvac_sq_btn.yaml
+      - !include complete_btns/kitchen_sq.yaml
+      - !include complete_btns/living_room_sq.yaml
+
+      - !include complete_btns/dinning_room_light_sq.yaml
+      - !include complete_btns/ceiling_fan_sq_btn.yaml
+      - !include complete_btns/bedroom_btn.yaml
+      - !include complete_btns/ethans_room_sq.yaml
+
+      - !include complete_btns/main_tv_sq.yaml
+      - !include complete_btns/office_lights_sq.yaml
+      - !include complete_btns/family_room_sq.yaml
+      - !include complete_btns/greenhouse_btn_sq.yaml
+      - !include complete_btns/garbage_sq_btn.yaml
+      - !include complete_btns/garage_door.yaml
+      - !include complete_btns/outdoor_sq.yaml
+      - type: weather-forecast
+        entity: weather.home
+        show_forecast: false

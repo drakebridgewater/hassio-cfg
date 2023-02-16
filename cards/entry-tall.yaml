@@ -1,0 +1,121 @@
+type: custom:button-card
+template: container
+color: "#990606"
+name: Entry
+view_layout:
+  grid-area: main
+hold_action:
+  action: navigate
+  navigation_path: /dash-room-by-room/main
+custom_fields:
+  buttons:
+    card:
+      type: vertical-stack
+      cards:
+        - type: horizontal-stack
+          cards:
+            - type: weather-forecast
+              entity: weather.home
+              show_forecast: false
+            - entity: sensor.ble_temperature_outdoor_dual_temperature_monitor
+              type: custom:button-card
+              template: temperature
+              name: Current
+              styles:
+                card:
+                  - height: 100%
+                  - width: 100px
+                name:
+                  - color: black
+              show_name: true
+        - type: horizontal-stack
+          cards:
+            - type: custom:button-card
+              template: container
+              color: "#abd"
+              name: Front Door
+              custom_fields:
+                buttons:
+                  card:
+                    type: vertical-stack
+                    cards:
+                      - type: horizontal-stack
+                        cards:
+                          - entity: binary_sensor.front_door_sensor_ias_zone
+                            template: alerter-dual
+                            name: Entry
+                            icon: mdi:door
+                            type: custom:button-card
+                            variables:
+                              color_seconds: 120
+                            styles:
+                              card:
+                                - height: 100px
+                                - width: 100px
+                          - entity: sensor.front_door_sensor_temperature
+                            type: custom:button-card
+                            template: temperature
+                      - type: horizontal-stack
+                        cards:
+                          - type: picture-entity
+                            entity: camera.doorbell
+            - type: custom:button-card
+              template: container
+              color: "#abd"
+              name: Garage Access
+              custom_fields:
+                buttons:
+                  card:
+                    type: vertical-stack
+                    cards:
+                      - type: horizontal-stack
+                        cards:
+                          - entity: binary_sensor.garage_access_door_ias_zone
+                            template: alerter-dual
+                            name: Entry
+                            icon: mdi:door
+                            type: custom:button-card
+                            variables:
+                              color_seconds: 120
+                            styles:
+                              card:
+                                - height: 100px
+                                - width: 100px
+                          - entity: sensor.garage_access_door_temperature
+                            type: custom:button-card
+                            template: temperature
+                            name: Hallway
+                            styles:
+                              name:
+                                - color: black
+                            show_name: true
+                      - type: horizontal-stack
+                        cards:
+                          - type: custom:button-card
+                            entity: switch.garage_door_main
+                            name: Garage
+                            show_icon: true
+                            show_name: true
+                            tap_action:
+                              action: call-service
+                              service: switch.toggle
+                              service_data:
+                                entity_id: switch.garage_door_main
+                            icon: hass:garage
+                            state:
+                              - value: "on"
+                                icon: hass:garage-open
+                                color: rgb(255,0,0)
+                              - value: "off"
+                                color: rgb(68,115,159)
+                            styles:
+                              card:
+                                - height: 164px
+                              lock:
+                                - justify-content: start
+                                - align-items: start
+                                - margin: 0px
+                                - color: red
+                            lock:
+                              enabled: true
+                              duration: 20

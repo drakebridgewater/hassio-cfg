@@ -1,0 +1,28 @@
+title: Configuration
+path: configuration
+icon: mdi:cog
+badges: []
+cards:
+  - type: custom:auto-entities
+    card:
+      type: entities
+      title: Configuration Options
+      state_color: true
+      show_header_toggle: false
+    filter:
+      include:
+        - domain: input*
+      exclude:
+        - name: Office*|Spotify*
+    sort:
+      method: state
+      reverse: true
+  - type: entities
+    entities:
+      - entity: input_number.office_illuminance_cutoff
+      - entity: input_number.office_lighting_auto_off_duration
+      - entity: input_boolean.office_lighting_automation_off_disabled
+      - entity: input_boolean.office_lighting_automation_on_disabled
+      - entity: input_boolean.office_occupied
+    title: Office Configuration
+    show_header_toggle: false

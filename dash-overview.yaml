@@ -1,0 +1,21 @@
+button_card_templates: !include_dir_merge_named button-card-templates/
+views:
+  - title: Main
+    path: main0.1
+    cards:
+      - !include cards/entry-tall.yaml
+      - !include cards/kitchen.yaml
+      - !include cards/living-room.yaml
+      - !include cards/master.yaml
+      - !include cards/office.yaml
+      - !include cards/ethans-room.yaml
+      - !include cards/family-room.yaml
+      - !include cards/greenhouse.yaml
+      - !include cards/misc-lights.yaml
+      - !include cards/crawl_space.yaml
+      - !include cards/power.yaml
+  - !include views/planning.yaml
+  - !include views/configuration.yaml
+  - !include views/temperatures.yaml
+  - !include views/power.yaml
+  - !include views/admin.yaml

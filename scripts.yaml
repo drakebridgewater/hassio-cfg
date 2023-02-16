@@ -1,0 +1,12 @@
+'1657147956988':
+  alias: New Script
+  sequence:
+  - service: notify.mobile_app_dab_pixel_4a_5g
+    data:
+      message: Hello
+inovelli_blue_led_zigbee2mqtt:
+  alias: Inovelli Blue LED (Zigbee2MQTT)
+  use_blueprint:
+    path: zanix/inovelli_blue_led_zigbee2mqtt.yaml
+  icon: mdi:led-on
+  mode: single

@@ -1,0 +1,31 @@
+- type: history-graph
+  entities:
+    - entity: climate.living_room
+      name: Thermostat
+    - entity: sensor.netatmo_my_home_indoor_temperature
+      name: Ethan
+    - entity: sensor.office_multi_sensor_air_temperature
+      name: Office
+    - entity: sensor.ble_temperature_dual_temperature_monitor
+      name: Indoor
+    - entity: sensor.front_door_sensor_temperature
+      name: Front Door
+    - entity: sensor.garage_access_door_temperature
+      name: Hallway
+    - entity: sensor.kitchen_patio_door_temperature
+      name: Kitchen
+    - entity: sensor.attic_acurite_tower_a_t
+      name: Attic
+    - entity: sensor.basement_patio_door_temperature
+      name: Family Room (door)
+    - entity: sensor.family_room_sensor_air_temperature
+      name: Family Room
+    - entity: sensor.ble_temperature_crawl_space_temperature_monitor
+      name: Crawl Space
+    - entity: sensor.under_kitchen_sink_temperature
+      name: Kitchen Sink
+    - entity: sensor.flo_laundry_temperature
+      name: "Washer & Dryer"
+  refresh_interval: 0
+  title: "Thermostat "
+  hours_to_show: 12

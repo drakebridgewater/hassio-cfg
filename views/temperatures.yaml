@@ -1,0 +1,22 @@
+title: Temperatures
+path: temperatures
+layout:
+  max_cols: 1
+  width: 1000
+type: panel
+badges: []
+cards:
+  - type: history-graph
+    entities:
+      - entity: climate.living_room
+      - entity: sensor.netatmo_my_home_indoor_temperature
+      - entity: sensor.office_multi_sensor_air_temperature
+      - entity: sensor.ble_temperature_dual_temperature_monitor
+      - entity: sensor.front_door_sensor_temperature
+      - entity: sensor.garage_access_door_temperature
+      - entity: sensor.kitchen_patio_door_temperature
+      - entity: sensor.acurite_tower_a_14096_t
+      - entity: sensor.ambientweather_f007th_3_156_t
+    refresh_interval: 0
+    title: "Thermostat "
+    hours_to_show: 12

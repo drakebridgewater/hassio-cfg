@@ -1,0 +1,34 @@
+action: fire-dom-event
+browser_mod:
+  service: browser_mod.popup
+  data:
+    title: Motion Overview
+    content: 
+      style:
+        hui-vertical-stack-card:
+          $: |
+            hui-horizontal-stack-card {
+              padding: 0em 2em 2.3em 2em;
+            }
+          $hui-horizontal-stack-card$: |
+            #root {
+              justify-content: space-evenly;
+            }
+      type: custom:auto-entities
+      card:
+        type: grid
+      card_param: cards
+      filter:
+        sort: state
+        exclude:
+          - name: "*Group*"
+        include:
+          - domain: binary_sensor
+            attributes:
+              device_class: motion
+            options:
+              type: custom:button-card
+              template:
+                - alerter-dual
+                - motion_icon_state
+              show_state: false
