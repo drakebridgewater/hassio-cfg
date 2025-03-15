@@ -1,5 +1,11 @@
 - url: /hacsfiles/lovelace-auto-entities/auto-entities.js
   type: module
+- url: /local/dashboard-styles.css
+  type: css
+- url: /local/dashboard-helpers.js
+  type: module
+- url: /hacsfiles/Bubble-Card/bubble-card.js
+  type: module
 - url: /local/icloud3/icloud3-event-log-card.js
   type: module
 # - url: /hacsfiles/TodoIst-Task-List/todoist-task-list.js
@@ -62,29 +68,25 @@
   type: module
 # - url: /hacsfiles/platinum-weather-card/platinum-weather-card.js
 #   type: module
-- url: /local/bubble-card.js?v=1
-  type: module
 - url: /hacsfiles/lovelace-fold-entity-row/fold-entity-row.js
   type: module
 - url: /hacsfiles/lovelace-horizon-card/lovelace-horizon-card.js
   type: module
 # - url: /local/mini-graph-card/dist/mini-graph-card-bundle.js
-  # type: module
+# type: module
 - url: /hacsfiles/atomic-calendar-revive/atomic-calendar-revive.js
   type: module
-- url: /hacsfiles/circular-timer-card/circular-timer-card.js
-  type: module
+# - url: /hacsfiles/circular-timer-card/circular-timer-card.js
+#   type: module
 - url: /hacsfiles/lovelace-plotly-graph-card/plotly-graph-card.js
   type: module
 - url: /hacsfiles/clock-weather-card/clock-weather-card.js
   type: module
 - url: /hacsfiles/week-planner-card/week-planner-card.js
   type: module
-- url: /hacsfiles/Bubble-Card/bubble-card.js
-  type: module
-- url: /hacsfiles/android-tv-card/universal-remote-card.min.js 
+- url: /hacsfiles/android-tv-card/universal-remote-card.min.js
   type: module
 - url: /hacsfiles/my-cards/my-cards.js
   type: module
-- url: /hacsfiles/custom-brand-icons/custom-brand-icons.js 
+- url: /hacsfiles/custom-brand-icons/custom-brand-icons.js
   type: module

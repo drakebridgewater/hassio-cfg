@@ -4,6 +4,24 @@ path: home
 # background: center / cover no-repeat fixed url('/local/tropical-background.jpg')
 type: custom:grid-layout
 layout: !include ../layouts/grid.yaml
+card_mod:
+  style: |
+    :host {
+      {% if card_type == 'room' %}
+        --bubble-background: var(--{{ room_type }}-color);
+      {% endif %}
+    }
+    
+    .bubble-card {
+      border-radius: var(--bubble-border-radius);
+      padding: var(--bubble-padding);
+      background-color: var(--bubble-background);
+      color: var(--bubble-color);
+    }
+    
+    .bubble-state {
+      opacity: {{ 'var(--disabled-opacity)' if is_state(config.entity, 'unavailable') else '1' }};
+    }
 # badges:
   # - type: custom:mushroom-template-badge
   #   entity: alarm_control_panel.abode_alarm
@@ -196,6 +214,8 @@ cards:
             action: none
           hold_action:
             action: none
+        
+        class: kitchen-card 
         sub_button:
           - entity: light.kitchen_wall_switch
             icon: mdi:lightbulb-fluorescent-tube
@@ -237,62 +257,6 @@ cards:
               .bubble-sub-button-4 > ha-icon {
                 color: ${hass.states['input_boolean.motion_in_main_disabled'].state === 'on' ? 'red' : 'green'} !important;
               } 
-              .bubble-icon-container::after {
-                border-radius: 100%;
-              }
-              .bubble-icon-container {
-                overflow: visible !important;
-              }
-
-              .bubble-entity-picture {
-                border-radius: var(--bubble-icon-border-radius, var(--bubble-border-radius, 50%));
-              }
-              .badge {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                position: absolute;
-                z-index: 1;
-                background: var(--accent-color);
-                color: var(--primary-text-color);
-                font-size: 12px;
-                height: 20px;
-                width: 20px;
-                border-radius: 50%;
-                --mdc-icon-size: 12px;
-                box-sizing: border-box;
-              }
-
-              .badge.text {
-                border-radius: 10px;
-                padding: 0 4px;
-                width: auto;
-                min-width: 20px;
-              }
-
-              .badge.position-1 {
-                top: -4px;
-                right: -4px;
-              }
-
-              .badge.position-2 {
-                bottom: -4px;
-                right: -4px;
-              }
-
-              .badge.position-3 {
-                bottom: -4px;
-                left: -4px;
-              }
-
-              .badge.position-4 {
-                top: -4px;
-                left: -4px;
-              }
-
-              @keyframes blink {
-                50% {opacity: 0;}
-              }
               ${(() => {
                 // Up to 4 badges at the same time in each configs
                 
@@ -705,17 +669,27 @@ cards:
             show_background: true
             show_name: false
         styles: |-
-              ${card.querySelector('.bubble-state').innerText = 
-                hass.formatEntityState(hass.states['sensor.master_bedroom_temperature_temperature']) + " | " + 
-                hass.formatEntityState(hass.states['sensor.master_bedroom_temperature_humidity']) + 
-                (hass.states['binary_sensor.master_bedroom_window'].state === 'on' ? " | Window Opened" : "")}
+              ${window.dashboardHelpers.setStatusText(card, hass, {
+                tempEntity: 'sensor.master_bedroom_temperature_temperature',
+                humidityEntity: 'sensor.master_bedroom_temperature_humidity',
+                windowEntity: 'binary_sensor.master_bedroom_window'
+              })}
               
-              .bubble-sub-button-5 > ha-icon {
-                color: ${hass.states['input_boolean.master_bedroom_lighting_automation_on_disabled'].state === 'on' ? 'red' : 'green'} !important;
-              } 
-              .bubble-sub-button-2 > ha-icon {
-                animation: ${hass.states['fan.master_bedroom_fan'].state === 'on' ? 'slow-rotate 2s linear infinite' : ''};
-              }
+              ${window.dashboardHelpers.setDynamicStyles(card, hass, [
+                {
+                  selector: '.bubble-sub-button-4 > ha-icon',
+                  property: 'color',
+                  entity: 'input_boolean.master_bedroom_lighting_automation_on_disabled',
+                  valueMap: { 'on': 'red', 'off': 'green' }
+                },
+                {
+                  selector: '.bubble-sub-button-2 > ha-icon',
+                  property: 'animation',
+                  entity: 'fan.master_bedroom_fan',
+                  valueMap: { 'on': 'slow-rotate 2s linear infinite', 'off': '' }
+                }
+              ])}
+              
               @keyframes slow-rotate {
                 0% { transform: rotate(0deg); }
                 100% { transform: rotate(360deg); }
@@ -874,6 +848,7 @@ cards:
   #     grid-area: section3
   #   cards:
       - type: custom:bubble-card
+        class: child-room-card 
         card_type: button
         button_type: state
         # card_layout: large-2-rows
@@ -938,167 +913,59 @@ cards:
             state_background: true
             show_background: true
             show_name: false
-        styles: |-
-              ${card.querySelector('.bubble-state').innerText = 
-                hass.formatEntityState(hass.states['sensor.ethans_bedroom_temperature_sensor_temperature']) + " | " + 
-                hass.formatEntityState(hass.states['sensor.ethans_bedroom_temperature_sensor_humidity']) + 
-                (hass.states['binary_sensor.ethan_s_bedroom_window_contact'].state === 'on' ? " | Window Opened" : "")}
-              
-              .bubble-sub-button-5 > ha-icon {
-                color: ${hass.states['input_boolean.ethan_s_bedroom_lighting_automation_on_disabled'].state === 'on' ? 'red' : 'green'} !important;
-              } 
-              .bubble-sub-button-2 > ha-icon {
-                animation: ${hass.states['fan.ethan_s_cribside'].state === 'on' ? 'slow-rotate 2s linear infinite' : ''};
+        styles: |- 
+          /* Set status text with error handling */
+          ${window.dashboardHelpers.setStatusText(card, hass, {
+            tempEntity: 'sensor.ethans_bedroom_temperature_sensor_temperature',
+            humidityEntity: 'sensor.ethans_bedroom_temperature_sensor_humidity',
+            windowEntity: 'binary_sensor.ethan_s_bedroom_window_contact'
+          })}
+          
+          /* Apply dynamic styles based on states */
+          ${window.dashboardHelpers.setDynamicStyles(card, hass, [
+            {
+              selector: '.bubble-sub-button-4 > ha-icon',
+              property: 'color',
+              entity: 'input_boolean.ethan_s_bedroom_lighting_automation_on_disabled',
+              valueMap: { 'on': 'var(--error-color)', 'off': 'var(--success-color)' }
+            },
+            {
+              selector: '.bubble-sub-button-2 > ha-icon',
+              property: 'animation',
+              entity: 'fan.ethan_s_cribside',
+              valueMap: { 
+                'on': 'slow-rotate var(--animation-rotate-duration, 2s) linear infinite', 
+                'off': '' 
               }
-              @keyframes slow-rotate {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
+            }
+          ])}
+          
+          /* Create dynamic badges */
+          ${(() => {
+            const badgesConfig = [
+              { 
+                entity: 'input_boolean.ethan_s_bedroom_lighting_automation_on_disabled', 
+                text: '⚠️',
+                class: 'badge-error',
+                condition: (state) => state === 'on', 
+                animation: 'blink var(--animation-blink-duration, 2s) linear infinite',
+              },
+              { 
+                entity: 'sensor.ethans_bedroom_temperature_sensor_temperature', 
+                icon: 'mdi:snowflake-alert', 
+                class: 'badge-info',
+                condition: (state) => state < 71, 
+              },
+              { 
+                entity: 'sensor.ethans_bedroom_temperature_sensor_temperature', 
+                icon: 'mdi:fire', 
+                class: 'badge-error',
+                condition: (state) => state > 72, 
               }
-              
-              .bubble-icon-container::after {
-                border-radius: 100%;
-              }
-              .bubble-icon-container {
-                overflow: visible !important;
-              }
-
-              .bubble-entity-picture {
-                border-radius: var(--bubble-icon-border-radius, var(--bubble-border-radius, 50%));
-              }
-              .badge {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                position: absolute;
-                z-index: 1;
-                background: var(--accent-color);
-                color: var(--primary-text-color);
-                font-size: 12px;
-                height: 20px;
-                width: 20px;
-                border-radius: 50%;
-                --mdc-icon-size: 12px;
-                box-sizing: border-box;
-              }
-
-              .badge.text {
-                border-radius: 10px;
-                padding: 0 4px;
-                width: auto;
-                min-width: 20px;
-              }
-
-              .badge.position-1 {
-                top: -4px;
-                right: -4px;
-              }
-
-              .badge.position-2 {
-                bottom: -4px;
-                right: -4px;
-              }
-
-              .badge.position-3 {
-                bottom: -4px;
-                left: -4px;
-              }
-
-              .badge.position-4 {
-                top: -4px;
-                left: -4px;
-              }
-
-              @keyframes blink {
-                50% {opacity: 0;}
-              }
-              ${(() => {
-                // Up to 4 badges at the same time in each configs
-                
-                const containersConfig = [
-                
-                  {
-                    // Example for the main icon
-                    containerSelector: '.bubble-icon-container',
-                    badgesConfig: [
-                    
-                      // Show home icon when drake is home
-                      // ${ expand(states.light) |selectattr('state', 'eq', 'on') |selectattr('entity_id', 'in', area_entities('Living Room')) |map(attribute='entity_id') |list | count }}';
-                      { 
-                        entity: 'input_boolean.ethan_s_bedroom_lighting_automation_on_disabled', 
-                        text: '⚠️',
-                        color: 'rgb(200, 0, 0)',
-                        condition: (state) => state === 'on', 
-                        animation: 'blink 2s linear infinite',
-                      },
-                      { 
-                        entity: 'sensor.ethans_bedroom_temperature_sensor_temperature', 
-                        icon: 'mdi:snowflake-alert', 
-                        color: 'rgb(0, 0, 200)',
-                        condition: (state) => state < 69, 
-                      },
-                      { 
-                        entity: 'sensor.ethans_bedroom_temperature_sensor_temperature', 
-                        icon: 'mdi:fire', 
-                        color: 'rgb(200, 0, 0)',
-                        condition: (state) => state > 72, 
-                      },
-                    ],
-                  },
-                  
-                  {
-                    // Example for sub-button(s) (can be empty or removed if not used)
-                    containerSelector: '.bubble-sub-button-1',
-                    badgesConfig: [
-                      // Add badges for this container if necessary
-                    ],
-                  },
-
-                  // Add more configs if needed...
-                ];
-
-                card.badges ||= {};
-                containersConfig.forEach(({ containerSelector, badgesConfig }) => {
-                  const container = card.querySelector(containerSelector);
-                  if (!container) return;
-                  card.badges[containerSelector] ||= [];
-                  badgesConfig.forEach((badgeConfig) => {
-                    const state = hass.states[badgeConfig.entity]?.state;
-                    const existingBadge = card.badges[containerSelector].find(b => 
-                      b.entity === badgeConfig.entity && b.condition.toString() === badgeConfig.condition.toString()
-                    );
-                    if (badgeConfig.condition(state)) {
-                      if (existingBadge) {
-                        if (badgeConfig.text) {
-                          existingBadge.element.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
-                        }
-                      } else {
-                        const el = document.createElement("div");
-                        el.className = `badge position-${card.badges[containerSelector].length + 1} ${badgeConfig.text ? 'text' : ''}`;
-                        if (badgeConfig.color) el.style.backgroundColor = badgeConfig.color;
-                        if (badgeConfig.text) {
-                          el.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
-                        } else if (badgeConfig.icon) {
-                          const icon = document.createElement("ha-icon");
-                          icon.icon = badgeConfig.icon;
-                          el.appendChild(icon);
-                        }
-                        if (badgeConfig.animation) {
-                          el.style.animation = badgeConfig.animation;
-                        }
-                        container.appendChild(el);
-                        card.badges[containerSelector].push({ 
-                          entity: badgeConfig.entity, 
-                          condition: badgeConfig.condition, 
-                          element: el 
-                        });
-                      }
-                    } else if (existingBadge) {
-                      container.removeChild(existingBadge.element);
-                      card.badges[containerSelector] = card.badges[containerSelector].filter(b => b !== existingBadge);
-                    }
-                  });
-                });
-              })()}
+            ];
+            
+            window.dashboardHelpers.createBadges(card, hass, '.bubble-icon-container', badgesConfig);
+          })()}
 
   ####################################################################################
   #########################  Family ##################################################
