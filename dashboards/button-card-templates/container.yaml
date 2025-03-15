@@ -1,0 +1,26 @@
+container-card:
+  color_type: label-card
+  color: dimgray
+  styles:
+    card:
+      - padding: 0
+      - text-align: start
+    name:
+      - justify-self: start
+      - font-weight: bold
+    grid:
+      - grid-template-areas: '
+          "i        n          power_icon1"
+          "buttons  buttons    buttons"'
+      - grid-template-columns: 1fr 6fr 1fr
+      - grid-template-rows: min-content min-content 
+      - color: white
+    custom_fields:
+      buttons:
+        - background-color: rgba(0,0,0,0.3)
+        - margin: 0
+        - padding: 0.3em
+      power_icon1:
+        - justify-self: left
+        - padding: 10%
+        - padding-right: 10px

@@ -1,0 +1,168 @@
+type: custom:stack-in-card
+visibility:
+  - condition: screen
+    media_query: "(min-width: 768px)"
+
+  - condition: or
+    conditions: 
+    - entity: person.drake_bridgewater
+      state_not: "home"
+    - entity: person.shawna
+      state_not: "home"
+    - entity: binary_sensor.ethan_at_daycare
+      state: "on"
+    - entity: binary_sensor.abby_at_daycare
+      state: "on"
+cards:
+  # - type: custom:bubble-card
+  #   card_type: button
+  #   button_type: state
+  #   entity: binary_sensor.home_occupied
+  #   show_icon: false
+  #   show_name: false
+  #   show_state: false
+  #   tap_action:
+  #     action: navigate
+  #     navigation_path: "#people_overview"
+  #   sub_button:
+  #     - entity: person.drake_bridgewater
+  #       show_state: false
+  #       show_name: true
+  #       show_attribute: true
+  #     - entity: person.shawna
+  #       show_name: true
+  #     - entity: binary_sensor.ethan_at_daycare
+  #       show_name: true
+  #       show_state: false
+  #       name: Ethan at Daycare
+  #     - entity: binary_sensor.abby_at_daycare
+  #       show_name: true
+    # card_layout: large-2-rows
+# type: vertical-stack
+# cards:
+#   -  type: horizontal-stack
+#      cards:
+#       - type: custom:bubble-card
+#         card_type: button
+#         button_type: state
+#         entity: person.drake_bridgewater
+#       - type: custom:bubble-card
+#         card_type: button
+#         button_type: state
+#         entity: person.shawna
+#   -  type: horizontal-stack
+#      cards:
+#       - type: custom:bubble-card
+#         card_type: button
+#         button_type: state
+#         entity: binary_sensor.ethan_at_daycare
+#       - type: custom:bubble-card
+#         card_type: button
+#         button_type: state
+#         entity: binary_sensor.abby_at_daycare
+- type: vertical-stack
+  cards:
+  - type: custom:bubble-card
+    card_type: separator
+    button_type: state
+    name: "Who's away "
+    icon: mdi:home-export-outline
+    sub_button:
+      - entity: input_boolean.guest_mode
+        icon: mdi:plus
+        tap_action:
+          action: navigate
+          navigation_path: "#people_overview"
+  - type: custom:mod-card
+    style: |
+      ha-card {
+        margin: 1.5em;
+        padding: 0.5em var(--custom-layout-card-padding) 0 var(--custom-layout-card-padding);
+        align: center
+      }
+    card:
+      type: horizontal-stack
+      cards:
+        - type: conditional
+          conditions:
+            - entity: person.drake_bridgewater
+              state_not: "home"
+          card:
+              type: picture
+              image: /local/media/drake.jpg
+              tap_action:
+                action: navigate
+                navigation_path: "#people_overview"
+              card_mod:
+                style: |
+                  ha-card {
+                    max-height: 50px;
+                    aspect-ratio: 1;
+                    transition: none;
+                    border-radius: 50%;
+                    border: none;
+                  }
+
+        - type: conditional
+          conditions:
+            - entity: person.shawna
+              state_not: "home"
+          card:
+            type: picture
+            image: /local/media/shawna.jpg
+            tap_action:
+              action: navigate
+              navigation_path: "#people_overview"
+            card_mod:
+              style: |
+                ha-card {
+                  transition: none;
+                  border-radius: 50%;
+                  max-height: 50px;
+                  aspect-ratio: 1;
+                  border: none;
+                  background: white;
+                }
+
+        - type: conditional
+          conditions:
+            - entity: binary_sensor.ethan_at_daycare
+              state: "on"
+          card:
+            type: picture
+            image: /local/media/kindercare.png
+            tap_action:
+              action: navigate
+              navigation_path: "#people_overview"
+            card_mod:
+              style: |
+                ha-card {
+                  transition: none;
+                  max-height: 50px;
+                  aspect-ratio: 1;
+                  border-radius: 50%;
+                  border: none;
+                }
+                img {
+                  background: white;
+                }
+
+        - type: conditional
+          conditions:
+            - entity: binary_sensor.abby_at_daycare
+              state: "on"
+          card:
+            type: picture
+            image: /local/media/safeJourney.png
+            tap_action:
+              action: navigate
+              navigation_path: "#people_overview"
+            card_mod:
+              style: |
+                ha-card {
+                  max-height: 50px;
+                  aspect-ratio: 1;
+                  transition: none;
+                  border-radius: 50%;
+                  border: none;
+                }

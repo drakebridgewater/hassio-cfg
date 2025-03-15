@@ -1,0 +1,30 @@
+view_power_icon_style:
+  icon: mdi:power
+  show_name: false
+  show_state: false
+  size: 60%
+  hold_action:
+    action: more-info
+  state:
+    - styles:
+        card:
+          - background-color: grey
+        icon:
+          - color: white
+      value: "off"
+    - styles:
+        card:
+          - background-color: "#0DD58C"
+        icon:
+          - color: white
+      value: "on"
+    - styles:
+        card:
+          - background-color: red
+        icon:
+          - color: white
+      value: unavailable
+  styles:
+    card:
+      - width: 45px
+      - height: 45px

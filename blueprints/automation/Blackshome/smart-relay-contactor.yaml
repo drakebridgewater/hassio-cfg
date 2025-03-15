@@ -1,0 +1,66 @@
+blueprint:
+  name: Smart Relay - Contactor
+  description: "# SMART RELAY - CONTACTOR\nVersion: 1.1\n\nThe most common automation
+    used for a relay - contactor. It has Normally Open & Normally Closed contacts
+    controlled by a switch entity. You can add as many Normally Open & Normally Closed
+    entities as you like.\n\nFor community support see this forum post: [Click Here](https://community.home-assistant.io/t/smart-relay-contactor/481546)\n\nGitHub:
+    [Click Here](https://gist.github.com/Blackshome/dbcd8ebfdd0350144fc1503fc0fa8112)\n\nThe
+    Automation Process:\n - When you turn the switch ON it will turn ON the Normal
+    Open contact and turn OFF the Normally Closed contact.\n - When you turn the switch
+    OFF it will turn OFF the Normal Open contact and turn ON the Normally Closed contact.\n
+    \n **If you like my blueprints, and would like to show your support or just say
+    thank you?** [Click Here](https://community.home-assistant.io/u/blacky/summary)
+    \U0001F642\n"
+  domain: automation
+  input:
+    switch:
+      name: Switch
+      description: The switch that controls the relay. The switch must have an ON
+        / OFF state.
+      selector:
+        entity: {}
+    normally_open:
+      name: Normally Open
+      description: The normally open contact. Select what will be turned ON when the
+        switch is ON
+      selector:
+        entity:
+          multiple: true
+      default: []
+    normally_closed:
+      name: Normally Closed
+      description: The normally closed contact. Select what will be turned ON when
+        the switch is OFF
+      selector:
+        entity:
+          multiple: true
+      default: []
+  source_url: https://gist.github.com/Blackshome/dbcd8ebfdd0350144fc1503fc0fa8112
+variables:
+  switch: !input switch
+  normally_open: !input normally_open
+  normally_closed: !input normally_closed
+trigger:
+- platform: state
+  entity_id: !input switch
+  from: 'off'
+  to: 'on'
+action:
+- alias: Turn ON the normally open
+  service: homeassistant.turn_on
+  entity_id: !input normally_open
+- alias: Turn OFF the normally closed
+  service: homeassistant.turn_off
+  entity_id: !input normally_closed
+- alias: Wait until switch is OFF
+  wait_for_trigger:
+    platform: state
+    entity_id: !input switch
+    from: 'on'
+    to: 'off'
+- alias: Turn OFF the normally open
+  service: homeassistant.turn_off
+  entity_id: !input normally_open
+- alias: Turn ON the normally closed
+  service: homeassistant.turn_on
+  entity_id: !input normally_closed

@@ -1,0 +1,46 @@
+
+type: conditional
+conditions:
+  - condition: state
+    entity: binary_sensor.workday_sensor
+    state: 'on'
+card:
+  type: horizontal-stack
+  cards:
+        - type: custom:mushroom-template-card
+          primary: Sunrise Alarm
+          secondary: |-
+            {% if is_state('input_boolean.drake_s_sunrise_alarm', 'on') %} 
+              {{ states('input_datetime.drake_s_alarm_clock') }} 
+            {% elif is_state('input_boolean.drake_s_sunrise_alarm', 'off') %}
+              OFF (hold to enable)
+            {% endif %}
+          icon: mdi:weather-sunset-up
+          entity: input_datetime.drake_s_alarm_clock
+          icon_color: |-
+            {% if is_state('input_boolean.drake_s_sunrise_alarm', 'on') %} 
+              blue 
+            {% elif is_state('input_boolean.drake_s_sunrise_alarm', 'off') %}
+              red
+            {% endif %}
+          multiline_secondary: true
+          layout: horizontal
+          fill_container: false
+          tap_action:
+            action: more-info
+          hold_action:
+            action: call-service
+            service: input_boolean.toggle
+            target:
+              entity_id: input_boolean.drake_s_sunrise_alarm
+        - type: custom:mushroom-entity-card
+          entity: input_boolean.drake_s_sunrise_alarm
+          tap_action:
+            action: toggle
+          conditions:
+            - condition: state
+              entity: input_boolean.drake_s_sunrise_alarm
+              state: 'on'
+          card:
+            type: custom:mushroom-entity-card
+            entity: input_datetime.drake_s_alarm_clock

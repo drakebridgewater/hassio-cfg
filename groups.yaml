@@ -1,0 +1,7 @@
+persons:
+  name: People
+  entities:
+    - person.drake_bridgewater
+    - person.shawna
+    - person.guest
+    - person.named_guest

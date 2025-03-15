@@ -1,19 +1,395 @@
+
+
+#  _____                    _       _
+# |_   _|__ _ __ ___  _ __ | | __ _| |_ ___    ___  ___ _ __  ___  ___  _ __ ___
+#   | |/ _ \ '_ ` _ \| '_ \| |/ _` | __/ _ \  / __|/ _ \ '_ \/ __|/ _ \| '__/ __|
+#   | |  __/ | | | | | |_) | | (_| | ||  __/  \__ \  __/ | | \__ \ (_) | |  \__ \
+#   |_|\___|_| |_| |_| .__/|_|\__,_|\__\___|  |___/\___|_| |_|___/\___/|_|  |___/
+#                    |_|
+
+
+- platform: next_holiday
+  min_future_holidays: 3
+  custom_holidays:
+      "1-4": "Ethan's Birthday"
+      "2-7": "Drake's Birthday"
+      "2-14": "Valentines Day"
+      "10-13": "Shawna's Birthday"
+      "10-31": "Halloween"
+  sources: 
+    - country: "USA"
+      state: "OR"
+      exclude:
+        - "washington's birthday"
+        - "veterans day"
 - platform: template
   sensors:
     living_room:
-      value_template: '{{ state_attr("remote.livingroom", "current_activity") }}'
-      friendly_name: "Living Room"
-      
+      value_template: '{{ state_attr("media_player.living_room", "media_title") }}'
+      friendly_name: "What's on TV"
 
-###########################################
-# Crypto
-###########################################
-- platform: cryptoinfo
-  id: "eth price"
-  cryptocurrency_name: "ethereum"
-  currency_name: "usd"
-  multiplier: 1
-  update_frequency: 15
+    dishwasher_watts:
+      value_template: >
+        {{ state_attr("switch.dishwasher", "power") | float("Unavailable") }}
+      unit_of_measurement: Watt
+      friendly_name: Dishwasher usage
+
+    count_automations:
+      icon_template: mdi:autorenew
+      value_template: "{{ states.automation | count }}"
+
+    count_scripts:
+      icon_template: mdi:script-text-outline
+      value_template: "{{ states.script| count }}"
+
+    count_device_trackers:
+      icon_template: mdi:map-marker
+      value_template: "{{ states.device_tracker | count }}"
+
+    count_binary_sensors:
+      icon_template: mdi:unfold-more-horizontal
+      value_template: "{{ states.binary_sensor| count }}"
+
+    count_sensors:
+      icon_template: mdi:resistor
+      value_template: "{{ states.sensor | count }}"
+
+    count_switches:
+      icon_template: mdi:light-switch
+      value_template: "{{ states.switch | count }}"
+
+    count_zones:
+      icon_template: mdi:map-marker-radius
+      value_template: "{{ states.zone | count }}"
+
+    count_input_booleans:
+      icon_template: mdi:toggle-switch
+      value_template: "{{ states.input_boolean | count }}"
+
+    count_input_numbers:
+      icon_template: mdi:numeric
+      value_template: "{{ states.input_number | count }}"
+
+    count_input_texts:
+      icon_template: mdi:alphabetical
+      value_template: "{{ states.input_text | count }}"
+
+    count_input_selects:
+      icon_template: mdi:view-list
+      value_template: "{{ states.input_select | count }}"
+
+    count_input_datetimes:
+      icon_template: mdi:calendar-clock
+      value_template: "{{ states.input_datetime | count }}"
+
+    # favorite_playlist_of_nearest_person:
+    #   value_template: >
+    #     {% if is_state_attr("proximity.home", "nearest", "drakenijholt-iphone") %}
+    #     6rPTm9dYftKcFAfwyRqmDZ
+    #     {% else %}
+    #     6rPTm9dYftKcFAfwyRqmDZ
+    #     {% endif %}
+
+    # tv_volume:
+    #   value_template: >
+    #     {{ state_attr("media_player.tv", "volume_level") }}
+    #   unit_of_measurement: "%"
+
+    # kef_ls50_volume:
+    #   value_template: >
+    #     {{ state_attr("media_player.kef_ls50", "volume_level") }}
+    #   unit_of_measurement: "%"
+
+    timestamp_start_of_today:
+      value_template: >
+        {{ as_timestamp(now().replace(hour=0).replace(minute=0).replace(second=0)) }}
+      unit_of_measurement: "s"
+
+    time_at_work_prognosis_drake:
+      value_template: >
+        {% set day = [now().weekday(), 4] | min %}
+        {% set t_total = states("sensor.time_at_work_this_week_drake")|float(0) %}
+        {% set t_today = states("sensor.time_at_work_today_drake")|float(0) %}
+        {% set hours_per_day_including_today = t_total / (day + 1) %}
+        {% set hours_per_day_excluding_today = (t_total - t_today ) / (day + 10**-16) %}
+        {% set seven_oclock = as_timestamp(now().replace(hour=19).replace(minute=0).replace(second=0)) %}
+
+        {% if t_today > hours_per_day_excluding_today
+              or (not is_state("person.drake_bridgewater", "Work") and t_today > 0)
+              or (as_timestamp(now()) > seven_oclock)
+              or day == 0
+              or now().weekday() > 4
+              or 5 * hours_per_day_including_today > 40 %}
+          {% set hours_per_day = hours_per_day_including_today %}
+        {% else %}
+          {% set hours_per_day = hours_per_day_excluding_today %}
+        {% endif %}
+
+        {{ (5 * hours_per_day)|round(2) }}
+      unit_of_measurement: h
+
+    time_at_work_prognosis_shawna:
+      value_template: >
+        {% set day = [now().weekday(), 4] | min %}
+        {% set t_total = states("sensor.time_at_work_this_week_shawna")|float(0) %}
+        {% set t_today = states("sensor.time_at_work_today_shawna")|float(0) %}
+        {% set hours_per_day_including_today = t_total / (day + 1) %}
+        {% set hours_per_day_excluding_today = (t_total - t_today ) / (day + 10**-16) %}
+        {% set seven_oclock = as_timestamp(now().replace(hour=19).replace(minute=0).replace(second=0)) %}
+
+        {% if t_today > hours_per_day_excluding_today
+              or (not is_state("person.shawna", "Work") and t_today > 0)
+              or (as_timestamp(now()) > seven_oclock)
+              or day == 0
+              or now().weekday() > 4
+              or 5 * hours_per_day_including_today > 40 %}
+          {% set hours_per_day = hours_per_day_including_today %}
+        {% else %}
+          {% set hours_per_day = hours_per_day_excluding_today %}
+        {% endif %}
+
+        {{ (5 * hours_per_day)|round(2) }}
+      unit_of_measurement: h
+
+    n_days_last_month:
+      value_template: >
+        {% set start_of_month = now().replace(day=1) %}
+        {% set start_of_last_month = start_of_month.replace(month=now().month-1) %}
+        {{ ((start_of_month - start_of_last_month).total_seconds() / 86400) | round }}
+
+    # daily_power:
+    #   friendly_name: Daily Power
+    #   unit_of_measurement: kWh
+    #   value_template: >
+    #     {{ states("sensor.daily_power_offpeak")|float(0) + states("sensor.daily_power_peak")|float(0) }}
+
+    # monthly_power:
+    #   friendly_name: Monthly Power
+    #   unit_of_measurement: kWh
+    #   value_template: >
+    #     {{ states("sensor.monthly_power_offpeak")|float(0) + states("sensor.monthly_power_peak")|float(0) }}
+
+    # monthly_power_last_period:
+    #   friendly_name: Monthly Power (Last period)
+    #   unit_of_measurement: kWh
+    #   value_template: >
+    #     {{ state_attr("sensor.monthly_power_offpeak", "last_period")|float(0) + state_attr("sensor.monthly_power_peak", "last_period")|float(0) }}
+
+    # monthly_power_cost_last_period:
+    #   friendly_name: Monthly Power (Last period)
+    #   unit_of_measurement: €
+    #   value_template: >
+    #     {{ (state_attr("sensor.monthly_power_offpeak", "last_period")|float(0) * states("sensor.electricity_price_offpeak")|float(0)
+    #         + state_attr("sensor.monthly_power_peak", "last_period")|float(0) * states("sensor.electricity_price_peak")|float(0)) | round(2) }}
+
+    # gas_price:
+    #   friendly_name: Gas price
+    #   unit_of_measurement: €/m³
+    #   value_template: >
+    #     {{ 0.7884 }}
+
+    # daily_gas_cost:
+    #   friendly_name: Daily Power
+    #   unit_of_measurement: €
+    #   value_template: >
+    #     {{ (states("sensor.daily_gas")|float(0) * 0.7884) | round(2) }}
+
+    # monthly_gas_cost:
+    #   friendly_name: Monthly Power
+    #   unit_of_measurement: €
+    #   value_template: >
+    #     {{ (states("sensor.monthly_gas")|float(0) * 0.7884) | round(2) }}
+
+    # monthly_gas_cost_last_period:
+    #   friendly_name: Monthly Power (Last period)
+    #   unit_of_measurement: €
+    #   value_template: >
+    #     {{ (state_attr("sensor.monthly_gas", "last_period")|float(0) * 0.7884) | round(2) }}
+
+    # electricity_price_offpeak:
+    #   friendly_name: Electricity price
+    #   unit_of_measurement: €/kWh
+    #   value_template: >
+    #     {{ 0.2307 }}
+
+    # electricity_price_peak:
+    #   friendly_name: Electricity price
+    #   unit_of_measurement: €/kWh
+    #   value_template: >
+    #     {{ 0.2479 }}
+
+    # daily_power_cost:
+    #   friendly_name: Daily Power
+    #   unit_of_measurement: €
+    #   value_template: >
+    #     {{ (states("sensor.daily_power_offpeak")|float(0) * states("sensor.electricity_price_offpeak")|float(0)
+    #         + states("sensor.daily_power_peak")|float(0) * states("sensor.electricity_price_peak")|float(0)) | round(2) }}
+
+    # monthly_power_cost:
+    #   friendly_name: Monthly Power
+    #   unit_of_measurement: €
+    #   value_template: >
+    #     {{ (states("sensor.monthly_power_offpeak")|float(0) * states("sensor.electricity_price_offpeak")|float(0)
+    #         + states("sensor.monthly_power_peak")|float(0) * states("sensor.electricity_price_peak")|float(0)) | round(2) }}
+
+    # daily_energy_fixed_cost:
+    #   friendly_name: Fixed daily energy cost (gas and power)
+    #   unit_of_measurement: €
+    #   # XXX: remove _ when 0.117
+    #   value_template: >
+    #     {% set _ = states("sensor.date") %}
+    #     {{ (0.1480 + 0.3554) + (0.1480 + 0.6293) }}
+
+    # monthly_energy_fixed_cost:
+    #   friendly_name: Fixed daily energy cost (gas and power)
+    #   unit_of_measurement: €
+    #   value_template: >
+    #     {{ states("sensor.daily_energy_fixed_cost")|float(0) * now().day }}
+
+    # monthly_energy_fixed_cost_last_period:
+    #   friendly_name: Fixed energy cost (gas and power) (Last period)
+    #   unit_of_measurement: €
+    #   value_template: >
+    #     {{ states("sensor.daily_energy_fixed_cost")|float(0) * states("sensor.n_days_last_month")|int(0) }}
+
+    # nearest_iphone_notify:
+    #   friendly_name: Nearest iPhone's notify service
+    #   value_template: >
+    #     {% if is_state("person.drake_bridgewater", "home") and is_state("person.shawna", "home") %}
+    #       notify.all_iphones
+    #     {% elif is_state_attr("proximity.home", "nearest", "drakenijholt-iphone") %}
+    #       notify.iphone_drake
+    #     {% else %}
+    #       notify.mobile_app_shawna_iphone
+    #     {% endif %}
+
+    half_hour_before_alarm:
+      friendly_name: Half an hour before alarm
+      value_template: >
+        {% set t_alarm = state_attr("input_datetime.drake_s_alarm_clock", "timestamp") | int %}
+        {% set t_start = states("sensor.timestamp_start_of_today") | int %}
+        {% set half_hour_before_alarm = t_alarm + t_start - 60 * 30 %}
+        {{ half_hour_before_alarm | timestamp_custom("%H:%M", True) }}
+
+    ten_minutes_before_alarm:
+      friendly_name: Ten minutes before alarm
+      value_template: >
+        {% set t_alarm = state_attr("input_datetime.drake_s_alarm_clock", "timestamp") | int %}
+        {% set t_start = states("sensor.timestamp_start_of_today") | int %}
+        {% set before_alarm = t_alarm + t_start - 60 * 10 %}
+        {{ before_alarm | timestamp_custom("%H:%M", True) }}
+
+    hours_outside_per_day_shawna:
+      friendly_name: Hours outside per day (shawna)
+      value_template: >
+        {% set value = state_attr("sensor.quarantine_meter_shawna", "value") %}
+        {% if value != None %}
+
+        {% set nargs = 1 + (value | length) - (value.replace(' ', '') | length) %}
+        {% if nargs < 2 %}{% set value = "0h " ~ value %}{% endif %}
+        {% if nargs < 3 %}{% set value = "0d " ~ value %}{% endif %}
+
+        {% set d, h, m = value.split() %}
+        {% set d, h, m = d[:-1] | int, h[:-1] | int, m[:-1] | int %}
+        {% set hours_outside = ((14 - d) * 86400 - h * 3600 - m * 60) / 3600 %}
+        {{ (hours_outside / 14) | round(1) }}
+        {% endif %}
+
+    hours_outside_per_day_drake:
+      friendly_name: Hours outside per day (drake)
+      value_template: >
+        {% set value = state_attr("sensor.quarantine_meter_drake", "value") %}
+        {% if value != None %}
+
+        {% set nargs = 1 + (value | length) - (value.replace(' ', '') | length) %}
+        {% if nargs < 2 %}{% set value = "0h " ~ value %}{% endif %}
+        {% if nargs < 3 %}{% set value = "0d " ~ value %}{% endif %}
+
+        {% set d, h, m = value.split() %}
+        {% set d, h, m = d[:-1] | int, h[:-1] | int, m[:-1] | int %}
+        {% set hours_outside = ((14 - d) * 86400 - h * 3600 - m * 60) / 3600 %}
+        {{ (hours_outside / 14) | round(1) }}
+        {% endif %}
+
+    # lights_on_total_hours:
+    #   unit_of_measurement: h
+    #   value_template: >
+    #     {{ states('sensor.hours_bedroom_lights_have_been_on_last_7_days')|float(0) * 7
+    #         + states('sensor.hours_living_room_lights_have_been_on_last_7_days')|float(0) * 5
+    #         + states('sensor.hours_toilet_light_has_been_on_last_7_days')|float(0) * 1
+    #         + states('sensor.hours_kitchen_lights_have_been_on_last_7_days')|float(0) * 2
+    #         + states('sensor.hours_hall_lights_have_been_on_last_7_days')|float(0) * 5
+    #         + states('sensor.hours_bathroom_light_has_been_on_last_7_days')|float(0) * 1 }}
+
+    # lights_on_total_kwh:
+    #   unit_of_measurement: h
+    #   value_template: >
+    #     {{ states('sensor.lights_on_total_hours')|float(0) * 5.4 / 1000 }}
+    
+    office_temperature:
+      friendly_name: Office Temperature [Avg]
+      unit_of_measurement: F
+      value_template: >
+        {% set temp_sum = expand(area_entities('Office')) | selectattr('attributes.device_class', 'eq', 'temperature')  |  map(attribute='state') | map('float') | sum | round(1) %}
+        {% set temp_count = expand(area_entities('Office')) | selectattr('attributes.device_class', 'eq', 'temperature')  |  map(attribute='state') | list | length %}
+        {{ ( temp_sum / temp_count ) | round(1) }}
+    
+    family_room_temperature:
+      friendly_name: Family Room Temperature [Avg]
+      unit_of_measurement: F
+      value_template: >
+        {% set temp_sum = expand(area_entities('Family Room')) | selectattr('attributes.device_class', 'eq', 'temperature')  |  map(attribute='state') | map('float') | sum | round(1) %}
+        {% set temp_count = expand(area_entities('Family Room')) | selectattr('attributes.device_class', 'eq', 'temperature')  |  map(attribute='state') | list | length %}
+        {{ ( temp_sum / temp_count ) | round(1) }}
+    
+    living_room_temperature:
+      friendly_name: Living Room Temperature [Avg]
+      unit_of_measurement: F
+      value_template: >
+        {% set temp_sum = expand(area_entities('Living Room')) | selectattr('attributes.device_class', 'eq', 'temperature')  |  map(attribute='state') | map('float') | sum | round(1) %}
+        {% set temp_count = expand(area_entities('Living Room')) | selectattr('attributes.device_class', 'eq', 'temperature')  |  map(attribute='state') | list | length %}
+        {{ ( temp_sum / temp_count ) | round(1) }}
+    
+    master_bedroom_temperature:
+      friendly_name: Master Bedroom Temperature [Avg]
+      unit_of_measurement: F
+      value_template: >
+        {% set temp_sum = expand(area_entities('Master Bedroom')) | selectattr('attributes.device_class', 'eq', 'temperature')  |  map(attribute='state') | map('float') | sum | round(1) %}
+        {% set temp_count = expand(area_entities('Master Bedroom')) | selectattr('attributes.device_class', 'eq', 'temperature')  |  map(attribute='state') | list | length %}
+        {{ ( temp_sum / temp_count ) | round(1) }}
+    
+    ethan_bedroom_temperature:
+      friendly_name: Ethan's Bedroom Temperature [Avg]
+      unit_of_measurement: F
+      value_template: >
+        {% set temp_sum = expand(area_entities("Ethan's Bedroom")) | selectattr('attributes.device_class', 'eq', 'temperature')  |  map(attribute='state') | map('float') | sum | round(1) %}
+        {% set temp_count = expand(area_entities("Ethan's Bedroom")) | selectattr('attributes.device_class', 'eq', 'temperature')  |  map(attribute='state') | list | length %}
+        {{ ( temp_sum / temp_count ) | round(1) }}
+   
+
+
+
+- platform: plex_recently_added
+  name: Recently Added Movies # will create sensor.recently_added_movies
+  token: !secret x_plex_token
+  host: !secret host_ip
+  port: 32400
+  section_types:
+    - movie
+- platform: plex_recently_added
+  name: Recently Added TV  # will create sensor.recently_added_tv
+  token: !secret x_plex_token
+  host: !secret host_ip
+  port: 32400
+  section_types:
+    - show
+- platform: plex_recently_added
+  name: Plex On Deck
+  token: !secret x_plex_token
+  host: !secret host_ip
+  port: 32400
+  on_deck: true
+
 
 ###########################################
 # Power usage
@@ -30,6 +406,37 @@
     - sensor.oven_usage
     - sensor.stove_usage
 
+
+###########################################
+# Indoor Temperatures
+###########################################
+- platform: min_max
+  name: Max Temperature Indoors
+  type: max
+  round_digits: 1
+  entity_ids:
+    - sensor.acurite_tower_family_room_temperature
+    - sensor.thermostat_temperature
+    - sensor.outdoor_sensor_display_in_office_temperature
+    - sensor.living_room_temperature_sensor_temperature
+    - sensor.wirelesstag_main_freezer_temperature
+    - sensor.master_bedroom_temperature_temperature
+    - sensor.ethans_bedroom_temperature_sensor_temperature
+    - sensor.family_room_smartsensor_temperature
+- platform: min_max
+  name: Min Temperature Indoors
+  type: min
+  round_digits: 1
+  entity_ids:
+    - sensor.acurite_tower_family_room_temperature
+    - sensor.thermostat_temperature
+    - sensor.outdoor_sensor_display_in_office_temperature
+    - sensor.living_room_temperature_sensor_temperature
+    - sensor.wirelesstag_main_freezer_temperature
+    - sensor.master_bedroom_temperature_temperature
+    - sensor.ethans_bedroom_temperature_sensor_temperature
+    - sensor.family_room_smartsensor_temperature
+
 ###########################################
 # Date time display options
 ###########################################
@@ -43,7 +450,6 @@
     - "date_time_iso"
     - "time_date"
     - "time_utc"
-    - "beat"
 
 
 - platform: wirelesstag
@@ -51,92 +457,430 @@
     - temperature
     - humidity
 
-
-
-# - platform: integration
-#   name: Grid Import Energy
-#   source: sensor.grid_import_power
-#   unit_prefix: k
-#   unit_time: h
-#   method: left
+- platform: min_max
+  name: Pollen Max
+  type: max
+  entity_ids:
+    - sensor.home_grass_pollen_0d
+    - sensor.home_ragweed_pollen_0d
+    - sensor.home_tree_pollen_0d
   
-# - platform: integration
-#   name: Grid Export Energy
-#   source: sensor.grid_export_power
-#   unit_prefix: k
-#   unit_time: h
-#   method: left
+- platform: openai_response
+  api_key: !secret openai_response_api_key
+  model: "text-davinci-003" # Optional, defaults to "text-davinci-003"
+  name: "hassio_openai_response" # Optional, defaults to "hassio_openai_response"
 
-- platform: template
-  sensors:
-    enphase_status:
-      friendly_name: EnPhase Status
-      value_template: >
-        {% if (states("sensor.envoy_202208027163_current_power_production") | int(default=0) < 30) -%} 
-          Sleep
-        {% elif (states("sensor.envoy_202208027163_current_power_production") | int(default=0) > 29) -%} 
-          Wake     
-        {%- endif %}
-      icon_template: >
-        {% if (states("sensor.envoy_202208027163_current_power_production") | int(default=0) < 30) -%} 
-          mdi:weather-night
-        {% else %}
-          mdi:solar-power
-        {%- endif %}
-        
-    sense_calc_grid_return:
-      friendly_name: Sense Grid Return
-      unit_of_measurement: "kWh"
-      device_class: energy
-      value_template:  >
-        {% set grid_usage = states('sensor.daily_usage') | float - states('sensor.daily_production') | float %}
-        {% if grid_usage < 0 %}
-        {{ grid_usage | abs }}
-        {% else %}
-        {{ 0 }}
-        {% endif %}
+# - platform: openassist
+#   your_name: "Drake" #Optional if you want ChatGPT to know your name.
+#   mindsdb_model: "gpt4hass" #MINDSDB MODEL NAME.
+#   mindsdb_email: !secret my_email
+#   mindsdb_password: !secret mindsdb_password
+#   notify_device: "alexa_media_kirchen_echo_show" #Optional, this sends each ChatGPT response to your notify entity.
+#   #Can be any of your Notify entities. (Phone, Amazon Echo etc)
 
-    enphase_kwh:
-      friendly_name: EnPhase kWh Generated
-      unit_of_measurement: "kWh"
-      device_class: energy
-      value_template: >
-        {{ int(states("sensor.envoy_202208027163_current_power_production")) | abs / 1000 | float }}
-
-    grid_export: # Instant power export for energy dashboard - goes 0 if currently importing (uses Sense)
-      friendly_name: "Grid Export"
-      unit_of_measurement: 'W'
-      value_template: >
-        {% if (states('sensor.energy_usage') | int(0) - states('sensor.energy_production') | int(0)) > 0 %}
-          0
-        {% else -%}
-          {{ (states('sensor.energy_usage') | int(0) - states('sensor.energy_production') | int(0)) | abs }} 
-        {% endif %}      
-    grid_import: # Instant power import for energy dashboard - goes 0 if currently exporting (uses Sense)
-      friendly_name: "Grid Import"
-      unit_of_measurement: 'W'
-      value_template: >
-        {% if (states('sensor.energy_usage') | int(0) - states('sensor.energy_production') | int(0)) > 0 %}
-          {{ (states('sensor.energy_usage') | int(0) - states('sensor.energy_production') | int(0)) }}
-        {% else -%}
-          0
-        {% endif %}
- 
- 
-- platform: integration # Grid energy import for Energy dashboard - from forum
-  source: sensor.grid_import
-  name: grid_import_kwh
-  unit_prefix: k
-  round: 2
-- platform: integration # Grid energy export for Energy dashboard - from forum
-  source: sensor.grid_export
-  name: grid_export_kwh
-  unit_prefix: k
-  round: 2
 - platform: integration
-  source: sensor.envoy_202208027163_current_power_production
-  name: solar_output_production_kwh
+  source: sensor.ac_usage
+  name: ac_spent
   unit_prefix: k
-  unit_time: s
-  
- 
+  round: 2
+
+
+
+#  _____ _                  _                  _
+# |_   _(_)_ __ ___   ___  | |_ _ __ __ _  ___| | _____ _ __ ___
+#   | | | | '_ ` _ \ / _ \ | __| '__/ _` |/ __| |/ / _ \ '__/ __|
+#   | | | | | | | | |  __/ | |_| | | (_| | (__|   <  __/ |  \__ \
+#   |_| |_|_| |_| |_|\___|  \__|_|  \__,_|\___|_|\_\___|_|  |___/
+#
+
+- platform: history_stats
+  name: Hours TV has been on last 7 days
+  entity_id: media_player.living_room
+  state: "on"
+  type: time
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Times TV has been on last 7 days
+  entity_id: media_player.living_room
+  state: "on"
+  type: count
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Hours Family Room TV has been on last 7 days
+  entity_id: media_player.family_room_apple_tv
+  state: "on"
+  type: time
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Times Family Room TV has been on last 7 days
+  entity_id: media_player.family_room_apple_tv
+  state: "on"
+  type: count
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Hours dishwasher has been on last 7 days
+  entity_id: binary_sensor.dishwasher
+  state: "on"
+  type: time
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Times dishwasher has been on last 7 days
+  entity_id: binary_sensor.dishwasher
+  state: "on"
+  type: count
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Hours dryer has been on last 7 days
+  entity_id: binary_sensor.dryer
+  state: "on"
+  type: time
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Times dryer has been on last 7 days
+  entity_id: binary_sensor.dryer
+  state: "on"
+  type: count
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Quarantine meter Drake
+  entity_id: person.drake_bridgewater
+  state: "home"
+  type: ratio
+  duration:
+    days: 14
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Quarantine meter Shawna
+  entity_id: person.shawna
+  state: "home"
+  type: ratio
+  duration:
+    days: 14
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Quarantine meter Drake times left
+  entity_id: person.drake_bridgewater
+  state: "home"
+  type: count
+  duration:
+    days: 14
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Quarantine meter Shawna times left
+  entity_id: person.shawna
+  state: "home"
+  type: count
+  duration:
+    days: 14
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Hours bedroom lights have been on last 7 days
+  entity_id: light.bedroom_lights_group
+  state: "on"
+  type: time
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Hours living room lights have been on last 7 days
+  entity_id: light.living_room_light_group
+  state: "on"
+  type: time
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Hours main bath light has been on last 7 days
+  entity_id: light.0x94deb8fffe314f82
+  state: "on"
+  type: time
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Hours basement bath light has been on last 7 days
+  entity_id: light.basement_bathroom_wall_switch
+  state: "on"
+  type: time
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Hours master bath light has been on last 7 days
+  entity_id: light.master_bathroom_wall_switch
+  state: "on"
+  type: time
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Hours kitchen lights have been on last 7 days
+  entity_id: light.kitchen_wall_switch
+  state: "on"
+  type: time
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Hours TV lights have been on last 7 days
+  entity_id: light.tv_lights_group
+  state: "on"
+  type: time
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Hours Ethan's light has been on last 7 days
+  entity_id: light.0x70ac08fffe7106cc
+  state: "on"
+  type: time
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+  # __        __         _      _   _                  _                  _
+# \ \      / /__  _ __| | __ | |_(_)_ __ ___   ___  | |_ _ __ __ _  ___| | _____ _ __
+#  \ \ /\ / / _ \| '__| |/ / | __| | '_ ` _ \ / _ \ | __| '__/ _` |/ __| |/ / _ \ '__|
+#   \ V  V / (_) | |  |   <  | |_| | | | | | |  __/ | |_| | | (_| | (__|   <  __/ |
+#    \_/\_/ \___/|_|  |_|\_\  \__|_|_| |_| |_|\___|  \__|_|  \__,_|\___|_|\_\___|_|
+#
+
+- platform: history_stats
+  name: Time at work this week (Drake)
+  entity_id: person.drake_bridgewater
+  state: Work
+  type: time
+  start: >
+    {{ states("sensor.timestamp_start_of_today")|float(0) - now().weekday() * 86400 }}
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Time at work today (Drake)
+  entity_id: person.drake_bridgewater
+  state: Work
+  type: time
+  start: >
+    {{ states("sensor.timestamp_start_of_today")|float(0) - 0 * 86400 }}
+  duration:
+    hours: 24
+
+- platform: history_stats
+  name: Time at work on Monday (Drake)
+  entity_id: person.drake_bridgewater
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 0 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ states("sensor.timestamp_start_of_today")|float(0) - day * 86400}}
+
+- platform: history_stats
+  name: Time at work on Tuesday (Drake)
+  entity_id: person.drake_bridgewater
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 1 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ states("sensor.timestamp_start_of_today")|float(0) - day * 86400}}
+
+- platform: history_stats
+  name: Time at work on Wednessday (Drake)
+  entity_id: person.drake_bridgewater
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 2 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ states("sensor.timestamp_start_of_today")|float(0) - day * 86400}}
+
+- platform: history_stats
+  name: Time at work on Thursday (Drake)
+  entity_id: person.drake_bridgewater
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 3 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ states("sensor.timestamp_start_of_today")|float(0) - day * 86400}}
+
+- platform: history_stats
+  name: Time at work on Friday (Drake)
+  entity_id: person.drake_bridgewater
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 4 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ states("sensor.timestamp_start_of_today")|float(0) - day * 86400}}
+
+
+
+
+- platform: history_stats
+  name: Time at work this week (Shawna)
+  entity_id: person.shawna
+  state: Work
+  type: time
+  start: >
+    {{ states("sensor.timestamp_start_of_today")|float(0) - now().weekday() * 86400 }}
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Time at work today (Shawna)
+  entity_id: person.shawna
+  state: Work
+  type: time
+  start: >
+    {{ states("sensor.timestamp_start_of_today")|float(0) - 0 * 86400 }}
+  duration:
+    hours: 24
+
+- platform: history_stats
+  name: Time at work on Monday (Shawna)
+  entity_id: person.shawna
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 0 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ states("sensor.timestamp_start_of_today")|float(0) - day * 86400}}
+
+- platform: history_stats
+  name: Time at work on Tuesday (Shawna)
+  entity_id: person.shawna
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 1 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ states("sensor.timestamp_start_of_today")|float(0) - day * 86400}}
+
+- platform: history_stats
+  name: Time at work on Wednessday (Shawna)
+  entity_id: person.shawna
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 2 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ states("sensor.timestamp_start_of_today")|float(0) - day * 86400}}
+
+- platform: history_stats
+  name: Time at work on Thursday (Shawna)
+  entity_id: person.shawna
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 3 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ states("sensor.timestamp_start_of_today")|float(0) - day * 86400}}
+
+- platform: history_stats
+  name: Time at work on Friday (Shawna)
+  entity_id: person.shawna
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 4 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ states("sensor.timestamp_start_of_today")|float(0) - day * 86400}}
+
+# ####### Dog Daycare ####################
+- platform: history_stats
+  name: Visited Dog Daycare Drake
+  entity_id: person.drake_bridgewater
+  state: Dog Daycare
+  type: count
+  start: "{{ now().replace(hour=0, minute=0, second=0) }}"
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Visited Dog Daycare Shawna
+  entity_id: person.shawna
+  state: Dog Daycare
+  type: count
+  start: "{{ now().replace(hour=0, minute=0, second=0) }}"
+  end: "{{ now() }}"
+
+# ####### Ethan's Darcare ####################
+- platform: history_stats
+  name: Visited Daycare Drake
+  entity_id: person.drake_bridgewater
+  state: Daycare
+  type: count
+  start: "{{ now().replace(hour=0, minute=0, second=0) }}"
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Visited Daycare Shawna
+  entity_id: person.shawna
+  state: Daycare
+  type: count
+  start: "{{ now().replace(hour=0, minute=0, second=0) }}"
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Visited Daycare JK
+  entity_id: person.john_byles
+  state: Daycare
+  type: count
+  start: "{{ now().replace(hour=0, minute=0, second=0) }}"
+  end: "{{ now() }}"
+
+

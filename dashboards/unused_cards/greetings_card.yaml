@@ -1,0 +1,23 @@
+theme: dark
+type: markdown
+content: >-
+  <p> 
+  {{ states('sensor.time_of_day_greeting') }} {{user}}.
+  {% if ((now().date() + timedelta(days=1)) | string == states('sensor.ridwell_ridwell_pickup_4659_se_meadowcrest_ct')) %}
+    Tomorrow is <b>Ridwell pickup day</b>. 
+  {% else %} {% endif %}
+  {% if (now().weekday() in (7,) ) %}
+    Tomorrow is <b>trash pickup day</b>, move the bins outside. 
+  {% else %}{% endif %}
+  {% if states('sensor.pollen_max')| float > 50 %}
+    <b>🦠<font color=red><b>WARNING:</b></font> Pollon Levels are high.
+  {% else %}{% endif %}
+  </p>
+style: |
+  ha-card {
+    font-family: helvetica neue, helvetica, Arial;
+    color: 'rgba(255, 255, 255, 0.7)';
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: '-0.05vw';
+  }

@@ -1,0 +1,64 @@
+type: conditional
+conditions:
+  - condition: user
+    users:
+      - b5a0f36540a94a4fabedc323d0906537
+      - 39499af0dfe14dc8be352c27a4e76b53
+  - condition: or
+    conditions:
+      - condition: state
+        entity: alarm_control_panel.abode_alarm
+        state: "armed_home"
+      - condition: state
+        entity: alarm_control_panel.abode_alarm
+        state: "armed_away"
+card:
+  type: custom:bubble-card
+  card_type: button
+  entity: alarm_control_panel.abode_alarm
+  force_icon: false
+  show_name: true
+  show_state: true
+  show_last_changed: true
+  show_attribute: false
+  attribute: current_position
+  card_layout: large
+  button_action:
+    tap_action:
+      action: more-info
+    double_tap_action:
+      action: none
+    hold_action:
+      action: none
+  sub_button:
+    - entity: alarm_control_panel.abode_alarm
+      tap_action:
+        action: call-service
+        service: alarm_control_panel.alarm_arm_away
+        target:
+          device_id: be326407b228394f4890b5b24aca6bb8
+      icon: mdi:shield-lock-outline
+    - entity: alarm_control_panel.abode_alarm
+      icon: mdi:shield-home-outline
+      tap_action:
+        action: call-service
+        service: alarm_control_panel.alarm_arm_home
+        target:
+          device_id: be326407b228394f4890b5b24aca6bb8
+    - entity: alarm_control_panel.abode_alarm
+      icon: mdi:shield-lock-open-outline
+      tap_action:
+        action: call-service
+        service: alarm_control_panel.alarm_disarm
+        target:
+          device_id: be326407b228394f4890b5b24aca6bb8
+  styles: |
+    .bubble-sub-button-1 > ha-icon {
+      color: ${hass.states['alarm_control_panel.abode_alarm'].state === 'armed_away' ? 'red' : ''} !important;
+    }
+    .bubble-sub-button-2 > ha-icon {
+      color: ${hass.states['alarm_control_panel.abode_alarm'].state === 'armed_home' ? 'red' : ''} !important;
+    }
+    .bubble-sub-button-3 > ha-icon {
+      color: ${hass.states['alarm_control_panel.abode_alarm'].state === 'disarmed' ? 'blue' : ''} !important;
+    }

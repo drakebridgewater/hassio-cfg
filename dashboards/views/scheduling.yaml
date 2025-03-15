@@ -1,0 +1,375 @@
+title: Scheduling
+icon: mdi:auto-mode
+path: scheduling
+type: custom:grid-layout
+layout: !include ../layouts/grid.yaml
+cards:
+  - type: vertical-stack
+    view_layout:
+      grid-area: sidebar
+    cards: !include_dir_list ../sections/sidebar
+
+  ######################### Status Bar ############################################
+  - type: custom:mushroom-chips-card
+    view_layout:
+      grid-area: banner
+    chips: !include ../sections/status-bar.yaml
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: footer
+    cards: !include_dir_list ../sections/footer
+  
+  - type: vertical-stack
+    view_layout:
+      grid-area: section1
+    cards:
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            entity: input_boolean.doorbell_motion_detection
+            force_icon: false
+            show_last_changed: true
+            show_attribute: false
+            sub_button:
+              - entity: input_boolean.doorbell_motion_detection
+                icon: mdi:power
+                tap_action:
+                  action: toggle
+
+          - type: custom:bubble-card
+            card_type: separator
+            name: Ethan
+            icon: mdi:toy-brick
+          - type: entity
+            entity: input_datetime.ethan_s_alarm_clock
+            visibility:
+              - condition: state
+                entity: binary_sensor.workday_sensor
+                state: "on"
+          - type: entity
+            entity: input_datetime.ethan_s_bedtime
+          - type: entity
+            entity: input_boolean.bath_mode
+          
+          - type: custom:scheduler-card
+            tags: ethan
+            include:
+              - person
+              - fan
+              - sun
+              - switch
+              - input_boolean
+              - scene
+              - binary_sensor
+              - alarm_control_panel
+              - input_number
+              - person
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: section2
+    cards:
+    - type: custom:scheduler-card
+      tags: vacuum
+      include:
+        - vacuum
+    - type: custom:bubble-card
+      card_type: separator
+      name: Scheduling
+      icon: mdi:clock-outline
+    - type: entities
+      entities:
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Scheduling (General)
+        entities:
+          - type: custom:scheduler-card
+            tags: general
+            include:
+              - light
+              - fan
+              - sun
+              - switch
+              - input_boolean
+              - scene
+              - binary_sensor
+              - alarm_control_panel
+              - input_number
+              - person
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Scheduling (Automation Disabler)
+        entities:
+          - type: custom:scheduler-card
+            tags: Auto-Automation
+            include:
+              - input_boolean
+              - input_number
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Scheduling (Holiday)
+        entities:
+          - type: custom:scheduler-card
+            tags: holiday
+            include:
+              - light
+              - sun
+              - switch
+              - input_boolean
+              - scene
+              - binary_sensor
+              - input_number
+              - person
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Scheduling (Grow)
+        entities:
+          - type: custom:scheduler-card
+            tags: grow
+            include:
+              - light
+              - sun
+              - switch
+
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Motion Triggered Lighting on/off
+        entities:
+          - entity: input_boolean.motion_in_main_disabled
+            primary: Main Area Motion Triggered Lighting
+            type: custom:mushroom-template-card
+            secondary: |-
+              {% if states('input_boolean.motion_in_main_disabled') == 'off' -%}
+                Enabled
+              {% elif states('input_boolean.motion_in_main_disabled') == 'on' -%}
+                Disabled
+              {%- else %}
+                Unknown
+              {%- endif %}
+            icon: mdi:motion-sensor
+            icon_color: |-
+              {% if states('input_boolean.motion_in_main_disabled') == 'off' -%}
+                grey
+              {%- else %}
+                red
+              {%- endif %}
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          
+          - entity: input_boolean.master_bedroom_lighting_automation_on_disabled
+            primary: Master Bedroom Motion Triggered Lighting
+            type: custom:mushroom-template-card
+            secondary: |-
+              {% if states('input_boolean.master_bedroom_lighting_automation_on_disabled') == 'off' -%}
+                Enabled
+              {% elif states('input_boolean.master_bedroom_lighting_automation_on_disabled') == 'on' -%}
+                Disabled
+              {%- else %}
+                Unknown
+              {%- endif %}
+            icon: mdi:motion-sensor
+            icon_color: |-
+              {% if states('input_boolean.master_bedroom_lighting_automation_on_disabled') == 'off' -%}
+                grey
+              {%- else %}
+                red
+              {%- endif %}
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - entity: input_boolean.office_lighting_automation_on_disabled
+            primary: Office Motion Triggered Lighting
+            type: custom:mushroom-template-card
+            secondary: |-
+              {% if states('input_boolean.office_lighting_automation_on_disabled') == 'off' -%}
+                Enabledd
+              {% elif states('input_boolean.office_lighting_automation_on_disabled') == 'on' -%}
+                Disabled
+              {%- else %}
+                Unknown
+              {%- endif %}
+            icon: mdi:motion-sensor
+            icon_color: |-
+              {% if states('input_boolean.office_lighting_automation_on_disabled') == 'off' -%}
+                grey
+              {%- else %}
+                red
+              {%- endif %}
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - entity: input_boolean.ethan_s_bedroom_lighting_automation_on_disabled
+            primary: Ethan's Bedroom Motion Triggered Lighting
+            type: custom:mushroom-template-card
+            secondary: |-
+              {% if states('input_boolean.ethan_s_bedroom_lighting_automation_on_disabled') == 'off' -%}
+                Enabled
+              {% elif states('input_boolean.ethan_s_bedroom_lighting_automation_on_disabled') == 'on' -%}
+                Disabled
+              {%- else %}
+                Unknown
+              {%- endif %}
+            icon: mdi:motion-sensor
+            icon_color: |-
+              {% if states('input_boolean.ethan_s_bedroom_lighting_automation_on_disabled') == 'off' -%}
+                grey
+              {%- else %}
+                red
+              {%- endif %}
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - entity: input_boolean.family_room_lighting_automation_on_disabled
+            primary: Family Room Motion Triggered Lighting
+            type: custom:mushroom-template-card
+            secondary: |-
+              {% if states('input_boolean.family_room_lighting_automation_on_disabled') == 'off' -%}
+                Enabled
+              {% elif states('input_boolean.family_room_lighting_automation_on_disabled') == 'on' -%}
+                Disabled
+              {%- else %}
+                Unknown
+              {%- endif %}
+            icon: mdi:motion-sensor
+            icon_color: |-
+              {% if states('input_boolean.family_room_lighting_automation_on_disabled') == 'off' -%}
+                grey
+              {%- else %}
+                red
+              {%- endif %}
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Notifications Settings
+        entities:
+          - type: custom:auto-entities
+            exclude: []
+            card:
+              type: entities
+              state_color: true
+              show_header_toggle: false
+            filter:
+              include:
+                - entity_id: /^.*_notify$/
+              exclude: []
+            sort:
+              method: domain
+
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Motion Trigger Illuminace Min
+        entities:
+          - type: custom:auto-entities
+            card:
+              type: entities
+              state_color: true
+              show_header_toggle: false
+            filter:
+              include:
+                - name: "/^.* illuminance cutoff$/"
+                  options:
+                    type: custom:mushroom-number-card
+                    layout: horizontal
+                    display_mode: buttons
+              exclude: []
+            sort:
+              method: domain
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Illuminace
+        entities:
+          - type: custom:auto-entities
+            card:
+              type: entities
+              state_color: true
+              show_header_toggle: false
+            filter:
+              include:
+                - domain: sensor
+                  attributes:
+                    device_class: illuminance
+                  options:
+                    type: custom:mushroom-entity-card
+                    layout: horizontal
+              exclude: []
+            sort:
+              method: domain
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Occupancy
+        entities:
+          - type: custom:auto-entities
+            card:
+              type: entities
+              state_color: true
+              show_header_toggle: false
+            filter:
+              include:
+                - domain: binary_sensor
+                  attributes:
+                    device_class: occupancy
+                  options:
+                    type: custom:mushroom-entity-card
+                    layout: horizontal
+              exclude: 
+                - state: unavailable
+                - state: unknown
+            sort:
+              method: state
+              reverse: true
+          # - type: custom:auto-entities
+          #   card:
+          #     type: entities
+          #     title: Motion Trigger when Darker Then
+          #     state_color: true
+          #     show_header_toggle: false
+          #   filter:
+          #     include:
+          #       - domain: sensor
+          #         attributes:
+          #           device_class: illuminance
+          #         options:
+          #           type: custom:mushroom-entity-card
+          #           layout: horizontal
+          #           display_mode: buttons
+          #   sort:
+          #     method: domain
+
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: How long to keep lights on without motion
+        entities:
+          - type: custom:auto-entities
+            card:
+              type: entities
+              state_color: true
+              show_header_toggle: false
+            filter:
+              include:
+                - name: "/^.* OFF Duration$/"
+                  options:
+                    type: custom:mushroom-number-card
+                    layout: horizontal
+                    display_mode: buttons
+              exclude: []
+            sort:
+              method: domain

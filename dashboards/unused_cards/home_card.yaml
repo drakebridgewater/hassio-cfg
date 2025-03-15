@@ -1,0 +1,211 @@
+type: custom:stack-in-card
+cards:
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-template-card
+        primary: |-
+          {% if is_state('binary_sensor.home_occupied', 'on') %} 
+            Home
+          {% elif is_state('binary_sensor.home_occupied', 'off') %}
+            Away
+          {% endif %}
+        # secondary:
+        icon: |-
+          {% if is_state('binary_sensor.home_occupied', 'on') %} 
+            mdi:home
+          {% elif is_state('binary_sensor.home_occupied', 'off') %}
+            mdi:home-off
+          {% endif %}
+        entity: light.ethan_s_lights_group
+        icon_color: |-
+          {% if is_state('binary_sensor.home_occupied', 'on') %} 
+            blue
+          {% elif is_state('binary_sensor.home_occupied', 'off') %}
+            red
+          {% endif %}
+        tap_action: !include ../popup/people_overview.yaml
+        hold_action:
+          action: more-info
+        multiline_secondary: false
+        layout: horizontal
+        fill_container: false
+      - type: custom:mushroom-template-card
+        primary: |-
+          {% if is_state('alarm_control_panel.abode_alarm', 'disarmed') %} 
+            Disarmed
+          {% elif is_state('alarm_control_panel.abode_alarm', 'home') %}
+            Armed Home
+          {% elif is_state('alarm_control_panel.abode_alarm', 'away') %}
+            Armed Away
+          {% endif %}
+        # secondary:
+        icon: |-
+          {% if is_state('alarm_control_panel.abode_alarm', 'disarmed') %} 
+            mdi:shield-off
+          {% elif is_state('alarm_control_panel.abode_alarm', 'home') %}
+            mdi:shield-home
+          {% elif is_state('alarm_control_panel.abode_alarm', 'away') %}
+            mdi:shield
+          {% endif %}
+        entity: alarm_control_panel.abode_alarm
+        icon_color: |-
+          {% if is_state('alarm_control_panel.abode_alarm', 'disarmed') %} 
+            grey
+          {% elif is_state('alarm_control_panel.abode_alarm', 'home') %}
+            yellow
+          {% elif is_state('alarm_control_panel.abode_alarm', 'away') %}
+            red
+          {% endif %}
+        tap_action:
+          action: more-info
+        multiline_secondary: false
+        layout: horizontal
+        fill_container: false
+  - type: custom:mushroom-chips-card
+    chips:
+      - type: template
+        entity: cover.garage_door
+        tap_action:
+          action: more-info
+        content_info: none
+        icon_color: |-
+          {% if states('cover.garage_door') == 'open' -%}
+            orange
+          {%- else %}
+            grey
+          {%- endif %}
+        icon: |-
+          {% if states('cover.garage_door') == 'open' -%}
+            mdi:garage-open
+          {%- else %}
+            mdi:garage
+          {%- endif %}
+        card_mod:
+          style: |
+            ha-card {
+              --chip-box-shadow: none;
+              --chip-background: none;
+              --chip-icon-size: 0.8em
+      - entity: binary_sensor.any_door_open_group
+        type: template
+        tap_action: !include ../popup/door_overview.yaml
+        content_info: none
+        icon_color: |-
+          {% if states('binary_sensor.any_door_open_group') == 'on' -%}
+            orange
+          {%- else %}
+            grey
+          {%- endif %}
+        icon: |-
+          {% if states('binary_sensor.any_door_open_group') == 'on' -%}
+            mdi:door-open
+          {%- else %}
+            mdi:door
+          {%- endif %}
+        card_mod:
+          style: |
+            ha-card {
+              --chip-box-shadow: none;
+              --chip-background: none;
+              --chip-icon-size: 0.7em
+      - type: template
+        entity: binary_sensor.window_open_group
+        tap_action: !include ../popup/window_overview.yaml
+        content_info: none
+        icon_color: |-
+          {% if states('binary_sensor.window_open_group') == 'on' -%}
+            orange
+          {%- else %}
+            grey
+          {%- endif %}
+        icon: |-
+          {% if states('binary_sensor.window_open_group') == 'on' -%}
+            mdi:window-open
+          {%- else %}
+            mdi:window-closed
+          {%- endif %}
+        card_mod:
+          style: |
+            ha-card {
+              --chip-box-shadow: none;
+              --chip-background: none;
+              --chip-icon-size: 0.7em
+      - type: template
+        entity: binary_sensor.whole_house_motion_group
+        tap_action: !include ../popup/motion_overview.yaml
+        content_info: none
+        icon_color: |-
+          {% if states('binary_sensor.whole_house_motion_group') == 'on' -%}
+            orange
+          {%- else %}
+            white
+          {%- endif %}
+        icon: mdi:motion-sensor
+        card_mod:
+          style: |
+            ha-card {
+              --chip-box-shadow: none;
+              --chip-background: none;
+              --chip-icon-size: 0.7em
+      - type: light
+        entity: light.wall_switch_light_group
+        icon: mdi:light-switch
+        content_info: none
+        tap_action: !include ../popup/wall_switches.yaml
+      - type: template
+        entity: climate.thermostat
+        content_info: none
+        icon_color: |-
+          {% if states('climate.thermostat') == 'heat' -%}
+            red
+          {% elif states('climate.thermostat') == 'cool' -%}
+            blue
+          {% elif states('climate.thermostat') == 'heat_cool' -%}
+            green
+          {%- else %}
+            grey
+          {%- endif %}
+        icon: |-
+          {% if states('climate.thermostat') == 'heat' -%}
+          mdi:heat-wave
+          {% elif states('climate.thermostat') == 'cool' -%}
+            mdi:air-conditioner
+          {% elif states('climate.thermostat') == 'heat_cool' -%}
+            mdi:hvac
+          {%- else %}
+            mdi:hvac-off
+          {%- endif %}
+        card_mod:
+          style: |
+            ha-card {
+              --chip-box-shadow: none;
+              --chip-background: none;
+              --chip-icon-size: 0.8em
+        tap_action:
+          action: more-info
+        hold_action:
+          action: more-info
+    card_mod:
+      style: |
+        ha-card {
+          background: none !important;
+          height: 40px;
+          flex-wrap: nowrap;
+          width: max-content;
+          align-items: ;
+          display: flex; 
+          --chip-box-shadow: none;
+          --chip-background: none;
+          --chip-spacing: 0;
+          margin-top: -2px;            
+          padding-bottom: 0px;          
+        }
+        :host {
+          overflow-y: hidden;
+          direction: ltr;
+          margin: 0px !important;
+          padding-left: 10px;
+          padding-bottom: 0px;
+          margin-top: 10px;          
+        }
+    alignment: end

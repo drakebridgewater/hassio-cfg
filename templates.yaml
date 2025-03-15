@@ -1,0 +1,26 @@
+- trigger:
+    - platform: time_pattern
+      hours: "/1"
+  action:
+    - service: weather.get_forecasts 
+      target:
+        entity_id: weather.pirateweather
+      data:
+        type: daily
+      response_variable: daily
+  sensor:
+    - name: Today's High Temperature
+      icon: mdi:weather-cloudy
+      state: "{{ daily.forecast[0].temperature }}"
+      attributes:
+        forecast: "{{ daily.forecast }}"
+    - name: Today's Low Temperature
+      icon: mdi:weather-cloudy
+      state: "{{ daily.forecast[0].templow }}"
+      attributes:
+        forecast: "{{ daily.forecast }}"
+    - name: Weather Forecast Daily
+      unique_id: weather_forecast_daily
+      state: "{{ now().isoformat() }}"
+      attributes:
+        forecast: "{{ daily.forecast }}"

@@ -1,0 +1,730 @@
+title: Family Room Remote
+icon: mdi:theater
+path: family-room-remote
+type: custom:masonry-layout
+cards:
+- type: vertical-stack
+  cards:
+    - type: custom:bubble-card
+      card_type: media-player
+      entity: media_player.family_room
+      show_icon: true
+      hide:
+        power_button: false
+        previous_button: true
+        volume_button: true
+        next_button: true
+        play_pause_button: true
+      show_attribute: true
+      attribute: media_title
+    - type: custom:mod-card
+      card_mod:
+        style: |
+          ha-card {
+            height: 45px;
+            background: RGBA(0,0,0,0.50);
+          }
+      card:
+        type: grid
+        square: false
+        columns: 7
+        style:
+          z-index: 30
+        cards:
+          - type: custom:button-card
+            icon: phu:apple-tv
+            tap_action:
+              action: call-service
+              service: media_player.select_source
+              target:
+                entity_id: media_player.family_room
+              data:
+                source: TV
+            styles:
+              icon:
+                - width: 60px
+                - color: rgba(255,255,255,0.8)
+              img_cell:
+                - width: 70px
+                - height: 40px
+              card:
+                - background: none
+                - padding: 0
+          - type: custom:button-card
+            icon: mdi:netflix
+            tap_action:
+              action: call-service
+              service: media_player.select_source
+              target:
+                entity_id: media_player.family_room
+              data:
+                source: Netflix
+            styles:
+              icon:
+                - width: 25px
+                - color: rgba(255,255,255,0.8)
+              img_cell:
+                - width: 40px
+                - height: 40px
+              card:
+                - background: none
+                - padding: 0
+          - type: custom:button-card
+            icon: phu:disney-plus
+            tap_action:
+              action: call-service
+              service: media_player.select_source
+              target:
+                entity_id: media_player.family_room
+              data:
+                source: Disney+
+            styles:
+              icon:
+                - width: 35px
+                - color: rgba(255,255,255,0.8)
+              img_cell:
+                - width: 40px
+                - height: 40px
+              card:
+                - background: none
+                - padding: 0
+          - type: custom:button-card
+            icon: phu:prime-video
+            tap_action:
+              action: call-service
+              service: media_player.select_source
+              target:
+                entity_id: media_player.family_room
+              data:
+                source: prime
+            styles:
+              icon:
+                - width: 45px
+                - color: rgba(255,255,255,0.8)
+              img_cell:
+                - width: 40px
+                - height: 40px
+              card:
+                - background: none
+                - padding: 0
+          - type: custom:button-card
+            icon: phu:max
+            tap_action:
+              action: call-service
+              service: media_player.select_source
+              target:
+                entity_id: media_player.family_room
+              data:
+                source: Max
+            styles:
+              icon:
+                - width: 100px
+                - color: rgba(255,255,255,0.8)
+              img_cell:
+                - width: 40px
+                - height: 40px
+              card:
+                - background: none
+                - padding: 0
+          - type: custom:button-card
+            icon: phu:hulu
+            tap_action:
+              action: call-service
+              service: media_player.select_source
+              target:
+                entity_id: media_player.family_room
+              data:
+                source: Hulu
+            styles:
+              icon:
+                - width: 100px
+                - color: rgba(255,255,255,0.8)
+              img_cell:
+                - width: 40px
+                - height: 40px
+              card:
+                - background: none
+                - padding: 0
+          - type: custom:button-card
+            icon: phu:plex
+            tap_action:
+              action: call-service
+              service: media_player.select_source
+              target:
+                entity_id: media_player.family_room
+              data:
+                source: Plex
+            styles:
+              icon:
+                - width: 100px
+                - color: rgba(255,255,255,0.8)
+              img_cell:
+                - width: 40px
+                - height: 40px
+              card:
+                - background: none
+                - padding: 0
+    - type: custom:android-tv-card
+      remote_id: remote.family_room
+      autofill_entity_id: true
+      rows:
+        - touchpad
+      custom_actions:
+        - type: button
+          name: power
+          tap_action:
+            action: key
+            key: wakeup
+          icon: mdi:power
+          hold_action:
+            action: key
+            key: suspend
+        - type: button
+          name: menu
+          tap_action:
+            action: key
+            key: menu
+          icon: mdi:arrow-left-circle
+        - type: button
+          name: home
+          tap_action:
+            action: key
+            key: home
+          icon: mdi:television
+          hold_action:
+            action: more-info
+        - icon: mdi:rewind-10
+          tap_action:
+            action: key
+            key: skip_backward
+          name: skip-backward
+          type: button
+        - icon: mdi:fast-forward-10
+          action: key
+          name: skip-forward
+          tap_action:
+            key: skip_forward
+            action: key
+          type: button
+        - type: button
+          name: play
+          tap_action:
+            action: key
+            key: play
+          icon: mdi:play
+        - type: button
+          name: pause
+          tap_action:
+            action: key
+            key: pause
+          icon: mdi:pause
+        - type: button
+          name: up
+          tap_action:
+            action: key
+            key: up
+          hold_action:
+            action: repeat
+          icon: mdi:chevron-up
+        - type: button
+          name: down
+          tap_action:
+            action: key
+            key: down
+          hold_action:
+            action: repeat
+          icon: mdi:chevron-down
+        - type: button
+          name: left
+          tap_action:
+            action: key
+            key: left
+          hold_action:
+            action: repeat
+          icon: mdi:chevron-left
+        - type: button
+          name: right
+          tap_action:
+            action: key
+            key: right
+          hold_action:
+            action: repeat
+          icon: mdi:chevron-right
+        - type: button
+          name: center
+          tap_action:
+            action: key
+            key: select
+          icon: mdi:checkbox-blank-circle
+          double_tap_action:
+            action: key
+            key: menu
+        - type: button
+          name: primevideo
+          tap_action:
+            action: perform-action
+            data:
+              source: Prime Video
+            perform_action: media_player.select_source
+          icon: primevideo
+        - type: button
+          name: netflix
+          tap_action:
+            action: perform-action
+            data:
+              source: Netflix
+            perform_action: media_player.select_source
+          icon: mdi:netflix
+          styles: ""
+        - type: button
+          name: spotify
+          tap_action:
+            action: perform-action
+            data:
+              source: Spotify
+            perform_action: media_player.select_source
+          icon: mdi:spotify
+        - type: button
+          name: disney
+          tap_action:
+            action: perform-action
+            data:
+              source: Disney+
+            perform_action: media_player.select_source
+          icon: disney
+        - type: button
+          name: youtube
+          tap_action:
+            action: perform-action
+            data:
+              source: YouTube
+            perform_action: media_player.select_source
+          icon: mdi:youtube
+        - type: button
+          name: appletv
+          tap_action:
+            action: perform-action
+            data:
+              source: TV
+            perform_action: media_player.select_source
+          icon: appletv
+        - type: button
+          name: max
+          tap_action:
+            action: perform-action
+            data:
+              source: HBO Max
+            perform_action: media_player.select_source
+          icon: max
+        - type: button
+          name: plex
+          tap_action:
+            action: perform-action
+            data:
+              source: Plex
+            perform_action: media_player.select_source
+          icon: mdi:plex
+        - type: touchpad
+          name: touchpad
+          tap_action:
+            action: key
+            key: select
+          up:
+            tap_action:
+              action: key
+              key: up
+            hold_action:
+              action: repeat
+            name: up
+            type: button
+          down:
+            tap_action:
+              action: key
+              key: down
+            hold_action:
+              action: repeat
+            name: down
+            type: button
+          left:
+            tap_action:
+              action: key
+              key: left
+            hold_action:
+              action: repeat
+            name: left
+            type: button
+          right:
+            tap_action:
+              action: key
+              key: right
+            hold_action:
+              action: repeat
+            name: right
+            type: button
+          styles: |-
+            toucharea {
+              background-image: url('https://i.ibb.co/pbf8yC8/swipe-nav.png');
+              background-color: RGBA(0,0,0,0);
+              background-size: 55%;
+              background-repeat: no-repeat;
+              background-position: center;
+              border-radius: 0px 0px 0px 0px;
+              opacity: 1;
+              padding-top: 0px;
+              padding-bottom: 20px;
+              position: null;
+              padding-left: 0px;
+              padding-right: 0px;
+              width: auto;
+            }
+          double_tap_action:
+            action: key
+            key: menu
+      platform: Apple TV
+      keyboard_id: remote.family_room
+      media_player_id: media_player.family_room
+      custom_icons: []
+      card_mod:
+        style: |
+          ha-card {
+            background: RGBA(0, 0, 0, 0.5);
+            border-radius: 0px 0px 0px 0px;
+            padding-left: 0px;
+            padding-right: 0px;
+            width: auto;
+            }
+    - type: custom:button-card
+      show_icon: false
+      show_name: false
+      show_state: false
+      styles:
+        grid:
+          - grid-template-areas: "\"content\""
+          - grid-template-columns: 1fr
+          - grid-template-rows: max-content
+        card:
+          - background-color: rgba(0,0,0,0.5)
+          - webkit-backdrop-filter: blur(10px); !important;}
+          - box-shadow: none
+          - border-radius: 0px 0px 10px 10px
+          - border-width: 0px
+          - padding: 15px
+          - margin: 0px
+          - height: 185px
+      custom_fields:
+        content:
+          card:
+            type: vertical-stack
+            cards:
+              - type: custom:my-slider-v2
+                entity: media_player.family_room
+                mode: seekbar
+                min: 0
+                max: 100
+                styles:
+                  card:
+                    - height: 20px
+                    - box-shadow: none
+                    - margin: 20px 0 0 0
+                    - background: none
+                  container:
+                    - border-radius: 10px
+                    - background: none
+                    - padding: 0 0 0 5px
+                  track:
+                    - background: rgba(255,255,255,0.3)
+                    - border-radius: 99px
+                    - padding: 0 0px 0 0px
+                    - width: 97%
+                    - height: 7px
+                    - margin: 0px 0 0 0
+                  progress:
+                    - background: rgba(255,255,255,0.9)
+                    - border-radius: 25px 0px 0px 25px
+                    - height: 7px
+                    - margin: 0 0 0 0
+                  thumb:
+                    - background: rgba(255,255,255,0.9)
+                    - width: 5px
+                    - height: 7px
+                    - border-radius: 0px
+              - type: custom:button-card
+                entity: media_player.family_room
+                show_entity_picture: false
+                show_name: false
+                show_icon: false
+                custom_fields:
+                  buttons:
+                    card:
+                      type: custom:button-card
+                      custom_fields:
+                        previous:
+                          card:
+                            type: custom:button-card
+                            tap_action:
+                              action: call-service
+                              service: remote.send_command
+                              target:
+                                entity_id: remote.family_room
+                              data:
+                                command: menu
+                            icon: mdi:backspace
+                            show_name: false
+                            styles:
+                              card:
+                                - border-radius: 5px
+                                - border-width: 0px
+                                - box-shadow: none
+                                - background: rgba(255,255,255,0.0)
+                                - align-self: end
+                                - align-content: end
+                                - padding: 0px
+                                - margin: 0px
+                              icon:
+                                - width: 40px
+                                - color: rgba(255,255,255,0.8)
+                        play:
+                          card:
+                            type: custom:button-card
+                            tap_action:
+                              action: call-service
+                              service: media_player.media_play_pause
+                              target:
+                                entity_id: media_player.family_room
+                            hold_action:
+                              action: call-service
+                              service: media_player.turn_off
+                              target:
+                                entity_id:
+                                  - media_player.family_room
+                            entity: media_player.family_room
+                            icon: mdi:play
+                            state:
+                              - value: playing
+                                icon: mdi:pause
+                            show_name: false
+                            styles:
+                              card:
+                                - border-radius: 5px
+                                - border-width: 0px
+                                - box-shadow: none
+                                - background: rgba(255,255,255,0.0)
+                                - align-self: end
+                                - align-content: end
+                                - padding: 0px
+                                - margin-bottom: 0px
+                              icon:
+                                - width: 55px
+                                - color: rgba(255,255,255,0.8)
+                        next:
+                          card:
+                            type: custom:button-card
+                            tap_action:
+                              action: call-service
+                              service: remote.send_command
+                              target:
+                                entity_id: remote.family_room
+                              data:
+                                command: home
+                            icon: mdi:home
+                            show_name: false
+                            styles:
+                              card:
+                                - border-radius: 5px
+                                - border-width: 0px
+                                - box-shadow: none
+                                - background: rgba(255,255,255,0.0)
+                                - align-self: end
+                                - align-content: end
+                              icon:
+                                - width: 40px
+                                - color: rgba(255,255,255,0.8)
+                        star:
+                          card:
+                            type: custom:button-card
+                            tap_action:
+                              action: call-service
+                              service: remote.send_command
+                              target:
+                                entity_id: remote.family_room
+                              data:
+                                command: left
+                            icon: mdi:rewind-10
+                            show_name: false
+                            styles:
+                              card:
+                                - border-radius: 5px
+                                - border-width: 0px
+                                - box-shadow: none
+                                - background: rgba(255,255,255,0.0)
+                                - align-self: end
+                                - align-content: end
+                              icon:
+                                - width: 20px
+                                - color: rgba(255,255,255,0.5)
+                        menu:
+                          card:
+                            type: custom:button-card
+                            entity: media_player.family_room
+                            tap_action:
+                              action: call-service
+                              service: remote.send_command
+                              target:
+                                entity_id: remote.family_room
+                              data:
+                                command: right
+                            icon: mdi:fast-forward-10
+                            show_name: false
+                            styles:
+                              card:
+                                - border-radius: 5px
+                                - border-width: 0px
+                                - box-shadow: none
+                                - background: rgba(255,255,255,0.0)
+                                - align-self: end
+                                - align-content: end
+                              icon:
+                                - width: 20px
+                                - color: rgba(255,255,255,0.5)
+                      styles:
+                        grid:
+                          - grid-template-columns: 2fr 3fr 3fr 3fr 2fr
+                          - grid-template-rows: min-content
+                          - grid-template-areas: "\"star previous play next menu\""
+                        card:
+                          - padding: 0 0 0 0px
+                          - margin: 3px 0px -6px 0px
+                          - align-self: end
+                          - background: none
+                          - box-shadow: none
+                          - border-width: 0px
+                          - border-radius: 0px
+                styles:
+                  grid:
+                    - grid-template-areas: "\"buttons\""
+                    - grid-template-columns: 1fr
+                    - grid-template-rows: max-content max-content max-content max-content;
+                    - align-items: end
+                  card:
+                    - background: transparent
+                    - box-shadow: none
+                    - border-radius: 0px
+                    - border-width: 0px
+                    - padding: 0px 0px 15px 0px
+                    - margin: 0px 0px 0px 0px
+              - type: custom:button-card
+                entity: media_player.family_room
+                show_entity_picture: false
+                show_name: false
+                show_icon: false
+                custom_fields:
+                  volume_control:
+                    card:
+                      type: horizontal-stack
+                      cards:
+                        - type: custom:button-card
+                          tap_action:
+                            action: call-service
+                            service: media_player.volume_down
+                            target:
+                              entity_id:
+                                - media_player.65_oled
+                          icon: mdi:volume-medium
+                          show_name: false
+                          styles:
+                            card:
+                              - border-radius: 25px
+                              - width: 30px
+                              - border-width: 0px
+                              - box-shadow: none
+                              - background: rgba(255,255,255,0.0)
+                              - align-self: end
+                              - align-content: end
+                            icon:
+                              - width: 20px
+                              - color: rgba(255,255,255,0.5)
+                        - type: custom:my-slider-v2
+                          entity: media_player.65_oled
+                          attribute: volume_level
+                          min: 0
+                          max: 100
+                          step: 2
+                          styles:
+                            card:
+                              - box-shadow: none
+                              - margin: 9px 0 0 0
+                              - background: none
+                            container:
+                              - border-radius: 0px
+                              - background: none
+                              - padding: 0 0 0 0px
+                            track:
+                              - background: rgba(255,255,255,0.3)
+                              - border-radius: 99px
+                              - width: 100%
+                              - height: 7px
+                              - margin: 0px 0 0 0
+                            progress:
+                              - background: rgba(255,255,255,0.9)
+                              - border-radius: 25px 0px 0px 25px
+                              - height: 7px
+                            thumb:
+                              - background: rgba(255,255,255,0.9)
+                              - width: 5px
+                              - height: 7px
+                              - border-radius: 0px
+                        - type: custom:button-card
+                          tap_action:
+                            action: call-service
+                            service: media_player.volume_up
+                            target:
+                              entity_id:
+                                - media_player.65_oled
+                          icon: mdi:volume-high
+                          show_name: false
+                          styles:
+                            card:
+                              - border-radius: 5px
+                              - width: 30px
+                              - border-width: 0px
+                              - box-shadow: none
+                              - background: rgba(255,255,255,0.0)
+                              - align-self: end
+                              - align-content: end
+                            icon:
+                              - width: 20px
+                              - color: rgba(255,255,255,0.5)
+                styles:
+                  grid:
+                    - grid-template-areas: "\"volume_control\""
+                    - grid-template-columns: 1fr
+                    - grid-template-rows: max-content;
+                    - align-items: end
+                  card:
+                    - background: none
+                    - box-shadow: none
+                    - border-radius: 0px
+                    - border-width: 0px
+                    - padding: 0px 0px 0px 0px
+                    - margin-bottom: "-5px"
+      card_mod:
+        style: |
+          @media (max-width: 767px) {
+          :host {
+            position: fixed !important;
+            bottom: 88px;
+            left: 8px;
+            right: 8px;
+          }
+          ha-card {
+            background-color: rgba(0, 0, 0, 0.3); !important;
+            -webkit-backdrop-filter: blur(10px); !important;}
+            border-top-left-radius: 25px !important;
+            border-top-right-radius: 25px;
+            border-bottom-left-radius: 0px;
+            border-bottom-right-radius: 0px;
+            }
+          }
+
+    - type: vertical-stack
+      cards: !include_dir_list ../sections/footer

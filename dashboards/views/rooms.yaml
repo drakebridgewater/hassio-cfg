@@ -1,0 +1,291 @@
+title: Rooms
+icon: mdi:floor-plan
+path: rooms
+cards:
+  - type: custom:mushroom-chips-card
+    chips:
+      - type: light
+        entity: light.wall_switch_light_group
+        icon: mdi:light-switch
+        content_info: name
+        name: View
+        tap_action: !include ../popup/wall_switches.yaml
+      # - type: entity
+      #   entity: switch.espresso_machine
+      #   tap_action:
+      #     action: toggle
+      #   icon: mdi:coffee-maker
+      #   icon_color: brown
+      - type: entity
+        entity: fan.ceiling_fan_2
+        tap_action:
+          action: more-info
+        icon: mdi:fan
+        icon_color: blue
+      - type: light
+        entity: light.stair_lights_group
+        icon: mdi:stairs
+        use_light_color: true
+  - entity: light.kitchen_lights_group
+    name: Kitchen
+    icon: mdi:silverware-fork-knife
+    type: "custom:button-card"
+    # label: |
+    #     [[[
+    #       var motion_disabled = states['input_boolean.motion_in_main_disabled'].state;
+    #       if ( motion_disabled == "off") {
+    #         return `Automations: enabled `;
+    #       }
+    #       return `Automations: disabled `;
+    #     ]]]
+    tap_action:
+      action: navigate
+      navigation_path: kitchen
+    triggers_update:
+      - light.kitchen_lights_group
+    custom_fields:
+      s2: |
+        [[[
+          return ""
+        ]]]
+      power_icon:
+        card:
+          entity: light.kitchen_wall_switch
+          icon: mdi:lightbulb-fluorescent-tube-outline
+          type: custom:button-card
+          template: view_power_icon_style
+      power_icon2:
+        card:
+          entity: light.vaulted_light
+          icon: mdi:ceiling-fan-light
+          type: custom:button-card
+          template: view_power_icon_style
+      power_icon3:
+        card:
+          entity: light.kitchen_lights_group
+          icon: mdi:arrow-up-bold-outline
+          type: custom:button-card
+          template: view_power_icon_style
+    template: 6_1__room_btn_btn_btn
+  - entity: light.living_room_light_group
+    name: Living Room
+    icon: mdi:sofa
+    type: "custom:button-card"
+    tap_action:
+      action: navigate
+      navigation_path: living
+    label: |
+        [[[
+          var motion_disabled = states['input_boolean.motion_in_main_disabled'].state;
+          if ( motion_disabled == "off") {
+            return `Automations: enabled `;
+          }
+          return `Automations: disabled `;
+        ]]]
+    template: 6_1__room_btn_btn_btn
+    triggers_update:
+      - light.living_room_light_group
+    custom_fields:
+      s2: |
+        [[[
+          return ""
+        ]]]
+      power_icon:
+        card:
+          entity: light.upstairs_hallway_wall_switch
+          icon: hue:room-hallway
+          type: custom:button-card
+          template: view_power_icon_style
+      power_icon2:
+        card:
+          entity: light.stair_lights_group
+          icon: mdi:stairs
+          type: custom:button-card
+          template: view_power_icon_style
+      power_icon3:
+        card:
+          entity: light.living_room_light_group
+          type: custom:button-card
+          template: view_power_icon_style
+  - entity: light.bedroom_lights_group
+    name: Master Bedroom
+    icon: mdi:bed-king-outline
+    type: "custom:button-card"
+    tap_action:
+      action: navigate
+      navigation_path: master
+    template: 6_1__room_btn_btn_btn
+    triggers_update:
+      - light.bedroom_lights_group
+
+    label: |
+        [[[
+          var motion_disabled = states['input_boolean.master_bedroom_lighting_automation_on_disabled'].state;
+          if ( motion_disabled == "off") {
+            return `Automations: enabled `;
+          }
+          return `Automations: disabled `;
+        ]]]
+    custom_fields:
+      s2: |
+        [[[
+          return " "
+        ]]]  
+      power_icon:
+        card:
+          entity: light.master_bathroom_wall_switch
+          icon: mdi:shower
+          type: custom:button-card
+          template: view_power_icon_style
+      power_icon2:
+        card:
+          entity: fan.bedroom_fan
+          icon: mdi:fan
+          type: custom:button-card
+          template: view_power_icon_style
+      power_icon3:
+        card:
+          entity: light.master_bedroom_wall_switch
+          type: custom:button-card
+          template: view_power_icon_style
+  - entity: light.ethan_s_lights_group
+    name: Ethan's Bedroom
+    icon: mdi:cradle
+    type: "custom:button-card"
+    tap_action:
+      action: navigate
+      navigation_path: ethan
+    template: 6_1__room_btn_btn_btn
+    triggers_update:
+      - light.ethan_s_lights_group
+    custom_fields:
+      s2: |
+        [[[
+          return " "
+        ]]]
+      power_icon:
+        card:
+          entity: switch.ethan_s_door_switch
+          icon: mdi:sleep
+          type: custom:button-card
+          template: view_power_icon_style
+      power_icon2:
+        card:
+          entity: fan.ethan_s_cribside
+          icon: mdi:fan
+          type: custom:button-card
+          template: view_power_icon_style
+      power_icon3:
+        card:
+          entity: light.ethan_s_lights_group
+          type: custom:button-card
+          template: view_power_icon_style
+  - entity: light.family_room_lights_group
+    name: Family Room
+    icon: mdi:sofa-single
+    type: "custom:button-card"
+    label: |
+        [[[
+          var motion_disabled = states['input_boolean.family_room_lighting_automation_on_disabled'].state;
+          if ( motion_disabled == "off") {
+            return `Automations: enabled `;
+          }
+          return `Automations: disabled `;
+        ]]]
+    tap_action:
+      action: navigate
+      navigation_path: family
+    template: 6_1__room_btn
+    triggers_update:
+      - light.family_room_lights_group
+    custom_fields:
+      s2: |
+        [[[
+          return " "
+        ]]]
+      power_icon:
+        card:
+          entity: light.family_room_lights_group
+          type: custom:button-card
+          template: view_power_icon_style
+  - entity: light.office_lights_group
+    name: Office
+    icon: mdi:chair-rolling
+    type: "custom:button-card"
+    tap_action:
+      action: navigate
+      navigation_path: office
+    template: 6_1__room_btn
+    triggers_update:
+      - light.office_lights_group
+    label: |
+        [[[
+          var motion_disabled = states['input_boolean.office_lighting_automation_on_disabled'].state;
+          if ( motion_disabled == "off") {
+            return `Automations: enabled `;
+          }
+          return `Automations: disabled `;
+        ]]]
+    custom_fields:
+      s2: |
+        [[[
+          return " "
+        ]]]
+      power_icon:
+        card:
+          entity: light.office_lights_group
+          type: custom:button-card
+          template: view_power_icon_style
+  - entity: light.tv_lights_group
+    icon: mdi:television
+    name: Entertainment Center
+    type: "custom:button-card"
+    tap_action:
+      action: navigate
+      navigation_path: upTv
+    template: 6_1__room_btn
+    triggers_update:
+      - light.tv_lights_group
+    label: |
+      [[[
+        var tv = states['media_player.living_room'].state;
+        if ( tv == "playing") {
+          var media = states['media_player.living_room'].attributes.media_title
+          var app = states['media_player.living_room'].attributes.app_name
+          return `Playing ${media} on ${app}`;
+        }
+
+        var marantz = states['media_player.marantz_sr5012_2'].state;
+        if ( marantz == "on") {
+          var source = states['media_player.marantz_sr5012_2'].attributes.source
+          return `Playing ${source}`;
+        }
+        return "Nothing playing";
+      ]]]
+    custom_fields:
+      s2: ""
+      power_icon:
+        card:
+          entity: light.tv_lights_group
+          type: "custom:button-card"
+          template: view_power_icon_style
+  - entity: light.0x94deb8fffe4fcaf4
+    icon: mdi:balcony
+    name: Outside
+    type: "custom:button-card"
+    tap_action:
+      action: navigate
+      navigation_path: outdoors
+    template: 6_1__room_btn
+    triggers_update:
+      - light.0x94deb8fffe4fcaf4
+    custom_fields:
+      s2: |
+        [[[
+          return " "
+        ]]]
+      power_icon:
+        card:
+          entity: light.0x94deb8fffe4fcaf4
+          type: custom:button-card
+          template: view_power_icon_style

@@ -1,12 +1,415 @@
-'1657147956988':
-  alias: New Script
+'1678647644824':
+  alias: Garage Door Opened - Confirmable Notification
+  use_blueprint:
+    path: homeassistant/confirmable_notification.yaml
+    input:
+      notify_device: c81abbe819dc7801f6f7146dd4fe2a92
+      confirm_action:
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.broadcast_message
+        data:
+          value: Garage Door Opened
+      dismiss_action:
+      - service: cover.close_cover
+        data: {}
+        target:
+          entity_id: cover.garage_door
+      title: Garage Door
+      message: 'Garage door has been opened '
+      confirm_text: 'Announce '
+      dismiss_text: Close garage door
+  mode: single
+new_script_2:
+  alias: Inovelli Red LED
+  mode: parallel
+  variables:
+    zwave_integration: zwave_js
+    model: "{% if model is string %}\n  {{ model }}\n{%- elif state_attr(entity_id,
+      'product_name') is string %}\n  {%- if 'LZW31' in state_attr(entity_id, 'product_name')
+      %}\n    dimmer\n  {%- elif 'LZW36' in state_attr(entity_id, 'product_name')
+      %}\n    combo_light\n  {%- else %}\n    switch\n  {%- endif %}\n{%- else %}\n
+      \ dimmer\n{%- endif %}\n"
+    parameters:
+      dimmer: 16
+      combo_light: 24
+      combo_fan: 25
+      switch: 8
+    node_id: '{{ state_attr(entity_id,"node_id") }}'
+    color: "{%- if color is not number %}\n  {{ color|default(\"Yellow\")|title }}\n{%-
+      else %}\n  {{ color|int }}\n{% endif %}\n"
+    level: '{{ level|default(4)|int }}'
+    duration: '{{ duration|default("Indefinitely")|title }}'
+    effect: '{{ effect|default("Blink")|title }}'
+    colors:
+      'Off': 0
+      Red: 1
+      Orange: 21
+      Yellow: 42
+      Green: 85
+      Cyan: 127
+      Teal: 145
+      Blue: 170
+      Purple: 195
+      Light Pink: 220
+      Pink: 234
+    durations:
+      'Off': 0
+      1 Second: 1
+      2 Seconds: 2
+      3 Seconds: 3
+      4 Seconds: 4
+      5 Seconds: 5
+      6 Seconds: 6
+      7 Seconds: 7
+      8 Seconds: 8
+      9 Seconds: 9
+      10 Seconds: 10
+      15 Seconds: 15
+      20 Seconds: 20
+      25 Seconds: 25
+      30 Seconds: 30
+      35 Seconds: 35
+      40 Seconds: 40
+      45 Seconds: 45
+      50 Seconds: 50
+      55 Seconds: 55
+      60 Seconds: 60
+      2 Minutes: 62
+      3 Minutes: 63
+      4 Minutes: 64
+      10 Minutes: 70
+      15 Minutes: 75
+      30 Minutes: 90
+      45 Minutes: 105
+      1 Hour: 120
+      2 Hours: 122
+      Indefinitely: 255
+    effects_dimmer:
+      'Off': 0
+      Solid: 1
+      Chase: 2
+      Fast Blink: 3
+      Slow Blink: 4
+      Blink: 4
+      Pulse: 5
+      Breath: 5
+    effects_switch:
+      'Off': 0
+      Solid: 1
+      Fast Blink: 2
+      Slow Blink: 3
+      Blink: 3
+      Pulse: 4
+      Breath: 4
   sequence:
-  - service: notify.mobile_app_dab_pixel_4a_5g
+  - variables:
+      parameter: '{{ parameters[model|lower] }}'
+      color: '{{ colors[color|title]|int }}'
+      duration: '{{ durations[duration|title] }}'
+      effect: "{% if model == \"switch\" %}\n  {{- effects_switch[effect|title] }}\n{%-
+        else %}\n  {{- effects_dimmer[effect|title] }}\n{% endif %}\n"
+      inovelli_math: "{%- if effect|int > 0 %}\n  {{ color|int + (level|int * 256)
+        + (duration|int * 65536) + (effect|int * 16777216) }}\n{%- else %}\n  0\n{%
+        endif %}\n"
+  - choose:
+    - conditions:
+      - '{{ zwave_integration == "zwave_js" }}'
+      sequence:
+      - service: zwave_js.bulk_set_partial_config_parameters
+        target:
+          entity_id: '{{ entity_id }}'
+        data:
+          parameter: '{{ parameter }}'
+          value: '16714410'
+      - choose:
+        - conditions:
+          - '{{ inovelli_math > 0 }}'
+          sequence:
+          - service: zwave_js.bulk_set_partial_config_parameters
+            target:
+              entity_id: '{{ entity_id }}'
+            data:
+              parameter: '{{ parameter }}'
+              value: '{{ inovelli_math }}'
+    - conditions:
+      - '{{ zwave_integration == "ozw" }}'
+      sequence:
+      - service: ozw.set_config_parameter
+        data:
+          node_id: '{{ node_id }}'
+          parameter: '{{ parameter }}'
+          value: 0
+      - service: ozw.set_config_parameter
+        data:
+          node_id: '{{ node_id }}'
+          parameter: '{{ parameter }}'
+          value: '{{ inovelli_math }}'
+    default:
+    - service: zwave.set_config_parameter
+      data:
+        node_id: '{{ node_id }}'
+        parameter: '{{ parameter }}'
+        size: 4
+        value: 0
+    - service: zwave.set_config_parameter
+      data:
+        node_id: '{{ node_id }}'
+        parameter: '{{ parameter }}'
+        size: 4
+        value: '{{ inovelli_math }}'
+  fields:
+    entity_id:
+      description: Light or switch which represents
+      example: light.family_room
+      selector:
+        entity:
+    model:
+      description: 'Device type: dimmer (default), switch, combo_light'
+      example: dimmer
+      selector:
+        select:
+          options:
+          - dimmer
+          - switch
+          - combo_light
+    color:
+      description: Choose a color.
+      example: purple
+      selector:
+        select:
+          options:
+          - 'Off'
+          - Red
+          - Orange
+          - Yellow
+          - Green
+          - Cyan
+          - Teal
+          - Blue
+          - Purple
+          - Light Pink
+          - Pink
+    effect:
+      description: Choose an effect.
+      example: blink
+      selector:
+        select:
+          options:
+          - 'Off'
+          - Solid
+          - Chase
+          - Fast Blink
+          - Slow Blink
+          - Blink
+          - Pulse
+          - Breath
+    duration:
+      description: How long should the effect run?
+      example: 10 seconds
+      selector:
+        select:
+          options:
+          - 'Off'
+          - 1 Second
+          - 2 Seconds
+          - 3 Seconds
+          - 4 Seconds
+          - 5 Seconds
+          - 6 Seconds
+          - 7 Seconds
+          - 8 Seconds
+          - 9 Seconds
+          - 10 Seconds
+          - 15 Seconds
+          - 20 Seconds
+          - 25 Seconds
+          - 30 Seconds
+          - 35 Seconds
+          - 40 Seconds
+          - 45 Seconds
+          - 50 Seconds
+          - 55 Seconds
+          - 60 Seconds
+          - 2 Minutes
+          - 3 Minutes
+          - 4 Minutes
+          - 10 Minutes
+          - 15 Minutes
+          - 30 Minutes
+          - 45 Minutes
+          - 1 Hour
+          - 2 Hours
+          - Indefinitely
+'1706890924831':
+  alias: Lamp Wake Up
+  sequence:
+  - service: light.turn_on
     data:
-      message: Hello
+      brightness: '{{ min_brightness }}'
+      color_temp: '{{ max_mireds }}'
+    target:
+      entity_id: '{{ target_light }}'
+  - repeat:
+      until:
+      - condition: or
+        conditions:
+        - condition: template
+          value_template: '{{ is_state(target_light, ''off'') }}'
+        - condition: template
+          value_template: '{{ state_attr(target_light, ''brightness'') >= max_brightness
+            }}'
+        - condition: template
+          value_template: '{{ state_attr(target_light, ''color_temp'') <= min_mireds
+            }}'
+        - condition: template
+          value_template: '{{ (((as_timestamp(now()) - start_time) / individual_step)
+            | round(0, "ceil")) > steps }}'
+      sequence:
+      - variables:
+          steps_to_now: "{{ ((as_timestamp(now()) - start_time) / individual_step)
+            |\n  round(0, \"ceil\") }}"
+          brightness: '{{ min_brightness + (bright_step * steps_to_now) | round(0,
+            ''ceil'') }}'
+          mireds: '{{ max_mireds - (mireds_step * steps_to_now) }}'
+      - delay:
+          seconds: '{{ individual_step }}'
+      - if:
+        - condition: template
+          value_template: '{{ is_state(target_light, ''on'') }}'
+        then:
+        - service: light.turn_on
+          data:
+            brightness: '{{ brightness }}'
+            color_temp: '{{ mireds }}'
+            transition: '{{ individual_step - 1 }}'
+          target:
+            entity_id: '{{ target_light }}'
+  - if:
+    - condition: and
+      conditions:
+      - condition: template
+        value_template: '{{ light_timeout != 0 }}'
+      - condition: template
+        value_template: '{{ is_state(target_light, ''on'') }}'
+    then:
+    - delay:
+        minutes: '{{ light_timeout }}'
+    - service: light.turn_off
+      data: {}
+      target:
+        entity_id: '{{ target_light }}'
+  description: Turn on lamps brighter based on wake time
+  fields:
+    min_mireds:
+      description: Minimum mireds value. This is the end value - most white
+      selector:
+        color_temp:
+      required: true
+      default: 200
+      name: Min Mireds
+      example: 200
+    max_mireds_selector:
+      description: Maximum mireds value. This is the start value. If the light is
+        on the current value from the state of the light will be used and this will
+        be ignored.
+      example: 400
+      selector:
+        color_temp:
+      default: 400
+      required: true
+      name: Max Mireds
+    max_brightness_pct:
+      description: Maximum brightness in percent.
+      example: 80
+      selector:
+        number:
+          min: 1
+          max: 100
+      default: 80
+      required: true
+      name: Max brightness
+    alarm_length:
+      description: This is the start to finish time. Take this into account when setting
+        up the automation this script is called by.
+      example: 10
+      selector:
+        number:
+          min: 1
+          max: 60
+      default: 10
+      required: true
+      name: Alarm Length
+    steps_per_minute:
+      description: How many steps per minute
+      example: 4
+      selector:
+        number:
+          min: 1
+          max: 12
+      default: 12
+      name: Steps Per minute
+      required: true
+    target_light:
+      description: A single light or group
+      example: light.master_lamp
+      selector:
+        entity:
+          filter:
+            domain: light
+      name: Target Light
+      required: true
+    light_timeout:
+      description: Minutes to delay after Max Brightness has been reached to turn
+        the light back off. Value of 0 disables the timeout
+      example: 5
+      selector:
+        number:
+          min: 0
+          max: 60
+      default: 5
+      name: Light Timeout
+      required: true
+  variables:
+    steps: '{{ alarm_length * steps_per_minute }}'
+    min_brightness: "{% if state_attr(target_light, 'brightness') == None %}\n  1\n{%
+      else %}\n  {{ state_attr(target_light, 'brightness') }}\n{% endif %}"
+    max_brightness: '{{ max_brightness_pct * 2.55 }}'
+    max_mireds: "{% if state_attr(target_light, 'color_temp') == None %}\n  {{ max_mireds_selector
+      }}\n{% else %}\n  {{ state_attr(target_light, 'color_temp') }}\n{% endif %}"
+    mireds_step: '{{ (max_mireds - min_mireds) / steps }}'
+    bright_step: '{{ (max_brightness - min_brightness) / steps }}'
+    start_time: '{{ as_timestamp(now()) }}'
+    individual_step: '{{ 60 / steps_per_minute }}'
+  mode: parallel
+'1713191378784':
+  alias: Inovelli Blue LED (Zigbee2MQTT) (OLD)
+  use_blueprint:
+    path: zanix/inovelli_blue_led_zigbee2mqtt.yaml
+  description: ''
+ring_keypad_ding_dong:
+  alias: Ring Keypad - Ding Dong
+  use_blueprint:
+    path: Noblewolf/ring-keypad-v2-sounds-script-zwavejs.yaml
+    input:
+      sound_volume: 100
+      keypad:
+      - d02dd3f1095ac2cdbc53485fcf6cbb2d
+  description: ''
+  icon: mdi:bell-circle
+ring_keypad_police:
+  alias: 'Ring Keypad - Police '
+  use_blueprint:
+    path: Noblewolf/ring-keypad-v2-sounds-script-zwavejs.yaml
+    input:
+      keypad:
+      - d02dd3f1095ac2cdbc53485fcf6cbb2d
+      sound_selection: '13'
+      sound_volume: 30
+  description: ''
+  icon: mdi:alarm-light
 inovelli_blue_led_zigbee2mqtt:
   alias: Inovelli Blue LED (Zigbee2MQTT)
   use_blueprint:
     path: zanix/inovelli_blue_led_zigbee2mqtt.yaml
-  icon: mdi:led-on
-  mode: single
+  description: ''

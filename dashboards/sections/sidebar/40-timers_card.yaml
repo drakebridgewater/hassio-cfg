@@ -1,0 +1,62 @@
+type: vertical-stack
+cards:
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: sensor.kitchen_display_timers
+        state_not: unavailable
+      - condition: state
+        entity: sensor.kitchen_display_timers
+        state_not: unknown
+    card:
+      type: custom:timer-bar-card
+      entity: sensor.kitchen_display_timers
+      mushroom: null
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: sensor.office_display_timers
+        state_not: unavailable
+      - condition: state
+        entity: sensor.office_display_timers
+        state_not: unknown
+    card:
+      type: custom:timer-bar-card
+      entity: sensor.office_display_timers
+      mushroom: null
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: sensor.kirchen_echo_show_next_timer
+        state_not: unavailable
+      - condition: state
+        entity: sensor.kirchen_echo_show_next_timer
+        state_not: unknown
+    card:
+      type: custom:timer-bar-card
+      entity: sensor.kirchen_echo_show_next_timer
+      mushroom: null
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: sensor.family_room_speaker_timers
+        state_not: unavailable
+      - condition: state
+        entity: sensor.family_room_speaker_timers
+        state_not: unknown
+    card:
+      type: custom:timer-bar-card
+      entity: sensor.family_room_speaker_timers
+      mushroom: null
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: sensor.ethan_s_speaker_timers
+        state_not: unavailable
+      - condition: state
+        entity: sensor.ethan_s_speaker_timers
+        state_not: unknown
+    card:
+      type: custom:timer-bar-card
+      entity: sensor.ethan_s_speaker_timers
+      mushroom: null

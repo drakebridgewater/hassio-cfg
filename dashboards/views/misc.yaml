@@ -1,0 +1,318 @@
+title: Misc
+icon: mdi:plus
+path: misc
+cards:
+  - type: vertical-stack
+    cards:
+    - type: custom:bubble-card
+      card_type: separator
+      name: Bathrooms
+    - type: custom:bubble-card
+      entity: light.main_bathroom_wall_switch
+      card_type: button
+      button_type: state
+      name: Main Bathroom 
+      icon: hue:friends-of-hue-iq-pendant
+      tap_action:
+        action: more-info
+      sub_button:
+        - name: Toggle button
+          icon: mdi:power
+          tap_action:
+            action: toggle
+    - type: custom:bubble-card
+      card_type: button
+      button_type: state
+      entity: light.basement_bathroom_wall_switch
+      icon: hue:friends-of-hue-iq-pendant
+      name: Basement Bathroom
+      show_state: true
+      sub_button:
+        - entity: sensor.flo_basement_bathroom_water_sensor_temperature
+          show_state: true
+          show_icon: true
+          show_background: false
+        - entity: sensor.flo_basement_bathroom_water_sensor_humidity
+          show_state: true
+          show_icon: true
+          show_background: false
+        - entity: sensor.flo_basement_bathroom_water_sensor_battery
+          show_state: true
+          show_icon: true
+          show_background: false
+        - name: Toggle button
+          icon: mdi:power
+          tap_action:
+            action: toggle
+
+    - type: custom:bubble-card
+      card_type: button
+      button_type: state
+      entity: light.downstairs_hallway_wall_switch
+      icon: hue:friends-of-hue-iq-pendant
+      name: Downstairs Hallway
+      show_state: true
+      sub_button:
+        - entity: binary_sensor.downstairs_hallway_motion_occupancy
+          show_state: true
+          show_icon: true
+          show_background: false
+        - entity: light.basement_hallway_light
+          show_state: true
+          show_icon: true
+          show_background: false
+        - entity: sensor.flo_basement_bathroom_water_sensor_battery
+          show_state: true
+          show_icon: true
+          show_background: false
+        - name: Toggle button
+          icon: mdi:power
+          tap_action:
+            action: toggle
+
+  - type: vertical-stack
+    cards:
+    - type: custom:bubble-card
+      card_type: separator
+      name: Garage
+    - type: custom:bubble-card
+      card_type: button
+      button_type: state
+      entity: cover.garage_door
+      tap_action:
+        action: more-info
+      name: Garage
+      show_state: true
+      sub_button:
+        - entity: sensor.garage_temperature_sensor_temperature
+          show_state: true
+          show_icon: true
+          show_background: false
+        - entity: sensor.garage_temperature_sensor_humidity
+          show_state: true
+          show_icon: true
+          show_background: false
+        - entity: cover.garage_door
+          tap_action:
+            action: more-info
+          show_state: true
+          show_icon: true
+          show_background: false
+        - name: Toggle button
+          icon: mdi:power
+          tap_action:
+            action: toggle
+    - type: custom:bubble-card
+      card_type: button
+      button_type: slider
+      entity: light.garage_wall_switch
+      name: Garage
+      show_state: true
+      show_last_changed: true
+      show_attribute: false
+      tap_action:
+        action: more-info
+      sub_button:
+        - entity: light.garage_wall_switch
+          name: ""
+          icon: mdi:power
+          tap_action:
+            action: toggle
+    - type: custom:bubble-card
+      card_type: button
+      button_type: slider
+      entity: switch.workbench_light
+      name: Workbench
+      show_state: true
+      show_last_changed: true
+      show_attribute: false
+      tap_action:
+        action: more-info
+      sub_button:
+        - entity: switch.workbench_light
+          name: ""
+          icon: mdi:power
+          tap_action:
+            action: toggle
+
+    - type: custom:bubble-card
+      card_type: separator
+      name: Grow Lights
+      icon: mdi:greenhouse
+    - type: custom:bubble-card
+      card_type: button
+      button_type: state
+      entity: switch.left_greenhouse_plug
+      icon: mdi:greenhouse
+      name: Left Green House
+      show_state: true
+      sub_button:
+        - entity: sensor.living_room_greenhouse_temperature
+          show_state: true
+          show_icon: true
+          show_background: false
+        - entity: sensor.living_room_greenhouse_humidity
+          show_state: true
+          show_icon: true
+          show_background: false
+        - entity: sensor.living_room_greenhouse_battery
+          show_state: true
+          show_icon: true
+          show_background: false
+        - name: Toggle button
+          icon: mdi:power
+          tap_action:
+            action: toggle
+    - type: custom:bubble-card
+      card_type: button
+      button_type: state
+      entity: switch.dining_room_grow_light
+      icon: mdi:greenhouse
+      name: Right Green House
+      show_state: true
+      sub_button:
+        - entity: sensor.dinning_room_greenhouse_temperature
+          show_state: true
+          show_icon: true
+          show_background: false
+        - entity: sensor.dinning_room_greenhouse_humidity
+          show_state: true
+          show_icon: true
+          show_background: false
+        - entity: sensor.dinning_room_greenhouse_battery
+          show_state: true
+          show_icon: true
+          show_background: false
+        - name: Toggle button
+          icon: mdi:power
+          tap_action:
+            action: toggle 
+    - type: custom:bubble-card
+      card_type: button
+      button_type: state
+      entity: switch.laundry_room_grow_light
+      icon: mdi:greenhouse
+      name: Laundry Room Grow Light
+      show_state: true
+      sub_button:
+        - name: Toggle button
+          icon: mdi:power
+          tap_action:
+            action: toggle
+    - type: custom:bubble-card
+      card_type: button
+      button_type: state
+
+      entity: switch.master_bedroom_grow_lamp
+      name: Master Bedroom Grow Light
+      icon: mdi:greenhouse
+      show_state: true
+      sub_button:
+        - name: Toggle button
+          icon: mdi:power
+          tap_action:
+            action: toggle
+  - type: vertical-stack
+    cards:
+    - type: custom:bubble-card
+      card_type: separator
+      name: Water Leak Sensors
+    - type: custom:bubble-card
+      card_type: button
+      button_type: state
+      entity: sensor.flo_laundry_temperature
+      name: Laundry Sink
+      show_state: false
+      sub_button:
+        - entity: sensor.flo_laundry_temperature
+          show_state: true
+          show_icon: true
+          show_background: false
+        - entity: sensor.flo_laundry_humidity
+          show_state: true
+          show_icon: true
+          show_background: false
+        - entity: sensor.flo_laundry_battery
+          show_state: true
+          show_icon: true
+          show_background: false
+    - type: custom:bubble-card
+      card_type: button
+      button_type: state
+      entity: sensor.flo_basement_bathroom_water_sensor_temperature
+      name: Basement Toilet
+      show_state: false
+      sub_button:
+        - entity: sensor.flo_basement_bathroom_water_sensor_temperature
+          show_state: true
+          show_icon: true
+          show_background: false
+        - entity: sensor.flo_basement_bathroom_water_sensor_humidity
+          show_state: true
+          show_icon: true
+          show_background: false
+        - entity: sensor.flo_basement_bathroom_water_sensor_battery
+          show_state: true
+          show_icon: true
+          show_background: false
+    - type: custom:bubble-card
+      card_type: button
+      button_type: state
+      entity: sensor.flo_under_kitchen_sink_temperature
+      name:  Kitchen Sink
+      show_state: false
+      sub_button:
+        - entity: sensor.flo_under_kitchen_sink_temperature
+          show_state: true
+          show_icon: true
+          show_background: false
+        - entity: sensor.flo_under_kitchen_sink_humidity
+          show_state: true
+          show_icon: true
+          show_background: false
+        - entity: sensor.flo_under_kitchen_sink_battery
+          show_state: true
+          show_icon: true
+          show_background: false
+
+  # - type: vertical-stack
+  #   cards:
+  #   - type: custom:bubble-card
+  #     card_type: separator
+  #     name: Fridges
+
+
+  #   - type: custom:mushroom-entity-card
+  #     entity: switch.hz526153_fridge_ice_boost
+  #     name: Ice Boost
+  #   - type: custom:mushroom-entity-card
+  #     entity: switch.hz526153_turbo_freeze_status
+  #     name: Turbo Freezer
+  #   - type: custom:mushroom-entity-card
+  #     entity: water_heater.hz526153_fridge
+  #     name: Fridge Temperature Control
+  #   - type: custom:mushroom-entity-card
+  #     entity: water_heater.hz526153_freezer
+  #     name: Freezer Temperature Control
+  - type: vertical-stack
+    cards:
+    - type: custom:bubble-card
+      card_type: separator
+      name: Attic
+    - type: custom:mushroom-chips-card
+      chips:
+        - type: entity
+          entity: sensor.acurite_tower_attic_sensor_temperature
+        - type: entity
+          entity: sensor.acurite_tower_attic_sensor_humidity
+  - type: vertical-stack
+    cards:
+    - type: custom:bubble-card
+      card_type: separator
+      name: Crawl Space
+    - type: custom:mushroom-chips-card
+      chips:
+        - type: entity
+          entity: sensor.crawl_space_temperature_sensor_temperature
+        - type: entity
+          entity: sensor.crawl_space_temperature_sensor_humidity

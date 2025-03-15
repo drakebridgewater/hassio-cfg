@@ -1,19 +1,22 @@
 blueprint:
-  name: Z2M - Inovelli 2-in-1 switch + dimmer Scene Controls
+  name: Z2M v2.0 - Inovelli 2-in-1 switch + dimmer Scene Controls
   description: 'For Inovelli Blue Series 2-in-1 switch + dimmer, model VZM31-SN
 
     Allows setting a few different actions such as 2,3,4,5 clicking the up/down and
     config buttons.
+
+    Updated for use with Zibbee2MQTT v2.0 with Device Actions
 
     '
   domain: automation
   input:
     switch:
       name: Switch
-      description: Inovelli Switch (action). For example, "sensor.INOVELLI_SWITCH_action"
+      description: Inovelli Switch.
       selector:
-        entity:
-          domain: sensor
+        device:
+          integration: mqtt
+          manufacturer: Inovelli
           multiple: false
     config_held:
       name: Hold Config
@@ -23,7 +26,7 @@ blueprint:
         action: {}
     config_release:
       name: Release Config
-      description: Action to run
+      description: Action to run (will also stop the "Hold Down" action automatically)
       default: []
       selector:
         action: {}
@@ -65,7 +68,7 @@ blueprint:
         action: {}
     down_release:
       name: Release Down
-      description: Action to run
+      description: Action to run (will also stop the "Hold Down" action automatically)
       default: []
       selector:
         action: {}
@@ -108,7 +111,7 @@ blueprint:
         action: {}
     up_release:
       name: Release Up
-      description: Action to run
+      description: Action to run (will also stop the "Hold Up" action automatically)
       default: []
       selector:
         action: {}
@@ -144,30 +147,123 @@ blueprint:
       selector:
         action: {}
   source_url: https://community.home-assistant.io/t/z2m-inovelli-blue-series-2-in-1-switch-dimmer/484422
-mode: parallel
+mode: restart
 max_exceeded: silent
 trigger:
-- platform: state
-  entity_id: !input switch
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: config_double
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: config_release
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: config_held
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: config_quintuple
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: config_single
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: config_triple
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: down_double
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: down_held
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: down_quadruple
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: down_quintuple
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: down_release
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: down_single
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: down_triple
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: up_double
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: up_held
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: up_quadruple
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: up_release
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: up_single
+  trigger: device
+- domain: mqtt
+  device_id: !input switch
+  type: action
+  subtype: up_triple
+  trigger: device
 action:
 - variables:
-    command: '{{ trigger.to_state.state }}'
+    command: '{{ trigger.payload }}'
 - choose:
-  - conditions:
-    - '{{ command == ''config_double'' }}'
-    sequence: !input config_double
   - conditions:
     - '{{ command == ''config_held'' }}'
     sequence: !input config_held
+  - conditions:
+    - '{{ command == ''config_release'' }}'
+    sequence: !input config_release
+  - conditions:
+    - '{{ command == ''config_double'' }}'
+    sequence: !input config_double
   - conditions:
     - '{{ command == ''config_quadruple'' }}'
     sequence: !input config_quadruple
   - conditions:
     - '{{ command == ''config_quintuple'' }}'
     sequence: !input config_quintuple
-  - conditions:
-    - '{{ command == ''config_release'' }}'
-    sequence: !input config_release
   - conditions:
     - '{{ command == ''config_single'' }}'
     sequence: !input config_single

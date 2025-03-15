@@ -1,0 +1,56 @@
+automation:
+  - alias: "Xbox started from harmony hub"
+    trigger:
+      platform: state
+      entity_id: remote.livingroom
+    condition:
+      condition: template
+      value_template: '{{ trigger.to_state.attributes.current_activity == "Xbox One" }}'
+    action:
+      service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.notify
+  - alias: "Switch started from harmony hub"
+    trigger:
+      platform: state
+      entity_id: remote.livingroom
+    condition:
+      condition: template
+      value_template: '{{ trigger.to_state.attributes.current_activity == "Switch" }}'
+    action:
+      service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.notify
+  - alias: "Front HDMI started from harmony hub"
+    trigger:
+      platform: state
+      entity_id: remote.livingroom
+    condition:
+      condition: template
+      value_template: '{{ trigger.to_state.attributes.current_activity == "Front HDMI in" }}'
+    action:
+      service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.notify
+  - alias: "Watch TV started from harmony hub"
+    trigger:
+      platform: state
+      entity_id: remote.livingroom
+    condition:
+      condition: template
+      value_template: '{{ trigger.to_state.attributes.current_activity == "Chromecast" }}'
+    action:
+      service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.notify
+  - alias: "PowerOff started from harmony hub"
+    trigger:
+      platform: state
+      entity_id: remote.livingroom
+    condition:
+      condition: template
+      value_template: '{{ trigger.to_state.attributes.current_activity == "PowerOff" }}'
+    action:
+      service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.notify

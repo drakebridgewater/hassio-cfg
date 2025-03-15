@@ -1,0 +1,9 @@
+type: custom:mushroom-alarm-control-panel-card
+entity: alarm_control_panel.abode_alarm
+states:
+  - armed_home
+  - armed_away
+  - armed_night
+layout: vertical
+show_keypad: false
+fill_container: false

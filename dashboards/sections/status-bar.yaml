@@ -1,0 +1,330 @@
+- type: conditional
+  conditions:
+    - condition: screen
+      media_query: "(min-width: 0px) and (max-width: 767px)"
+  chip:
+- type: entity
+  conditions: !include ../visibility/disarmed.yaml
+  entity: binary_sensor.home_occupied
+  use_entity_picture: true
+  tap_action:
+    action: navigate
+    navigation_path: "#people_overview"
+  hold_action:
+    action: more-info
+  card_mod:
+    style: |
+      ha-card {
+        --chip-icon-size: 0.8em
+# - type: entity
+#   entity: person.drake_bridgewater
+#   use_entity_picture: true
+#   tap_action:
+#     action: navigate
+#     navigation_path: "#people_overview"
+#   hold_action:
+#     action: more-info
+#   card_mod:
+#     style: |
+#       ha-card {
+#         --chip-icon-size: 0.8em
+# - type: entity
+#   entity: person.shawna
+#   use_entity_picture: true
+#   tap_action:
+#     action: navigate
+#     navigation_path: "#people_overview"
+#   hold_action:
+#     action: more-info
+#   card_mod:
+#     style: |
+#       ha-card {
+#         --chip-icon-size: 0.8em
+# - type: entity
+#   entity: binary_sensor.ethan_at_daycare
+#   use_entity_picture: true
+#   tap_action:
+#     action: navigate
+#     navigation_path: "#people_overview"
+#   hold_action:
+#     action: more-info
+#   card_mod:
+#     style: |
+#       ha-card {
+#         --chip-icon-size: 0.8em
+- type: conditional
+  conditions: !include ../visibility/disarmed.yaml
+  chip:
+    type: template
+    entity: alarm_control_panel.abode_alarm
+    tap_action:
+      action: more-info
+    # content: |-
+    #   {% if is_state('alarm_control_panel.abode_alarm', 'disarmed') %}
+    #     Disarmed
+    #   {% elif is_state('alarm_control_panel.abode_alarm', 'armed_home') %}
+    #     Armed Home
+    #   {% elif is_state('alarm_control_panel.abode_alarm', 'armed_away') %}
+    #     Armed Away
+    #   {% endif %}
+    icon: |-
+      {% if is_state('alarm_control_panel.abode_alarm', 'disarmed') %} 
+        mdi:shield-off
+      {% elif is_state('alarm_control_panel.abode_alarm', 'armed_home') %}
+        mdi:shield-home
+      {% elif is_state('alarm_control_panel.abode_alarm', 'armed_away') %}
+        mdi:shield
+      {% endif %}
+    icon_color: |-
+      {% if is_state('alarm_control_panel.abode_alarm', 'disarmed') %} 
+        blue
+      {% elif is_state('alarm_control_panel.abode_alarm', 'armed_home') %}
+        red
+      {% elif is_state('alarm_control_panel.abode_alarm', 'armed_away') %}
+        red
+      {% endif %}
+    card_mod:
+      style: |
+        ha-card {
+          --chip-icon-size: 0.8em
+        }
+        {% if not is_state(config.entity, 'disarmed') %}
+          .content {
+          animation: boing 3s ease infinite;
+          transform-origin: 50% 90%;
+        }
+        @keyframes boing {
+          0% { transform: scale3d(1, 1, 1); }
+          7% { transform: scale3d(1.25, 0.75, 1); }
+          10% { transform: scale3d(0.75, 1.25, 1); }
+          12% { transform: scale3d(1.15, 0.85, 1); }
+          16% { transform: scale3d(0.95, 1.05, 1); }
+          19% { transform: scale3d(1.05, 0.95, 1); }
+          25% { transform: scale3d(1, 1, 1); }
+        } 
+        {% endif %}
+# - type: entity
+#   entity: weather.home
+#   card_mod:
+#     style: |
+#       ha-card {
+#         --chip-icon-size: 0.8em
+# - type: entity
+#   entity: sensor.wirelesstag_outdoor_temperature
+#   card_mod:
+#     style: |
+#       ha-card {
+#         --chip-icon-size: 0.8em
+- type: entity
+  conditions: !include ../visibility/disarmed.yaml
+  entity: cover.garage_door
+  tap_action:
+    action: toggle
+  hold_action:
+    action: more-info
+  icon_color: yellow
+  content_info: none
+  card_mod:
+    style: |
+      ha-card {
+        --chip-icon-size: 0.8em
+      }
+
+      {% if is_state(config.entity, 'on') %}
+        .content {
+        animation: boing 3s ease infinite;
+        transform-origin: 50% 90%;
+      }
+      @keyframes boing {
+        0% { transform: scale3d(1, 1, 1); }
+        7% { transform: scale3d(1.25, 0.75, 1); }
+        10% { transform: scale3d(0.75, 1.25, 1); }
+        12% { transform: scale3d(1.15, 0.85, 1); }
+        16% { transform: scale3d(0.95, 1.05, 1); }
+        19% { transform: scale3d(1.05, 0.95, 1); }
+        25% { transform: scale3d(1, 1, 1); }
+      } 
+      {% endif %}
+
+- entity: binary_sensor.any_door_open_group
+  type: entity
+  tap_action:
+    action: navigate
+    navigation_path: "#door_overview"
+  content_info: none
+  icon_color: yellow
+  card_mod:
+    style: |
+      ha-card {
+        --chip-icon-size: 0.8em
+      }
+
+      {% if is_state(config.entity, 'on') %}
+        .content {
+        animation: boing 3s ease infinite;
+        transform-origin: 50% 90%;
+      }
+      @keyframes boing {
+        0% { transform: scale3d(1, 1, 1); }
+        7% { transform: scale3d(1.25, 0.75, 1); }
+        10% { transform: scale3d(0.75, 1.25, 1); }
+        12% { transform: scale3d(1.15, 0.85, 1); }
+        16% { transform: scale3d(0.95, 1.05, 1); }
+        19% { transform: scale3d(1.05, 0.95, 1); }
+        25% { transform: scale3d(1, 1, 1); }
+      } 
+      {% endif %}
+
+- entity: binary_sensor.window_open_group
+  tap_action:
+    action: navigate
+    navigation_path: "#window_overview"
+  content_info: none
+  type: entity
+  icon_color: yellow
+  card_mod:
+    style: |
+      ha-card {
+        --chip-icon-size: 0.8em
+      }
+
+      {% if is_state(config.entity, 'on') %}
+        .content {
+        animation: boing 3s ease infinite;
+        transform-origin: 50% 90%;
+      }
+      @keyframes boing {
+        0% { transform: scale3d(1, 1, 1); }
+        7% { transform: scale3d(1.25, 0.75, 1); }
+        10% { transform: scale3d(0.75, 1.25, 1); }
+        12% { transform: scale3d(1.15, 0.85, 1); }
+        16% { transform: scale3d(0.95, 1.05, 1); }
+        19% { transform: scale3d(1.05, 0.95, 1); }
+        25% { transform: scale3d(1, 1, 1); }
+      } 
+      {% endif %}
+
+- type: template
+  entity: binary_sensor.whole_house_motion_group
+  tap_action:
+    action: navigate
+    navigation_path: "#motion_overview"
+  icon_color: |-
+    {% if states('binary_sensor.whole_house_motion_group') == 'on' -%}
+      yellow
+    {%- else %}
+      white
+    {%- endif %}
+  icon: mdi:motion-sensor
+  content_info: none
+  # content: |-
+  #   {% if states('binary_sensor.whole_house_motion_group') == 'off' -%}
+  #     Unoccupied
+  #   {% elif states('binary_sensor.whole_house_motion_group') == 'on' -%}
+  #     Occupied
+  #   {%- else %}
+  #     Error
+  #   {%- endif %}
+  card_mod:
+    style: |
+      ha-card {
+        --chip-icon-size: 0.8em
+      }
+
+      {% if is_state(config.entity, 'on') %}
+      .content {
+        animation: clip 2s linear infinite;
+      }
+      @keyframes clip {
+        50% { clip-path: polygon(0 0, 55% 0, 100% 100%, 0 100%); }
+      }
+      .shape {
+        --shape-animation: motion 2s linear infinite;
+      }
+      @keyframes motion {
+        0%, 100% { --shape-color: rgba(var(--rgb-blue), 0.3); }
+        50% { --shape-color: rgba(var(--rgb-blue), 0.2); }
+      }
+      {% endif %}
+
+- type: template
+  entity: climate.thermostat
+  # content: |-
+  #   {% if states('climate.thermostat') == 'heat' -%}
+  #     Heat
+  #   {% elif states('climate.thermostat') == 'cool' -%}
+  #     Cool
+  #   {% elif states('climate.thermostat') == 'heat_cool' -%}
+  #     Auto
+  #   {% elif states('climate.thermostat') == 'off' -%}
+  #     Off
+  #   {%- else %}
+  #     Unknown
+  #   {%- endif %}
+  icon_color: |-
+    {% if states('climate.thermostat') == 'heat' -%}
+      red
+    {% elif states('climate.thermostat') == 'cool' -%}
+      blue
+    {% elif states('climate.thermostat') == 'heat_cool' -%}
+      green
+    {%- else %}
+      grey
+    {%- endif %}
+  icon: |-
+    {% if states('climate.thermostat') == 'heat' -%}
+    mdi:fire
+    {% elif states('climate.thermostat') == 'cool' -%}
+      mdi:air-conditioner
+    {% elif states('climate.thermostat') == 'heat_cool' -%}
+      mdi:hvac
+    {%- else %}
+      mdi:hvac-off
+    {%- endif %}
+  card_mod:
+    style: |
+      ha-card {
+        --chip-icon-size: 0.8em
+      }
+  tap_action:
+    action: more-info
+  hold_action:
+    action: more-info
+- type: light
+  entity: light.wall_switch_light_group
+  icon: mdi:light-switch
+  content_info: none
+  tap_action: !include ../popup/wall_switches.yaml
+  card_mod:
+    style: |
+      ha-card {
+        --chip-icon-size: 0.8em
+- type: light
+  entity: light.wall_switch_light_group
+  icon: mdi:lightbulb-group
+  content_info: none
+  tap_action:
+    action: navigate
+    navigation_path: "#lights_overview"
+  card_mod:
+    style: |
+      ha-card {
+        --chip-icon-size: 0.8em
+
+- type: entity
+  entity: sensor.energy_usage
+  icon: mdi:transmission-tower
+  tap_action:
+    action: navigate
+    navigation_path: "#power_overview"
+- type: entity
+  show_name: false
+  show_state: true
+  show_icon: true
+  entity: todo.bring_todo_baywaters_shopping_list
+  tap_action:
+    action: navigate
+    navigation_path: /todo
+  state_content: state
+  show_entity_picture: false
+  icon: mdi:cart-variant

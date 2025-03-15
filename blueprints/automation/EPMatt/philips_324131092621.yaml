@@ -1,35 +1,17 @@
 blueprint:
   name: Controller - Philips 324131092621 Hue Dimmer switch
-  description: '# Controller - Philips 324131092621 Hue Dimmer switch
-
-
-    Controller automation for executing any kind of action triggered by the provided
-    Philips 324131092621 Hue Dimmer switch. Allows to optionally loop an action on
-    a button long press.
-
-    Supports deCONZ, ZHA, Zigbee2MQTT.
-
-
-    Automations created with this blueprint can be connected with one or more [Hooks](https://epmatt.github.io/awesome-ha-blueprints/docs/blueprints/hooks)
-    supported by this controller.
-
-    Hooks allow to easily create controller-based automations for interacting with
-    media players, lights, covers and more.
-
-    See the list of [Hooks available for this controller](https://epmatt.github.io/awesome-ha-blueprints/docs/blueprints/controllers/philips_324131092621#available-hooks)
-    for additional details.
-
-
-    📕 Full documentation regarding this blueprint is available [here](https://epmatt.github.io/awesome-ha-blueprints/docs/blueprints/controllers/philips_324131092621).
-
-
-    🚀 This blueprint is part of the **[Awesome HA Blueprints](https://epmatt.github.io/awesome-ha-blueprints)
-    project**.
-
-
-    ℹ️ Version 2021.11.19
-
-    '
+  description: "# Controller - Philips 324131092621 Hue Dimmer switch\n\nController
+    automation for executing any kind of action triggered by the provided Philips
+    324131092621 Hue Dimmer switch. Allows to optionally loop an action on a button
+    long press.\nSupports deCONZ, ZHA, Zigbee2MQTT.\n\nAutomations created with this
+    blueprint can be connected with one or more [Hooks](https://epmatt.github.io/awesome-ha-blueprints/docs/blueprints/hooks)
+    supported by this controller.\nHooks allow to easily create controller-based automations
+    for interacting with media players, lights, covers and more.\nSee the list of
+    [Hooks available for this controller](https://epmatt.github.io/awesome-ha-blueprints/docs/blueprints/controllers/philips_324131092621#available-hooks)
+    for additional details.\n\n\U0001F4D5 Full documentation regarding this blueprint
+    is available [here](https://epmatt.github.io/awesome-ha-blueprints/docs/blueprints/controllers/philips_324131092621).\n\n\U0001F680
+    This blueprint is part of the **[Awesome HA Blueprints](https://epmatt.github.io/awesome-ha-blueprints)
+    project**.\n\nℹ️ Version 2022.08.08\n"
   source_url: https://github.com/EPMatt/awesome-ha-blueprints/blob/main/blueprints/controllers/philips_324131092621/philips_324131092621.yaml
   domain: automation
   input:
@@ -43,6 +25,9 @@ blueprint:
           - deCONZ
           - ZHA
           - Zigbee2MQTT
+          custom_value: false
+          sort: false
+          multiple: false
     controller_device:
       name: (deCONZ, ZHA) Controller Device
       description: The controller device to use for the automation. Choose a value
@@ -57,7 +42,9 @@ blueprint:
       default: ''
       selector:
         entity:
-          domain: sensor
+          domain:
+          - sensor
+          multiple: false
     helper_last_controller_event:
       name: (Required) Helper - Last Controller Event
       description: Input Text used to store the last event fired by the controller.
@@ -66,7 +53,9 @@ blueprint:
       default: ''
       selector:
         entity:
-          domain: input_text
+          domain:
+          - input_text
+          multiple: false
     action_button_on_short:
       name: (Optional) On button short press
       description: Action to run on short on button press.
@@ -297,22 +286,22 @@ blueprint:
           mode: box
           step: 10.0
 variables:
-  integration: !input 'integration'
-  button_on_long_loop: !input 'button_on_long_loop'
-  button_on_long_max_loop_repeats: !input 'button_on_long_max_loop_repeats'
-  button_on_double_press: !input 'button_on_double_press'
-  button_off_long_loop: !input 'button_off_long_loop'
-  button_off_long_max_loop_repeats: !input 'button_off_long_max_loop_repeats'
-  button_off_double_press: !input 'button_off_double_press'
-  button_up_long_loop: !input 'button_up_long_loop'
-  button_up_long_max_loop_repeats: !input 'button_up_long_max_loop_repeats'
-  button_up_double_press: !input 'button_up_double_press'
-  button_down_long_loop: !input 'button_down_long_loop'
-  button_down_long_max_loop_repeats: !input 'button_down_long_max_loop_repeats'
-  button_down_double_press: !input 'button_down_double_press'
-  helper_last_controller_event: !input 'helper_last_controller_event'
-  helper_double_press_delay: !input 'helper_double_press_delay'
-  helper_debounce_delay: !input 'helper_debounce_delay'
+  integration: !input integration
+  button_on_long_loop: !input button_on_long_loop
+  button_on_long_max_loop_repeats: !input button_on_long_max_loop_repeats
+  button_on_double_press: !input button_on_double_press
+  button_off_long_loop: !input button_off_long_loop
+  button_off_long_max_loop_repeats: !input button_off_long_max_loop_repeats
+  button_off_double_press: !input button_off_double_press
+  button_up_long_loop: !input button_up_long_loop
+  button_up_long_max_loop_repeats: !input button_up_long_max_loop_repeats
+  button_up_double_press: !input button_up_double_press
+  button_down_long_loop: !input button_down_long_loop
+  button_down_long_max_loop_repeats: !input button_down_long_max_loop_repeats
+  button_down_double_press: !input button_down_double_press
+  helper_last_controller_event: !input helper_last_controller_event
+  helper_double_press_delay: !input helper_double_press_delay
+  helper_debounce_delay: !input helper_debounce_delay
   integration_id: '{{ integration | lower }}'
   adjusted_double_press_delay: '{{ [helper_double_press_delay - helper_debounce_delay,
     100] | max }}'
@@ -405,8 +394,8 @@ variables:
   button_down_long: '{{ actions_mapping[integration_id]["button_down_long"] }}'
   button_down_release: '{{ actions_mapping[integration_id]["button_down_release"]
     }}'
-  controller_entity: !input 'controller_entity'
-  controller_device: !input 'controller_device'
+  controller_entity: !input controller_entity
+  controller_device: !input controller_device
   controller_id: '{% if integration_id=="zigbee2mqtt" %}{{controller_entity}}{% else
     %}{{controller_device}}{% endif %}'
 mode: restart
@@ -415,13 +404,13 @@ trigger:
 - platform: event
   event_type: state_changed
   event_data:
-    entity_id: !input 'controller_entity'
+    entity_id: !input controller_entity
 - platform: event
   event_type:
   - deconz_event
   - zha_event
   event_data:
-    device_id: !input 'controller_device'
+    device_id: !input controller_device
 condition:
 - condition: and
   conditions:
@@ -433,21 +422,20 @@ condition:
     }}'
 action:
 - delay:
-    milliseconds: !input 'helper_debounce_delay'
+    milliseconds: !input helper_debounce_delay
 - variables:
     trigger_action: '{%- if integration_id == "zigbee2mqtt" -%} {{ trigger.event.data.new_state.state
       }} {%- elif integration_id == "deconz" -%} {{ trigger.event.data.event }} {%-
       elif integration_id == "zha" -%} {{ trigger.event.data.command }} {%- endif
       -%}'
-    trigger_delta: '{{ (as_timestamp(now()) - as_timestamp((states(helper_last_controller_event)
-      | from_json).last_triggered if helper_last_controller_event is not none and
-      (states(helper_last_controller_event) | regex_match("^\{(\".*\": \".*\"(, )?)*\}$"))
-      else "1970-01-01 00:00:00")) * 1000 }}'
+    trigger_delta: '{{ (as_timestamp(now()) - ((states(helper_last_controller_event)
+      | from_json).t if helper_last_controller_event is not none and (states(helper_last_controller_event)
+      | regex_match("^\{((\"a\": \".*\"|\"t\": \d+\.\d+)(, )?){2}\}$")) else as_timestamp("1970-01-01
+      00:00:00"))) * 1000 }}'
 - service: input_text.set_value
   data:
-    entity_id: !input 'helper_last_controller_event'
-    value: '{{ {"trigger_action":trigger_action,"last_triggered":now()|string} | to_json
-      }}'
+    entity_id: !input helper_last_controller_event
+    value: '{{ {"a":trigger_action,"t":as_timestamp(now())} | to_json }}'
 - choose:
   - conditions: '{{ trigger_action | string in button_on_short }}'
     sequence:
@@ -460,16 +448,16 @@ action:
             sequence:
             - service: input_text.set_value
               data:
-                entity_id: !input 'helper_last_controller_event'
-                value: '{{ {"trigger_action":"double_press","last_triggered":now()
-                  | string} | to_json }}'
+                entity_id: !input helper_last_controller_event
+                value: '{{ {"a":"double_press","t":as_timestamp(now())} | to_json
+                  }}'
             - event: ahb_controller_event
               event_data:
                 controller: '{{ controller_id }}'
                 action: button_on_double
             - choose:
               - conditions: []
-                sequence: !input 'action_button_on_double'
+                sequence: !input action_button_on_double
           default:
           - delay:
               milliseconds: '{{ adjusted_double_press_delay }}'
@@ -479,7 +467,7 @@ action:
               action: button_on_short
           - choose:
             - conditions: []
-              sequence: !input 'action_button_on_short'
+              sequence: !input action_button_on_short
       default:
       - event: ahb_controller_event
         event_data:
@@ -487,7 +475,7 @@ action:
           action: button_on_short
       - choose:
         - conditions: []
-          sequence: !input 'action_button_on_short'
+          sequence: !input action_button_on_short
   - conditions: '{{ trigger_action | string in button_on_long }}'
     sequence:
     - event: ahb_controller_event
@@ -499,8 +487,8 @@ action:
         sequence:
         - repeat:
             while: '{{ repeat.index < button_on_long_max_loop_repeats | int }}'
-            sequence: !input 'action_button_on_long'
-      default: !input 'action_button_on_long'
+            sequence: !input action_button_on_long
+      default: !input action_button_on_long
   - conditions: '{{ trigger_action | string in button_on_release }}'
     sequence:
     - event: ahb_controller_event
@@ -509,7 +497,7 @@ action:
         action: button_on_release
     - choose:
       - conditions: []
-        sequence: !input 'action_button_on_release'
+        sequence: !input action_button_on_release
   - conditions: '{{ trigger_action | string in button_off_short }}'
     sequence:
     - choose:
@@ -521,16 +509,16 @@ action:
             sequence:
             - service: input_text.set_value
               data:
-                entity_id: !input 'helper_last_controller_event'
-                value: '{{ {"trigger_action":"double_press","last_triggered":now()
-                  | string} | to_json }}'
+                entity_id: !input helper_last_controller_event
+                value: '{{ {"a":"double_press","t":as_timestamp(now())} | to_json
+                  }}'
             - event: ahb_controller_event
               event_data:
                 controller: '{{ controller_id }}'
                 action: button_off_double
             - choose:
               - conditions: []
-                sequence: !input 'action_button_off_double'
+                sequence: !input action_button_off_double
           default:
           - delay:
               milliseconds: '{{ adjusted_double_press_delay }}'
@@ -540,7 +528,7 @@ action:
               action: button_off_short
           - choose:
             - conditions: []
-              sequence: !input 'action_button_off_short'
+              sequence: !input action_button_off_short
       default:
       - event: ahb_controller_event
         event_data:
@@ -548,7 +536,7 @@ action:
           action: button_off_short
       - choose:
         - conditions: []
-          sequence: !input 'action_button_off_short'
+          sequence: !input action_button_off_short
   - conditions: '{{ trigger_action | string in button_off_long }}'
     sequence:
     - event: ahb_controller_event
@@ -560,8 +548,8 @@ action:
         sequence:
         - repeat:
             while: '{{ repeat.index < button_off_long_max_loop_repeats | int }}'
-            sequence: !input 'action_button_off_long'
-      default: !input 'action_button_off_long'
+            sequence: !input action_button_off_long
+      default: !input action_button_off_long
   - conditions: '{{ trigger_action | string in button_off_release }}'
     sequence:
     - event: ahb_controller_event
@@ -570,7 +558,7 @@ action:
         action: button_off_release
     - choose:
       - conditions: []
-        sequence: !input 'action_button_off_release'
+        sequence: !input action_button_off_release
   - conditions: '{{ trigger_action | string in button_up_short }}'
     sequence:
     - choose:
@@ -582,16 +570,16 @@ action:
             sequence:
             - service: input_text.set_value
               data:
-                entity_id: !input 'helper_last_controller_event'
-                value: '{{ {"trigger_action":"double_press","last_triggered":now()
-                  | string} | to_json }}'
+                entity_id: !input helper_last_controller_event
+                value: '{{ {"a":"double_press","t":as_timestamp(now())} | to_json
+                  }}'
             - event: ahb_controller_event
               event_data:
                 controller: '{{ controller_id }}'
                 action: button_up_double
             - choose:
               - conditions: []
-                sequence: !input 'action_button_up_double'
+                sequence: !input action_button_up_double
           default:
           - delay:
               milliseconds: '{{ adjusted_double_press_delay }}'
@@ -601,7 +589,7 @@ action:
               action: button_up_short
           - choose:
             - conditions: []
-              sequence: !input 'action_button_up_short'
+              sequence: !input action_button_up_short
       default:
       - event: ahb_controller_event
         event_data:
@@ -609,7 +597,7 @@ action:
           action: button_up_short
       - choose:
         - conditions: []
-          sequence: !input 'action_button_up_short'
+          sequence: !input action_button_up_short
   - conditions: '{{ trigger_action | string in button_up_long }}'
     sequence:
     - event: ahb_controller_event
@@ -621,8 +609,8 @@ action:
         sequence:
         - repeat:
             while: '{{ repeat.index < button_up_long_max_loop_repeats | int }}'
-            sequence: !input 'action_button_up_long'
-      default: !input 'action_button_up_long'
+            sequence: !input action_button_up_long
+      default: !input action_button_up_long
   - conditions: '{{ trigger_action | string in button_up_release }}'
     sequence:
     - event: ahb_controller_event
@@ -631,7 +619,7 @@ action:
         action: button_up_release
     - choose:
       - conditions: []
-        sequence: !input 'action_button_up_release'
+        sequence: !input action_button_up_release
   - conditions: '{{ trigger_action | string in button_down_short }}'
     sequence:
     - choose:
@@ -643,16 +631,16 @@ action:
             sequence:
             - service: input_text.set_value
               data:
-                entity_id: !input 'helper_last_controller_event'
-                value: '{{ {"trigger_action":"double_press","last_triggered":now()
-                  | string} | to_json }}'
+                entity_id: !input helper_last_controller_event
+                value: '{{ {"a":"double_press","t":as_timestamp(now())} | to_json
+                  }}'
             - event: ahb_controller_event
               event_data:
                 controller: '{{ controller_id }}'
                 action: button_down_double
             - choose:
               - conditions: []
-                sequence: !input 'action_button_down_double'
+                sequence: !input action_button_down_double
           default:
           - delay:
               milliseconds: '{{ adjusted_double_press_delay }}'
@@ -662,7 +650,7 @@ action:
               action: button_down_short
           - choose:
             - conditions: []
-              sequence: !input 'action_button_down_short'
+              sequence: !input action_button_down_short
       default:
       - event: ahb_controller_event
         event_data:
@@ -670,7 +658,7 @@ action:
           action: button_down_short
       - choose:
         - conditions: []
-          sequence: !input 'action_button_down_short'
+          sequence: !input action_button_down_short
   - conditions: '{{ trigger_action | string in button_down_long }}'
     sequence:
     - event: ahb_controller_event
@@ -682,8 +670,8 @@ action:
         sequence:
         - repeat:
             while: '{{ repeat.index < button_down_long_max_loop_repeats | int }}'
-            sequence: !input 'action_button_down_long'
-      default: !input 'action_button_down_long'
+            sequence: !input action_button_down_long
+      default: !input action_button_down_long
   - conditions: '{{ trigger_action | string in button_down_release }}'
     sequence:
     - event: ahb_controller_event
@@ -692,4 +680,4 @@ action:
         action: button_down_release
     - choose:
       - conditions: []
-        sequence: !input 'action_button_down_release'
+        sequence: !input action_button_down_release

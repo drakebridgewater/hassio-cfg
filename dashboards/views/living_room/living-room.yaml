@@ -1,0 +1,260 @@
+- type: custom:bubble-card
+  card_type: pop-up
+  hash: "#living-room"
+  button_type: switch
+  name: Living Room
+  entity: light.living_room_light_group
+  force_icon: false
+  show_state: true
+  show_last_changed: false
+  show_attribute: true
+  attribute: max_color_temp_kelvin
+  bg_opacity: "35"
+  button_action:
+    tap_action:
+      action: none
+  tap_action:
+    action: toggle
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - icon: mdi:light-switch
+      tap_action:
+        action: more-info
+    - icon: mdi:power
+      tap_action:
+        action: toggle
+- type: custom:mushroom-chips-card
+  chips:
+    - type: entity
+      entity: input_boolean.motion_in_main_disabled
+      content_info: name
+      icon_color: red
+      icon: mdi:auto-mode
+      name: Automation
+      tap_action:
+        action: toggle
+      use_entity_picture: false
+    - type: template
+      entity: binary_sensor.living_room_presence_sensor_occupancy
+      icon_color: |-
+        {% if states('binary_sensor.living_room_presence_sensor_occupancy') == 'on' -%}
+          red
+        {%- else %}
+          grey
+        {%- endif %}
+      icon: mdi:motion-sensor
+      content: |-
+        {% if states('binary_sensor.living_room_presence_sensor_occupancy') == 'off' -%}
+          No Motion detected
+        {% elif states('binary_sensor.living_room_presence_sensor_occupancy') == 'on' -%}
+          Motion Detected
+        {%- else %}
+          Motion Error
+        {%- endif %}
+      tap_action:
+        action: more-info
+    - type: template
+      entity: binary_sensor.awning_left_window
+      icon_color: |-
+        {% if states('binary_sensor.awning_left_window') == 'on' -%}
+          red
+        {%- else %}
+          grey
+        {%- endif %}
+      icon: mdi:blinds-horizontal-closed
+      content: |-
+        {% if states('binary_sensor.awning_left_window') == 'off' -%}
+          Awning Left Closed
+        {% elif states('binary_sensor.awning_left_window') == 'on' -%}
+          Awning Left Open
+        {%- else %}
+          Awning Left Error
+        {%- endif %}
+      tap_action:
+        action: more-info
+    - type: template
+      entity: binary_sensor.awning_right_window
+      icon_color: |-
+        {% if states('binary_sensor.awning_right_window') == 'on' -%}
+          red
+        {%- else %}
+          grey
+        {%- endif %}
+      icon: mdi:blinds-horizontal-closed
+      content: |-
+        {% if states('binary_sensor.awning_right_window') == 'off' -%}
+          Awning Right Closed
+        {% elif states('binary_sensor.awning_right_window') == 'on' -%}
+          Awning Right Open
+        {%- else %}
+          Awning Right Error
+        {%- endif %}
+      tap_action:
+        action: more-info
+    - type: template
+      entity: binary_sensor.dinning_room_window
+      icon_color: |-
+        {% if states('binary_sensor.dinning_room_window') == 'on' -%}
+          red
+        {%- else %}
+          grey
+        {%- endif %}
+      icon: mdi:blinds-horizontal-closed
+      content: |-
+        {% if states('binary_sensor.dinning_room_window') == 'off' -%}
+          Dining Closed
+        {% elif states('binary_sensor.dinning_room_window') == 'on' -%}
+          Dining Open
+        {%- else %}
+          Dining Error
+        {%- endif %}
+      tap_action:
+        action: more-info
+    - type: entity
+      entity: sensor.living_room_presence_sensor_light_sensor
+    - type: entity
+      entity: sensor.wirelesstag_main_freezer_temperature
+    - type: entity
+      entity: cover.big_window_blinds
+      content: name
+      name: Blinds
+    - type: entity
+      entity: sensor.big_window_blinds_battery
+
+
+
+
+- type: custom:bubble-card
+  card_type: button
+  entity: fan.main_air_circulator
+  show_state: true
+  show_last_changed: true
+  show_attribute: true
+  attribute: temperature
+  sub_button:
+    - entity: switch.main_air_circulator_horizontally_oscillating
+      tap_action:
+        action: toggle
+    - entity: fan.main_air_circulator
+      icon: mdi:minus
+      tap_action:
+        action: call-service
+        service: fan.decrease_speed
+        target:
+          entity_id: fan.main_air_circulator
+    - entity: fan.main_air_circulator
+      icon: mdi:plus
+      tap_action:
+        action: call-service
+        service: fan.increase_speed
+        target:
+          entity_id: fan.main_air_circulator
+    - entity: fan.main_air_circulator
+      icon: mdi:power
+      tap_action:
+        action: toggle
+  button_type: state
+
+
+- entity: light.awning_left
+  icon: hue:friends-of-hue-iq-pendant
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      icon: mdi:fridge-outline
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+- entity: light.awning_right
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      icon: mdi:fridge-outline
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+
+- entity: light.0x94deb8fffe4580e5
+  icon: hue:friends-of-hue-iq-pendant
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      icon: mdi:fridge-outline
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+
+
+- type: custom:button-card
+  template: container-card
+  color: "#760085"
+  name: Entertainment Center
+  icon: mdi:television-classic
+  custom_fields:
+    power_icon1:
+      card:
+        type: custom:restriction-card
+        restrictions:
+          confirm:
+            text: "This will turn the entire entertainment center off"
+        duration: 60
+        card:
+          type: custom:button-card
+          template: view_power_icon_style
+          entity: switch.living_room_tv_power_switch
+          name: Entire Entertainment Center
+          show_icon: false
+    buttons:
+      card: 
+        type: vertical-stack
+        cards: 
+          - type: custom:mini-media-player
+            entity: media_player.living_room
+            toggle_power: false
+            volume_stateless: true
+            group: false
+            source: icon
+            sound_mode: icon
+            replace_mute: next
+            artwork: material
+            info: short
+          - type: custom:mushroom-entity-card
+            entity: automation.applet_tv_auto_pause
+          - !include entertainment_center.yaml
+
+
+- !include living_room_mmWave_sensor.yaml

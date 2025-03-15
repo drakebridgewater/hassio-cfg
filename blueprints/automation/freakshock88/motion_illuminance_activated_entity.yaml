@@ -112,28 +112,34 @@ variables:
   turn_off_blocker_entity: !input 'turn_off_blocker_entity'
   target_off_entity: !input 'target_off_entity'
 trigger:
-  platform: state
-  entity_id: !input 'motion_sensor'
-  to: 'on'
+  - platform: state
+    entity_id: !input 'motion_sensor'
+    to: 'on'
 condition:
 - condition: template
-  value_template: '{{ (states[target_entity].state == ''on'') or (illuminance_currently
-    == none) or (illuminance_cutoff == none) or (states[illuminance_currently].state
-    | int < states[illuminance_cutoff].state | int) }}'
+  value_template: '{{ (states[target_entity].state == ''on'') 
+                        or (illuminance_currently == none) 
+                        or (illuminance_cutoff == none) 
+                        or (states[illuminance_currently].state | int < states[illuminance_cutoff].state | int)
+    }}'
 - condition: template
-  value_template: '{{ (blocker_entity == none) or (states[blocker_entity].state ==
-    ''off'') }}'
+  value_template: '{{ (blocker_entity == none) or (states[blocker_entity].state == ''off'') }}'
 - condition: template
   value_template: '{% set current_time = now().strftime("%H:%M")  %}
 
-    {% if time_limit_before != none and time_limit_after == none %} {{ states[time_limit_before].state
-    > current_time }} {% elif time_limit_before == none and time_limit_after != none
-    %} {{ states[time_limit_after].state < current_time }} {% elif time_limit_before
-    != none and time_limit_after != none %} {% set before_limit_is_on_next_day = time_limit_after
-    > time_limit_before  %} {% if not before_limit_is_on_next_day %} {{ (states[time_limit_after].state
-    < current_time) and (states[time_limit_before].state > current_time) }} {% elif
-    before_limit_is_on_next_day %} {{ (states[time_limit_before].state > current_time)
-    or (states[time_limit_after].state < current_time) }} {% endif %} {% else %} true
+    {% if time_limit_before != none and time_limit_after == none 
+      %} {{ states[time_limit_before].state > current_time 
+    }} {% elif time_limit_before == none and time_limit_after != none
+      %} {{ states[time_limit_after].state < current_time 
+    }} {% elif time_limit_before != none and time_limit_after != none 
+      %} {% set before_limit_is_on_next_day = time_limit_after > time_limit_before  
+      %} {% if not before_limit_is_on_next_day 
+        %} {{ (states[time_limit_after].state < current_time) and (states[time_limit_before].state > current_time) 
+      }} {% elif before_limit_is_on_next_day 
+        %} {{ (states[time_limit_before].state > current_time) or (states[time_limit_after].state < current_time) 
+      }} {% endif 
+    %} {% else 
+      %} true
     {% endif %}
 
     '
@@ -150,8 +156,7 @@ action:
 - delay:
     minutes: '{{ states[no_motion_wait].state | int }}'
 - condition: template
-  value_template: '{{ (turn_off_blocker_entity == none) or (states[turn_off_blocker_entity].state
-    == ''off'') }}'
+  value_template: '{{ (turn_off_blocker_entity == none) or (states[turn_off_blocker_entity].state == ''off'') }}'
 - choose:
   - conditions:
     - condition: template

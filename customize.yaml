@@ -1,8 +1,0 @@
-binary_sensor.kitchen_window:
-  device_class: window
-binary_sensor.basement_patio_door_ias_zone:
-  device_class: door
-binary_sensor.front_door_sensor_ias_zone:
-  device_class: door
-binary_sensor.garage_access_door_ias_zone:
-  device_class: door

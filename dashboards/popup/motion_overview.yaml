@@ -1,0 +1,144 @@
+- type: custom:bubble-card
+  card_type: pop-up
+  hash: '#motion_overview'
+  button_type: state
+  entity: binary_sensor.whole_house_motion_group
+  name: Motion Throughout House
+  force_icon: false
+  show_state: true
+  show_last_changed: false
+  show_attribute: true
+  attribute: max_color_temp_kelvin
+  bg_opacity: '35'
+  button_action:
+    tap_action:
+      action: none
+  tap_action:
+    action: toggle
+- type: custom:bubble-card
+  card_type: separator
+  name: Master
+- type: grid
+  columns: 2
+  square: false
+  cards:
+  - type: custom:mushroom-entity-card
+    name: Master Bedroom
+    entity: binary_sensor.master_bedroom_motion_sensor_occupancy
+    icon_color: red
+  - type: custom:mushroom-entity-card
+    name: Master Bathroom (EcoBee)
+    entity: binary_sensor.master_bedroom_occupancy
+    icon_color: red
+  - type: custom:mushroom-entity-card
+    name: Master Bathroom
+    entity: binary_sensor.master_bathroom_motion_sensor_occupancy
+    icon_color: red
+
+- type: custom:bubble-card
+  card_type: separator
+  name: Upstairs
+- type: grid
+  columns: 2
+  square: false
+  cards:
+  - type: custom:mushroom-entity-card
+    name: Hallway (EcoBee)
+    entity: binary_sensor.thermostat_occupancy
+    icon_color: red
+  - type: custom:mushroom-entity-card
+    name: Hallway (Keypad)
+    entity: binary_sensor.hallway_motion_sensor
+    icon_color: red
+  - type: custom:mushroom-entity-card
+    name: Kitchen
+    entity: binary_sensor.kitchen_motion_sensor_occupancy
+    icon_color: red
+  - type: custom:mushroom-entity-card
+    name: Hallway
+    entity: binary_sensor.hallway_motion
+    icon_color: red
+  - type: custom:mushroom-entity-card
+    name: Living Room (Athom)
+    entity: binary_sensor.living_room_presence_sensor_occupancy
+    icon_color: red
+  - type: custom:mushroom-entity-card
+    name: Entry
+    entity: binary_sensor.entry_motion_sensor
+    icon_color: red
+    
+- type: custom:bubble-card
+  card_type: separator
+  name: Downstairs
+- type: grid
+  columns: 2
+  square: false
+  cards:
+  - type: custom:mushroom-entity-card
+    name: Family Room  (EcoBee)
+    icon_color: red
+    entity: binary_sensor.family_room_smartsensor_occupancy
+    
+  - type: custom:mushroom-entity-card
+    name: Family Room (Athom)
+    icon_color: red
+    entity: binary_sensor.athom_family_room_presence_sensor_occupancy
+  - type: custom:mushroom-entity-card
+    name: Ethan's Room
+    icon_color: red
+    entity: binary_sensor.ethans_bedroom_presence_sensor_occupancy
+  - type: custom:mushroom-entity-card
+    name: Ethan's Room (EcoBee)
+    icon_color: red
+    entity: binary_sensor.ethan_bedroom_occupancy
+  - type: custom:mushroom-entity-card
+    icon_color: red
+    name: Family Room
+    entity: binary_sensor.basement_motion_detector
+  - type: custom:mushroom-entity-card
+    icon_color: red
+    name: Office
+    entity: binary_sensor.office_multi_sensor_home_security_motion_detection
+  - type: custom:mushroom-entity-card
+    name: Basement Hallway
+    icon_color: red
+    entity: binary_sensor.downstairs_hallway_motion_occupancy
+
+- type: custom:bubble-card
+  card_type: separator
+  name: Garage
+- type: grid
+  columns: 2
+  square: false
+  cards:
+  - type: custom:mushroom-entity-card
+    icon_color: red
+    name: Portal
+    entity: binary_sensor.garage_door_motion_occupancy
+    
+  - type: custom:mushroom-entity-card
+    icon_color: red
+    name: Door
+    entity: binary_sensor.garage_motion_occupancy
+
+
+          
+      # type: custom:auto-entities
+      # card:
+      #   type: grid
+      #   columns: 2
+      #   square: false
+      # sort: 
+      #   method: state
+      #   order: reverse
+      # card_param: cards
+      # filter:
+      #   exclude:
+      #     - name: "*Group*"
+      #     - state: "unavailable"
+      #   include:
+      #     - domain: binary_sensor
+      #       attributes:
+      #         device_class: motion
+      #       options:
+      #         type: custom:mushroom-entity-card

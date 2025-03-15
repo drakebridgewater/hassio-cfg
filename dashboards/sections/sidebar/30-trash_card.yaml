@@ -1,0 +1,40 @@
+type: vertical-stack
+cards:
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: binary_sensor.ridwell_pickup_tomorrow
+        state: 'on'
+    card: 
+      type: custom:mushroom-template-card
+      primary: Ridwell Recycling
+      secondary: Put bags outside
+      icon: mdi:recycle
+      icon_color: green
+      entity: calendar.ridwell
+      multiline_secondary: false
+      tap_action:
+        action: more-info
+      hold_action:
+        action: none
+      double_tap_action:
+        action: none
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: binary_sensor.tomorrow_monday
+        state: 'on'
+    card: 
+      type: custom:mushroom-template-card
+      primary: Trash
+      secondary: Garbage, Reycycling, and Compost
+      icon: mdi:recycle
+      icon_color: green
+      entity: calendar.ridwell
+      multiline_secondary: false
+      tap_action:
+        action: more-info
+      hold_action:
+        action: none
+      double_tap_action:
+        action: none

@@ -1,0 +1,54 @@
+blueprint:
+  name: Zigbee2MQTT Lutron Aurora Dimmer Control
+  description: Control any light with the Lutron Aurora remote, integrated by Zigbee2MQTT.
+  domain: automation
+  input:
+    aurora:
+      name: Aurora
+      description: The Lutron Aurora you wish to use to control this light. Use of
+        the 'action' or 'brightness' entity is recommended.
+      selector:
+        entity:
+          integration: mqtt
+          domain:
+          - sensor
+          multiple: false
+    light:
+      name: Light
+      description: The light you wish to be affected.
+      selector:
+        target:
+          entity:
+          - domain:
+            - light
+  source_url: https://community.home-assistant.io/t/zigbee2mqtt-lutron-aurora-dimmer-control/287379
+mode: queued
+max_exceeded: silent
+variables:
+  attrs: '{{ trigger.to_state.attributes }}'
+  action: '{{ attrs["action"] }}'
+  action_level: '{{ attrs["action_level"] }}'
+  transition_time: '{{ attrs["action_transition_time"] }}'
+trigger:
+- platform: state
+  entity_id: !input aurora
+  to: brightness_move_to_level
+condition:
+- condition: template
+  value_template: '{{ "brightness" in action }}'
+action:
+- choose:
+  - conditions:
+    - condition: template
+      value_template: '{{ action_level == 0 }}'
+    sequence:
+    - service: light.turn_off
+      data:
+        transition: '{{ transition_time }}'
+      target: !input light
+  default:
+  - service: light.turn_on
+    target: !input light
+    data:
+      transition: '{{ transition_time }}'
+      brightness: '{{ action_level }}'

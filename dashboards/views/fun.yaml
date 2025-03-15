@@ -1,0 +1,245 @@
+title: FUN
+path: fun
+cards:      
+type: custom:grid-layout
+layout: !include ../layouts/grid.yaml
+cards:
+  - type: vertical-stack
+    view_layout:
+      grid-area: sidebar
+    cards: !include_dir_list ../sections/sidebar
+
+  ######################### Status Bar ############################################
+  - type: custom:mushroom-chips-card
+    view_layout:
+      grid-area: banner
+    chips: !include ../sections/status-bar.yaml
+
+
+  # - type: grid
+  #   view_layout:
+  #     grid-area: section7
+  #   title: ChatGPT
+  #   square: false
+  #   columns: 1
+  #   cards:
+  #     - type: entities
+  #       entities:
+  #         - entity: input_text.gpt_input
+  #     - type: markdown
+  #       content: '{{ state_attr(''sensor.hassio_openai_response'', ''response_text'') }}'
+  #       title: ChatGPT Response
+
+  - type: custom:upcoming-media-card
+  
+    view_layout:
+      grid-area: section1
+    entity: sensor.trakt_upcoming_shows
+    title: Upcoming Shows
+    image_style: fanart
+    box_shadows: false
+    max: 3
+    clock: 24
+    date: mmdd
+    title_size: medium
+    line1_size: little
+    title_text: $title
+    line1_text: Released on $date
+    line2_text: " "
+    line3_text: " "
+    line4_text: " "
+    card_mod:
+      style: |
+        .type-custom-upcoming-media-card {
+          background: none !important;
+          box-shadow: none !important;
+        }
+
+        .type-custom-upcoming-media-card > div {
+          padding: 0px !important;
+        }
+
+        .trak_fanart {
+          background-size: cover !important;
+          background-position: 50% 10% !important;
+          border-radius: var(--ha-card-border-radius, 4px);
+          background-color: rgb(100, 100, 100);
+          background-blend-mode: multiply;
+          height: 80px;
+        }
+
+        .trak_fan_fanart {
+          background: none !important;
+          box-shadow: none !important;
+        }
+
+  - type: custom:upcoming-media-card
+    view_layout:
+      grid-area: section2
+    entity: sensor.trakt_recommendation_movies
+    title: Recomended Movies
+    image_style: fanart
+    box_shadows: false
+    max: 3
+    clock: 24
+    date: mmdd
+    title_size: medium
+    line1_size: little
+    title_text: $title
+    line1_text: Released on $date
+    line2_text: " "
+    line3_text: " "
+    line4_text: " "
+    card_mod:
+      style: |
+        .type-custom-upcoming-media-card {
+          background: none !important;
+          box-shadow: none !important;
+        }
+
+        .type-custom-upcoming-media-card > div {
+          padding: 0px !important;
+        }
+
+        .trak_fanart {
+          background-size: cover !important;
+          background-position: 50% 10% !important;
+          border-radius: var(--ha-card-border-radius, 4px);
+          background-color: rgb(100, 100, 100);
+          background-blend-mode: multiply;
+          height: 80px;
+        }
+
+        .trak_fan_fanart {
+          background: none !important;
+          box-shadow: none !important;
+        }
+
+  # - type: custom:upcoming-media-card
+  #   view_layout:
+  #     grid-area: section1
+  #   entity: sensor.recently_added_tv
+  #   title: Plex Recently Added Shows
+  #   image_style: fanart
+  #   box_shadows: false
+  #   max: 3
+  #   clock: 24
+  #   date: mmdd
+  #   title_size: medium
+  #   title_text: $title
+  #   line1_size: little
+  #   line2_text: "Rating: $rating - Runtime: $runtime - $number"
+  #   line3_text: $genres
+  #   line4_text: " "
+  #   card_mod:
+  #     style: |
+  #       .type-custom-upcoming-media-card {
+  #         background: none !important;
+  #         box-shadow: none !important;
+  #       }
+
+  #       .type-custom-upcoming-media-card > div {
+  #         padding: 0px !important;
+  #       }
+
+  #       .rece_fanart {
+  #         background-size: cover !important;
+  #         background-position: 50% 10% !important;
+  #         border-radius: var(--ha-card-border-radius, 4px);
+  #         background-color: rgb(100, 100, 100);
+  #         background-blend-mode: multiply;
+  #         height: 80px;
+  #       }
+
+  #       .rece_fan_fanart {
+  #         background: none !important;
+  #         box-shadow: none !important;
+  #       }
+  # - type: custom:upcoming-media-card
+  #   view_layout:
+  #     grid-area: section2
+  #   entity: sensor.recently_added_movies
+  #   title: Plex Recently Added Movies
+  #   image_style: fanart
+  #   box_shadows: false
+  #   max: 3
+  #   clock: 24
+  #   date: mmdd
+  #   title_size: medium
+  #   line1_size: little
+  #   title_text: $title
+  #   line1_text: Released on $date
+  #   line2_text: "Rating: $rating - Runtime: $runtime - $number"
+  #   line3_text: $genres
+  #   line4_text: " "
+  #   card_mod:
+  #     style: |
+  #       .type-custom-upcoming-media-card {
+  #         background: none !important;
+  #         box-shadow: none !important;
+  #       }
+
+  #       .type-custom-upcoming-media-card > div {
+  #         padding: 0px !important;
+  #       }
+
+  #       .rece_fanart {
+  #         background-size: cover !important;
+  #         background-position: 50% 10% !important;
+  #         border-radius: var(--ha-card-border-radius, 4px);
+  #         background-color: rgb(100, 100, 100);
+  #         background-blend-mode: multiply;
+  #         height: 100px;
+  #       }
+
+  #       .rece_fan_fanart {
+  #         background: none !important;
+  #         box-shadow: none !important;
+  #       }
+  # - type: custom:upcoming-media-card
+  #   view_layout:
+  #     grid-area: section3
+  #   entity: sensor.plex_on_deck
+  #   title: Plex On Deck
+  #   image_style: fanart
+  #   box_shadows: false
+  #   max: 3
+  #   clock: 24
+  #   date: mmdd
+  #   title_size: medium
+  #   line1_size: little
+  #   title_text: $title
+  #   line1_text: Released on $date
+  #   line2_text: "Rating: $rating - Runtime: $runtime - $number"
+  #   line3_text: $genres
+  #   line4_text: " "
+  #   card_mod:
+  #     style: |
+  #       .type-custom-upcoming-media-card {
+  #         background: none !important;
+  #         box-shadow: none !important;
+  #       }
+
+  #       .type-custom-upcoming-media-card > div {
+  #         padding: 0px !important;
+  #       }
+
+  #       .plex_fanart {
+  #         background-size: cover !important;
+  #         background-position: 50% 10% !important;
+  #         border-radius: var(--ha-card-border-radius, 4px);
+  #         background-color: rgb(100, 100, 100);
+  #         background-blend-mode: multiply;
+  #         height: 100px;
+  #       }
+
+  #       .plex_fan_fanart {
+  #         background: none !important;
+  #         box-shadow: none !important;
+  #       }
+
+  
+  - type: vertical-stack
+    view_layout:
+      grid-area: footer
+    cards: !include_dir_list ../sections/footer

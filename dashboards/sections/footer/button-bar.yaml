@@ -1,0 +1,80 @@
+type: vertical-stack
+cards:
+  - type: vertical-stack
+    cards: !include ../../popup/drake.yaml
+  - type: vertical-stack
+    cards: !include ../../views/kitchen.yaml
+  - type: vertical-stack
+    cards: !include ../../views/living_room/living-room.yaml
+  - type: vertical-stack
+    cards: !include ../../views/outdoor.yaml
+  - type: vertical-stack
+    cards: !include ../../views/office.yaml
+  - type: vertical-stack
+    cards: !include ../../views/ethans-room.yaml
+  - type: vertical-stack
+    cards: !include ../../views/master.yaml
+  - type: vertical-stack
+    cards: !include ../../views/family-room.yaml
+  - type: vertical-stack
+    cards: !include ../../views/holiday.yaml
+  - type: vertical-stack
+    cards: !include ../../popup/aqi_overview.yaml
+  - type: vertical-stack
+    cards: !include ../../popup/door_overview.yaml
+  - type: vertical-stack
+    cards: !include ../../popup/motion_overview.yaml
+  - type: vertical-stack
+    cards: !include ../../popup/window_overview.yaml
+  - type: vertical-stack
+    cards: !include ../../popup/people_overview.yaml
+  - type: vertical-stack
+    cards: !include ../../popup/lights_overview.yaml
+  - type: vertical-stack
+    cards: !include ../../popup/power_overview.yaml
+
+  - type: custom:bubble-card
+    card_type: horizontal-buttons-stack
+    width_desktop: 100%
+    auto_order: true
+    1_name: Living Room
+    1_icon: mdi:sofa
+    1_link: "#living-room"
+    1_entity: light.living_room_light_group
+    1_pir_sensor: binary_sensor.living_room_presence_sensor_occupancy
+
+    2_name: Kitchen
+    2_icon: mdi:fridge
+    2_link: "#kitchen"
+    2_entity: light.kitchen_lights_group
+    2_pir_sensor: binary_sensor.kitchen_motion_sensor_occupancy
+
+    3_link: "#ethan"
+    3_name: Ethan
+    3_icon: mdi:teddy-bear
+    3_entity: light.ethan_s_lights_group
+    3_pir_sensor: binary_sensor.ethan_s_room_occupied_group
+
+    4_link: "#family"
+    4_name: Family Room
+    4_icon: mdi:sofa
+    4_entity: light.family_room_lights_group
+    4_pir_sensor: binary_sensor.athom_family_room_presence_sensor_occupancy
+
+    5_link: "#master"
+    5_name: Master Bedroom
+    5_icon: mdi:bed-king-outline
+    5_entity: light.bedroom_lights_group
+    5_pir_sensor: binary_sensor.master_bedroom_motion_sensor_occupancy
+
+    6_link: "#office"
+    6_name: Office
+    6_icon: mdi:desk
+    6_entity: light.office_lights_group
+    6_pir_sensor: binary_sensor.office_multi_sensor_home_security_motion_detection
+
+    # 7_link: "#outdoors"
+    # 7_name: Outdoor
+    # 7_icon: hue:room-outdoors
+    # 7_entity: light.outdoor_lights_group
+    # 7_pir_sensor: binary_sensor.frontdoor_all_occupancy

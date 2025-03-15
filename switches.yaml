@@ -1,32 +1,44 @@
-- platform: template
-  switches:
-    garage_door_main:
-      friendly_name: "Main Garage Door Switch"
-      value_template: "{{ is_state('cover.garage_door', 'open') }}"
-      turn_on:
-        service: cover.open_cover
-        data:
-          entity_id: cover.garage_door
-      turn_off:
-        service: cover.close_cover
-        data:
-          entity_id: cover.garage_door
-      icon_template: >-
-        {% if is_state('cover.main_garage_door', 'open') %}
-          mdi:garage-open
-        {% else %}
-          mdi:garage
-        {% endif %}
+# - platform: template
+#   switches:
+#     garage_door_main:
+#       friendly_name: "Main Garage Door Switch"
+#       value_template: "{{ is_state('cover.garage_door', 'open') }}"
+#       turn_on:
+#         service: cover.open_cover
+#         data:
+#           entity_id: cover.garage_door
+#       turn_off:
+#         service: cover.close_cover
+#         data:
+#           entity_id: cover.garage_door
+#       icon_template: >-
+#         {% if is_state('cover.main_garage_door', 'open') %}
+#           mdi:garage-open
+#         {% else %}
+#           mdi:garage
+#         {% endif %}
 - platform: group
   name: All Grow Lights [Group]
   entities:
-    - switch.basement_couch_grow_light
-    - switch.family_room_tv_grow_light
-    - switch.master_bedroom_grow_light
-    - switch.basement_bathroom_grow_light
-- platform: group
-  name: Christmas Lights [Group]
-  entities:
-    - switch.yard_christmas_lights
-    - switch.cabinet_switch
+    - switch.dining_room_grow_light
     - switch.left_greenhouse_plug
+    - switch.laundry_room_grow_light
+    - switch.master_bedroom_grow_lamp
+# - platform: group
+#   name: Christmas Lights [Group]
+#   entities:
+#     - switch.yard_christmas_lights
+#     - switch.cabinet_switch
+
+- platform: template
+  switches:
+    auto_blower:
+      value_template: "{{ float(states('sensor.thermostat_temperature')) - 3 >= float(states('sensor.smartsensor_temperature')) }}"
+      turn_on:
+        service: switch.turn_on
+        target:
+          entity_id: switch.smart_switch
+      turn_off:
+        service: switch.turn_off
+        target:
+          entity_id: switch.smart_switch

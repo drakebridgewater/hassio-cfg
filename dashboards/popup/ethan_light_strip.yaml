@@ -1,0 +1,190 @@
+action: fire-dom-event
+browser_mod:
+  service: browser_mod.popup
+  data:
+    title: Ethan's Light Strip IR Controller
+    style: |
+      --popup-background-color: #444;
+    content:
+      type: vertical-stack
+      cards: 
+        - type: custom:mushroom-chips-card
+          chips:
+            - content_info: name
+              name: Power
+              type: entity
+              entity: switch.ir_transmitter
+              tap_action:
+                action: call-service
+                service: mqtt.publish
+                data:
+                  qos: 0
+                  retain: false
+                  payload: >-
+                    {"ir_code_to_send":
+                    "Ck4jihE1AjUCXQI14AQBwA9ABwRdAnwGNeAKA+ABF4ABAl0CNeAGAQN8BjUCQAFABwJ8Bl0gA+ADBwE1AkABQAcPcZxOI6gINQL//04jqAg1Ag=="}
+                  topic: zigbee2mqtt/IR Transmitter/set
+            - content_info: name
+              name: Dimmer
+              type: entity
+              entity: switch.ir_transmitter
+              tap_action:
+                action: call-service
+                service: mqtt.publish
+                data:
+                  qos: 0
+                  retain: false
+                  payload: >-
+                    {"ir_code_to_send":
+                    "BSojZxE7AuAXAQF+BuAZA0AB4AMnQAFAD8AB4AMLQAHAD0AHD1acKiO9CDsC//8qI70IOwI="}
+                  topic: zigbee2mqtt/IR Transmitter/set
+            - content_info: name
+              name: Brighter
+              type: entity
+              entity: switch.ir_transmitter
+              tap_action:
+                action: call-service
+                service: mqtt.publish
+                data:
+                  qos: 0
+                  retain: false
+                  payload: >-
+                    {"ir_code_to_send":
+                    "BUcjghE7AuAXAQF+BuAVA8AB4AMnQAFAD0ABQAdAA+ADAcAPC34GOwJsnEcjqAg7Ag=="}
+                  topic: zigbee2mqtt/IR Transmitter/set
+
+        - type: custom:mushroom-chips-card
+          chips:
+            - content_info: name
+              name: Green
+              type: entity
+              entity: switch.ir_transmitter
+              tap_action:
+                action: call-service
+                service: mqtt.publish
+                data:
+                  qos: 0
+                  retain: false
+                  payload: >-
+                    {"ir_code_to_send":
+                    "CS0jhREuAi4CWQKAA0AB4AkLAngGLiADQAfgBwNAF0ADAlkCLmABBFkCeAYuIAMCWQIuIAHABwYuAlkCeAYuYAOAAYAPQAFAFw9tnC0jrAguAv//LSOsCC4C"}
+                  topic: zigbee2mqtt/IR Transmitter/set
+            - content_info: name
+              name: Red
+              type: entity
+              entity: switch.ir_transmitter
+              tap_action:
+                action: call-service
+                service: mqtt.publish
+                data:
+                  qos: 0
+                  retain: false
+                  payload: >-
+                    {"ir_code_to_send":
+                    "CU4jhxEsAiwCWQKAA0AB4AkLAnwGLCADQAfgBwNAFwUsAiwCWQKAAwQsAnwGWSADAywCLALgBQdAE0ADgAHAGwEsAkATD3acTiOqCCwC//9OI6oIWQI="}
+                  topic: zigbee2mqtt/IR Transmitter/set
+            - content_info: name
+              name: Blue
+              type: entity
+              entity: switch.ir_transmitter
+              tap_action:
+                action: call-service
+                service: mqtt.publish
+                data:
+                  qos: 0
+                  retain: false
+                  payload: >-
+                    {"ir_code_to_send":
+                    "CSojdhEqAioCWgKAA0AB4AkLAnsGKqADQAvgAwPgARcAKiABAXsGgAcBKgJABwFaAoAPAloCKiABgAsBKgJABwF7BkAHASoCQAFABw9unCojqQgqAv//KiOpCFoC"}
+                  topic: zigbee2mqtt/IR Transmitter/set
+            - content_info: name
+              name: White
+              type: entity
+              entity: switch.ir_transmitter
+              tap_action:
+                action: call-service
+                service: mqtt.publish
+                data:
+                  qos: 0
+                  retain: false
+                  payload: >-
+                    {"ir_code_to_send":
+                    "BUgjYBE8AuAXAQF9BuAVA8ABQCfgAwHAD0AHQANAAUAHwANAAUALD2icSCOmCDwC//9II6YIPAI="}
+                  topic: zigbee2mqtt/IR Transmitter/set
+        - type: custom:mushroom-chips-card
+          chips:
+            - content_info: name
+              name: Slower
+              type: entity
+              entity: switch.ir_transmitter
+              tap_action:
+                action: call-service
+                service: mqtt.publish
+                data:
+                  qos: 0
+                  retain: false
+                  payload: >-
+                    {"ir_code_to_send":
+                    "BUQjhRE3AuAXAQGBBuATAwBh4AAfgAGAD+AJAYAXA4EGNwJAAUAHwAMHVpxEI6cINwI="}
+                  topic: zigbee2mqtt/IR Transmitter/set
+            - content_info: name
+              name: Faster
+              type: entity
+              entity: switch.ir_transmitter
+              tap_action:
+                action: call-service
+                service: mqtt.publish
+                data:
+                  qos: 0
+                  retain: false
+                  payload: >-
+                    {"ir_code_to_send":
+                    "BVUjZxE6AoABAmMCOuAOAQF+BuALAwBj4AwXQAEDfgY6AuAPAcAbQAfAAw9KnFUjpgg6Av//VSOmCDoC"}
+                  topic: zigbee2mqtt/IR Transmitter/set
+        - type: custom:mushroom-chips-card
+          chips:
+            - content_info: name
+              name: Auto
+              type: entity
+              entity: switch.ir_transmitter
+              tap_action:
+                action: call-service
+                service: mqtt.publish
+                data:
+                  qos: 0
+                  retain: false
+                  payload: >-
+                    {"ir_code_to_send":
+                    "CjojTRE6AjoCYAI64BIBAXsG4A8DAGDgDBvgFwEBewbgBQMHaJw6I6UIYAI="}
+                  topic: zigbee2mqtt/IR Transmitter/set
+            - content_info: name
+              name: Flash
+              type: entity
+              entity: switch.ir_transmitter
+              tap_action:
+                action: call-service
+                service: mqtt.publish
+                data:
+                  qos: 0
+                  retain: false
+                  payload: >-
+                    {"ir_code_to_send":
+                    "BR4jdBE8AuAXAQF4BuAHAwBl4AoTATwCQAHAB+ALAcAbQAfgAwMHUZweI6UIPAI="}
+                  topic: zigbee2mqtt/IR Transmitter/set
+            - content_info: name
+              name: Fade
+              type: entity
+              entity: switch.ir_transmitter
+              tap_action:
+                action: call-service
+                service: mqtt.publish
+                data:
+                  qos: 0
+                  retain: false
+                  payload: >-
+                    {"ir_code_to_send":
+                    "BWkjThE7AuAXAQF8BuAhA+ABAQJiAjvgCgHgCUsRYgJLnGkjqAg7Av//aSOoCDsC"}
+                  topic: zigbee2mqtt/IR Transmitter/set
+        - type: custom:mushroom-chips-card
+          chips:
+            - type: back

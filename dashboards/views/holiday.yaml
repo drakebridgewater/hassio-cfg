@@ -1,0 +1,115 @@
+
+- type: custom:bubble-card
+  card_type: pop-up
+  hash: '#holiday'
+  button_type: switch
+  name: Holiday
+  entity: light.holiday_lights
+  force_icon: false
+  show_state: true
+  show_last_changed: false
+  show_attribute: true
+  bg_opacity: '35'
+  button_action:
+    tap_action:
+      action: none
+  tap_action:
+    action: toggle
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+- type: custom:bubble-card
+  card_type: button
+  button_type: state
+  entity: sensor.next_holiday
+  show_attribute: false
+  force_icon: false
+  show_last_changed: false
+  sub_button:
+    - entity: sensor.next_holiday
+      show_attribute: true
+      attribute: days_until_next_holiday
+      icon: mdi:calendar-clock
+      name: Days
+      show_name: true
+  show_state: true
+- type: custom:mushroom-light-card
+  entity: light.holiday_lights
+  name: All Holiday Lights
+  tap_action: 
+    action: more-info
+
+- entity: light.roof_lights
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+- type: custom:bubble-card
+  button_type: switch
+  card_type: button
+  entity: light.wled_christmas_tree
+  select_attribute: effect_list
+  sub_button:
+    - entity: select.wled_christmas_tree_preset
+      icon: hue:scene-concentrate
+      name: Presets
+      show_name: true
+      show_icon: false
+    - entity: select.wled_christmas_tree_color_palette
+      name: Colors
+      icon: mdi:palette
+      show_icon: false
+      show_name: true
+    - entity: light.wled_christmas_tree
+      icon: mdi:power
+      tap_action:
+        action: toggle
+
+- entity: light.outdoor_holiday_switch
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+- entity: light.0x94deb8fffe4fcaf4
+  type: custom:bubble-card
+  card_type: button
+  button_type: button
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle

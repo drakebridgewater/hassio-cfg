@@ -1,0 +1,218 @@
+action: fire-dom-event
+browser_mod:
+  service: browser_mod.popup
+  data:
+    title: Pollen Overview
+    style: |
+      --popup-background-color: #444;
+    content:
+      style:
+        hui-vertical-stack-card:
+          $: |
+            hui-horizontal-stack-card {
+              padding: 0em 2em 2.3em 2em;
+            }
+          $hui-horizontal-stack-card$: |
+            #root {
+              justify-content: space-evenly;
+            }
+      type: vertical-stack
+      cards: 
+        # - type: custom:mushroom-entity-card
+        #   entity: sensor.home_tree_pollen_0d
+        # - type: custom:mushroom-entity-card
+        #   entity: sensor.home_mold_pollen_0d
+        # - type: custom:mushroom-entity-card
+        #   entity: sensor.home_grass_pollen_0d
+        # - type: custom:mushroom-entity-card
+        #   entity: sensor.home_ragweed_pollen_0d 
+
+        - type: custom:mushroom-template-card
+          primary: Tree Pollen
+          secondary: '{{states(''sensor.home_tree_pollen_0d'')}} p/m³'
+          icon: mdi:tree
+          entity: sensor.home_tree_pollen_0d
+          icon_color: |+
+            {% if int(states('sensor.home_tree_pollen_0d'))>50 -%}
+              red
+            {%- elif int(states('sensor.home_tree_pollen_0d'))>25 -%}
+              yellow
+            {%- else %}
+              green
+            {%- endif %}
+
+          badge_icon: |+
+            {% if int(states('sensor.home_tree_pollen_0d'))>50 -%}
+              mdi:alert
+            {%- elif int(states('sensor.home_tree_pollen_0d'))>25 -%}
+              mdi:alert-circle-outline
+            {%- else %}
+              mdi:check
+            {%- endif %}
+          badge_color: |+
+            {% if int(states('sensor.home_tree_pollen_0d'))>50 -%}
+              red
+            {%- elif int(states('sensor.home_tree_pollen_0d'))>25 -%}
+              yellow
+            {%- else %}
+              green
+            {%- endif %}
+          tap_action:
+            action: more-info
+          hold_action:
+            action: more-info
+          double_tap_action:
+            action: none
+        - type: custom:mushroom-template-card
+          primary: Home Mold Pollen
+          secondary: '{{states(''sensor.home_mold_pollen_0d'')}} p/m³'
+          icon: mdi:blur
+          entity: sensor.home_mold_pollen_0d
+          icon_color: |+
+            {% if int(states('sensor.home_mold_pollen_0d'))>50 -%}
+              red
+            {%- elif int(states('sensor.home_mold_pollen_0d'))>25 -%}
+              yellow
+            {%- else %}
+              green
+            {%- endif %}
+          badge_icon: |+
+            {% if int(states('sensor.home_mold_pollen_0d'))>50 -%}
+              mdi:alert
+            {%- elif int(states('sensor.home_mold_pollen_0d'))>25 -%}
+              mdi:alert-circle-outline
+            {%- else %}
+              mdi:check
+            {%- endif %}
+          badge_color: |+
+            {% if int(states('sensor.home_mold_pollen_0d'))>50 -%}
+              red
+            {%- elif int(states('sensor.home_mold_pollen_0d'))>25 -%}
+              yellow
+            {%- else %}
+              green
+            {%- endif %}
+          tap_action:
+            action: more-info
+          hold_action:
+            action: more-info
+          double_tap_action:
+            action: none
+        - type: custom:mushroom-template-card
+          primary: Grass Pollen
+          secondary: '{{states(''sensor.home_grass_pollen_0d'')}} p/m³'
+          icon: mdi:grass
+          entity: sensor.home_grass_pollen_0d
+          icon_color: |+
+            {% if int(states('sensor.home_grass_pollen_0d'))>50 -%}
+              red
+            {%- elif int(states('sensor.home_grass_pollen_0d'))>25 -%}
+              yellow
+            {%- else %}
+              green
+            {%- endif %}
+          badge_icon: |+
+            {% if int(states('sensor.home_grass_pollen_0d'))>50 -%}
+              mdi:alert
+            {%- elif int(states('sensor.home_grass_pollen_0d'))>25 -%}
+              mdi:alert-circle-outline
+            {%- else %}
+              mdi:check
+            {%- endif %}
+          badge_color: |+
+            {% if int(states('sensor.home_grass_pollen_0d'))>50 -%}
+              red
+            {%- elif int(states('sensor.home_grass_pollen_0d'))>25 -%}
+              yellow
+            {%- else %}
+              green
+            {%- endif %}
+          tap_action:
+            action: more-info
+          hold_action:
+            action: more-info
+          double_tap_action:
+            action: none
+        - type: custom:mushroom-template-card
+          primary: Ragwee Pollen
+          secondary: '{{states(''sensor.home_ragweed_pollen_0d'')}} p/m³'
+          icon: mdi:sprout
+          entity: sensor.home_ragweed_pollen_0d
+          icon_color: |+
+            {% if int(states('sensor.home_ragweed_pollen_0d'))>50 -%}
+              red
+            {%- elif int(states('sensor.home_ragweed_pollen_0d'))>25 -%}
+              yellow
+            {%- else %}
+              green
+            {%- endif %}
+          badge_icon: |+
+            {% if int(states('sensor.home_ragweed_pollen_0d'))>50 -%}
+              mdi:alert
+            {%- elif int(states('sensor.home_ragweed_pollen_0d'))>25 -%}
+              mdi:alert-circle-outline
+            {%- else %}
+              mdi:check
+            {%- endif %}
+          badge_color: |+
+            {% if int(states('sensor.home_ragweed_pollen_0d'))>50 -%}
+              red
+            {%- elif int(states('sensor.home_ragweed_pollen_0d'))>25 -%}
+              yellow
+            {%- else %}
+              green
+            {%- endif %}
+          tap_action:
+            action: more-info
+          hold_action:
+            action: more-info
+          double_tap_action:
+            action: none
+
+        # - type: custom:mushroom-template-card
+        #   primary: 'Pollen ({{states(''sensor.pollen_max'')}} ppm)'
+        #   secondary: |+
+        #     Grass: {{states("sensor.home_grass_pollen_0d")}},
+        #     Mold: {{states("sensor.home_mold_pollen_0d")}},
+        #     Ragwee: {{states("sensor.home_ragweed_pollen_0d")}},
+        #     Tree: {{states("sensor.home_tree_pollen_0d")}}
+        #   icon:  |+
+        #     {% if int(states('sensor.pollen_max'))>50 -%}
+        #       mdi:virus
+        #     {%- elif int(states('sensor.pollen_max'))>25 -%}
+        #       mdi:virus-outline
+        #     {%- else %}
+        #       mdi:leaf
+        #     {%- endif %}
+        #   entity: sensor.pollen_max
+        #   icon_color: |+
+        #     {% if int(states('sensor.pollen_max'))>50 -%}
+        #       red
+        #     {%- elif int(states('sensor.pollen_max'))>25 -%}
+        #       yellow
+        #     {%- else %}
+        #       green
+        #     {%- endif %}
+
+        #   badge_icon: |+
+        #     {% if int(states('sensor.pollen_max'))>50 -%}
+        #       mdi:alert
+        #     {%- elif int(states('sensor.pollen_max'))>25 -%}
+        #       mdi:alert-circle-outline
+        #     {%- else %}
+        #       mdi:leaf
+        #     {%- endif %}
+        #   # badge_color: |+
+        #   #   {% if int(states('sensor.pollen_max'))>50 -%}
+        #   #     red
+        #   #   {%- elif int(states('sensor.pollen_max'))>25 -%}
+        #   #     yellow
+        #   #   {%- else %}
+        #   #     green
+        #   #   {%- endif %}
+        #   tap_action: 
+        #     action: none
+        #   hold_action:
+        #     action: none
+        #   double_tap_action:
+        #     action: none

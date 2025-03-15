@@ -1,0 +1,52 @@
+- type: custom:bubble-card
+  hash: '#lights_overview'
+  card_type: pop-up
+  button_type: name
+  name: All Lights 
+  force_icon: false
+  show_state: true
+  show_last_changed: false
+  show_attribute: true
+  attribute: max_color_temp_kelvin
+  bg_opacity: '35'
+  button_action:
+    tap_action:
+      action: none
+  tap_action:
+    action: toggle
+- type: custom:auto-entities
+  show_empty: false
+  card:
+    type: grid
+    columns: 1
+    square: false
+  card_param: cards
+  sort:
+    method: state
+    reverse: true
+  filter:
+    include:
+      - domain: light
+        options:
+          tap_action:
+            action: more-info
+          type: custom:bubble-card
+          card_type: button
+          button_type: slider
+          show_last_updated: true
+          sub_button:
+            - name: Brightness
+              show_icon: false
+              show_background: false
+              show_attribute: true
+              attribute: brightness
+            - name: Toggle button
+              icon: mdi:power
+              tap_action:
+                action: toggle
+    exclude:
+      - state: "off"
+      - state: "unavailable"
+      - state: "unknown"
+      - entity_id: "*group"
+      - hidden_by: "user"

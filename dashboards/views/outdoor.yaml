@@ -1,0 +1,303 @@
+
+- type: custom:bubble-card
+  card_type: pop-up
+  hash: '#outdoors'
+  button_type: switch
+  name: Outdoor
+  entity: light.outdoor_lights_group
+  force_icon: false
+  show_state: true
+  show_last_changed: false
+  bg_opacity: '35'
+  button_action:
+    tap_action:
+      action: none
+  tap_action:
+    action: toggle
+
+- type: custom:mushroom-chips-card
+  chips:
+    - type: template
+      entity: sensor.airnow_aqi
+      icon_color: |+
+        {% if int(states('sensor.airnow_aqi'))>=100 -%}
+          red
+        {%- elif int(states('sensor.airnow_aqi'))>=50 -%}
+          yellow
+        {%- else %}
+          green
+        {%- endif %}
+      icon:  |+
+        {% if int(states('sensor.airnow_aqi'))>=100 -%}
+          mdi:alert
+        {%- elif int(states('sensor.airnow_aqi'))>=50 -%}
+          mdi:weather-dust
+        {%- else %}
+          mdi:leaf
+        {%- endif %}
+      content: 'AQI {{states(''sensor.airnow_aqi'')}}'
+      # content_info: none
+      tap_action: !include ../popup/aqi_overview.yaml
+    - type: template
+      entity: sensor.pollen_max
+      icon_color: |-
+        {% if int(states('sensor.pollen_max'))>50 -%}
+          red
+        {%- elif int(states('sensor.pollen_max'))>25 -%}
+          yellow
+        {%- else %}
+          green
+        {%- endif %}
+      icon:  |+
+        {% if int(states('sensor.pollen_max'))>50 -%}
+          mdi:virus
+        {%- elif int(states('sensor.pollen_max'))>25 -%}
+          mdi:virus-outline
+        {%- else %}
+          mdi:leaf
+        {%- endif %}
+      content: 'Pollen ({{states(''sensor.pollen_max'')}} ppm)'
+      # content_info: none
+      tap_action: !include ../popup/pollen_overview.yaml
+- type: custom:mushroom-chips-card
+  chips:
+    - type: template
+      entity: sensor.daily_net_production
+      icon_color: |-
+        {% if int(states('sensor.daily_net_production')) > 0 -%}
+          green
+        {%- else %}
+          yellow
+        {%- endif %}
+      icon: |-
+        {% if int(states('sensor.daily_net_production')) > 0 -%}
+          mdi:solar-panel
+        {%- else %}
+          mdi:transmission-tower
+        {%- endif %}
+      content: |+
+        {% if int(states('sensor.daily_net_production')) > 0 -%}
+          {{float(states('sensor.daily_net_production'))}}kw -> PGE
+        {% else %}
+          {{float(states('sensor.daily_net_production')) *-1 }}kw from PGE
+        {%- endif %}
+      double_tap_action:
+        action: none
+      tap_action:
+        action: more-info
+      hold_action:
+        action: none
+
+    - type: entity
+      entity: sensor.envoy_202208027163_current_power_production
+      icon_color: yellow
+      icon: mdi:solar-power
+      use_entity_picture: false
+    - type: entity
+      entity: sensor.energy_usage
+      icon_color: pink
+      icon: mdi:transmission-tower
+      tap_action: 
+        action: fire-dom-event
+        browser_mod:
+          service: browser_mod.popup
+          data:
+            title: Active Power Consumers
+            style: |
+              --popup-background-color: #444;
+            content:
+              style:
+                hui-vertical-stack-card:
+                  $: |
+                    hui-horizontal-stack-card {
+                      padding: 0em 2em 2.3em 2em;
+                    }
+                  $hui-horizontal-stack-card$: |
+                    #root {
+                      justify-content: space-evenly;
+                    }
+              type: vertical-stack
+              cards: 
+                - type: custom:auto-entities
+                  card:
+                    type: vertical-stack
+                  card_param: cards
+                  name: Power Usage
+                  filter:
+                    include:
+                      - name: '*power'
+                        state: '>10'
+                        options:
+                          type: custom:mushroom-entity-card
+                      - entity_id: '*_usage'
+                        state: '>10'
+                        options:
+                          type: custom:mushroom-entity-card
+                    exclude:
+                      - name: Energy Usage
+                      - name: Yearly*
+                      - name: Monthly*
+                      - name: Weekly*
+                      - name: Daily*
+                  sort:
+                    method: state
+                    reverse: true
+                    ignore_case: true
+                    ip: false
+                    numeric: true
+                  show_empty: true
+
+
+- type: custom:bubble-card
+  card_type: separator
+  name: Weather
+  sub_button:
+    - entity: sensor.wirelesstag_outdoor_temperature
+      show_background: false
+      show_icon: false
+      show_name: false
+      show_state: true
+    - entity: sensor.wirelesstag_outdoor_humidity
+      show_background: false
+      show_icon: false
+      show_name: false
+      show_state: true
+    - entity: weather.pirateweather
+      show_icon: true
+      show_background: false
+- type: entities
+  entities:
+  - type: custom:fold-entity-row
+    head: sensor.thermal_comfort_humidex
+    entities:
+      - entity: sensor.thermal_comfort_absolute_humidity
+        name: Absolute humidity
+      - entity: sensor.thermal_comfort_dew_point
+        name: Dew point
+      - entity: sensor.thermal_comfort_dew_point_perception
+        name: Dew point perception
+      - entity: sensor.thermal_comfort_frost_point
+        name: Frost point
+      - entity: sensor.thermal_comfort_frost_risk
+        name: Frost risk
+      - entity: sensor.thermal_comfort_heat_index
+        name: Heat index
+      - entity: sensor.thermal_comfort_humidex
+        name: Humidex
+      - entity: sensor.thermal_comfort_humidex_perception
+        name: Humidex perception
+      - entity: sensor.thermal_comfort_moist_air_enthalpy
+        name: Moist air enthalpy
+      - entity: sensor.thermal_comfort_relative_strain_perception
+        name: Relative strain perception
+      - entity: sensor.thermal_comfort_summer_scharlau_perception
+        name: Summer scharlau perception
+      - entity: sensor.thermal_comfort_summer_simmer_index
+        name: Summer simmer index
+      - entity: sensor.thermal_comfort_summer_simmer_perception
+        name: Summer simmer perception
+      - entity: sensor.thermal_comfort_thoms_discomfort_perception
+        name: Thoms discomfort perception
+      - entity: sensor.thermal_comfort_winter_scharlau_perception
+        name: Winter scharlau perception
+
+- type: custom:bubble-card
+  card_type: separator
+  name: Garbage
+
+- type: horizontal-stack
+  cards:
+    - type: custom:mushroom-entity-card
+      entity: switch.ridwell_opt_in_to_next_pickup
+    - type: custom:mushroom-entity-card
+      entity: sensor.ridwell_ridwell_pickup_4659_se_meadowcrest_ct
+
+
+
+- type: custom:bubble-card
+  card_type: separator
+  name: Lights
+- entity: light.0x94deb8fffe4fcaf4
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  hold_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+
+
+- entity: light.top_deck_wall_switch
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+- entity: light.basement_deck_wall_switch
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+# - type: entities
+#   entities:
+#     - type: custom:fold-entity-row
+#       head: light.0x94deb8fffe4fcaf4
+#       entities:
+#         - light.outside_garage_left_light
+#         - light.outside_garage_right_light
+#         - light.front_porch_light
+
+# - entity: switch.tp_link_smart_plug_22e2_rail_lights
+#   name: Kitchen Patio Rail Lights
+#   icon: hue:festavia
+#   type: custom:bubble-card
+#   card_type: button
+#   button_type: slider
+#   show_last_updated: true
+#   tap_action:
+#     action: more-info
+#   sub_button:
+#     - name: Brightness
+#       show_icon: false
+#       show_background: false
+#       show_attribute: true
+#       attribute: brightness
+#     - name: Toggle button
+#       icon: mdi:lightbulb
+#       tap_action:
+#         action: toggle
+
+
+

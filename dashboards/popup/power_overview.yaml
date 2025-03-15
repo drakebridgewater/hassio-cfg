@@ -1,0 +1,270 @@
+- type: custom:bubble-card
+  hash: "#power_overview"
+  card_type: pop-up
+  entity: sensor.energy_usage
+  icon: mdi:transmission-tower
+  name: Power Stats
+  button_type: state
+  show_background: false
+  button_action:
+    tap_action:
+      action: none
+  tap_action:
+    action: none
+  sub_button:
+    - entity: weather.home
+      show_name: false
+      show_state: true
+      show_last_changed: false
+      show_attribute: false
+      attribute: apparent_temperature
+    - entity: sensor.wirelesstag_outdoor_temperature
+      show_state: true
+      show_background: false
+    - entity: sensor.wirelesstag_outdoor_humidity
+      show_background: false
+      show_state: true
+- type: custom:mushroom-template-card
+  entity: sensor.daily_net_production
+  icon_color: |-
+    {% if int(states('sensor.daily_net_production')) > 0 -%}
+      green
+    {%- else %}
+      yellow
+    {%- endif %}
+  icon: |-
+    {% if int(states('sensor.daily_net_production')) > 0 -%}
+      mdi:solar-panel
+    {%- else %}
+      mdi:transmission-tower
+    {%- endif %}
+  primary: |+
+    {% if int(states('sensor.daily_net_production')) > 0 -%}
+      {{float(states('sensor.daily_net_production'))}}kw -> PGE
+    {% else %}
+      {{float(states('sensor.daily_net_production')) *-1 }}kw from PGE
+    {%- endif %}
+  double_tap_action:
+    action: none
+  tap_action:
+    action: more-info
+  hold_action:
+    action: none
+- type: custom:mushroom-chips-card
+  chips:
+    
+    - type: template
+      entity: sensor.daily_net_production
+      icon_color: |-
+        {% if int(states('sensor.daily_net_production')) > 0 -%}
+          green
+        {%- else %}
+          yellow
+        {%- endif %}
+      icon: |-
+        {% if int(states('sensor.daily_net_production')) > 0 -%}
+          mdi:solar-panel
+        {%- else %}
+          mdi:transmission-tower
+        {%- endif %}
+      content: |+
+        {% if int(states('sensor.daily_net_production')) > 0 -%}
+          {{float(states('sensor.daily_net_production'))}}kw -> PGE
+        {% else %}
+          {{float(states('sensor.daily_net_production')) *-1 }}kw from PGE
+        {%- endif %}
+      double_tap_action:
+        action: none
+      tap_action:
+        action: more-info
+      hold_action:
+        action: none
+
+    - type: entity
+      entity: sensor.envoy_202208027163_current_power_production
+      icon_color: yellow
+      icon: mdi:solar-power
+      use_entity_picture: false
+    - type: entity
+      entity: sensor.energy_usage
+      icon_color: pink
+      icon: mdi:transmission-tower
+
+- type: custom:bubble-card
+  card_type: button
+  button_type: state
+  name: Current Usage
+  entity: sensor.current_bill_electric_forecasted_usage
+  icon: mdi:home-lightning-bolt-outline
+  show_state: true
+  sub_button:
+    - entity: sensor.envoy_202208027163_current_power_production
+      icon: mdi:solar-power
+      name: Production
+      show_background: false
+      show_state: true
+      show_name: true
+    - entity: sensor.energy_usage
+      name: Consumption
+      icon: mdi:transmission-tower
+      show_background: false
+      show_state: true
+      show_name: true
+  styles: |
+    .bubble-sub-button-1 > ha-icon {
+      color: 'red' !important;
+    }
+    .bubble-sub-button-2 > ha-icon {
+      color: 'red' !important;
+    }
+    .bubble-sub-button-3 > ha-icon {
+      color: 'red' !important;
+    }
+
+- type: custom:bubble-card
+  card_type: button
+  button_type: state
+  card_layout: large-2-rows
+  name: PGE Forcast
+  entity: sensor.current_bill_electric_forecasted_usage
+  secondary: 
+  icon: mdi:home-lightning-bolt-outline
+  show_state: true
+  sub_button:
+    - entity: sensor.current_bill_electric_forecasted_cost
+      name: Forcasted
+      show_background: false
+      show_state: true
+      show_name: true
+    - entity: sensor.current_bill_electric_cost_to_date
+      name: To Date
+      show_state: true
+      show_background: false
+      show_name: true
+    - entity: sensor.current_bill_electric_forecasted_usage
+      name: Forcasted
+      show_background: false
+      show_state: true
+      show_name: true
+    - entity: sensor.current_bill_electric_usage_to_date
+      name: To Date
+      show_state: true
+      show_background: false
+      show_name: true
+
+
+- type: custom:bubble-card
+  card_type: button
+  button_type: state
+  name: Solar Reports
+  card_layout: large-2-rows
+  entity: sensor.daily_production
+  secondary: 
+  icon: mdi:home-lightning-bolt-outline
+  show_state: true
+  sub_button:
+    - entity: sensor.envoy_202208027163_today_s_energy_production
+      show_name: true
+      name: Daily
+      icon: mdi:calendar-today
+      show_state: true
+      show_background: false
+    - entity: sensor.weekly_production
+      show_name: true
+      name: Weekly 
+      show_state: true
+      show_background: false
+      icon: mdi:calendar-week
+    - entity: sensor.yearly_production
+      show_name: true
+      name: Yearly 
+      show_state: true
+      show_background: false
+
+- type: custom:bubble-card
+  card_type: separator
+  name: Heavy Energy Consumers
+  sub_button:
+    - entity: sensor.daily_to_grid
+      icon: mdi:transmission-tower-import
+      show_background: false
+      show_state: true
+    - entity: sensor.daily_from_grid
+      icon: mdi:transmission-tower-export
+      show_background: false
+      show_state: true
+      tap_action:
+        action: more-info
+    # - entity: sensor.weekly_net_production
+    #   show_state: true
+    #   show_background: false
+    #   icon: mdi:calendar-week
+    # - entity: sensor.daily_production
+    #   icon: mdi:solar-power
+    #   show_state: true
+    #   show_background: false
+- type: custom:auto-entities
+  card:
+    type: vertical-stack
+  card_param: cards
+  filter:
+    include:
+      - name: '*power'
+        state: '>10'
+        options:
+          type: custom:mushroom-entity-card
+      - entity_id: '*_usage'
+        state: '>10'
+        options:
+          type: custom:mushroom-entity-card
+    exclude:
+      - name: Energy Usage
+      - name: "*Yearly*"
+      - name: "*Monthly*"
+      - name: "*monthly*"
+      - name: "*Weekly*"
+      - name: "*Daily*"
+      - name: "Current bill*"
+      - name: "Current Energy*"
+  sort:
+    method: state
+    reverse: true
+    ignore_case: true
+    ip: false
+    numeric: true
+  show_empty: true
+
+# - type: custom:mushroom-chips-card
+#   chips:
+#     - type: entity
+#       entity: sensor.envoy_202208027163_current_power_production
+#       icon_color: yellow
+#       icon: mdi:solar-power
+#       use_entity_picture: false
+#     - type: entity
+#       entity: sensor.energy_usage
+#       icon_color: pink
+#       icon: mdi:transmission-tower
+#     - type: template
+#       entity: sensor.envoy_202208027163_current_power_production
+#       icon_color: >-
+#         {% if int(states('sensor.envoy_202208027163_current_power_production')) -
+#         int(states('sensor.energy_usage')) > 0 -%}
+#           green
+#         {%- else %}
+#           yellow
+#         {%- endif %}
+#       icon: >-
+#         {% if int(states('sensor.envoy_202208027163_current_power_production')) -
+#         int(states('sensor.energy_usage')) > 0 -%}
+#           mdi:solar-panel
+#         {%- else %}
+#           mdi:transmission-tower
+#         {%- endif %}
+#       content: >-
+#         {% if int(states('sensor.envoy_202208027163_current_power_production')) -
+#         int(states('sensor.energy_usage')) > 0 -%}
+#           Supplying {{int(states('sensor.envoy_202208027163_current_power_production')) - int(states('sensor.energy_usage'))}}w to grid
+#         {%- else %}
+#           Using {{int(states('sensor.envoy_202208027163_current_power_production')) - int(states('sensor.energy_usage'))}}w from grid
+#         {%- endif %}

@@ -1,0 +1,121 @@
+type: vertical-stack
+cards:
+  - type: custom:auto-entities
+    show_empty: false
+    card:
+      type: entities
+      # title: Active Critical Alerts
+      card_mod:
+        style: |
+          ha-card {
+            background-color: rgba(251,13,13,1);
+            border-radius: 5px;
+            --primary-color: white;
+            --paper-item-icon-color: white;
+            --secondary-text-color: white;
+          }
+    filter:
+      include:
+        - entity_id: "/^alert(.).*_crit_alert_active/"
+          options:
+            secondary_info: last-changed
+      exclude:
+        - state: "off"
+        - state: idle
+    sort:
+      method: last_changed
+      reverse: true
+    ##################### Show active warning alerts
+  - type: custom:auto-entities
+    show_empty: false
+    card:
+      type: entities
+      # title: Active Warnings
+      card_mod:
+        style: |
+          ha-card {
+            background-color: rgba(204,102,0,1);
+            border-radius: 5px;
+            --primary-color: white;
+            --paper-item-icon-color: white;
+            --secondary-text-color: white;
+          }
+    filter:
+      include:
+        - entity_id: "/^alert(.).*_warn_alert_active/"
+          options:
+            secondary_info: last-changed
+      exclude:
+        - state: "off"
+        - state: idle
+        - state: unavailable
+    sort:
+      method: last_changed
+      reverse: true
+    ##################### Show active information
+  - type: custom:auto-entities
+    show_empty: false
+    card:
+      type: entities
+      # title: Active Information
+      card_mod:
+        style: |
+          ha-card {
+            background-color: rgba(68,115,158,1);
+            border-radius: 5px;
+            --primary-color: white;
+            --paper-item-icon-color: white;
+            --secondary-text-color: white;
+          }
+    filter:
+      include:
+        - entity_id: "/^alert(.).*_info_alert_active/"
+          options:
+            secondary_info: last-changed
+      exclude:
+        - state: "off"
+        - state: idle
+    sort:
+      method: last_changed
+      reverse: true
+    ##################### Show tripped water sensors
+  - type: custom:auto-entities
+    show_empty: false
+    card:
+      type: entities
+      title: Water Issues
+      card_mod:
+        style: |
+          ha-card {
+            background-color: rgba(251,13,13,1);
+            border-radius: 5px;
+            --primary-color: white;
+            --paper-item-icon-color: white;
+            --secondary-text-color: white;
+          }
+    filter:
+      include:
+        - attributes:
+            device_class: moisture
+          options:
+            secondary_info: last-changed
+      exclude:
+        - state: "off"
+        - state: unavailable
+  - type: custom:auto-entities
+    show_empty: false
+    card:
+      type: entities
+      title: Information
+      card_mod:
+        style: |
+          ha-card {
+            background-color: rgba(68,115,158,1);
+            border-radius: 5px;
+            --primary-color: white;
+            --paper-item-icon-color: white;
+            --secondary-text-color: white;
+          }
+    filter:
+      template: |
+        {{ expand('group.device_uptimes') | selectattr('state', 'match', '[0-9] minutes') | map(attribute='entity_id') | list | join(', ') }}

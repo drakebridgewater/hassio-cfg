@@ -1,0 +1,162 @@
+# type: custom:stack-in-card
+type: vertical-stack
+visibility:
+  - condition: screen
+    media_query: "(min-width: 768px)"
+cards:
+  - type: custom:week-planner-card
+    calendars:
+      - entity: calendar.bridgewater_s
+        name: Bridgewater's
+        color: purple
+      - entity: calendar.ridwell
+        name: Ridwell
+        color: purple
+      - entity: calendar.calendar
+        name: Calendar
+        color: orange
+      - entity: calendar.drake_s_default
+        name: Drake's default
+        color: green
+      - entity: calendar.home_maintenance_calendar
+        name: Home maintenance calendar
+        color: red
+      - entity: calendar.shawnabeckstead_gmail_com
+        name: Shawnabeckstead@gmail.com
+        color: pink
+      - entity: calendar.icalendar
+        name: Icalendar
+        color: blue
+    days: 1
+    dayFormat: '''<span class="number">''d''</span> <span class="month">''MMMM''</span>'''
+    startingDay: today
+    startingDayOffset: 0
+    hideWeekend: false
+    noCardBackground: false
+    compact: false
+    weather:
+      showCondition: true
+      showTemperature: true
+      showLowTemperature: true
+      useTwiceDaily: false
+    locale: en
+    eventBackground: rgba(30, 30, 30, .25)
+    locationLink: https://www.google.com/maps/search/
+    showLocation: true
+    hidePastEvents: false
+    hideDaysWithoutEvents: true
+    hideTodayWithoutEvents: true
+    combineSimilarEvents: true
+    showLegend: false
+    card_mod:
+      style: |
+        .event.past {
+          opacity: .3;
+        }
+        .day {
+          width: 100% !important;
+        }
+        # .events {
+        #   max-height: 150px;
+        #   overflow-y: scroll;
+        #   overflow-x: hidden;
+        #   scroll-behavior: smooth;
+        # }
+        # .events::-webkit-scrollbar {
+        #   display: none;
+        # }
+
+
+  # - type: custom:atomic-calendar-revive
+  #   # name: Calendar
+  #   enableModeChange: true
+  #   entities:
+  #     - entity: update.atomic_calendar_revive_update
+  #       icon: ""
+  #     - entity: calendar.bridgewater_s
+  #       name: Bridgewater's
+  #     - entity: calendar.ridwell
+  #       name: Ridwell
+  #     - entity: calendar.guest_mode
+  #       name: Guest mode
+  #     - entity: calendar.calendar
+  #       name: Calendar
+  #     - entity: calendar.drake_s_default
+  #       name: Drake's default
+  #     - entity: calendar.birthdays
+  #       name: Birthdays
+  #     - entity: calendar.home_maintenance_calendar
+  #       name: Home maintenance calendar
+  #     - entity: calendar.shawnabeckstead_gmail_com
+  #       name: Shawnabeckstead@gmail.com
+  #     - entity: calendar.icalendar
+  #       name: Icalendar
+  #   linkTarget: _self
+  #   showLocation: false
+  #   showAllDayEvents: false
+  #   showFullDayProgress: true
+  #   showProgressBar: true
+  #   showMultiDay: false
+  #   maxDaysToShow: 3
+  #   showNoEventsForToday: true
+  #   hideDuplicates: true
+  #   titleLength: 80
+  #   defaultMode: Event
+  #   hoursOnSameLine: true
+  #   showMonth: false
+  #   showAllDayHours: false
+  #   showEventDate: true
+  #   showCalendarName: false
+  #   showLastCalendarWeek: false
+  #   disableCalEventLink: false
+  #   disableCalLocationLink: false
+  #   showTimeRemaining: false
+  #   showDatePerEvent: false
+  #   showDate: false
+  #   showLoader: false
+  #   showRelativeTime: false
+  #   compactMode: false
+  #   eventDateFormat:  D
+  #   card_mod:
+  #     style: |
+  #       ha-card{
+  #         box-shadow: none;
+  #         border-top: 1px solid rgba(255, 255, 255, 0.2);
+  #         border-radius: 0;
+  #         padding: 0 !important;
+  #       }
+  #       ha-card .single-event-container{
+  #         padding: 10px 0 !important;
+  #         grid-template-columns: 0.2fr 2fr;
+  #       }
+  #       ha-card .single-event-container:not(.daywrap):not(:first-child){
+  #         padding-top: 9px !important;
+  #       }
+  #       ha-card .daywrap{
+  #         padding-top: 3px;
+  #         border-top: 3px solid rgba(255, 255, 255, 0.2);
+  #       }
+  #       ha-card .event-left{
+  #         font-size: 1.3em;
+  #         width: 60px;
+  #       }
+  #       ha-card .event-location{
+  #         font-size: .9em;
+  #         width: 150px;
+  #       }
+  #       ha-card .event-title{
+  #         font-size: 1.3em;
+  #         width: max-conent;
+  #       }
+  #       ha-card .hours{
+  #         padding-right: 10px;
+  #         font-size: 1em;
+  #       }
+  #       ha-card .event-cal-name{
+  #         padding-right: 10px;
+  #         font-size: 1em;
+  #       }
+  #       ha-card .single-event-container{
+  #         line-height: 1.2em;
+  #       }
+

@@ -1,0 +1,20 @@
+action: fire-dom-event
+browser_mod:
+  service: browser_mod.popup
+  data:
+    title: Kitchen
+    style: |
+      --popup-background-color: #444;
+    content:
+      style:
+        hui-vertical-stack-card:
+          $: |
+            hui-horizontal-stack-card {
+              padding: 0em 2em 2.3em 2em;
+            }
+          $hui-horizontal-stack-card$: |
+            #root {
+              justify-content: space-evenly;
+            }
+      type: vertical-stack
+      cards: !include ../../cards/kitchen.yaml

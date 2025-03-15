@@ -1,0 +1,146 @@
+
+- type: custom:bubble-card
+  card_type: pop-up
+  hash: '#office'
+  button_type: switch
+  name: Office
+  entity: light.office_lights_group
+  force_icon: false
+  show_state: true
+  show_last_changed: false
+  bg_opacity: '35'
+  button_action:
+    tap_action:
+      action: none
+  tap_action:
+    action: toggle
+- type: custom:mushroom-chips-card
+  chips:
+    - type: entity
+      entity: input_boolean.office_lighting_automation_on_disabled
+      content_info: name
+      icon_color: red
+      icon: mdi:auto-mode
+      name: Automation
+      tap_action:
+        action: toggle
+      use_entity_picture: false
+    - type: template
+      entity: binary_sensor.office_multi_sensor_home_security_motion_detection
+      icon_color: |-
+        {% if states('binary_sensor.office_multi_sensor_home_security_motion_detection') == 'on' -%}
+          red
+        {%- else %}
+          grey
+        {%- endif %}
+      icon: mdi:motion-sensor
+      content: |-
+        {% if states('binary_sensor.office_multi_sensor_home_security_motion_detection') == 'off' -%}
+          No Motion detected
+        {% elif states('binary_sensor.office_multi_sensor_home_security_motion_detection') == 'on' -%}
+          Motion Detected
+        {%- else %}
+          Motion Error
+        {%- endif %}
+      tap_action:
+        action: more-info
+    - type: template
+      entity: binary_sensor.office_window
+      icon_color: |-
+        {% if states('binary_sensor.office_window') == 'on' -%}
+          red
+        {%- else %}
+          grey
+        {%- endif %}
+      icon: |-
+        {% if states('binary_sensor.office_window') == 'off' -%}
+          mdi:blinds-horizontal-closed
+        {% elif states('binary_sensor.office_window') == 'on' -%}
+          mdi:blinds-horizontal
+        {%- else %}
+          mdi:window-close
+        {%- endif %}
+      content: |-
+        {% if states('binary_sensor.office_window') == 'off' -%}
+          Window Closed
+        {% elif states('binary_sensor.office_window') == 'on' -%}
+          Window Open
+        {%- else %}
+          Window Error
+        {%- endif %}
+      tap_action:
+        action: more-info
+    - type: entity
+      entity: sensor.office_temperature_sensor_temperature
+
+- entity: light.office_wall_switch
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  sub_button:
+    - name: Brightness
+      icon: mdi:fridge-outline
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:lightbulb
+      tap_action:
+        action: toggle
+
+
+- entity: light.office_light_01
+  name: Behind Monitor
+  icon: hue:friends-of-hue-iq-pendant
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  sub_button:
+    - name: Brightness
+      icon: mdi:fridge-outline
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:lightbulb
+      tap_action:
+        action: toggle
+- entity: light.office_desk_right_lamp
+  name: Desk Right
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  sub_button:
+    - name: Brightness
+      icon: mdi:fridge-outline
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:lightbulb
+      tap_action:
+        action: toggle
+
+- type: custom:bubble-card
+  card_type: media-player
+  entity: media_player.office
+  name: Google Home
+  hide:
+    play_pause_button: false
+  card_layout: large
+
+
+
+# - type: custom:mushroom-entity-card
+#   entity: switch.schedule_3bb5a8
+#   name: Lighting Automation Schedule
+#   tap_action:
+#     action: toggle
+#   hold_action:
+#     action: more-info  

@@ -1,0 +1,70 @@
+---
+#-
+#              _   _  __
+#  _ __   ___ | |_(_)/ _|_   _
+# | '_ \ / _ \| __| | |_| | | |
+# | | | | (_) | |_| |  _| |_| |
+# |_| |_|\___/ \__|_|_|  \__, |
+#                        |___/
+#
+#
+# - name: "TTS History"
+#   platform: file
+#   filename: /config/www/tts_history.txt
+#   value_template: "{{ value_json }}"
+  
+- name: STD_Information
+  platform: group
+  services:
+    - service: mobile_app_drakes_iphone
+    - service: mobile_app_drakes_macbook_pro
+    # - service: pushover_dbridgew
+- name: STD_Warning
+  platform: group
+  services:
+    - service: mobile_app_shawnas_iphone
+    - service: mobile_app_drakes_iphone
+    - service: mobile_app_drakes_macbook_pro
+    # - service: pushover_dbridgew
+- name: STD_Critical
+  platform: group
+  services:
+    - service: alexa_media_kirchen_echo_show
+    - service: mobile_app_drakes_iphone
+    - service: mobile_app_shawnas_iphone
+    - service: mobile_app_drakes_macbook_pro
+    # - service: pushover_dbridgew
+    # - service: gmail_alert
+
+- platform: group
+  name: all_iphones
+  services:
+    - service: mobile_app_drakes_iphone
+    - service: mobile_app_shawnas_iphone
+    # - service: pushover_dbridgew
+
+- platform: group
+  name: drake
+  services:
+    - service: mobile_app_drakes_iphone
+    - service: mobile_app_drakes_macbook_pro
+    - service: pushover_dbridgew
+
+- platform: group
+  name: shawna
+  services:
+    - service: mobile_app_shawnas_iphone
+
+# - platform: group
+#   name: all
+#   services:
+#     - service: mobile_app_basnijholt_iphone
+#     - service: mobile_app_basnijholt_iphone2
+#     - service: mobile_app_marcella_iphone
+#     - service: tv
+#     - service: chrome
+
+- platform: html5
+  vapid_pub_key: !secret firebase_public_key
+  vapid_prv_key: !secret firebase_private_key
+  vapid_email: !secret firebase_service_account

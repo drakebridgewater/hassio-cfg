@@ -1,0 +1,20 @@
+6_1__mushroom_btn:
+  aspect_ratio: 6/1
+  show_label: false
+  show_name: false
+  show_state: false
+  styles:
+    card:
+      - background-color: none
+      - border-radius: 0%
+      - padding: 0%
+    custom_fields:
+      main_card:
+        - border-radius: 0
+      icon_card:
+        - border-radius: 0
+    grid:
+      - position: relative
+      - grid-template-areas: ' "main_card icon_card" '
+      - grid-template-columns: 14fr 2fr
+      - grid-template-rows: 1fr

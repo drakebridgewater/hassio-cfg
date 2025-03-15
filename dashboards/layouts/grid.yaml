@@ -1,0 +1,63 @@
+
+  #default
+  grid-gap: var(--custom-layout-card-padding)
+  grid-template-columns: 1fr repeat(3, 1fr) 
+  grid-template-rows: min-content(100%) repeat(3, 1fr) min-content(100%)
+  grid-template-areas: |
+    "sidebar  banner      banner    banner   "
+    "sidebar  section1    section2  section3 "
+    "sidebar  section4    section5  section6 "
+    "sidebar  section7    section8  section9 "
+    "footer   footer      footer    footer   "
+  mediaquery:
+    #phone
+    "(max-width: 1200px)":
+      grid-gap: calc(var(--custom-layout-card-padding) * 1.7)
+      grid-template-columns: 100%
+      # grid-template-rows: 0 repeat(14, fit-content(100%))
+      grid-template-areas: |
+        ".       "
+        "banner  "
+        "sidebar "
+        "section1"
+        "section2"
+        "section3"
+        "section4"
+        "section5"
+        "section6"
+        "section7"
+        "section8"
+        "section9"
+        "footer  "
+        ".       "
+    # Google Home Max 1280
+    "(max-width: 1650px)":
+      grid-gap: var(--custom-layout-card-padding)
+      grid-template-columns: repeat(2, 1fr) 
+      # grid-template-rows: 0 repeat(2, fit-content(100%)) 1fr
+      grid-template-areas: |
+        ".        .         "
+        "sidebar   banner   "
+        "sidebar  section1  "
+        "sidebar  section2  "
+        "sidebar  section3  "
+        "sidebar  section4  "
+        "sidebar  section5  "
+        "sidebar  section6  "
+        "sidebar  section7  "
+        "sidebar  section8  "
+        "sidebar  section9  "
+        "footer   footer    "
+    "(max-width: 2100px)":
+      grid-gap: var(--custom-layout-card-padding)
+      grid-template-columns: repeat(3, 1fr) 
+      # grid-template-rows: 0 repeat(2, fit-content(100%)) 0fr
+      grid-template-areas: |
+        ".        .           .         "
+        "sidebar   banner      banner   "
+        "sidebar  section1    section2  "
+        "sidebar  section3    section4  "
+        "sidebar  section5    section6  "
+        "sidebar  section7    section8  "
+        "sidebar  section9    .         "
+        "footer   footer      footer    "

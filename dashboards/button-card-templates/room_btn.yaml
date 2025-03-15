@@ -1,0 +1,152 @@
+6_1__room_btn_btn_btn:
+  aspect_ratio: 6/1
+  show_label: true
+  show_name: true
+  show_state: true
+  size: 70%
+  styles:
+    card: null
+    custom_fields:
+      s2:
+        - justify-self: start
+        - font-size: 10pt
+      power_icon:
+        - justify-self: right
+        - padding: 10%
+        - padding-right: 10px
+      power_icon2:
+        - justify-self: right
+        - padding: 10%
+        - padding-right: 10px
+      power_icon3:
+        - justify-self: right
+        - padding: 10%
+        - padding-right: 10px
+    grid:
+      - grid-template-areas: '
+        "i n n n n power_icon power_icon2 power_icon3" 
+        "i l l l l power_icon power_icon2 power_icon3" 
+        "i s s s s power_icon power_icon2 power_icon3" '
+      - grid-template-columns: 2fr 2fr 2fr 2fr 2fr 2fr 2fr 2fr
+      - grid-template-rows: 1fr 1fr 1fr  
+    label:
+      - justify-self: start
+      - padding-top: 5%
+      - padding-bottom: 5%
+      - font-size: 8pt
+    name:
+      - justify-self: start
+      - font-weight: bold
+    state:
+      - justify-self: start
+      - font-size: 10pt
+
+6_1__room_btn_btn_btn_custom_state:
+  aspect_ratio: 43/8
+  show_label: true
+  show_name: true
+  show_state: false
+  size: 70%
+  styles:
+    card: null
+    custom_fields:
+      s1:
+        - margin-top: 11px
+      power_icon:
+        - justify-self: right
+        - padding: 10%
+        - padding-right: 10px
+      power_icon2:
+        - justify-self: right
+        - padding: 10%
+        - padding-right: 10px
+      power_icon3:
+        - justify-self: right
+        - padding: 10%
+        - padding-right: 10px
+    grid:
+      - grid-template-areas: '
+          "i  n  n  n  n power_icon power_icon2 power_icon3" 
+          "i  l  l  l  l power_icon power_icon2 power_icon3" 
+          "i s1 s1 s1 s1 power_icon power_icon2 power_icon3" '
+      - grid-template-columns: 2fr 2fr 2fr 2fr 2fr 2fr 2fr 2fr
+      - grid-template-rows: 1fr 1fr 2fr
+    label:
+      - justify-self: start
+      - padding-top: 7%
+      - padding-bottom: 2px
+      - font-size: 8pt
+    name:
+      - justify-self: start
+      - font-weight: bold
+    state:
+      - justify-self: start
+      - font-size: 10pt
+
+6_1__room_btn_custom_state:
+  aspect_ratio: 6/1
+  show_label: true
+  show_name: true
+  show_state: false
+  size: 70%
+  styles:
+    card: null
+    custom_fields:
+      s1:
+        - justify-self: start
+        - align-self: end
+        - margin-top: 10px
+      power_icon:
+        - justify-self: right
+        - align-self: end
+        - padding: 10%
+        - padding-right: 10px
+    grid:
+      - grid-template-areas: ' 
+          "i n n n n power_icon" 
+          "i s1 s1 s1 s1 power_icon" '
+      - grid-template-columns: 2fr 4fr 4fr 2fr 2fr 2fr
+      - grid-template-rows: 1fr 2fr 
+    label:
+      - justify-self: start
+      - padding-top: 5%
+      - padding-bottom: 5%
+      - font-size: 8pt
+    name:
+      - justify-self: start
+      - font-weight: bold
+    state:
+      - justify-self: start
+      - font-size: 10pt
+
+
+
+room_mushroom:
+  aspect_ratio: 43/8
+  show_label: true
+  show_name: true
+  show_state: false
+  size: 70%
+  styles:
+    card: null
+    custom_fields:
+      s1:
+        - margin-top: 11px
+    grid:
+      - grid-template-areas: '
+          "i  n  " 
+          "i  l  " 
+          "i s1  " '
+      - grid-template-columns: 1fr 8fr
+      - grid-template-rows: 1fr 1fr 1fr
+    label:
+      - justify-self: start
+      - padding-top: 7%
+      - padding-bottom: 2px
+      - font-size: 8pt
+    name:
+      - justify-self: start
+      - font-weight: bold
+    state:
+      - justify-self: start
+      - font-size: 10pt

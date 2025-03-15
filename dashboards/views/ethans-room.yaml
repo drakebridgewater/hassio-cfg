@@ -1,0 +1,375 @@
+
+- type: custom:bubble-card
+  card_type: pop-up
+  hash: '#ethan'
+  button_type: switch
+  name: Ethan's Room
+  entity: light.ethan_s_lights_group
+  force_icon: false
+  show_state: true
+  show_last_changed: false
+  bg_opacity: '35'
+  button_action:
+    tap_action:
+      action: none
+  tap_action:
+    action: toggle
+- type: custom:mushroom-chips-card
+  chips:
+    - type: entity
+      entity: input_boolean.ethan_s_bedroom_lighting_automation_on_disabled
+      content_info: name
+      icon_color: red
+      icon: mdi:auto-mode
+      name: Automation
+      tap_action:
+        action: toggle
+      use_entity_picture: false
+    - type: template
+      entity: binary_sensor.ethan_s_room_occupied_group
+      icon_color: |-
+        {% if states('binary_sensor.ethan_s_room_occupied_group') == 'on' -%}
+          red
+        {%- else %}
+          grey
+        {%- endif %}
+      icon: mdi:motion-sensor
+      content: |-
+        {% if states('binary_sensor.ethan_s_room_occupied_group') == 'off' -%}
+          No Motion detected
+        {% elif states('binary_sensor.ethan_s_room_occupied_group') == 'on' -%}
+          Motion Detected
+        {%- else %}
+          Motion Error
+        {%- endif %}
+      tap_action:
+        action: more-info
+    - type: template
+      entity: binary_sensor.ethan_s_bedroom_window_contact
+      icon_color: |-
+        {% if states('binary_sensor.ethan_s_bedroom_window_contact') == 'on' -%}
+          red
+        {%- else %}
+          grey
+        {%- endif %}
+      icon: |-
+        {% if states('binary_sensor.ethan_s_bedroom_window_contact') == 'off' -%}
+          mdi:blinds-horizontal-closed
+        {% elif states('binary_sensor.ethan_s_bedroom_window_contact') == 'on' -%}
+          mdi:blinds-horizontal
+        {%- else %}
+          mdi:window-close
+        {%- endif %}
+      content: |-
+        {% if states('binary_sensor.ethan_s_bedroom_window_contact') == 'off' -%}
+          Window Closed
+        {% elif states('binary_sensor.ethan_s_bedroom_window_contact') == 'on' -%}
+          Window Open
+        {%- else %}
+          Window Error
+        {%- endif %}
+      tap_action:
+        action: more-info
+    - type: light
+      entity: light.ethan_s_lights_group
+      icon: mdi:led-strip
+      content_info: name
+      name: Closet Light Strip
+      tap_action: !include ../popup/ethan_light_strip.yaml
+    - type: entity
+      entity: sensor.ethans_bedroom_temperature_sensor_temperature
+    - type: template
+      entity: binary_sensor.ethan_sound
+      icon_color: |-
+        {% if states('binary_sensor.ethan_sound') == 'on' -%}
+          red
+        {%- else %}
+          grey
+        {%- endif %}
+      icon: |-
+        {% if states('binary_sensor.ethan_sound') == 'off' -%}
+          mdi:music-note-off
+        {% elif states('binary_sensor.ethan_sound') == 'on' -%}
+          mdi:music-note
+        {%- else %}
+          mdi:window-close
+        {%- endif %}
+      content: |-
+        {% if states('binary_sensor.ethan_sound') == 'off' -%}
+          Silent
+        {% elif states('binary_sensor.ethan_sound') == 'on' -%}
+          Crying
+        {%- else %}
+          Sound Error
+        {%- endif %}
+      tap_action:
+        action: more-info
+    # - type: template
+    #   entity: media_player.ethan_s_speaker
+    #   icon: mdi:music
+    #   content: Play Music
+    #   tap_action:
+    #     action: call-service
+    #     service: mass.queue_command
+    #     data:
+    #       player_id: media_player.ethan_s_speaker
+    #       command: play_media
+    #       uri: spotify:playlist:0p9lICJwFXwOp0OzJPYeWk
+    #       enqueue_mode: play
+    #     target: {}
+
+- entity: light.0x70ac08fffe7106cc
+  name: Ceiling
+  icon: hue:friends-of-hue-iq-pendant
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+- entity: switch.twinkle_lights
+  name: Twinkle Lights
+  type: custom:bubble-card
+  card_type: button
+  button_type: switch
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+- entity: light.toy_chest_strip
+  name: Bed
+  icon: mdi:bed-single
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+
+- entity: fan.ethan_s_cribside
+  name: Fan
+  type: custom:bubble-card
+  card_type: button
+  button_type: switch
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+- entity: switch.ethan_s_door_switch
+  name: White Noise
+  icon: mdi:sleep
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+      hold_action:
+        action: more-info
+- entity: switch.edison_bulb
+  name: Edison Bulb
+  icon: mdi:lightbulb-variant
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+      hold_action:
+        action: more-info
+- entity: light.ethan_s_holiday_switch
+  name: Holiday Lights
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+      hold_action:
+        action: more-info
+# - type: entities
+#   entities:
+#     - type: custom:fold-entity-row
+#       head: switch.ethans_bedroom_heater
+#       entities:
+#         - type: custom:mushroom-entity-card
+#           entity: switch.ethans_bedroom_heater
+#           name: Heater
+#           tap_action:
+#             action: toggle
+#           hold_action:
+#             action: more-info
+#           icon: mdi:radiator
+#           fill_container: true
+#         - type: custom:mushroom-chips-card
+#           chips:
+#             - type: entity
+#               entity: sensor.ethans_bedroom_temperature_sensor_temperature
+#         - type: custom:mushroom-number-card
+#           entity: input_number.ethan_s_bedroom_heater_off
+#           display_mode: buttons
+#           name: Heater off when temperature is above
+#         - type: custom:mushroom-number-card
+#           entity: input_number.ethan_s_bedroom_heater_on
+#           display_mode: buttons
+#           name: Heater on when temperature is below
+- type: horizontal-stack
+  cards:
+    - name: Google Home
+      entity: media_player.ethans_speaker
+      type: custom:bubble-card
+      card_type: media-player
+      hide:
+        play_pause_button: false
+      card_layout: large
+    # - type: custom:mushroom-media-player-card
+    #   entity: media_player.ethan_s_echo_show_5
+    #   name: Echo
+    #   icon: ''
+    #   show_volume_level: true
+    #   use_media_info: true
+    #   volume_controls:
+    #     - volume_mute
+    #     - volume_set
+    #   media_controls: []
+    #   fill_container: true
+- type: custom:frigate-card
+  cameras:
+    - camera_entity: camera.ethans_room_camera
+  view:
+    default: live
+  menu:
+    style: outside
+    alignment: right
+    buttons:
+      frigate:
+        enabled: true
+  cameras_global:
+    preload: false
+    auto_pause: hidden
+    auto_play: visible
+
+- tap_action:
+    action: toggle
+  entity: input_boolean.play_kitchen_management_mode
+  name: Play Kitchen Management Mode
+  icon: mdi:close-box-outline
+  hold_action:
+    action: none
+  type: custom:bubble-card
+  card_type: button
+  button_type: button
+  show_last_updated: true
+
+- type: entities
+  entities:
+    - type: custom:fold-entity-row
+      head:
+        type: section
+        label: Sensors
+      entities:
+        - type: custom:mushroom-chips-card
+          chips:
+            - type: entity
+              entity: sensor.ethanroom_all_count
+            - type: entity
+              entity: sensor.ethanroom_person_count
+            - type: entity
+              entity: sensor.ethanroom_cat_count
+            - type: entity
+              entity: sensor.ethans_bedroom_presence_sensor_light_sensor
+            - type: entity
+              entity: binary_sensor.ethan_s_bedroom_window_contact
+            - type: entity
+              entity: binary_sensor.ethans_smartsensor_occupancy
+            - type: entity
+              entity: binary_sensor.ethans_bedroom_presence_sensor_occupancy
+    - type: custom:fold-entity-row
+      head:
+        type: section
+        label: Blinds
+      entities:
+        - type: custom:mushroom-chips-card
+          chips:
+            - type: entity
+              entity: sensor.ethans_blinds_battery
+            - type: entity
+              entity: cover.ethans_blinds
+    - type: custom:fold-entity-row
+      head:
+        type: section
+        label: Configurations
+      entities:
+        - type: custom:mushroom-entity-card
+          entity: automation.ethan_s_bedside_hue_remote
+          tap_action:
+            action: toggle
+          name: Enable/disable Bedside Remote

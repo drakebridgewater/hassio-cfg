@@ -1,0 +1,123 @@
+type: vertical-stack
+cards:
+- entity: light.tv_lights_group
+  name: All
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      icon: mdi:fridge-outline
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:lightbulb
+      tap_action:
+        action: toggle
+
+- entity: light.entertainment_center_backdrop
+  icon: hue:lightstrip-tv
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      icon: mdi:fridge-outline
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:lightbulb
+      tap_action:
+        action: toggle
+- type: horizontal-stack
+  cards:
+  - entity: light.yeelight_theater_left
+    icon: hue:floor-shade
+    type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    show_last_updated: true
+    tap_action:
+      action: more-info
+    sub_button:
+      - name: Brightness
+        icon: mdi:fridge-outline
+        show_icon: false
+        show_background: false
+        show_attribute: true
+        attribute: brightness
+      - name: Toggle button
+        icon: mdi:lightbulb
+        tap_action:
+          action: toggle
+  - entity: light.yeelight_pulley_lamp
+    icon: hue:floor-shade
+    type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    show_last_updated: true
+    tap_action:
+      action: more-info
+    sub_button:
+      - name: Brightness
+        icon: mdi:fridge-outline
+        show_icon: false
+        show_background: false
+        show_attribute: true
+        attribute: brightness
+      - name: Toggle button
+        icon: mdi:lightbulb
+        tap_action:
+          action: toggle
+- type: horizontal-stack
+  cards:
+  - name: Couch Left
+    entity: light.light_2
+    icon: hue:floor-shade
+    type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    show_last_updated: true
+    tap_action:
+      action: more-info
+    sub_button:
+      - name: Brightness
+        icon: mdi:fridge-outline
+        show_icon: false
+        show_background: false
+        show_attribute: true
+        attribute: brightness
+      - name: Toggle button
+        icon: mdi:lightbulb
+        tap_action:
+          action: toggle
+  - name: Couch Right
+    entity: light.light_1
+    icon: hue:floor-shade
+    type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    show_last_updated: true
+    tap_action:
+      action: more-info
+    sub_button:
+      - name: Brightness
+        icon: mdi:fridge-outline
+        show_icon: false
+        show_background: false
+        show_attribute: true
+        attribute: brightness
+      - name: Toggle button
+        icon: mdi:lightbulb
+        tap_action:
+          action: toggle

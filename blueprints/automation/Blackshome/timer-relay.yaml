@@ -1,0 +1,117 @@
+blueprint:
+  name: Timer Relay
+  description: "# TIMER RELAY\nVersion: 1.2\n\nThe most common automation used for
+    a Timer Relay (also known as a \"Run on Timer\"). Select a trigger and its desired
+    state. Then set the delay time in seconds, minutes & 4 hours. The entity will
+    turn OFF after the time period expires.\n\nFor community support see this forum
+    post: [Click Here](https://community.home-assistant.io/t/timer-relay-run-on-timer/485176)
+    \n\nGitHub: [Click Here](https://gist.github.com/Blackshome/495198096386f0db2cdaf91c0bda50ea)\n\nThe
+    Automation Process:\n - When the trigger is activated, it turns the selected entity
+    (lights, fan, motor etc.) ON and then OFF automatically in a pre-set time period.
+    You can have as many triggers and entities as you like.\n - The entity will stay
+    ON if the trigger has been activated again before the time delay turns the entity
+    OFF. It will then reset the time delay after the last trigger event.\n \n **If
+    you like my blueprints, and would like to show your support or just say thank
+    you?** [Click Here](https://community.home-assistant.io/u/blacky/summary) \U0001F642\n"
+  domain: automation
+  input:
+    trigger_input:
+      name: Trigger
+      description: The Trigger to start the timer. Example; Press Button, Press Mechanism,
+        Motion Sensor, Contact Sensor, Door Sensor, etc.
+      selector:
+        entity:
+          domain:
+          - switch
+          - light
+          - sensor
+          - binary_sensor
+          multiple: true
+    trigger_state:
+      name: The Trigger State
+      description: Select what state the trigger will be in to turn ON the entity.
+        ON = ON, Open, Detected and OFF = OFF, Closed, Clear
+      selector:
+        select:
+          options:
+          - label: Turn "ON" State
+            value: 'on'
+          - label: Turn "OFF" State
+            value: 'off'
+          custom_value: false
+          multiple: false
+    entity_input:
+      name: Items To Turn ON
+      description: The Entities that get turned ON by the trigger and OFF with the
+        time delay.
+      selector:
+        entity:
+          domain:
+          - switch
+          - light
+          - sensor
+          - binary_sensor
+          multiple: true
+    time_seconds:
+      name: Seconds
+      description: Set the delay time in seconds.
+      default: 0
+      selector:
+        number:
+          min: 0.0
+          max: 60.0
+          step: 1.0
+          unit_of_measurement: seconds
+          mode: slider
+    time_minutes:
+      name: Minutes
+      description: Set the delay time in minutes.
+      default: 0
+      selector:
+        number:
+          min: 0.0
+          max: 60.0
+          step: 1.0
+          unit_of_measurement: minutes
+          mode: slider
+    time_hours:
+      name: Hours
+      description: Set the delay time in hours.
+      default: 0
+      selector:
+        number:
+          min: 0.0
+          max: 4.0
+          step: 1.0
+          unit_of_measurement: hours
+          mode: slider
+  source_url: https://gist.github.com/Blackshome/495198096386f0db2cdaf91c0bda50ea
+mode: restart
+max_exceeded: silent
+variables:
+  trigger_input: !input trigger_input
+  trigger_state: !input trigger_state
+  entity_input: !input entity_input
+  time_seconds: !input time_seconds
+  time_minutes: !input time_minutes
+  time_hours: !input time_hours
+trigger:
+- platform: state
+  entity_id: !input trigger_input
+  to: !input trigger_state
+action:
+- alias: Turn ON the entities
+  service: homeassistant.turn_on
+  entity_id: !input entity_input
+- alias: Wait the number of hours that has been set
+  delay:
+    hours: !input time_hours
+- alias: Wait the number of minutes that has been set
+  delay:
+    minutes: !input time_minutes
+- alias: Wait the number of seconds that has been set
+  delay:
+    seconds: !input time_seconds
+- alias: Turn OFF the entities
+  service: homeassistant.turn_off
+  entity_id: !input entity_input

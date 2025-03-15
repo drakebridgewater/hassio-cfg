@@ -1,0 +1,1066 @@
+blueprint:
+  name: Automatic outdoor lighting
+  description: 'Turn outdoor lights automaticly depending of :
+
+    - Luminosity (with optional time limit)
+
+    - Presence/Movement detection (up to 3 sources)
+
+    - Person / Family location (arriving home)
+
+    '
+  author: kalhimeo
+  domain: automation
+  input:
+    light_entity:
+      name: Light entity
+      description: 'Choose the light to control
+
+        '
+      selector:
+        entity:
+          domain:
+          - light
+          multiple: false
+    light_percent:
+      name: Light entity dimm percent
+      description: 'Define the dimm percentage of the light if applicable (leave 0
+        to simply turn ON the light without dimm value)
+
+        '
+      selector:
+        number:
+          min: 0.0
+          max: 100.0
+          step: 5.0
+          unit_of_measurement: '%'
+          mode: slider
+      default: 0
+    reset_helper:
+      name: '''Date and time'' helper entity'
+      description: 'Choose the mandatory ''date and time'' helper (previously created)
+        to allow auto light OFF
+
+        '
+      selector:
+        entity:
+          domain:
+          - input_datetime
+          multiple: false
+    luminosity_entity:
+      name: Luminosity entity
+      description: 'This entity should be ON during night time and OFF during day
+        time
+
+        '
+      selector:
+        entity:
+          domain:
+          - binary_sensor
+          multiple: false
+    detector_1_entity:
+      name: Detector 1 entity
+      description: 'Choose detector 1 for triggering the light (leave empty if unused)
+
+        '
+      selector:
+        entity:
+          domain:
+          - binary_sensor
+          multiple: false
+      default: {}
+    detector_2_entity:
+      name: Detector 2 entity
+      description: 'Choose detector 2 for triggering the light (leave empty if unused)
+
+        '
+      selector:
+        entity:
+          domain:
+          - binary_sensor
+          multiple: false
+      default: {}
+    detector_3_entity:
+      name: Detector 3 entity
+      description: 'Choose detector 3 for triggering the light (leave empty if unused)
+
+        '
+      selector:
+        entity:
+          domain:
+          - binary_sensor
+          multiple: false
+      default: {}
+    detector_time:
+      name: Detector turn-on time
+      description: How many seconds should the light stay ON after a dector triggers
+      selector:
+        number:
+          min: 5.0
+          max: 3600.0
+          step: 5.0
+          unit_of_measurement: seconds
+          mode: slider
+      default: 120
+    location_zone:
+      name: Location based zone
+      description: 'Enter the HA zone in which the persons should arrive to turn on
+        the lights (ie. zone.home) (leave empty if unused)
+
+        '
+      default: ''
+    location_entity:
+      name: Location based persons
+      description: 'Choose the person or group who turn on the light when arriving
+        in the zone (leave empty if unused)
+
+        '
+      selector:
+        entity:
+          domain:
+          - group
+          - person
+          multiple: false
+      default: {}
+    location_time:
+      name: Location based turn-on time
+      description: How many seconds should the light stay ON after a location triggers
+      selector:
+        number:
+          min: 5.0
+          max: 3600.0
+          step: 5.0
+          unit_of_measurement: seconds
+          mode: slider
+      default: 900
+    automatic_luminosity:
+      name: Automatic light turn-on at night
+      description: If enabled, the light will turn ON automatically when the luminosity
+        entity is ON (=night)
+      selector:
+        boolean: {}
+      default: false
+    max_luminosity_weekday:
+      name: Limit automatic lighting at weekday nights
+      description: 'Define a time limit after which the automatic lighting stops at
+        weekday nights (Sun-Th) (anything after 12:00 is considered as same day/evening,
+        anything below as next day morning)
+
+        '
+      selector:
+        time: {}
+      default: '22:00:00'
+    max_luminosity_weekend:
+      name: Limit automatic lighting at weekend nights
+      description: 'Define a time limit after which the automatic lighting stops at
+        weekend nights (Fr-Sa) (anything after 12:00 is considered as same day/evening,
+        anything below as next day morning)
+
+        '
+      selector:
+        time: {}
+      default: 00:00:00
+    force_luminosity:
+      name: Force light ON at night
+      description: 'If enabled, when manually switching OFF the light during the night,
+        the automation will turn the light ON again after a delay (does not affect
+        other triggers like detector or location based events)
+
+        '
+      selector:
+        boolean: {}
+      default: false
+    force_time:
+      name: Force light ON delay
+      description: After how many seconds the light should turn ON again, after it
+        was manually switched OFF during the night
+      selector:
+        number:
+          min: 5.0
+          max: 300.0
+          step: 5.0
+          unit_of_measurement: seconds
+          mode: slider
+      default: 15
+  source_url: https://gist.github.com/kalhimeo/8a4b100b8a4540080c9893a5826b78cc
+mode: queued
+max: 999
+trigger_variables:
+  location_zone: !input location_zone
+variables:
+  light_entity: !input light_entity
+  light_percent: !input light_percent
+  luminosity_entity: !input luminosity_entity
+  reset_helper: !input reset_helper
+  detector_1_entity: !input detector_1_entity
+  detector_2_entity: !input detector_2_entity
+  detector_3_entity: !input detector_3_entity
+  detector_time: !input detector_time
+  location_entity: !input location_entity
+  location_time: !input location_time
+  automatic_luminosity: !input automatic_luminosity
+  max_luminosity_weekday: !input max_luminosity_weekday
+  max_luminosity_weekend: !input max_luminosity_weekend
+  force_luminosity: !input force_luminosity
+  force_time: !input force_time
+trigger:
+- platform: state
+  entity_id: !input light_entity
+  id: light_state
+  from:
+  to:
+  alias: ' When Light changes state'
+- platform: state
+  entity_id: !input detector_1_entity
+  id: detector
+  from:
+  to: 'on'
+  alias: When Presence is detected on detector 1
+- platform: state
+  entity_id: !input detector_2_entity
+  id: detector
+  from:
+  to: 'on'
+  alias: When Presence is detected on detector 2
+- platform: state
+  entity_id: !input detector_3_entity
+  id: detector
+  from:
+  to: 'on'
+  alias: When Presence is detected on detector 3
+- platform: state
+  entity_id: !input location_entity
+  id: location
+  to: '{{ location_zone }}'
+  alias: When Persons arrives in zone
+- platform: state
+  entity_id: !input luminosity_entity
+  id: luminosity
+  from:
+  to:
+  alias: When Luminosity threshold changes state
+- platform: time
+  id: auto-off
+  at: !input reset_helper
+  alias: When auto OFF time is reached
+- platform: event
+  event_type: automation_reloaded
+  id: reload
+condition: []
+action:
+- choose:
+  - conditions:
+    - condition: trigger
+      id:
+      - light_state
+    sequence:
+    - if:
+      - condition: template
+        value_template: '{{ trigger.to_state.state != trigger.from_state.state and
+          trigger.to_state.state == "off" }}'
+        alias: Light state changed to OFF
+      then:
+      - service: input_datetime.set_datetime
+        data:
+          timestamp: 1
+        alias: Reset auto OFF
+        target:
+          entity_id: !input reset_helper
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: !input force_time
+          milliseconds: 0
+      - if:
+        - condition: template
+          value_template: '{{ automatic_luminosity }}'
+        - condition: template
+          value_template: '{{ force_luminosity }}'
+        - condition: state
+          entity_id: !input luminosity_entity
+          state: 'on'
+          alias: Luminosity is below threshold (NIGHT)
+        - condition: state
+          entity_id: !input light_entity
+          state: 'off'
+        then:
+        - if:
+          - condition: template
+            value_template: '{{ (now().hour > 12 and now().hour < 24 and now().weekday()
+              in (0,1,2,3,6)) or (now().hour < 12 and now().hour > 0 and now().weekday()
+              in (1,2,3,4,5)) }}'
+            alias: Weekday
+          then:
+          - if:
+            - condition: template
+              value_template: '{{ (720 < (max_luminosity_weekday[0:2])|int * 60 +
+                (max_luminosity_weekday[3:5])|int and 720 < (now().hour * 60) + now().minute
+                and (now().hour * 60) + now().minute < (max_luminosity_weekday[0:2])|int
+                * 60 + (max_luminosity_weekday[3:5])|int) or (721 > (max_luminosity_weekday[0:2])|int
+                * 60 + (max_luminosity_weekday[3:5])|int and 721 > (now().hour * 60)
+                + now().minute and (now().hour * 60) + now().minute < (max_luminosity_weekday[0:2])|int
+                * 60 + (max_luminosity_weekday[3:5])|int) }}'
+              alias: Limit is between 12:01 and 24:00, actual time between 12:01 and
+                00:00, and actual time before that Limit OR Limit is between 00:00
+                and 12:00, actual time between 00:00 and 12:00, and actual time before
+                that limit
+            then:
+            - service: input_datetime.set_datetime
+              target:
+                entity_id: !input reset_helper
+              alias: Set auto OFF at max time
+              data_template:
+                datetime: '{{ (now()|as_timestamp|timestamp_custom(''%Y-%m-%d'') +
+                  '' '' + max_luminosity_weekday) }}'
+            - if:
+              - condition: template
+                value_template: '{{ light_percent > 0 }}'
+              then:
+              - service: light.turn_on
+                data_template:
+                  entity_id: !input light_entity
+                  brightness_pct: '{{ light_percent }}'
+                alias: Turn ON the light with brightness
+              else:
+              - service: light.turn_on
+                data: {}
+                target:
+                  entity_id: !input light_entity
+            else:
+            - if:
+              - condition: template
+                value_template: '{{ 721 > (max_luminosity_weekday[0:2])|int * 60 +
+                  (max_luminosity_weekday[3:5])|int and 720 < (now().hour * 60) +
+                  now().minute and (now().hour * 60) + now().minute > (max_luminosity_weekday[0:2])|int
+                  * 60 + (max_luminosity_weekday[3:5])|int }}'
+                alias: Limit is between 00:00 and 12:00, actual time between 12:01
+                  and 00:00, and actual time above that limit
+              then:
+              - service: input_datetime.set_datetime
+                target:
+                  entity_id: !input reset_helper
+                alias: Set auto OFF at max time
+                data_template:
+                  datetime: '{{ (((now()|as_timestamp)|int + 86400)|timestamp_custom(''%Y-%m-%d'')
+                    + '' '' + max_luminosity_weekday) }}'
+              - if:
+                - condition: template
+                  value_template: '{{ light_percent > 0 }}'
+                then:
+                - service: light.turn_on
+                  data_template:
+                    entity_id: !input light_entity
+                    brightness_pct: '{{ light_percent }}'
+                  alias: Turn ON the light with brightness
+                else:
+                - service: light.turn_on
+                  data: {}
+                  target:
+                    entity_id: !input light_entity
+            alias: Check if we are still before the time limit
+          else:
+          - if:
+            - condition: template
+              value_template: '{{ (720 < (max_luminosity_weekend[0:2])|int * 60 +
+                (max_luminosity_weekend[3:5])|int and 720 < (now().hour * 60) + now().minute
+                and (now().hour * 60) + now().minute < (max_luminosity_weekend[0:2])|int
+                * 60 + (max_luminosity_weekend[3:5])|int) or (721 > (max_luminosity_weekend[0:2])|int
+                * 60 + (max_luminosity_weekend[3:5])|int and 721 > (now().hour * 60)
+                + now().minute and (now().hour * 60) + now().minute < (max_luminosity_weekend[0:2])|int
+                * 60 + (max_luminosity_weekend[3:5])|int) }}'
+              alias: Limit is between 12:01 and 24:00, actual time between 12:01 and
+                00:00, and actual time before that Limit OR Limit is between 00:00
+                and 12:00, actual time between 00:00 and 12:00, and actual time before
+                that limit
+            then:
+            - service: input_datetime.set_datetime
+              target:
+                entity_id: !input reset_helper
+              alias: Set auto OFF at max time
+              data_template:
+                datetime: '{{ (now()|as_timestamp|timestamp_custom(''%Y-%m-%d'') +
+                  '' '' + max_luminosity_weekend) }}'
+            - if:
+              - condition: template
+                value_template: '{{ light_percent > 0 }}'
+              then:
+              - service: light.turn_on
+                data_template:
+                  entity_id: !input light_entity
+                  brightness_pct: '{{ light_percent }}'
+                alias: Turn ON the light with brightness
+              else:
+              - service: light.turn_on
+                data: {}
+                target:
+                  entity_id: !input light_entity
+            else:
+            - if:
+              - condition: template
+                value_template: '{{ 721 > (max_luminosity_weekend[0:2])|int * 60 +
+                  (max_luminosity_weekend[3:5])|int and 720 < (now().hour * 60) +
+                  now().minute and (now().hour * 60) + now().minute > (max_luminosity_weekend[0:2])|int
+                  * 60 + (max_luminosity_weekend[3:5])|int }}'
+                alias: Limit is between 00:00 and 12:00, actual time between 12:01
+                  and 00:00, and actual time above that limit
+              then:
+              - service: input_datetime.set_datetime
+                target:
+                  entity_id: !input reset_helper
+                alias: Set auto OFF at max time
+                data_template:
+                  datetime: '{{ (((now()|as_timestamp)|int + 86400)|timestamp_custom(''%Y-%m-%d'')
+                    + '' '' + max_luminosity_weekend) }}'
+              - service: light.turn_on
+                data: {}
+                target:
+                  entity_id: !input light_entity
+                alias: Turn ON the light
+        alias: Try to turn the light ON again at night
+      alias: When state changes to OFF -> Reset auto OFF and test for Luminosity
+  - conditions:
+    - condition: trigger
+      id:
+      - luminosity
+    sequence:
+    - choose:
+      - conditions:
+        - condition: state
+          entity_id: !input luminosity_entity
+          state: 'off'
+          alias: Luminosity above threshold (DAY)
+        - condition: state
+          entity_id: !input light_entity
+          state: 'on'
+          alias: Light is presently ON
+        sequence:
+        - service: light.turn_off
+          data: {}
+          target:
+            entity_id: !input light_entity
+          alias: Always turn the light OFF
+      - conditions:
+        - condition: state
+          entity_id: !input luminosity_entity
+          state: 'on'
+          alias: Luminosity is below threshold (NIGHT)
+        sequence:
+        - choose:
+          - conditions:
+            - condition: template
+              value_template: '{{ automatic_luminosity }}'
+            - condition: state
+              entity_id: !input light_entity
+              alias: Light is presently OFF
+              state: 'off'
+            sequence:
+            - if:
+              - condition: template
+                value_template: '{{ (now().hour > 12 and now().hour < 24 and now().weekday()
+                  in (0,1,2,3,6)) or (now().hour < 12 and now().hour > 0 and now().weekday()
+                  in (1,2,3,4,5)) }}'
+                alias: Weekday
+              then:
+              - if:
+                - condition: template
+                  value_template: '{{ (720 < (max_luminosity_weekday[0:2])|int * 60
+                    + (max_luminosity_weekday[3:5])|int and 720 < (now().hour * 60)
+                    + now().minute and (now().hour * 60) + now().minute < (max_luminosity_weekday[0:2])|int
+                    * 60 + (max_luminosity_weekday[3:5])|int) or (721 > (max_luminosity_weekday[0:2])|int
+                    * 60 + (max_luminosity_weekday[3:5])|int and 721 > (now().hour
+                    * 60) + now().minute and (now().hour * 60) + now().minute < (max_luminosity_weekday[0:2])|int
+                    * 60 + (max_luminosity_weekday[3:5])|int) }}'
+                  alias: Limit is between 12:01 and 24:00, actual time between 12:01
+                    and 00:00, and actual time before that Limit OR Limit is between
+                    00:00 and 12:00, actual time between 00:00 and 12:00, and actual
+                    time before that limit
+                then:
+                - service: input_datetime.set_datetime
+                  target:
+                    entity_id: !input reset_helper
+                  alias: Set auto OFF at max time
+                  data_template:
+                    datetime: '{{ (now()|as_timestamp|timestamp_custom(''%Y-%m-%d'')
+                      + '' '' + max_luminosity_weekday) }}'
+                - if:
+                  - condition: template
+                    value_template: '{{ light_percent > 0 }}'
+                  then:
+                  - service: light.turn_on
+                    data_template:
+                      entity_id: !input light_entity
+                      brightness_pct: '{{ light_percent }}'
+                    alias: Turn ON the light with brightness
+                  else:
+                  - service: light.turn_on
+                    data: {}
+                    target:
+                      entity_id: !input light_entity
+                else:
+                - if:
+                  - condition: template
+                    value_template: '{{ 721 > (max_luminosity_weekday[0:2])|int *
+                      60 + (max_luminosity_weekday[3:5])|int and 720 < (now().hour
+                      * 60) + now().minute and (now().hour * 60) + now().minute >
+                      (max_luminosity_weekday[0:2])|int * 60 + (max_luminosity_weekday[3:5])|int
+                      }}'
+                    alias: Limit is between 00:00 and 12:00, actual time between 12:01
+                      and 00:00, and actual time above that limit
+                  then:
+                  - service: input_datetime.set_datetime
+                    target:
+                      entity_id: !input reset_helper
+                    alias: Set auto OFF at max time
+                    data_template:
+                      datetime: '{{ (((now()|as_timestamp)|int + 86400)|timestamp_custom(''%Y-%m-%d'')
+                        + '' '' + max_luminosity_weekday) }}'
+                  - if:
+                    - condition: template
+                      value_template: '{{ light_percent > 0 }}'
+                    then:
+                    - service: light.turn_on
+                      data_template:
+                        entity_id: !input light_entity
+                        brightness_pct: '{{ light_percent }}'
+                      alias: Turn ON the light with brightness
+                    else:
+                    - service: light.turn_on
+                      data: {}
+                      target:
+                        entity_id: !input light_entity
+                alias: Check if we are still before the time limit
+              else:
+              - if:
+                - condition: template
+                  value_template: '{{ (720 < (max_luminosity_weekend[0:2])|int * 60
+                    + (max_luminosity_weekend[3:5])|int and 720 < (now().hour * 60)
+                    + now().minute and (now().hour * 60) + now().minute < (max_luminosity_weekend[0:2])|int
+                    * 60 + (max_luminosity_weekend[3:5])|int) or (721 > (max_luminosity_weekend[0:2])|int
+                    * 60 + (max_luminosity_weekend[3:5])|int and 721 > (now().hour
+                    * 60) + now().minute and (now().hour * 60) + now().minute < (max_luminosity_weekend[0:2])|int
+                    * 60 + (max_luminosity_weekend[3:5])|int) }}'
+                  alias: Limit is between 12:01 and 24:00, actual time between 12:01
+                    and 00:00, and actual time before that Limit OR Limit is between
+                    00:00 and 12:00, actual time between 00:00 and 12:00, and actual
+                    time before that limit
+                then:
+                - service: input_datetime.set_datetime
+                  target:
+                    entity_id: !input reset_helper
+                  alias: Set auto OFF at max time
+                  data_template:
+                    datetime: '{{ (now()|as_timestamp|timestamp_custom(''%Y-%m-%d'')
+                      + '' '' + max_luminosity_weekend) }}'
+                - if:
+                  - condition: template
+                    value_template: '{{ light_percent > 0 }}'
+                  then:
+                  - service: light.turn_on
+                    data_template:
+                      entity_id: !input light_entity
+                      brightness_pct: '{{ light_percent }}'
+                    alias: Turn ON the light with brightness
+                  else:
+                  - service: light.turn_on
+                    data: {}
+                    target:
+                      entity_id: !input light_entity
+                else:
+                - if:
+                  - condition: template
+                    value_template: '{{ 721 > (max_luminosity_weekend[0:2])|int *
+                      60 + (max_luminosity_weekend[3:5])|int and 720 < (now().hour
+                      * 60) + now().minute and (now().hour * 60) + now().minute >
+                      (max_luminosity_weekend[0:2])|int * 60 + (max_luminosity_weekend[3:5])|int
+                      }}'
+                    alias: Limit is between 00:00 and 12:00, actual time between 12:01
+                      and 00:00, and actual time above that limit
+                  then:
+                  - service: input_datetime.set_datetime
+                    target:
+                      entity_id: !input reset_helper
+                    alias: Set auto OFF at max time
+                    data_template:
+                      datetime: '{{ (((now()|as_timestamp)|int + 86400)|timestamp_custom(''%Y-%m-%d'')
+                        + '' '' + max_luminosity_weekend) }}'
+                - if:
+                  - condition: template
+                    value_template: '{{ light_percent > 0 }}'
+                  then:
+                  - service: light.turn_on
+                    data_template:
+                      entity_id: !input light_entity
+                      brightness_pct: '{{ light_percent }}'
+                    alias: Turn ON the light with brightness
+                  else:
+                  - service: light.turn_on
+                    data: {}
+                    target:
+                      entity_id: !input light_entity
+          - conditions:
+            - condition: template
+              value_template: '{{ automatic_luminosity }}'
+            - condition: state
+              entity_id: !input light_entity
+              alias: Light is presently ON
+              state: 'on'
+            - condition: not
+              conditions:
+              - condition: state
+                entity_id: !input reset_helper
+                attribute: timestamp
+                state: 1
+              alias: Auto OFF not 1
+            sequence:
+            - if:
+              - condition: template
+                value_template: '{{ (now().hour > 12 and now().hour < 24 and now().weekday()
+                  in (0,1,2,3,6)) or (now().hour < 12 and now().hour > 0 and now().weekday()
+                  in (1,2,3,4,5)) }}'
+                alias: Weekday
+              then:
+              - if:
+                - condition: template
+                  value_template: '{{ (720 < (max_luminosity_weekday[0:2])|int * 60
+                    + (max_luminosity_weekday[3:5])|int and 720 < (now().hour * 60)
+                    + now().minute and (now().hour * 60) + now().minute < (max_luminosity_weekday[0:2])|int
+                    * 60 + (max_luminosity_weekday[3:5])|int) or (721 > (max_luminosity_weekday[0:2])|int
+                    * 60 + (max_luminosity_weekday[3:5])|int and 721 > (now().hour
+                    * 60) + now().minute and (now().hour * 60) + now().minute < (max_luminosity_weekday[0:2])|int
+                    * 60 + (max_luminosity_weekday[3:5])|int) }}'
+                  alias: Limit is between 12:01 and 24:00, actual time between 12:01
+                    and 00:00, and actual time before that Limit OR Limit is between
+                    00:00 and 12:00, actual time between 00:00 and 12:00, and actual
+                    time before that limit
+                - condition: template
+                  value_template: '{{ states(reset_helper)|as_timestamp < (now()|as_timestamp|timestamp_custom(''%Y-%m-%d'')
+                    + '' '' + max_luminosity_weekday)|as_timestamp }}'
+                  alias: Check next auto OFF time
+                then:
+                - service: input_datetime.set_datetime
+                  target:
+                    entity_id: !input reset_helper
+                  alias: Set auto OFF at max time
+                  data_template:
+                    datetime: '{{ (now()|as_timestamp|timestamp_custom(''%Y-%m-%d'')
+                      + '' '' + max_luminosity_weekday) }}'
+                else:
+                - if:
+                  - condition: template
+                    value_template: '{{ 721 > (max_luminosity_weekday[0:2])|int *
+                      60 + (max_luminosity_weekday[3:5])|int and 720 < (now().hour
+                      * 60) + now().minute and (now().hour * 60) + now().minute >
+                      (max_luminosity_weekday[0:2])|int * 60 + (max_luminosity_weekday[3:5])|int
+                      }}'
+                    alias: Limit is between 00:00 and 12:00, actual time between 12:01
+                      and 00:00, and actual time above that limit
+                  - condition: template
+                    value_template: '{{ states(reset_helper)|as_timestamp < (((now()|as_timestamp)|int
+                      + 86400) |timestamp_custom(''%Y-%m-%d'') + '' '' + max_luminosity_weekday)
+                      }}'
+                    alias: Check next auto OFF time
+                  then:
+                  - service: input_datetime.set_datetime
+                    target:
+                      entity_id: !input reset_helper
+                    alias: Set auto OFF at max time
+                    data_template:
+                      datetime: '{{ (((now()|as_timestamp)|int + 86400)|timestamp_custom(''%Y-%m-%d'')
+                        + '' '' + max_luminosity_weekday) }}'
+                alias: Increase auto OFF time if not already set for longer period
+              else:
+              - if:
+                - condition: template
+                  value_template: '{{ (720 < (max_luminosity_weekend[0:2])|int * 60
+                    + (max_luminosity_weekend[3:5])|int and 720 < (now().hour * 60)
+                    + now().minute and (now().hour * 60) + now().minute < (max_luminosity_weekend[0:2])|int
+                    * 60 + (max_luminosity_weekend[3:5])|int) or (721 > (max_luminosity_weekend[0:2])|int
+                    * 60 + (max_luminosity_weekend[3:5])|int and 721 > (now().hour
+                    * 60) + now().minute and (now().hour * 60) + now().minute < (max_luminosity_weekend[0:2])|int
+                    * 60 + (max_luminosity_weekend[3:5])|int) }}'
+                  alias: Limit is between 12:01 and 24:00, actual time between 12:01
+                    and 00:00, and actual time before that Limit OR Limit is between
+                    00:00 and 12:00, actual time between 00:00 and 12:00, and actual
+                    time before that limit
+                - condition: template
+                  value_template: '{{ states(reset_helper)|as_timestamp < (now()|as_timestamp|timestamp_custom(''%Y-%m-%d'')
+                    + '' '' + max_luminosity_weekend)|as_timestamp }}'
+                  alias: Check next auto OFF time
+                then:
+                - service: input_datetime.set_datetime
+                  target:
+                    entity_id: !input reset_helper
+                  alias: Set auto OFF at max time
+                  data_template:
+                    datetime: '{{ (now()|as_timestamp|timestamp_custom(''%Y-%m-%d'')
+                      + '' '' + max_luminosity_weekend) }}'
+                else:
+                - if:
+                  - condition: template
+                    value_template: '{{ 721 > (max_luminosity_weekend[0:2])|int *
+                      60 + (max_luminosity_weekend[3:5])|int and 720 < (now().hour
+                      * 60) + now().minute and (now().hour * 60) + now().minute >
+                      (max_luminosity_weekend[0:2])|int * 60 + (max_luminosity_weekend[3:5])|int
+                      }}'
+                    alias: Limit is between 00:00 and 12:00, actual time between 12:01
+                      and 00:00, and actual time above that limit
+                  - condition: template
+                    value_template: '{{ states(reset_helper)|as_timestamp < (((now()|as_timestamp)|int
+                      + 86400) |timestamp_custom(''%Y-%m-%d'') + '' '' + max_luminosity_weekend)
+                      }}'
+                    alias: Check next auto OFF time
+                  then:
+                  - service: input_datetime.set_datetime
+                    target:
+                      entity_id: !input reset_helper
+                    alias: Set auto OFF at max time
+                    data_template:
+                      datetime: '{{ (((now()|as_timestamp)|int + 86400)|timestamp_custom(''%Y-%m-%d'')
+                        + '' '' + max_luminosity_weekend) }}'
+                alias: Increase auto OFF time if not already set for longer period
+  - conditions:
+    - condition: trigger
+      id:
+      - detector
+    - condition: state
+      entity_id: !input luminosity_entity
+      state: 'on'
+      alias: If luminosity is low enough
+    sequence:
+    - choose:
+      - conditions:
+        - condition: state
+          entity_id: !input light_entity
+          state: 'off'
+          alias: Light is presently OFF
+        sequence:
+        - service: input_datetime.set_datetime
+          target:
+            entity_id: !input reset_helper
+          data_template:
+            timestamp: '{{ (now()|as_timestamp + detector_time) }}'
+          alias: Set auto OFF in x minutes
+        - if:
+          - condition: template
+            value_template: '{{ light_percent > 0 }}'
+          then:
+          - service: light.turn_on
+            data_template:
+              entity_id: !input light_entity
+              brightness_pct: '{{ light_percent }}'
+            alias: Turn ON the light with brightness
+          else:
+          - service: light.turn_on
+            data: {}
+            target:
+              entity_id: !input light_entity
+      - conditions:
+        - condition: state
+          entity_id: !input light_entity
+          alias: Light is presently ON
+          state: 'on'
+        - condition: not
+          conditions:
+          - condition: state
+            entity_id: !input reset_helper
+            attribute: timestamp
+            state: 1
+          alias: Auto OFF not 1
+        sequence:
+        - if:
+          - condition: template
+            value_template: '{{ states(reset_helper)|as_timestamp < (now()|as_timestamp
+              + detector_time) }}'
+            alias: Check next auto OFF time
+          then:
+          - service: input_datetime.set_datetime
+            target:
+              entity_id: !input reset_helper
+            data_template:
+              timestamp: '{{ (now()|as_timestamp + detector_time) }}'
+            alias: Set auto OFF in x minutes
+          alias: Increase auto OFF time if not already set for longer period
+  - conditions:
+    - condition: trigger
+      id:
+      - location
+    - condition: state
+      entity_id: !input luminosity_entity
+      state: 'on'
+      alias: If luminosity is low enough
+    sequence:
+    - choose:
+      - conditions:
+        - condition: state
+          entity_id: !input light_entity
+          state: 'off'
+          alias: Light is presently OFF
+        sequence:
+        - service: input_datetime.set_datetime
+          target:
+            entity_id: !input reset_helper
+          data_template:
+            timestamp: '{{ (now()|as_timestamp + location_time) }}'
+          alias: Set auto OFF in x minutes
+        - if:
+          - condition: template
+            value_template: '{{ light_percent > 0 }}'
+          then:
+          - service: light.turn_on
+            data_template:
+              entity_id: !input light_entity
+              brightness_pct: '{{ light_percent }}'
+            alias: Turn ON the light with brightness
+          else:
+          - service: light.turn_on
+            data: {}
+            target:
+              entity_id: !input light_entity
+      - conditions:
+        - condition: state
+          entity_id: !input light_entity
+          alias: Light is presently ON
+          state: 'on'
+        - condition: not
+          conditions:
+          - condition: state
+            entity_id: !input reset_helper
+            attribute: timestamp
+            state: 1
+          alias: Auto OFF not 1
+        sequence:
+        - if:
+          - condition: template
+            value_template: '{{ states(reset_helper)|as_timestamp < (now()|as_timestamp
+              + location_time) }}'
+            alias: Check next auto OFF time
+          then:
+          - service: input_datetime.set_datetime
+            target:
+              entity_id: !input reset_helper
+            data_template:
+              timestamp: '{{ (now()|as_timestamp + location_time) }}'
+            alias: Set auto OFF in x minutes
+          alias: Increase auto OFF time if not already set for longer period
+  - conditions:
+    - condition: trigger
+      id:
+      - auto-off
+    - condition: not
+      conditions:
+      - condition: state
+        entity_id: !input reset_helper
+        attribute: timestamp
+        state: 1
+      alias: Auto OFF not 1
+    sequence:
+    - service: light.turn_off
+      data: {}
+      target:
+        entity_id: !input light_entity
+      alias: Turn light OFF
+    - service: input_datetime.set_datetime
+      data:
+        timestamp: 1
+      alias: Reset auto OFF
+      target:
+        entity_id: !input reset_helper
+  - conditions:
+    - condition: trigger
+      id:
+      - reload
+    sequence:
+    - choose:
+      - conditions:
+        - condition: template
+          value_template: '{{ automatic_luminosity }}'
+        - condition: state
+          entity_id: !input luminosity_entity
+          state: 'on'
+          alias: Luminosity is below threshold (NIGHT)
+        - condition: state
+          entity_id: !input light_entity
+          state: 'off'
+        sequence:
+        - if:
+          - condition: template
+            value_template: '{{ (now().hour > 12 and now().hour < 24 and now().weekday()
+              in (0,1,2,3,6)) or (now().hour < 12 and now().hour > 0 and now().weekday()
+              in (1,2,3,4,5)) }}'
+            alias: Weekday
+          then:
+          - if:
+            - condition: template
+              value_template: '{{ (720 < (max_luminosity_weekday[0:2])|int * 60 +
+                (max_luminosity_weekday[3:5])|int and 720 < (now().hour * 60) + now().minute
+                and (now().hour * 60) + now().minute < (max_luminosity_weekday[0:2])|int
+                * 60 + (max_luminosity_weekday[3:5])|int) or (721 > (max_luminosity_weekday[0:2])|int
+                * 60 + (max_luminosity_weekday[3:5])|int and 721 > (now().hour * 60)
+                + now().minute and (now().hour * 60) + now().minute < (max_luminosity_weekday[0:2])|int
+                * 60 + (max_luminosity_weekday[3:5])|int) }}'
+              alias: Limit is between 12:01 and 24:00, actual time between 12:01 and
+                00:00, and actual time before that Limit OR Limit is between 00:00
+                and 12:00, actual time between 00:00 and 12:00, and actual time before
+                that limit
+            then:
+            - service: input_datetime.set_datetime
+              target:
+                entity_id: !input reset_helper
+              alias: Set auto OFF at max time
+              data_template:
+                datetime: '{{ (now()|as_timestamp|timestamp_custom(''%Y-%m-%d'') +
+                  '' '' + max_luminosity_weekday) }}'
+            - if:
+              - condition: template
+                value_template: '{{ light_percent > 0 }}'
+              then:
+              - service: light.turn_on
+                data_template:
+                  entity_id: !input light_entity
+                  brightness_pct: '{{ light_percent }}'
+                alias: Turn ON the light with brightness
+              else:
+              - service: light.turn_on
+                data: {}
+                target:
+                  entity_id: !input light_entity
+            else:
+            - if:
+              - condition: template
+                value_template: '{{ 721 > (max_luminosity_weekday[0:2])|int * 60 +
+                  (max_luminosity_weekday[3:5])|int and 720 < (now().hour * 60) +
+                  now().minute and (now().hour * 60) + now().minute > (max_luminosity_weekday[0:2])|int
+                  * 60 + (max_luminosity_weekday[3:5])|int }}'
+                alias: Limit is between 00:00 and 12:00, actual time between 12:01
+                  and 00:00, and actual time above that limit
+              then:
+              - service: input_datetime.set_datetime
+                target:
+                  entity_id: !input reset_helper
+                alias: Set auto OFF at max time
+                data_template:
+                  datetime: '{{ (((now()|as_timestamp)|int + 86400)|timestamp_custom(''%Y-%m-%d'')
+                    + '' '' + max_luminosity_weekday) }}'
+              - if:
+                - condition: template
+                  value_template: '{{ light_percent > 0 }}'
+                then:
+                - service: light.turn_on
+                  data_template:
+                    entity_id: !input light_entity
+                    brightness_pct: '{{ light_percent }}'
+                  alias: Turn ON the light with brightness
+                else:
+                - service: light.turn_on
+                  data: {}
+                  target:
+                    entity_id: !input light_entity
+            alias: Check if we are still before the time limit
+          else:
+          - if:
+            - condition: template
+              value_template: '{{ (720 < (max_luminosity_weekend[0:2])|int * 60 +
+                (max_luminosity_weekend[3:5])|int and 720 < (now().hour * 60) + now().minute
+                and (now().hour * 60) + now().minute < (max_luminosity_weekend[0:2])|int
+                * 60 + (max_luminosity_weekend[3:5])|int) or (721 > (max_luminosity_weekend[0:2])|int
+                * 60 + (max_luminosity_weekend[3:5])|int and 721 > (now().hour * 60)
+                + now().minute and (now().hour * 60) + now().minute < (max_luminosity_weekend[0:2])|int
+                * 60 + (max_luminosity_weekend[3:5])|int) }}'
+              alias: Limit is between 12:01 and 24:00, actual time between 12:01 and
+                00:00, and actual time before that Limit OR Limit is between 00:00
+                and 12:00, actual time between 00:00 and 12:00, and actual time before
+                that limit
+            then:
+            - service: input_datetime.set_datetime
+              target:
+                entity_id: !input reset_helper
+              alias: Set auto OFF at max time
+              data_template:
+                datetime: '{{ (now()|as_timestamp|timestamp_custom(''%Y-%m-%d'') +
+                  '' '' + max_luminosity_weekend) }}'
+            - if:
+              - condition: template
+                value_template: '{{ light_percent > 0 }}'
+              then:
+              - service: light.turn_on
+                data_template:
+                  entity_id: !input light_entity
+                  brightness_pct: '{{ light_percent }}'
+                alias: Turn ON the light with brightness
+              else:
+              - service: light.turn_on
+                data: {}
+                target:
+                  entity_id: !input light_entity
+            else:
+            - if:
+              - condition: template
+                value_template: '{{ 721 > (max_luminosity_weekend[0:2])|int * 60 +
+                  (max_luminosity_weekend[3:5])|int and 720 < (now().hour * 60) +
+                  now().minute and (now().hour * 60) + now().minute > (max_luminosity_weekend[0:2])|int
+                  * 60 + (max_luminosity_weekend[3:5])|int }}'
+                alias: Limit is between 00:00 and 12:00, actual time between 12:01
+                  and 00:00, and actual time above that limit
+              then:
+              - service: input_datetime.set_datetime
+                target:
+                  entity_id: !input reset_helper
+                alias: Set auto OFF at max time
+                data_template:
+                  datetime: '{{ (((now()|as_timestamp)|int + 86400)|timestamp_custom(''%Y-%m-%d'')
+                    + '' '' + max_luminosity_weekend) }}'
+              - if:
+                - condition: template
+                  value_template: '{{ light_percent > 0 }}'
+                then:
+                - service: light.turn_on
+                  data_template:
+                    entity_id: !input light_entity
+                    brightness_pct: '{{ light_percent }}'
+                  alias: Turn ON the light with brightness
+                else:
+                - service: light.turn_on
+                  data: {}
+                  target:
+                    entity_id: !input light_entity
+      - conditions:
+        - condition: state
+          entity_id: !input light_entity
+          state: 'off'
+          alias: Reset auto OFF timer if light is OFF
+        - condition: not
+          conditions:
+          - condition: state
+            entity_id: !input reset_helper
+            attribute: timestamp
+            state: '1'
+          alias: Auto OFF is not reset
+        sequence:
+        - service: input_datetime.set_datetime
+          data:
+            timestamp: 1
+          alias: Reset auto OFF
+          target:
+            entity_id: !input reset_helper
+      - conditions:
+        - condition: state
+          entity_id: !input light_entity
+          state: 'on'
+          alias: Reset auto OFF timer if light is ON and timer in the past
+        - condition: not
+          conditions:
+          - condition: state
+            entity_id: !input reset_helper
+            attribute: timestamp
+            state: '1'
+          alias: Auto OFF is not reset
+        - condition: template
+          value_template: '{{ states(reset_helper)|as_timestamp < now()|as_timestamp
+            }}'
+        sequence:
+        - service: input_datetime.set_datetime
+          data:
+            timestamp: 1
+          alias: Reset auto OFF
+          target:
+            entity_id: !input reset_helper

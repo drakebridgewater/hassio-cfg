@@ -1,0 +1,10 @@
+action: fire-dom-event
+browser_mod:
+  service: browser_mod.popup
+  data:
+    title: Wall Switches
+    style: |
+      --popup-background-color: #444;
+    content:
+      type: vertical-stack
+      cards: !include ../../dashboards/views/wall_switches.yaml

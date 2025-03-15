@@ -1,0 +1,43 @@
+
+  #default
+  grid-gap: var(--custom-layout-card-padding)
+  grid-template-columns: repeat(3, 1fr) 
+  grid-template-rows: 0 repeat(5, fit-content(100%)) 0fr
+  grid-template-areas: |
+    " .           .         .         "
+    " banner      banner    banner    "
+    " section1    section2  section3  "
+    " section4    section5  section6  "
+    " section7    section8  section9  "
+    " footer      footer    footer    "
+  mediaquery:
+    "(max-width: 768px)":
+      grid-gap: var(--custom-layout-card-padding)
+      grid-template-columns: 1fr
+      grid-template-rows: 0 repeat(2, fit-content(100%)) 1fr
+      grid-template-areas: |
+        "  .        "
+        "  banner   "
+        "  section1 "
+        "  section2 "
+        "  section3 "
+        "  section4 "
+        "  section5 "
+        "  section6 "
+        "  section7 "
+        "  section8 "
+        "  section9 "
+        "  footer   "
+    "(max-width: 2100px)":
+      grid-gap: var(--custom-layout-card-padding)
+      grid-template-columns: repeat(2, 1fr) 
+      grid-template-rows: 0 repeat(2, fit-content(100%)) 0fr
+      grid-template-areas: |
+        " .           .         "
+        " banner      banner    "
+        " section1    section2  "
+        " section3    section4  "
+        " section5    section6  "
+        " section7    section8  "
+        " section9    .         "
+        " footer      footer    "

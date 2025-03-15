@@ -1,15 +1,51 @@
+- platform: wirelesstag
+  monitored_conditions:
+    - battery
+
 - platform: group
   name: Whole House Motion [Group]
   entities:
     - binary_sensor.kitchen_motion_sensor_occupancy
-    - binary_sensor.lumi_lumi_sensor_motion_aq2_68fbf606_ias_zone
-    - binary_sensor.lumi_lumi_sensor_motion_aq2_72d8f706_ias_zone
-    - binary_sensor.ethan_s_bedroom_occupancy
+    - binary_sensor.master_bedroom_motion_sensor_occupancy
+    - binary_sensor.master_bathroom_motion_sensor_occupancy
     - binary_sensor.office_multi_sensor_home_security_motion_detection
     - binary_sensor.entry_motion_sensor
     - binary_sensor.hallway_motion_sensor
     - binary_sensor.basement_motion_detector
+    - binary_sensor.living_room_presence_sensor_pir_sensor
+    - binary_sensor.athom_family_room_presence_sensor_pir_sensor
     - binary_sensor.ethans_smartsensor_occupancy
+    - binary_sensor.ethan_s_bedroom_occupancy
+    - binary_sensor.ethans_bedroom_presence_sensor_pir_sensor
+- platform: group
+  name: House Occupied [Group]
+  entities:
+    - binary_sensor.kitchen_motion_sensor_occupancy
+    - binary_sensor.master_bedroom_motion_sensor_occupancy
+    - binary_sensor.master_bathroom_motion_sensor_occupancy
+    - binary_sensor.office_multi_sensor_home_security_motion_detection
+    - binary_sensor.entry_motion_sensor
+    - binary_sensor.hallway_motion_sensor
+    - binary_sensor.basement_motion_detector
+    - binary_sensor.athom_family_room_presence_sensor_occupancy
+    - binary_sensor.living_room_presence_sensor_occupancy
+    - binary_sensor.ethan_s_bedroom_occupancy
+    - binary_sensor.ethans_smartsensor_occupancy
+    - binary_sensor.ethans_bedroom_presence_sensor_occupancy
+  device_class: motion 
+- platform: group
+  name: Ethan's Room Occupied [Group]
+  entities:
+    - binary_sensor.ethan_s_bedroom_occupancy
+    - binary_sensor.ethans_smartsensor_occupancy
+    - binary_sensor.ethans_bedroom_presence_sensor_occupancy
+    - binary_sensor.ethans_room_camera_all_occupancy
+  device_class: motion 
+- platform: group
+  name: Garage Occupied [Group]
+  entities:
+    - binary_sensor.garage_door_motion_occupancy
+    - binary_sensor.garage_motion_occupancy
   device_class: motion 
 - platform: group
   name: Window Open [Group]
@@ -21,8 +57,8 @@
     - binary_sensor.office_window
     - binary_sensor.awning_left_window
     - binary_sensor.awning_right_window
-    - binary_sensor.ethan_s_bedroom_window
-    - binary_sensor.basement_bathroom_window
+    - binary_sensor.ethan_s_bedroom_window_contact
+    - binary_sensor.basement_bathroom_window_contact
   device_class: window 
 
 - platform: group
@@ -39,6 +75,17 @@
     - binary_sensor.kitchen_motion_sensor_occupancy
     - binary_sensor.entry_motion_sensor
     - binary_sensor.hallway_motion_sensor
+    - binary_sensor.living_room_presence_sensor_pir_sensor
+    # - binary_sensor.living_room_presence_sensor_occupancy
+  device_class: motion 
+- platform: group
+  name: Main Area Occupied [Group]
+  entities:
+    - binary_sensor.kitchen_motion_sensor_occupancy
+    - binary_sensor.entry_motion_sensor
+    - binary_sensor.hallway_motion_sensor
+    - binary_sensor.living_room_presence_sensor_occupancy
+    - binary_sensor.screek_human_sensor_2a_d11b4c_any_presence
   device_class: motion 
 
 - platform: template
@@ -50,12 +97,9 @@
         {{ is_state('person.drake_bridgewater', 'home') 
         or is_state('person.shawna', 'home')
         or is_state('input_boolean.home_guest_mode', 'on') 
-        or is_state('person.guest', 'home') }}
-      delay_off: 00:01:30
-      
-
-- platform: template
-  sensors:
+        or is_state('person.guest', 'home') 
+        or is_state('person.named_guest', 'home') }}
+      delay_off: 00:00:10
     parents_asleep:
       friendly_name: Parents Asleep
       value_template: >-
@@ -68,7 +112,204 @@
           on
         endif
         ]]]
+    # someone_showering:
+    #   friendly_name: Someone is showering
+    #   value_template: >
+    #     {% set humidity = states("sensor.humidity_bathroom") | float(0) %}
+    #     {% set treshold = 1.05 * state_attr("sensor.humidity_bathroom_stats", "median") | float(0) %}
+    #     {% set derivative = states("sensor.humidity_bathroom_derivative") | float(0) %}
+    #     {{ humidity > treshold and derivative > 0.25 }}
 
-- platform: wirelesstag
-  monitored_conditions:
-    - battery
+    dark_outside:
+      friendly_name: Dark outside
+      value_template: >
+        {{ is_state('sun.sun', 'below_horizon') }}
+    
+    tomorrow_monday:
+      friendly_name: Tomorrow Monday
+      value_template: >
+        {{ now().strftime('%a') in ('Sun') }}
+    tomorrow_tuesday:
+      friendly_name: Tomorrow Tuesday
+      value_template: >
+        {{ now().strftime('%a') in ('Monday') }}
+    tomorrow_wednesday:
+      friendly_name: Tomorrow Wednesday
+      value_template: >
+        {{ now().strftime('%a') in ('Tue') }}
+    tomorrow_thursday:
+      friendly_name: Tomorrow Thursday
+      value_template: >
+        {{ now().strftime('%a') in ('Wed') }}
+    tomorrow_friday:
+      friendly_name: Tomorrow Friday
+      value_template: >
+        {{ now().strftime('%a') in ('Thu') }}
+    tomorrow_saturday:
+      friendly_name: Tomorrow Saturday
+      value_template: >
+        {{ now().strftime('%a') in ('Fri') }}
+    tomorrow_sunday:
+      friendly_name: Tomorrow Sunday
+      value_template: >
+        {{ now().strftime('%a') in ('Sat') }}
+        
+    motion_detected_in_last_hour:
+      friendly_name: Any motion detected in last hour
+      value_template: >
+        {{ is_state("binary_sensor.whole_house_motion_group", "on") }}
+      delay_off: "01:00:00"
+
+    someone_in_the_house_in_last_hour:
+      friendly_name: Someone in the house in the last hour
+      value_template: >
+        {{ is_state("binary_sensor.motion_detected_in_last_hour", "on")
+            or is_state("group.persons", "home") }}
+
+    # activity_in_bathroom:
+    #   friendly_name: Activity in the bathroom
+    #   value_template: >
+    #     {{ is_state("binary_sensor.motion_sensor_bathroom", "on")
+    #         or is_state("binary_sensor.motion_sensor_toilet", "on")
+    #         or is_state("binary_sensor.someone_showering", "on") }}
+    #   delay_off: "00:03:00"
+
+    activity_in_living_room:
+      friendly_name: Activity in the living room
+      value_template: >
+        {{ is_state("binary_sensor.living_room_presence_sensor_occupancy", "on")
+            or is_state("media_player.living_room", "on")
+            or is_state("media_player.marantz_sr5012_2", "on") }}
+      delay_off: "00:20:00"
+
+    activity_in_kitchen:
+      friendly_name: Activity in the kitchen
+      value_template: >
+        {{ is_state("binary_sensor.kitchen_motion_sensor_occupancy", "on") }}
+      delay_off: "00:10:00"
+
+    # activity_in_hall:
+    #   friendly_name: Activity in the hall
+    #   value_template: >
+    #     {{ is_state("binary_sensor.motion_sensor_hall", "on")
+    #         or is_state("binary_sensor.openclose_front_door", "on") }}
+    #   delay_off: "00:01:00"
+
+    activity_in_master_bedroom:
+      friendly_name: Activity in the Master Bedroom
+      value_template: >
+        {{ is_state("binary_sensor.master_bathroom_motion_sensor_occupancy", "on")
+            or is_state("binary_sensor.master_bedroom_motion_sensor_occupancy", "on") }}
+      delay_off: "00:10:00"
+    activity_in_ethan_bedroom:
+      friendly_name: Activity in the Ethan's Bedroom
+      value_template: >
+        {{ is_state("binary_sensor.ethans_smartsensor_occupancy", "on")
+            or is_state("binary_sensor.ethan_s_bedroom_occupancy", "on")
+            or is_state("binary_sensor.ethans_bedroom_presence_sensor_pir_sensor", "on") }}
+      delay_off: "00:10:00"
+    activity_in_family_room:
+      friendly_name: Activity in the Family Room
+      value_template: >
+        {{ is_state("binary_sensor.athom_family_room_presence_sensor_occupancy", "on") }}
+      delay_off: "00:10:00"
+    activity_in_office:
+      friendly_name: Activity in the Office
+      value_template: >
+        {{ is_state("binary_sensor.office_multi_sensor_home_security_motion_detection", "on") }}
+      delay_off: "00:10:00"
+
+    # washing_machine:
+    #   friendly_name: Washing machine
+    #   value_template: >
+    #     {{ states("sensor.washing_machine_power") | float(0) > 3 }}
+    #   delay_off: "00:05:00"
+    #   icon_template: >
+    #     {% if is_state("binary_sensor.washing_machine", "on") %}
+    #       mdi:washing-machine
+    #     {% else %}
+    #       mdi:washing-machine-off
+    #     {% endif %}
+
+    # dishwasher:
+    #   friendly_name: Dishwasher
+    #   value_template: >
+    #     {{ states("sensor.dishwasher_watts") | float(0) > 3 }}
+    #   delay_off: "00:03:00"
+    #   icon_template: >
+    #     {% if is_state("binary_sensor.dishwasher", "on") %}
+    #       mdi:dishwasher
+    #     {% else %}
+    #       mdi:dishwasher-off
+    #     {% endif %}
+    
+    ridwell_pickup_tomorrow:
+      friendly_name: Ridwell Pickup Tomorrow
+      value_template: >
+          {{ ((now().date() + timedelta(days=1)) | string == states('sensor.ridwell_ridwell_pickup_4659_se_meadowcrest_ct')) }}
+    
+    # trash_pickup_tomorrow:
+    #   friendly_name: Trash Pickup Tomorrow
+    #   value_template: >
+    #       {{ ((now().date() + timedelta(days=1)) | string == states('sensor.')) }}
+
+    christmas_season:
+      friendly_name: Christmas Season
+      value_template: >
+        {%- set month, week, day = 11, 4, 3 %}
+        {%- set today = now().date() %}
+        {%- set temp = today.replace(month=month, day=1) %}
+        {%- set adjust = (day - temp.weekday()) % 7 %}
+        {%- set temp = temp + timedelta(days=adjust) %}
+        {%- set thanksgiving = temp + timedelta(weeks = week - 1) %}
+        {%- set jan3rd = temp.replace(month=1, day=3) %}
+        {{ today <= jan3rd or today > thanksgiving }}
+
+    worked_enough_today_drake:
+      friendly_name: Worked enough today
+      value_template: >
+        {{ states("sensor.time_at_work_today_drake") | float(0) > 8 }}
+      icon_template: mdi:briefcase
+    
+    ethan_at_daycare:
+      friendly_name: Ethan at Daycare
+      value_template: >
+        {% set db = states("sensor.visited_daycare_drake") | int(0) %}
+        {% set sb = states("sensor.visited_daycare_shawna") | int(0) %}
+        {% set jk  = states("sensor.visited_daycare_jk") | int(0) %}
+
+        {% set visits  = db + sb + jk %}
+        {% if visits == 0 -%}
+          false
+        {%- elif visits == 1 -%}
+          true
+        {%- else -%}
+          false
+        {%- endif %}
+      icon_template: mdi:teddy-bear
+    abby_at_daycare:
+      friendly_name: Abby at Daycare
+      value_template: >
+        {% set db = states("sensor.visited_dog_daycare_drake") | int(0) %}
+        {% set sb = states("sensor.visited_dog_daycare_shawna") | int(0) %}
+
+        {% set visits  = db + sb %}
+        {% if visits == 0 -%}
+          false
+        {%- elif visits == 1 -%}
+          true
+        {%- else -%}
+          false
+        {%- endif %}
+      icon_template: mdi:dog
+    
+    time_to_pickup_ethan_home:
+      friendly_name: Time to Pick Ethan up (Home)
+      value_template: >
+        {{( (today_at(states('input_datetime.daycare_closes')) | as_timestamp - now()|as_timestamp)) <= (states('sensor.google_travel_time_home_daycare')|float*60)+5}}
+      
+    
+    time_to_pickup_ethan_work:
+      friendly_name: Time to Pick Ethan up (DAT)
+      value_template: >
+        {{( (today_at(states('input_datetime.daycare_closes')) | as_timestamp - now()|as_timestamp)) <= (states('sensor.siemens_to_daycare_travel_time')|float*60)+5 }}

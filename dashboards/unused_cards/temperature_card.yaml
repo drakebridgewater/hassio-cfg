@@ -1,0 +1,39 @@
+
+type: horizontal-stack
+cards:
+  - type: custom:button-card
+    entity: sensor.wirelesstag_outdoor_temperature
+    show_state: true
+    show_name: true
+    show_label: false
+    show_icon: false
+    label: label
+    name: Outdoor
+    styles:
+      state:
+        - font-size: min(4vw, 7em);
+      grid:
+        - grid-template-areas: '"i" "n" "s"'
+      name:
+        - text-transform: uppercase
+        - letter-spacing: 0.5em
+        - font-familly: cursive
+    tap_action: none
+  - type: custom:button-card
+    entity: sensor.living_room_temperature_sensor_temperature
+    show_state: true
+    show_name: true
+    show_label: false
+    show_icon: false
+    label: label
+    name: Indoor
+    styles:
+      state:
+        - font-size: min(4vw, 7em);
+      grid:
+        - grid-template-areas: '"i" "n" "s"'
+      name:
+        - text-transform: uppercase
+        - letter-spacing: 0.5em
+        - font-familly: cursive
+    tap_action: none

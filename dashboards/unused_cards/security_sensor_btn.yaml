@@ -1,0 +1,116 @@
+
+type: horizontal-stack
+cards:
+    - type: vertical-stack
+      cards:
+      - !include security_btn.yaml
+      - type: custom:mushroom-chips-card
+        chips:
+          - type: entity
+            entity: sensor.envoy_202208027163_current_power_production
+            icon_color: yellow
+            icon: mdi:solar-power
+            use_entity_picture: false
+          - type: entity
+            entity: sensor.energy_usage
+            icon_color: pink
+            icon: mdi:transmission-tower
+            tap_action: 
+              action: fire-dom-event
+              browser_mod:
+                service: browser_mod.popup
+                data:
+                  title: Active Power Consumers
+                  style: |
+                    --popup-background-color: #444;
+                  content:
+                    style:
+                      hui-vertical-stack-card:
+                        $: |
+                          hui-horizontal-stack-card {
+                            padding: 0em 2em 2.3em 2em;
+                          }
+                        $hui-horizontal-stack-card$: |
+                          #root {
+                            justify-content: space-evenly;
+                          }
+                    type: vertical-stack
+                    cards: 
+                      - type: custom:auto-entities
+                        card:
+                          type: vertical-stack
+                        card_param: cards
+                        name: Power Usage
+                        filter:
+                          include:
+                            - name: '*power'
+                              state: '>10'
+                              options:
+                                type: custom:mushroom-entity-card
+                            - entity_id: '*_usage'
+                              state: '>10'
+                              options:
+                                type: custom:mushroom-entity-card
+                          exclude:
+                            - name: Energy Usage
+                            - name: Yearly*
+                            - name: Monthly*
+                            - name: Weekly*
+                            - name: Daily*
+                        sort:
+                          method: state
+                          reverse: true
+                          ignore_case: true
+                          ip: false
+                          numeric: true
+                        show_empty: true
+
+    - type: grid
+      columns: 2
+      cards:
+        - entity: binary_sensor.whole_house_motion_group
+          type: custom:button-card
+          tap_action: !include ../popup/motion_overview.yaml
+          show_last_changed: false
+          show_name: false
+          show_label: false
+          template:
+            - motion_icon_state
+            - icon_only_fill
+            - alerter-dual
+        - entity: binary_sensor.any_door_open_group
+          tap_action: !include ../popup/door_overview.yaml
+          show_last_changed: false
+          show_name: false
+          show_label: false
+          type: custom:button-card
+          template:
+            - door_icon_state
+            - icon_only_fill
+            - alerter-dual
+        - entity: binary_sensor.window_open_group
+          tap_action: !include ../popup/window_overview.yaml
+          show_last_changed: false
+          show_name: false
+          show_label: false
+          type: custom:button-card
+          template:
+            - window_icon_state
+            - icon_only_fill
+            - alerter-dual
+        - type: custom:button-card
+          entity: switch.garage_door_main
+          template: 
+            - icon_only_fill
+            - alerter-dual
+          name: Garage
+          show_icon: true
+          show_name: false
+          show_last_changed: false
+          tap_action:
+            action: more-info
+          icon: hass:garage
+          state:
+            - value: "open"
+              icon: hass:garage-open
+            - value: "closed"

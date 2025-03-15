@@ -1,0 +1,375 @@
+
+- type: custom:bubble-card
+  card_type: pop-up
+  hash: '#master'
+  button_type: switch
+  name: Master Bedroom
+  entity: light.bedroom_lights_group
+  force_icon: false
+  show_state: true
+  show_last_changed: false
+  bg_opacity: '35'
+  button_action:
+    tap_action:
+      action: none
+  tap_action:
+    action: toggle
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - entity: light.master_bedroom_wall_switch
+      icon: mdi:light-switch
+      tap_action:
+        action: more-info
+    - icon: mdi:power
+      tap_action:
+        action: toggle
+- type: custom:mushroom-chips-card
+  chips:
+    - type: entity
+      entity: input_boolean.master_bedroom_lighting_automation_on_disabled
+      content_info: name
+      icon_color: red
+      icon: mdi:auto-mode
+      name: Automation
+      tap_action:
+        action: toggle
+      use_entity_picture: false
+    - type: template
+      entity: binary_sensor.master_bedroom_motion_sensor_occupancy
+      icon_color: |-
+        {% if states('binary_sensor.master_bedroom_motion_sensor_occupancy') == 'on' -%}
+          red
+        {%- else %}
+          grey
+        {%- endif %}
+      icon: mdi:motion-sensor
+      content: |-
+        {% if states('binary_sensor.master_bedroom_motion_sensor_occupancy') == 'off' -%}
+          No Motion detected
+        {% elif states('binary_sensor.master_bedroom_motion_sensor_occupancy') == 'on' -%}
+          Motion Detected
+        {%- else %}
+          Motion Error
+        {%- endif %}
+      tap_action:
+        action: more-info
+    - type: template
+      entity: binary_sensor.master_bedroom_window
+      icon_color: |-
+        {% if states('binary_sensor.master_bedroom_window') == 'on' -%}
+          red
+        {%- else %}
+          grey
+        {%- endif %}
+      icon: mdi:motion-sensor
+      content: |-
+        {% if states('binary_sensor.master_bedroom_window') == 'off' -%}
+          Window Closed
+        {% elif states('binary_sensor.master_bedroom_window') == 'on' -%}
+          Window Open
+        {%- else %}
+          Window Error
+        {%- endif %}
+      tap_action:
+        action: more-info
+    - type: entity
+      entity: sensor.master_bedroom_temperature_temperature
+
+- entity: light.drake_s_bedside_light
+  name: Drake's Bedside
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+- entity: light.shawna_s_bedside_light
+  name: Shawna's Bedside
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+
+
+- entity: light.master_bedroom_dresser_light
+  name: Dresser
+  icon: mdi:dresser
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_last_updated: true
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - name: Toggle button
+      icon: mdi:power
+      tap_action:
+        action: toggle
+- type: custom:bubble-card
+  card_type: button
+  entity: fan.master_bedroom_fan
+  show_state: true
+  show_last_changed: true
+  show_attribute: true
+  attribute: temperature
+  tap_action:
+    action: more-info
+  sub_button:
+    - entity: switch.master_bedroom_fan_horizontally_oscillating
+      tap_action:
+        action: toggle
+    - entity: fan.master_bedroom_fan
+      icon: mdi:minus
+      tap_action:
+        action: call-service
+        service: fan.decrease_speed
+        target:
+          entity_id: fan.master_bedroom_fan
+    - entity: fan.master_bedroom_fan
+      icon: mdi:plus
+      tap_action:
+        action: call-service
+        service: fan.increase_speed
+        target:
+          entity_id: fan.master_bedroom_fan
+    - entity: fan.master_bedroom_fan
+      icon: mdi:power
+      tap_action:
+        action: toggle
+  button_type: state
+- entity: media_player.master_bedroom
+  name: Google Home
+  type: custom:bubble-card
+  card_type: media-player
+  show_state: true
+  show_last_updated: true
+  show_attribute: true
+  attribute: assumed_state
+  card_layout: large
+  scrolling_effect: false
+  show_icon: true
+  force_icon: true
+  show_name: false
+  show_last_changed: true
+  columns: 2
+  rows: 1
+  tap_action:
+    action: toggle
+  hide:
+    play_pause_button: true
+    volume_button: true
+    previous_button: true
+    next_button: true
+    power_button: true
+  # sub_button:
+  #   - entity: media_player.master_bedroom
+  #     icon: mdi:volume-high
+  #     name: Volume level
+  #     tap_action:
+  #       action: more-info
+  #     show_name: false
+  #     show_state: false
+  #     show_last_updated: false
+  #     show_attribute: true
+  #     show_background: false
+  #     attribute: volume_level
+
+
+- type: horizontal-stack
+  title: Alarms
+  cards:
+    - type: vertical-stack
+      cards:
+        - type: custom:mushroom-template-card
+          primary: Drake's Alarm
+          secondary: |-
+            {% if is_state('input_boolean.drake_s_sunrise_alarm', 'on') %} 
+              {{ states('input_datetime.drake_s_alarm_clock') }} 
+            {% elif is_state('input_boolean.drake_s_sunrise_alarm', 'off') %}
+              OFF (hold to enable)
+            {% endif %}
+          icon: mdi:weather-sunset-up
+          entity: input_datetime.drake_s_alarm_clock
+          icon_color: |-
+            {% if is_state('input_boolean.drake_s_sunrise_alarm', 'on') %} 
+              blue 
+            {% elif is_state('input_boolean.drake_s_sunrise_alarm', 'off') %}
+              red
+            {% endif %}
+          multiline_secondary: true
+          layout: horizontal
+          fill_container: false
+          tap_action:
+            action: more-info
+          hold_action:
+            action: call-service
+            service: input_boolean.toggle
+            target:
+              entity_id: input_boolean.drake_s_sunrise_alarm
+        # - type: custom:mushroom-entity-card
+        #   entity: input_boolean.drake_s_sunrise_alarm
+        #   tap_action:
+        #     action: toggle
+        # - type: conditional
+        #   conditions:
+        #     - condition: state
+        #       entity: input_boolean.drake_s_sunrise_alarm
+        #       state: 'on'
+        #   card:
+        #     type: custom:mushroom-entity-card
+        #     entity: input_datetime.drake_s_alarm_clock
+    - type: vertical-stack
+      cards:
+        - type: custom:mushroom-template-card
+          primary: Shawna's Alarm
+          secondary: |-
+            {% if is_state('input_boolean.shawna_s_sunrise_alarm', 'on') %} 
+              {{ states('input_datetime.shawna_s_alarm_clock') }} 
+            {% elif is_state('input_boolean.shawna_s_sunrise_alarm', 'off') %}
+              OFF (hold to enable)
+            {% endif %}
+          icon: mdi:weather-sunset-up
+          entity: input_datetime.shawna_s_alarm_clock
+          icon_color: |-
+            {% if is_state('input_boolean.shawna_s_sunrise_alarm', 'on') %} 
+              blue 
+            {% elif is_state('input_boolean.shawna_s_sunrise_alarm', 'off') %}
+              red
+            {% endif %}
+          multiline_secondary: true
+          layout: horizontal
+          fill_container: false
+          tap_action:
+            action: more-info
+          hold_action:
+            action: call-service
+            service: input_boolean.toggle
+            target:
+              entity_id: input_boolean.shawna_s_sunrise_alarm
+
+        # - type: custom:mushroom-entity-card
+        #   entity: input_boolean.drake_s_sunrise_alarm
+        #   tap_action:
+        #     action: toggle
+        # - type: custom:mushroom-entity-card
+        #   entity: input_boolean.shawna_s_sunrise_alarm
+        #   tap_action:
+        #     action: toggle
+        # - type: conditional
+        #   conditions:
+        #     - condition: state
+        #       entity: input_boolean.shawna_s_sunrise_alarm
+        #       state: 'on'
+        #   card:
+        #     type: custom:mushroom-entity-card
+        #     entity: input_datetime.shawna_s_alarm_clock
+
+
+- type: horizontal-stack
+  title: Configurations
+  cards:
+  - type: custom:mushroom-entity-card
+    entity: switch.schedule_master_bedroom_lights_on_automation
+    name: Master Lighting Automation Schedule
+    tap_action:
+      action: toggle
+    hold_action:
+      action: more-info  
+
+
+- type: vertical-stack
+  title: Bathroom
+  cards:
+    - type: custom:mushroom-chips-card
+      chips:
+        - type: template
+          entity: binary_sensor.master_bathroom_motion_sensor_occupancy
+          icon_color: |-
+            {% if states('binary_sensor.master_bathroom_motion_sensor_occupancy') == 'on' -%}
+              red
+            {%- else %}
+              grey
+            {%- endif %}
+          icon: mdi:motion-sensor
+          content: |-
+            {% if states('binary_sensor.master_bathroom_motion_sensor_occupancy') == 'off' -%}
+              No Motion detected
+            {% elif states('binary_sensor.master_bathroom_motion_sensor_occupancy') == 'on' -%}
+              Motion Detected
+            {%- else %}
+              Motion Error
+            {%- endif %}
+          tap_action:
+            action: more-info
+
+        - type: template
+          entity: binary_sensor.master_bathroom_window
+          icon_color: |-
+            {% if states('binary_sensor.master_bathroom_window') == 'on' -%}
+              red
+            {%- else %}
+              grey
+            {%- endif %}
+          icon: mdi:motion-sensor
+          content: |-
+            {% if states('binary_sensor.master_bathroom_window') == 'off' -%}
+              Window Closed
+            {% elif states('binary_sensor.master_bathroom_window') == 'on' -%}
+              Window Open
+            {%- else %}
+              Window Error
+            {%- endif %}
+          tap_action:
+            action: more-info
+    - entity: light.master_bathroom_wall_switch
+      name: Bathroom Wall Switch
+      icon: mdi:paper-roll
+      type: custom:bubble-card
+      card_type: button
+      button_type: slider
+      show_last_updated: true
+      tap_action:
+        action: more-info
+      sub_button:
+        - name: Brightness
+          
+          show_icon: false
+          show_background: false
+          show_attribute: true
+          attribute: brightness
+        - name: Toggle button
+          icon: mdi:power
+          tap_action:
+            action: toggle

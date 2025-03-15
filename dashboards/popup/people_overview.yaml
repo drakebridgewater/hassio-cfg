@@ -1,0 +1,241 @@
+- type: custom:bubble-card
+  card_type: pop-up
+  hash: '#people_overview'
+  button_type: state
+  entity: binary_sensor.home_occupied
+  name: Who's Home
+  force_icon: false
+  show_state: true
+  show_last_changed: false
+  show_attribute: true
+  button_action:
+    tap_action:
+      action: none
+- type: custom:stack-in-card
+  card_mod:
+    style: |
+      ha-card {
+        background: url('https://maps.geoapify.com/v1/staticmap?style=dark-matter-yellow-roads&width=600&height=230&center=lonlat:{{ state_attr('device_tracker.iphone_2022', 'longitude') }},{{ state_attr('device_tracker.iphone_2022', 'latitude') }}&zoom=14.0&marker=lonlat:{{ state_attr('device_tracker.iphone_2022', 'longitude') }},{{ state_attr('device_tracker.iphone_2022', 'latitude') }};type:material;color:%23ff3421;icontype:awesome&scaleFactor=2&apiKey=6511f281394741e8b02bf29351f40555');
+        background-size: cover;
+        background-blend-mode: overlay;
+        background-color: rgba(var(--rgb-card-background-color), .1);
+      }
+  cards:
+    - type: custom:mushroom-template-card
+      entity: person.drake_bridgewater
+      primary: Drake
+      picture: "{{ state_attr(entity, 'entity_picture') }}"
+      secondary: >-
+        {{ iif(states(entity) == 'not_home', 'away', states(entity)) | title }} |
+        {{ states('sensor.drakes_iphone_geocoded_location') }}
+      badge_icon: >-
+        {% set zone = iif(states(entity) == 'not_home', 'away', states(entity)) %}
+        {%- if 'home' in zone.lower() -%}
+          mdi:home
+        {%- elif zone == 'Work' -%}
+          mdi:office-building
+        {%- else -%}
+          mdi:home-export-outline
+        {%- endif -%}
+      badge_color: >-
+        {% set zone = iif(states(entity) == 'not_home', 'away', states(entity))
+        %}  {%- if 'home' in zone.lower() -%}
+          green
+        {%- elif zone == 'Work' -%}
+          blue
+        {%- else -%}
+          red
+        {%- endif -%}
+      fill_container: true
+      multiline_secondary: false
+      layout: horizontal
+      tap_action:
+        action: more-info
+      card_mod:
+        style: |
+          :host {
+            height: 40px;
+            --mush-icon-size: 60px;
+          }
+    - type: custom:mushroom-chips-card
+      chips:
+        - type: entity
+          entity: sensor.drakes_iphone_battery_plus
+        - type: entity
+          entity: sensor.drakes_iphone_steps
+        - type: entity
+          entity: sensor.drake_iphone_idevice_travel_time_min_home
+          icon: mdi:home
+      card_mod:
+        style: |
+          ha-card {
+            --chip-box-shadow: 0px 0px 0px 0px;
+            --chip-background: none;
+          }
+
+- entity: person.drake_bridgewater
+  card_layout: large-2-rows
+  type: custom:bubble-card
+  card_type: button
+  button_type: state
+  show_last_changed: false
+  show_attribute: false
+  force_icon: false
+  sub_button:
+    - entity: sensor.abby_daycare_to_siemens
+      show_state: true
+      show_name: true
+      name: Daycare to Siemens
+    - show_name: true
+      show_attribute: false
+      show_last_changed: false
+      show_icon: true
+      entity: sensor.siemens_to_daycare
+      show_state: true
+
+
+
+- type: custom:stack-in-card
+  card_mod:
+    style: |
+      ha-card {
+        background: url('https://maps.geoapify.com/v1/staticmap?style=dark-matter-yellow-roads&width=600&height=230&center=lonlat:{{ state_attr('device_tracker.shawnas_iphone', 'longitude') }},{{ state_attr('device_tracker.shawnas_iphone', 'latitude') }}&zoom=14.0&marker=lonlat:{{ state_attr('device_tracker.shawnas_iphone', 'longitude') }},{{ state_attr('device_tracker.shawnas_iphone', 'latitude') }};type:material;color:%23ff3421;icontype:awesome&scaleFactor=2&apiKey=6511f281394741e8b02bf29351f40555');
+        background-size: cover;
+        background-blend-mode: overlay;
+        background-color: rgba(var(--rgb-card-background-color), .1);
+      }
+  cards:
+    - type: custom:mushroom-template-card
+      entity: person.shawna
+      primary: Shawna
+      picture: "{{ state_attr(entity, 'entity_picture') }}"
+      secondary: >-
+        {{ iif(states(entity) == 'not_home', 'away', states(entity)) | title }} |
+        {{ states('sensor.shawnas_iphone_geocoded_location') }}
+      badge_icon: >-
+        {% set zone = iif(states(entity) == 'not_home', 'away', states(entity)) %}
+        {%- if 'home' in zone.lower() -%}
+          mdi:home
+        {%- elif zone == 'Work' -%}
+          mdi:office-building
+        {%- else -%}
+          mdi:home-export-outline
+        {%- endif -%}
+      badge_color: >-
+        {% set zone = iif(states(entity) == 'not_home', 'away', states(entity))
+        %}  {%- if 'home' in zone.lower() -%}
+          green
+        {%- elif zone == 'Work' -%}
+          blue
+        {%- else -%}
+          red
+        {%- endif -%}
+      fill_container: true
+      multiline_secondary: false
+      layout: horizontal
+      tap_action:
+        action: more-info
+      card_mod:
+        style: |
+          :host {
+            height: 40px;
+            --mush-icon-size: 60px;
+          }
+    - type: custom:mushroom-chips-card
+      chips:
+        - type: entity
+          entity: sensor.shawna_iphone_battery_plus
+        - type: entity
+          entity: sensor.shwana_iphone_steps
+        - type: entity
+          entity: sensor.shawna_iphone_idevice_travel_time_home
+          icon: mdi:home
+      card_mod:
+        style: |
+          ha-card {
+            --chip-box-shadow: 0px 0px 0px 0px;
+            --chip-background: none;
+          }
+# - entity: person.shawna
+#   card_layout: large-2-rows
+#   type: custom:bubble-card
+#   card_type: button
+#   button_type: state
+#   show_last_changed: false
+#   show_attribute: false
+#   force_icon: false
+#   sub_button:
+#     - entity: sensor.shawna_iphone_idevice_travel_time_min_home
+#       show_state: true
+#       show_name: true
+#       name: Time to Home
+#     - show_name: true
+#       name: Battery
+#       show_attribute: false
+#       show_last_changed: false
+#       show_icon: true
+#       entity: sensor.shawna_iphone_idevice_battery
+#       show_state: true
+- entity: binary_sensor.ethan_at_daycare
+  card_layout: large-2-rows
+  type: custom:bubble-card
+  card_type: button
+  button_type: state
+  show_last_changed: false
+  show_attribute: false
+  force_icon: false
+  sub_button:
+    - entity: sensor.drake_iphone_idevice_travel_time_min_daycare
+      show_state: true
+      show_name: true
+      name: Drake's Drive Time
+    - entity: sensor.shawna_iphone_idevice_travel_time_min_daycare
+      show_state: true
+      show_name: true
+      name: Shawna's Drive Time
+- entity: binary_sensor.abby_at_daycare
+  card_layout: large-2-rows
+  type: custom:bubble-card
+  card_type: button
+  button_type: state
+  sub_button: []
+  show_last_changed: false
+  show_attribute: false
+  force_icon: false
+- type: custom:bubble-card
+  card_type: separator
+  button_type: state
+  name: "Guests "
+  icon: ""
+
+- entity: input_boolean.guest_mode
+  content_info: name
+  tap_action:
+    action: toggle
+  type: custom:bubble-card
+  card_type: button
+  button_type: state
+  sub_button: []
+  show_last_changed: false
+  show_attribute: false
+  force_icon: false
+- type: horizontal-stack
+  cards:
+  - entity: person.named_guest
+    name: Named Guest
+    type: custom:bubble-card
+    card_type: button
+    button_type: state
+    sub_button: []
+    show_last_changed: false
+    show_attribute: false
+    force_icon: false
+  - entity: person.guest
+    name: Guest
+    type: custom:bubble-card
+    card_type: button
+    button_type: state
+    sub_button: []
+    show_last_changed: false
+    show_attribute: false
+    force_icon: false

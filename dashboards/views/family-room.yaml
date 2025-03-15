@@ -1,0 +1,299 @@
+
+- type: custom:bubble-card
+  card_type: pop-up
+  hash: '#family'
+  button_type: switch
+  name: Family Room
+  entity: light.family_room_lights_group
+  force_icon: false
+  show_state: true
+  show_last_changed: false
+  bg_opacity: '35'
+  tap_action:
+    action: more-info
+  sub_button:
+    - name: Brightness
+      show_icon: false
+      show_background: false
+      show_attribute: true
+      attribute: brightness
+    - entity: light.family_room_wall_switch
+      icon: mdi:light-switch
+      tap_action:
+        action: more-info
+    - icon: mdi:power
+      tap_action:
+        action: toggle
+- type: custom:mushroom-chips-card
+  chips:
+    - type: entity
+      entity: input_boolean.family_room_lighting_automation_on_disabled
+      content_info: name
+      icon_color: red
+      icon: mdi:auto-mode
+      name: Automation
+      tap_action:
+        action: toggle
+      use_entity_picture: false
+    - type: template
+      entity: binary_sensor.athom_family_room_presence_sensor_occupancy
+      icon_color: |-
+        {% if states('binary_sensor.athom_family_room_presence_sensor_occupancy') == 'on' -%}
+          red
+        {%- else %}
+          grey
+        {%- endif %}
+      icon: mdi:motion-sensor
+      content: |-
+        {% if states('binary_sensor.athom_family_room_presence_sensor_occupancy') == 'off' -%}
+          No Motion detected
+        {% elif states('binary_sensor.athom_family_room_presence_sensor_occupancy') == 'on' -%}
+          Motion Detected
+        {%- else %}
+          Motion Error
+        {%- endif %}
+      tap_action:
+        action: more-info
+    - type: template
+      entity: binary_sensor.basement_sliding_door
+      icon_color: |-
+        {% if states('binary_sensor.basement_sliding_door') == 'on' -%}
+          red
+        {%- else %}
+          grey
+        {%- endif %}
+      icon: mdi:door-sliding
+      content: |-
+        {% if states('binary_sensor.basement_sliding_door') == 'off' -%}
+          Door Closed
+        {% elif states('binary_sensor.basement_sliding_door') == 'on' -%}
+          Door Open
+        {%- else %}
+          Door Error
+        {%- endif %}
+      tap_action:
+        action: more-info
+    - type: entity
+      entity: sensor.acurite_tower_family_room_temperature
+
+
+- type: custom:layout-card
+  layout_type: grid
+  columns: 2
+  layout:
+    grid-template-columns: 83% 17%
+    grid-template-rows: auto
+  cards:  
+    - type: custom:bubble-card
+      card_type: media-player
+      entity: media_player.family_room
+      force_icon: false
+      show_state: true
+      show_last_changed: false
+      show_attribute: true
+      attribute: app_name
+
+    - show_name: false
+      show_icon: true
+      type: button
+      tap_action:
+        action: toggle
+      entity: remote.family_room
+
+- entity: media_player.family_room_samsung_tv
+  type: custom:bubble-card
+  card_type: media-player
+  force_icon: false
+  show_state: true
+  show_last_changed: false
+  show_attribute: true
+  attribute: app_name
+
+- type: vertical-stack
+  cards:
+    - type: custom:bubble-card
+      card_type: separator
+      name: Ambiance
+    - entity: light.family_room_couch_light
+      name: Couch Lamp
+      icon: hue:aura
+      type: custom:bubble-card
+      card_type: button
+      button_type: slider
+      show_state: true
+      show_last_changed: true
+      show_attribute: false
+      tap_action:
+        action: more-info
+      sub_button:
+        - name: Brightness
+          show_icon: false
+          show_background: false
+          show_attribute: true
+          attribute: brightness
+        - icon: mdi:power
+          tap_action:
+            action: toggle
+    - entity: light.family_room_chair_light
+      name: Chair Lamp
+      icon: hue:beyond-up
+      type: custom:bubble-card
+      card_type: button
+      button_type: slider
+      show_state: true
+      show_last_changed: true
+      show_attribute: false
+      tap_action:
+        action: more-info
+      sub_button:
+        - name: Brightness
+          show_icon: false
+          show_background: false
+          show_attribute: true
+          attribute: brightness
+        - icon: mdi:power
+          tap_action:
+            action: toggle
+- type: horizontal-stack
+  cards:
+    - entity: light.family_room_top_of_tv_hue
+      name: TV Right
+      icon: hue:play-bar
+      type: custom:bubble-card
+      card_type: button
+      button_type: slider
+      show_state: true
+      show_last_changed: true
+      show_attribute: false
+      tap_action:
+        action: more-info
+      sub_button:
+        - name: Brightness
+          show_icon: false
+          show_background: false
+          show_attribute: true
+          attribute: brightness
+        - icon: mdi:power
+          tap_action:
+            action: toggle
+    - entity: light.family_room_right_of_tv_hue_2
+      name: TV Left
+      icon: hue:play-bar
+      type: custom:bubble-card
+      card_type: button
+      button_type: slider
+      show_state: true
+      show_last_changed: true
+      show_attribute: false
+      tap_action:
+        action: more-info
+      sub_button:
+        - name: Brightness
+          show_icon: false
+          show_background: false
+          show_attribute: true
+          attribute: brightness
+        - icon: mdi:power
+          tap_action:
+            action: toggle
+
+- type: horizontal-stack
+  cards:
+    - entity: light.shelf_strip
+      name: Shelf Strip
+      icon: hue:friends-of-hue-iq-pendant
+      type: custom:bubble-card
+      card_type: button
+      button_type: slider
+      show_state: true
+      show_last_changed: true
+      show_attribute: false
+      tap_action:
+        action: more-info
+      sub_button:
+        - name: Brightness
+          show_icon: false
+          show_background: false
+          show_attribute: true
+          attribute: brightness
+        - icon: mdi:power
+          tap_action:
+            action: toggle
+
+- show_state: false
+  view_layout:
+    grid-area: section6
+  show_name: false
+  camera_view: auto
+  type: picture-entity
+  entity: camera.family_room_camera
+  tap_action:
+    action: call-service
+    service: abode.capture_image
+    data:
+      entity_id: camera.family_room_camera
+  aspect_ratio: '9:5'
+- type: vertical-stack
+  cards:
+    - type: custom:bubble-card
+      card_type: separator
+      name: Ceiling Lights
+    - entity: light.family_room_ceiling_light_1
+      type: custom:bubble-card
+      card_type: button
+      button_type: slider
+      show_state: true
+      show_last_changed: true
+      show_attribute: false
+      tap_action:
+        action: more-info
+      sub_button:
+        - name: Brightness
+          show_icon: false
+          show_background: false
+          show_attribute: true
+          attribute: brightness
+        - icon: mdi:power
+          tap_action:
+            action: toggle
+    - entity: light.family_room_ceiling_light_2
+      type: custom:bubble-card
+      card_type: button
+      button_type: slider
+      show_state: true
+      show_last_changed: true
+      show_attribute: false
+      tap_action:
+        action: more-info
+      sub_button:
+        - name: Brightness
+          show_icon: false
+          show_background: false
+          show_attribute: true
+          attribute: brightness
+        - icon: mdi:power
+          tap_action:
+            action: toggle
+    - entity: light.family_room_ceiling_light_3
+      type: custom:bubble-card
+      card_type: button
+      button_type: slider
+      show_state: true
+      show_last_changed: true
+      show_attribute: false
+      tap_action:
+        action: more-info
+      sub_button:
+        - name: Brightness
+          show_icon: false
+          show_background: false
+          show_attribute: true
+          attribute: brightness
+        - icon: mdi:power
+          tap_action:
+            action: toggle
+
+
+
+
+

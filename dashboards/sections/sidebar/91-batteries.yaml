@@ -1,0 +1,16 @@
+type: vertical-stack
+cards:
+  - type: custom:battery-state-card
+    secondary_info: "{attributes.battery_type_and_quantity}"
+    round: 0
+    filter:
+      include:
+        - name: entity_id
+          value: "*_battery_plus"
+      exclude:
+        - name: attributes.battery_low
+          value: false
+    bulk_rename:
+      - from: Battery+
+    sort:
+      - state

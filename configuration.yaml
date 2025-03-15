@@ -1,187 +1,164 @@
-# Configure a default setup of Home Assistant (frontend, api, etc)
 default_config:
+my: 
 
-# Text to speech
-tts:
-  - platform: google_translate
+# auth_providers:
+#   - type: homeassistant
+#   - type: trusted_networks
+#     trusted_networks:
+#       - 10.0.0.0/24
+#         - 127.0.0.1
+#         - ::1
+#     allow_bypass_login: true
 
-# lovelace:
-#   mode: storage
-#   dashboards: !include dashboards/dashboards.yaml
+# auth_header:
+#     username_header: X-authentik-username
+
+homeassistant:
+  packages: !include_dir_merge_named packages/
+  media_dirs:
+    local: media
 
 lovelace:
   mode: yaml
-  dashboards: !include dashboards.yaml
-  resources: !include lovelace_resources.yaml
+  resources: !include dashboards/lovelace_resources.yaml
+  dashboards:
+    lovelace-overview: 
+      mode: yaml
+      filename: dashboards/lovelace-tablet.yaml
+      title: Tablet Display
+      icon: mdi:tablet
+      show_in_sidebar: true
+      require_admin: false
 
-# panel_custom:
-#   - name: iframe-fullscreen
-#     module_url: "/local/iframe-fullscreen.js"
-#     sidebar_title: 'Admin Barcode Buddy'
-#     url_path: Barcode
-#     sidebar_icon: mdi:barcode-off
-#     config:
-#       url: "http://10.0.0.10:8450"
-#   - name: iframe-fullscreen
-#     # module_url: "/local/iframe-fullscreen.js"
-#     sidebar_title: 'BarcodeBuddy'
-#     url_path: Barcode-screen
-#     sidebar_icon: mdi:barcode
-#     config:
-#       url: "http://10.0.0.10:8450/screen.php"
-#   - name: iframe-fullscreen
-#     # module_url: "/local/iframe-fullscreen.js"
-#     sidebar_title: 'Grafana'
-#     url_path: grafana
-#     sidebar_icon: mdi:chart-histogram
-#     config:
-#       url: "https://grafana.drakebridgewater.com/"
-#   - name: iframe-fullscreen
-#     module_url: "/local/iframe-fullscreen.js"
-#     sidebar_title: 'Wiki'
-#     url_path: wiki
-#     sidebar_icon: mdi:file-sign
-#     config:
-#       url: "https://wiki.drakebridgewater.com/"
-
-browser:
-group: !include groups.yaml
-automation: !include automations.yaml
-script: !include_dir_named scripts
-scene: !include scenes.yaml
 frontend:
   themes: !include_dir_merge_named themes
   extra_module_url:
-    - /hacsfiles/lovelace-card-mod/card-mod.js
     - /hacsfiles/hass-hue-icons/hass-hue-icons.js
+    - /local/community/custom-brand-icons/custom-brand-icons.js
 
-template: !include_dir_named templates
-
+browser:
+powercalc:
+group: !include groups.yaml
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+alert: !include alert.yaml
 light: !include light_groups.yaml
 sensor: !include sensor.yaml
+# input_number: !include input_number.yaml
 input_boolean: !include input_boolean.yaml
 input_select: !include input_select.yaml
 switch: !include switches.yaml
 binary_sensor: !include binary_sensor.yaml
-amcrest: !include amcrest.yaml
+template: !include templates.yaml
 
+device_tracker:
+  - platform: bluetooth_le_tracker
+    track_new_devices: false
 
+###############################  iOS  ###############################
+ios: !include ios.yaml
+
+#################################  Notify  ###################################
+notify: !include notify.yaml
+
+#################################    ###################################
 wirelesstag:
-  username: "drake.bridgewater@gmail.com"
+  username: !secret my_email
   password: !secret wirelessTagsPassword
 
+#################################  Amcrest  ###################################
+# amcrest:
+#   - name: Ethan's Camera Amcrest
+#     host: 10.0.0.16
+#     port: 80
+#     username: !secret amcrest_username
+#     password: !secret amcrest_password
+#     binary_sensors:
+#       - motion_detected
+#       - crossline_detected
+#       - online
+#     sensors:
+#       - ptz_preset
+#   - name: Living Room Amcrest
+#     host: 10.0.0.14
+#     port: 80
+#     username: !secret amcrest_username
+#     password: !secret amcrest_password
+#     binary_sensors:
+#       - motion_detected
+#       - crossline_detected
+#       - online
+#     sensors:
+#       - ptz_preset
+#   - name: Doorbell Amcrest
+#     host: 10.0.0.23
+#     port: 80
+#     username: !secret amcrest_username
+#     password: !secret amcrest_password
+#     binary_sensors:
+#       - motion_detected
+#       - crossline_detected
+#       - online
+#   - name: Driveway Amcrest
+#     host: 10.0.0.251
+#     port: 80
+#     username: !secret amcrest_username
+#     password: !secret amcrest_password
+#     binary_sensors:
+#       - motion_detected
+#       - crossline_detected
+#       - online
+
+
+#################################  Recorder  ###################################
 recorder:
-  purge_keep_days: 10
-  commit_interval: 5
+  # purge_keep_days: 10
+  # commit_interval: 5
   exclude:
+    domains:
+      - automation
+      - update
     entity_globs:
+      - sensor.sun*
+      - weather.*
       - sensor.browser_*
+      - sensor.*uptime
+      - sensor.time*
+      - input_text.*
+    entities:
+      - sensor.date
+      - sensor.last_boot # Comes from 'systemmonitor' sensor platform
+      - sun.sun # Don't record sun data
+    event_types:
+      - call_service # Don't record service calls
 
-# notify:
-#   - name: pushover_dbridgew
-#     platform: pushover
-#     api_key: !secret pushover_api_key
-#     user_key: !secret pushover_user_key
+#################################  Logbook  ###################################
+logbook:
+  exclude:
+    domains:
+      - automation
+      - update
+    entity_globs:
+      - sensor.sun*
+      - weather.*
+      - sensor.browser_*
+      - sensor.*uptime
+      - sensor.time*
+      - input_text.*
+    entities:
+      - sensor.date
+      - sensor.last_boot # Comes from 'systemmonitor' sensor platform
+      - sun.sun # Don't record sun data
 
-# nest:
-#   client_id: !secret nest_client_id
-#   client_secret: !secret nest_client_secret
-#   # "Project ID" in the Device Access Console
-#   project_id: !secret nest_project_id
-#   # Provide the full path exactly as shown under "Subscription name" in Google Cloud Console
-#   subscriber_id: !secret nest_subscriber_id
-
-# device_tracker:
-#   - platform: bluetooth_tracker
-#     new_device_defaults:
-#       track_new_devices: true
-
-# calendar:
-#   - platform: todoist
-#     token: !secret todoist_token
-#     custom_projects:
-#       - name: "All Projects"
-#       - name: "Due Today"
-#         due_date_days: 0
-#       - name: "Due This Week"
-#         due_date_days: 7
-
-# google:
-#   client_id: !secret google_calendar_client_id
-#   client_secret: !secret google_calendar_client_secret
-#   track_new_calendar: true
-#   calendar_access: read_write
-
-# spotify:
-#   client_id: !secret spotify_client_id
-#   client_secret: !secret spotify_client_secret
-
-spotcast:
-  sp_dc: !secret sp_dc
-  sp_key: !secret sp_key
-
-adaptive_lighting:
-  lights:
-    # - light.pantry_left
-    # - light.pantry_right
-    # - light.kitchen_sink_lamp
-    - light.kitchen_lights_group
-    - light.living_room_light_group
-    - light.family_room_lights_group
-    - light.office_lights_group
-    - light.bedroom_lights_group
-    # - light.office_wall_switch_light
-    # - light.ethans_bedroom_wall_switch_light
-    # - light.main_bathroom_wall_switch_light
-    # - light.master_bathroom_wall_switch_light
-  prefer_rgb_color: false
-  transition: 45
-  initial_transition: 1
-  interval: 120
-  min_brightness: 1
-  max_brightness: 100
-  min_color_temp: 2000
-  max_color_temp: 6500
-  sleep_brightness: 1
-  sleep_color_temp: 1000
-  sunrise_time: "06:30:00"
-  sunset_time: "18:00:00"
-  take_over_control: true
-
-cloud:
-  google_actions:
-    filter:
-      include_domains:
-        - group
-        - fan
-        - light
-        - scene
-        - alarm_control_panel
-        - media_player
-        - camera
-        - climate
-        - cover
-        - fan
-      include_entities:
-        - switch.yard_christmas_lights
-        - switch.espresso_machine
-        - switch.bedroom_fan
-        - switch.grow_lights
-    entity_config:
-      light.bedroom_lights_group:
-        name: Master Bedroom Lights
-        aliases:
-          - master lights
-          - bedroom lights
-        room: Master Bedroom
-
+#################################  InfluxDB  ###################################
 influxdb:
   api_version: 2
   ssl: false
-  host: 10.0.0.10
+  host: !secret host_ip
   port: 8086
-  token: ChX19LQdizSf2pACt_acXM_61JKaHz44n_5JT-9DGhFNdQFQgUE_BQZYTTKn0H53R3mR8f9cpdQIIuJuoNwFqA==
-  organization: 92e5ca4c607bde4f
+  token: !secret influxdb_token
+  organization: !secret influxdb_organization
   bucket: hassio
   max_retries: 3
   default_measurement: state
@@ -198,27 +175,20 @@ influxdb:
       - automation
       - camera
 
-# Example configuration.yaml entry configuring HomeKit
-homekit:
-  - name: HASS Bridge Alarm/climate
-    filter:
-      include_domains:
-        - alarm_control_panel
-        - climate
-  - name: HASS Bridge Media/Camera
-    port: 21066
-    filter:
-      include_domains:
-        - media_player
-        - camera
-  - name: HASS Bridge Lights
-    port: 21065
-    filter:
-      include_domains:
-        - light
-  - name: HASS Bridge Non-Lights
-    port: 21064
-    filter:
-      include_domains:
-        - cover
-        - fan
+#################################  TraktTV  ###################################
+trakt_tv:
+  language: en # Prefered language for movie/show title
+  timezone: America/Los_Angeles # Prefered timezone
+  sensors:
+    upcoming:
+      show:
+        days_to_fetch: 30
+        max_medias: 10
+      movie:
+        days_to_fetch: 45
+        max_medias: 5
+    recommendation:
+      show:
+        max_medias: 3
+      movie:
+        max_medias: 3

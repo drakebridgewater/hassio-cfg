@@ -1,93 +1,157 @@
 - platform: group
-  name: Main Floor Lights [Group]
+  name: Holiday Lights
   entities:
-    - light.stair_light_1
-    - light.stair_light_2
-    - light.awning_left
-    - light.awning_right
-    - light.pantry_left
-    - light.pantry_right
-    - light.cabinet_lighting
-    - light.vaulted_light
-    - light.upstairs_hallway_wall_switch
-    - light.kitchen_wall_switch_light
-    - light.yeelight_pulley_lamp
-    - light.yeelight_theater_left
-    - light.kitchen_sink_lamp
+    - light.wled_upstairs_deck
+    - light.ethan_s_holiday_switch
+    - light.outdoor_holiday_switch
+    - light.kitchen_holiday_lights
+    - light.shelf_strip
+    - light.wled_christmas_tree
+
+
+# - platform: group
+#   name: Main Floor Lights [Group]
+#   entities:
+#     - light.0x94deb8fffe4580e5 # Stairs wall switch
+#     - light.awning_wall_switch
+#     - light.pantry_left
+#     - light.pantry_right
+#     - light.kitchen_cabinet_light_strip
+#     - light.vaulted_light
+#     - light.upstairs_hallway_wall_switch
+#     - light.kitchen_wall_switch_light
+#     - light.yeelight_pulley_lamp
+#     - light.yeelight_theater_left
+#     - light.entertainment_center_backdrop
+#     - light.kitchen_sink_lamp
+#     - light.awning_displays
 - platform: group
   name: Ambiance Light [Group]
   entities:
     - light.pantry_left
     - light.pantry_right
-    - light.stair_light_1
-    - light.stair_light_2
-    - light.cabinet_lighting
+    - light.kitchen_cabinet_light_strip
+    # - light.awning_wall_switch
     - light.awning_left
     - light.awning_right
     - light.kitchen_sink_lamp
+    - light.awning_displays
+    - light.0x94deb8fffe4580e5 # Upstairs wall switch
 - platform: group
   name: Living Room Light [Group]
   entities:
-    - light.stair_light_1
-    - light.stair_light_2
+    - light.0x94deb8fffe4580e5 # Upstairs wall switch
     - light.awning_left
     - light.awning_right
+
 - platform: group
   name: Kitchen Lights [Group]
   entities:
     - light.pantry_left
     - light.pantry_right
-    - light.cabinet_lighting
+    # - light.kitchen_cabinet_light_strip
     - light.kitchen_sink_lamp
 - platform: group
   name: Dining Room Lights [Group]
   entities:
-    - light.vaulted_light
+    - light.vaulted_light_fan_9
+
+- platform: group
+  name: Living Room Lights [Group]
+  entities:
+    - light.yeelight_pulley_lamp
+    - light.yeelight_theater_left
+    - light.entertainment_center_backdrop
+    - light.light_1
+    - light.light_2
+    - light.awning_left
+    - light.awning_right
+    - light.stair_light_1
+    - light.stair_light_2
+    - light.awning_displays
 - platform: group
   name: TV Lights [Group]
   entities:
     - light.yeelight_pulley_lamp
     - light.yeelight_theater_left
     - light.entertainment_center_backdrop
-- platform: group
-  name: Awning Lights [Group]
-  entities:
-    - light.awning_left
-    - light.awning_right
-- platform: group
-  name: Stair Lights [Group]
-  entities:
-    - light.stair_light_1
-    - light.stair_light_2
+    - light.light_1
+    - light.light_2
 - platform: group
   name: Bedroom Lights [Group]
   entities:
     - light.master_bedroom_dresser_light
     - light.drake_s_bedside_light
     - light.shawna_s_bedside_light
+    - light.master_bedroom_wall_switch
 - platform: group
   name: Ethan's Lights [Group]
   entities:
     - light.ethan_light_1
     - light.toy_chest_strip
 - platform: group
-  name: Porch Lights [Group]
+  name: Outdoor Lights [Group]
   entities:
     - light.outside_garage_left_light
     - light.outside_garage_right_light
     - light.front_porch_light
+    - light.0x94deb8fffe4fcaf4
 - platform: group
   name: Office Lights [Group]
   entities:
-    - light.office_desk_left_lamp
+    - light.office_light_01
     - light.office_desk_right_lamp
-    - light.office_crafting_desk_lamp
-    - light.office_desk_behind_monitor_lamp
+    - light.office_wall_switch
+  
+- platform: group
+  name: Desk Lights [Group]
+  entities:
+    - light.office_desk_right_lamp
+    - light.office_light_01
 - platform: group
   name: Family Room Lights [Group]
   entities:
-    - light.family_room_shelf_lamp
-    - light.family_room_reading_light
+    - light.family_room_couch_light
+    - light.family_room_chair_light
     - light.shelf_strip
-    - light.family_room_tv_backdrop_2
-
+    - light.family_room_wall_switch
+    - light.family_room_ceiling_light_1
+    - light.family_room_ceiling_light_2
+    - light.family_room_ceiling_light_3
+- platform: group
+  name: Family Room TV Lights [Group]
+  entities:
+    - light.family_room_right_of_tv_hue_2
+    - light.family_room_top_of_tv_hue
+- platform: group
+  name: Family Room Ceiling Light Bulbs [Group]
+  entities:
+    - light.family_room_ceiling_light_1
+    - light.family_room_ceiling_light_2
+    - light.family_room_ceiling_light_3
+- platform: group
+  name: Family Room Ambiance Lights [Group]
+  entities:
+    - light.family_room_couch_light
+    - light.family_room_chair_light
+    - light.shelf_strip
+- platform: group
+  name: Wall Switch Light Group
+  entities:
+    - light.master_bedroom_wall_switch
+    - light.kitchen_wall_switch
+    - light.vaulted_light
+    - light.0x94deb8fffe4580e5 # Stairs wall switch
+    - light.0x70ac08fffe7106cc # Ethan's Wall switch
+    - light.office_wall_switch
+    - light.family_room_wall_switch
+    - light.upstairs_hallway_wall_switch
+    - light.downstairs_hallway_wall_switch
+    - light.master_bathroom_wall_switch
+    - light.basement_bathroom_wall_switch
+    - light.garage_wall_switch
+    - light.top_deck_wall_switch
+    - light.basement_deck_wall_switch
+    - light.awning_wall_switch
+    - light.master_bedroom_closet_wall_switch
+    # - light.0x94deb8fffe4fcaf4  # Patio light wall switch

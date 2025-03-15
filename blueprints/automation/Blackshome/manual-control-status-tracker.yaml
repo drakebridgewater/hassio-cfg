@@ -1,0 +1,151 @@
+blueprint:
+  name: Manual Control Status Tracker
+  description: "# ⏹️ Manual Control Status Tracker\n**Version: 1.0**\n\n\U0001F914\U0001F51B
+    Who's in Control: Track the Entity, Know the Source.\n\n**If you like my blueprints,
+    and would like to show your support or just say thank you?** [Click Here](https://www.paypal.com/donate/?hosted_button_id=WAZS3QSDTPGA8)
+    \U0001F642\n\n<details> <summary><b>The Automation Process:</b> \U0001F448</summary>\n\n
+    \ - **Actions:**\n      - Tracks if an entity is manually turned ON and OFF, updating
+    the toggle helper to reflect the control method.\n      - If the entity is turned
+    ON by an automation, the toggle helper remains unchanged.\n\n  - **Auto OFF Options:**\n
+    \     - Automatically turns off the target entity and toggle helper.\n      -
+    Automatically turns off the toggle helper.\n\n</details>\n\nNeed help? \n- FAQ:
+    [Click Here](https://community.home-assistant.io/t/826502/2)\n- Community Support
+    Including Updates: [Click Here](https://community.home-assistant.io/t/826502)\n"
+  domain: automation
+  input:
+    target_entities:
+      name: Target Entities To Track
+      description: 'Select the entities to monitor and determine if they are manually
+        turned ON or OFF. These entities will be tracked specifically for manual ON
+        and OFF actions, distinguishing them from automation-driven changes.
+
+
+        These entities are typically lights or switches used in my other blueprints,
+        allowing you to maintain manual control when turning them on manually.
+
+        '
+      selector:
+        entity:
+          multiple: true
+          filter:
+          - domain:
+            - light
+            - switch
+    manual_tracking:
+      name: Manual Control Status - Toggle Helper
+      description: 'Select the entity to update when the target entity is manually
+        turned ON or OFF, reflecting the manual control state.
+
+
+        This entity is typically a toggle helper, which you use in the bypass of my
+        other blueprint in Option 3.
+
+        '
+      default: []
+      selector:
+        entity:
+          filter:
+          - domain:
+            - input_boolean
+          multiple: false
+    include_auto_off:
+      name: Auto OFF Option (Optional)
+      description: 'Select if you would like to use the auto off option.
+
+        '
+      default: disable_auto_off
+      selector:
+        select:
+          options:
+          - label: Enable Auto OFF - Target Entity & Toggle Helper
+            value: enable_all_auto_off
+          - label: Enable Auto OFF - Toggle Helper
+            value: enable_manual_tracking_auto_off
+          - label: Disable Auto OFF
+            value: disable_auto_off
+          multiple: false
+          custom_value: false
+          sort: false
+    time_delay:
+      name: Auto OFF - Time Delay
+      description: 'The time delay determines how long the entities will remain ON.
+
+        '
+      default: 10
+      selector:
+        number:
+          min: 0.0
+          max: 60.0
+          step: 0.5
+          unit_of_measurement: minutes
+          mode: slider
+  source_url: https://gist.github.com/Blackshome/993beed8b1c6ea29613b67f54d592456
+mode: restart
+max_exceeded: silent
+variables:
+  target_entities: !input target_entities
+  manual_tracking: !input manual_tracking
+  include_auto_off: !input include_auto_off
+  time_delay: !input time_delay
+  target_entities_on: "{{ expand(target_entities)\n  | selectattr('state', 'eq', 'on')\n
+    \ | map(attribute='entity_id')\n  | list }}\n"
+triggers:
+- trigger: state
+  entity_id: !input target_entities
+  from: 'off'
+  to: 'on'
+  id: t1
+- trigger: state
+  entity_id: !input target_entities
+  from: 'on'
+  to: 'off'
+  id: t2
+condition:
+- condition: or
+  conditions:
+  - condition: and
+    conditions:
+    - condition: template
+      value_template: '{{ trigger.id == ''t1'' and trigger.to_state.context.parent_id
+        is none }}'
+  - condition: and
+    conditions:
+    - condition: template
+      value_template: '{{ trigger.id == ''t2'' and trigger.to_state.context.parent_id
+        is none }}'
+action:
+- choose:
+  - conditions:
+    - condition: trigger
+      id: t1
+    sequence:
+    - action: homeassistant.turn_on
+      target:
+        entity_id: !input manual_tracking
+    - choose:
+      - conditions:
+        - '{{ include_auto_off == ''enable_all_auto_off'' }}'
+        sequence:
+        - delay:
+            minutes: !input time_delay
+        - action: homeassistant.turn_off
+          target:
+            entity_id: '{{ target_entities_on }}'
+        - action: homeassistant.turn_off
+          target:
+            entity_id: !input manual_tracking
+      - conditions:
+        - '{{ include_auto_off == ''enable_manual_tracking_auto_off'' }}'
+        sequence:
+        - delay:
+            minutes: !input time_delay
+        - action: homeassistant.turn_off
+          target:
+            entity_id: !input manual_tracking
+  - conditions:
+    - condition: trigger
+      id: t2
+    sequence:
+    - action: homeassistant.turn_off
+      target:
+        entity_id: !input manual_tracking

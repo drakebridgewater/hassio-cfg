@@ -1,0 +1,67 @@
+notification_alerts:
+  binary_sensor:
+    - platform: template  
+      sensors:
+        # garage_door_info_alert_active:
+        #   friendly_name: Garage Door Alert Active
+        #   value_template: "{{ is_state('cover.garage_door', 'open') and is_state('input_boolean.garage_door_notify', 'on') }}"
+
+        air_quality_info_alert_active:
+          friendly_name: Air Quality Alert Active
+          value_template: "{{ states('sensor.airnow_aqi') > states('input_number.aqi_warning_threshold') }}"
+        
+        # pollen_info_alert_active:
+        #   friendly_name: Air Quality Alert Active
+        #   value_template: "{{ states('sensor.airnow_aqi') < states('input_number.aqi_warning_threshold') }}"
+
+  alert: 
+    # garage_door_info_alert_active:
+    #   name: Garage Door Alert Active
+    #   entity_id: binary_sensor.garage_door_info_alert_active
+    #   state: "on"
+    #   repeat:
+    #     - 60
+    #   can_acknowledge: true
+    #   skip_first: true
+    #   title: "Info - Garage Door Open"
+    #   message: >
+    #     Garage Door open for {{ relative_time(states.binary_sensor.garage_door_alert_active.last_changed) }} \  
+    #     Triggered: {{ as_timestamp(states.binary_sensor.garage_door_alert_active.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }}
+    #   done_message: "Garage Door Alert RESOLVED at {{ as_timestamp(states.binary_sensor.garage_door_alert_active.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }}"
+    #   notifiers:
+    #     - STD_Information
+    #     - "TTS History"
+
+    guest_mode_enabled_info_alert_active:
+      name: Guest Mode Enabled Alert Active
+      entity_id: input_boolean.guest_mode
+      state: "on"
+      repeat:
+        - 1440
+      can_acknowledge: true
+      skip_first: false
+      title: "Info - Guest Mode Changed"
+      message: >
+        Guest mode enabled {{ relative_time(states.input_boolean.guest_mode.last_changed) }} \  
+        Triggered: {{ as_timestamp(states.input_boolean.guest_mode.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }}
+      done_message: "Guest Mode disabled at {{ as_timestamp(states.input_boolean.guest_mode.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }}"
+      notifiers:
+        - STD_Information
+        - "TTS History"
+
+    # aqi_info_alert_active:
+    #   name: AQI High Alert Active
+    #   entity_id: binary_sensor.air_quality_info_alert_active
+    #   state: "on"
+    #   repeat:
+    #     - 60
+    #   can_acknowledge: true
+    #   skip_first: true
+    #   title: "Info - AQI Elevated"
+    #   message: >
+    #     AQI has been high for {{ relative_time(states.binary_sensor.air_quality_info_alert_active.last_changed) }} \  
+    #     Triggered: {{ as_timestamp(states.binary_sensor.air_quality_info_alert_active.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }}
+    #   done_message: "AQI Returned to normal at {{ as_timestamp(states.binary_sensor.air_quality_info_alert_active.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }}"
+    #   notifiers:
+    #     - STD_Information
+    #     - "TTS History"

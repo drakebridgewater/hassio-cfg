@@ -1,0 +1,373 @@
+
+- type: custom:bubble-card
+  card_type: separator
+  name: Upstairs
+- type: grid
+  columns: 2
+  square: false
+  cards:
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.awning_lights_wall_switch
+    name: Awning
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.awning_lights_wall_switch
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.master_bedroom_wall_switch
+    name: Bedroom
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.master_bedroom_wall_switch
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.master_bedroom_closet_wall_switch
+    name: Master Closet
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.master_bedroom_closet_wall_switch
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.kitchen_wall_switch
+    name: Kitchen
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.kitchen_wall_switch
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.vaulted_light
+    name: Dining Room
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.vaulted_light
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.0x94deb8fffe4580e5
+    name: Stairs
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.0x94deb8fffe4580e5
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.awning_wall_switch
+    name: Awning
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.awning_wall_switch
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+
+- type: custom:bubble-card
+  card_type: separator
+  name: Downstairs
+- type: grid
+  columns: 2
+  square: false
+  cards:
+
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.0x70ac08fffe7106cc
+    name: Ethan
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.0x70ac08fffe7106cc
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.office_wall_switch
+    name: Office
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.office_wall_switch
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.family_room_wall_switch
+    name: Family Room
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.family_room_wall_switch
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+
+- type: custom:bubble-card
+  card_type: separator
+  name: Hallways
+- type: grid
+  columns: 2
+  square: false
+  cards:
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.0x943469fffe05d4f1
+    name: Hallway
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.0x943469fffe05d4f1
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.upstairs_hallway_wall_switch
+    name: Upstairs
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.upstairs_hallway_wall_switch
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.downstairs_hallway_wall_switch
+    name: Downstairs
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.downstairs_hallway_wall_switch
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+
+- type: custom:bubble-card
+  card_type: separator
+  name: Bathrooms
+- type: grid
+  columns: 2
+  square: false
+  cards:
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.main_bathroom_wall_switch
+    name: Main
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.main_bathroom_wall_switch
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.master_bathroom_wall_switch
+    name: Master
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.master_bathroom_wall_switch
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.basement_bathroom_wall_switch
+    name: Basement
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.basement_bathroom_wall_switch
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+
+- type: custom:bubble-card
+  card_type: separator
+  name: Garage
+- type: grid
+  columns: 2
+  square: false
+  cards:
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.garage_wall_switch
+    name: Garage
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.0x94deb8fffe4fcaf4
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+
+
+- type: custom:bubble-card
+  card_type: separator
+  name: Outdoors
+- type: grid
+  columns: 2
+  square: false
+  cards:
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.0x94deb8fffe4fcaf4
+    name: Porch
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.0x94deb8fffe4fcaf4
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.basement_deck_wall_switch
+    name: Basement Deck
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.basement_deck_wall_switch
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: light.top_deck_wall_switch
+    name: Upstairs Deck
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: more-info
+    sub_button:
+      - entity: light.top_deck_wall_switch
+        name: ""
+        icon: mdi:power
+        tap_action:
+          action: toggle

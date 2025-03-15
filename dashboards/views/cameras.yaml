@@ -1,0 +1,117 @@
+title: Cameras
+icon: mdi:cctv
+path: cameras
+type: custom:grid-layout
+layout: !include ../layouts/grid.yaml
+cards:
+  - type: vertical-stack
+    view_layout:
+      grid-area: sidebar
+    cards: !include_dir_list ../sections/sidebar
+
+  ######################### Status Bar ############################################
+  - type: custom:mushroom-chips-card
+    view_layout:
+      grid-area: banner
+    chips: !include ../sections/status-bar.yaml
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: footer
+    cards: !include_dir_list ../sections/footer
+  
+  - type: custom:frigate-card
+    view_layout:
+      grid-area: section1
+    cameras:
+      - camera_entity: camera.livingroom
+    view:
+      default: live
+    menu:
+      style: outside
+      alignment: right
+      buttons:
+        frigate:
+          enabled: true
+    cameras_global:
+      preload: false
+      auto_pause: hidden
+      auto_play: visible
+  - type: custom:frigate-card
+    view_layout:
+      grid-area: section2
+    cameras:
+      - camera_entity: camera.frontdoor
+    view:
+      default: live
+    menu:
+      style: outside
+      alignment: right
+      buttons:
+        frigate:
+          enabled: true
+    cameras_global:
+      preload: false
+      auto_pause: hidden
+      auto_play: visible
+  - type: custom:frigate-card
+    view_layout:
+      grid-area: section3
+    cameras:
+      - camera_entity: camera.ethans_room_camera
+    view:
+      default: live
+    menu:
+      style: outside
+      alignment: right
+      buttons:
+        frigate:
+          enabled: true
+    cameras_global:
+      preload: false
+      auto_pause: hidden
+      auto_play: visible
+  - show_state: false
+    view_layout:
+      grid-area: section4
+    show_name: false
+    camera_view: auto
+    type: picture-entity
+    entity: camera.front_door_camera
+    tap_action:
+      action: call-service
+      service: abode.capture_image
+      data:
+        entity_id: camera.front_door_camera
+    aspect_ratio: '9:5'
+  - show_state: false
+    view_layout:
+      grid-area: section6
+    show_name: false
+    camera_view: auto
+    type: picture-entity
+    entity: camera.family_room_camera
+    tap_action:
+      action: call-service
+      service: abode.capture_image
+      data:
+        entity_id: camera.family_room_camera
+    aspect_ratio: '9:5'
+
+  # - type: custom:frigate-card
+  #   view_layout:
+  #     grid-area: section5
+  #   cameras:
+  #     - camera_entity: camera.drivewaystairs
+  #   view:
+  #     default: live
+  #   menu:
+  #     style: outside
+  #     alignment: right
+  #     buttons:
+  #       frigate:
+  #         enabled: true
+  #   cameras_global:
+  #     preload: false
+  #     auto_pause: hidden
+  #     auto_play: visible

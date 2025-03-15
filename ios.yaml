@@ -1,0 +1,11 @@
+actions:
+  - name: Garage Door Toggle
+    # background_color: "#000000"
+    label:
+      text: "Toggle Garage Door"
+      # color: "#ff0000"
+    icon:
+      icon: mdi:garage
+      color: "#ffffff"
+    show_in_carplay: true
+    show_in_watch: true

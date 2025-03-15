@@ -1,0 +1,1764 @@
+complete_square_btn_light:
+  template:
+    - complete_square_btn
+    - light_btn
+
+complete_square_btn_switch:
+  template:
+    - complete_square_btn
+    - switch_btn
+
+complete_square_btn:
+  template:
+    - standard_btn_layout
+    - standard_btn_states
+    - standard_btn_states_on
+
+complete_half_square_sensor:
+  aspect_ratio: 2/1
+  template:
+    - standard_btn_states
+    - standard_btn_layout
+    - half_btn
+
+wide_icon_slider_light:
+  template:
+    - view_light_layout
+    - hue_color_bulb
+    - view_bulb_downlight
+  custom_fields:
+    power_icon:
+      card:
+        entity: >
+          [[[ return entity.entity_id ]]]
+        template: view_power_icon_style
+        type: custom:button-card
+    slider:
+      card:
+        entity: >
+          [[[ return entity.entity_id ]]]
+        full_row: true
+        toggle: false
+        type: custom:slider-entity-row
+wide_icon_fan:
+  template:
+    - view_light_layout
+    - fan_btn
+    - table_fan_icon
+  custom_fields:
+    power_icon:
+      card:
+        entity: >
+          [[[ return entity.entity_id ]]]
+        template: view_power_icon_style
+        type: custom:button-card
+
+wide_icon:
+  template:
+    - view_light_layout
+    - standard_btn_states
+  custom_fields:
+    power_icon:
+      card:
+        entity: >
+          [[[ return entity.entity_id ]]]
+        template: view_power_icon_style
+        type: custom:button-card
+
+temperature:
+  template: standard
+  aspect_ratio: 1/1
+  color: darker
+  show_state: true
+  show_name: true
+  styles:
+    img_cell:
+      - align-self: start
+      - text-align: start
+    name:
+      - font-size: 1.2em
+    state:
+      - font-size: 1.5em
+    label:
+      - font-size: 1em
+      - padding-bottom: 25%
+
+#################################################
+#                                               #
+#                     BASE                      #
+#                                               #
+#################################################
+
+base:
+  variables:
+    state: >
+      [[[ return entity === undefined || entity.state; ]]]
+    timeout: >
+      [[[ return entity === undefined || Date.now() - Date.parse(entity.last_changed); ]]]
+    consider_on: >
+      [[[ return ['on', 'home', 'cool', 'fan_only', 'playing'].indexOf(entity === undefined || entity.state) !== -1; ]]]
+  aspect_ratio: 1/1
+  show_state: true
+  show_icon: false
+  state_display: >
+    [[[ if (variables.state === true) return 'Unknown'; ]]]
+  tap_action:
+    animation_card: |
+      [[[
+        let time = 900;
+        this.shadowRoot.getElementById('card').style.animation =
+          `card_bounce ${time}ms cubic-bezier(0.22, 1, 0.36, 1)`,
+          window.setTimeout(() => {
+            this.shadowRoot.getElementById('card').style.animation = 'none'
+          }, time);
+      ]]]
+    action: toggle
+    haptic: medium
+  styles:
+    grid:
+      - grid-template-areas: |
+          "icon  circle"
+          "n     n"
+          "s     s"
+      - grid-template-columns: repeat(2, 1fr)
+      - grid-template-rows: auto repeat(2, min-content)
+      - gap: 2%
+      - align-items: start
+    name:
+      - justify-self: start
+      - line-height: 115%
+    state:
+      - justify-self: start
+      - line-height: 115%
+    card:
+      - font-family: Sf Display
+      - border-radius: var(--custom-button-card-border-radius)
+      - -webkit-tap-highlight-color: rgba(0,0,0,0)
+      - transition: none
+      - padding: 10%
+      - --mdc-ripple-color: >
+          [[[
+            return variables.consider_on ?
+              'rgb(0, 0, 0)' :
+              'rgba(255, 255, 255, 0.3)';
+          ]]]
+      - color: >
+          [[[
+            return variables.consider_on ?
+              'rgba(0, 0, 0, 0.6)' :
+              'rgba(255, 255, 255, 0.3)';
+          ]]]
+      - background-color: >
+          [[[
+            return variables.consider_on ?
+              'rgba(255, 255, 255, 0.8)' :
+              'rgba(115, 115, 115, 0.2)';
+          ]]]
+  extra_styles: |
+    [[[
+      if (entity) {
+        let hs = entity.attributes.hs_color == undefined,
+          h = hs || entity.attributes.hs_color[0],
+          s = hs || entity.attributes.hs_color[1],
+          l_min = 28,
+          l_max = 48,
+          l_calc = 
+            entity.attributes.brightness / 2.54 * (l_max - l_min) / 100 + l_min;
+        var light_color = 
+          entity.attributes.color_mode === 'color_temp'
+            ? `hsl(204, 58%, ${l_calc}%);`
+            : `hsl(${h}, ${s}%, ${l_calc}%);`;
+      }
+      return `
+        svg {
+          --light-color:
+          ${ variables.state === 'on' && entity.attributes.brightness != undefined
+              ? light_color
+              : variables.state === 'on' && entity.attributes.brightness == undefined
+              ? 'var(--state-icon-active-color);'
+              : 'var(--state-icon-color);'
+          }
+        }
+        #container {
+          text-align: left !important;
+        }
+        #name, #state {
+          font-size: 1.34vw;
+          letter-spacing: 0.05vw;
+        }
+        /* portrait */
+        @media screen and (max-width: 1200px) {
+          #name, #state {
+            font-size: 2vw;
+            letter-spacing: 0.05vw;
+          }
+        }
+        /* phone */
+        @media screen and (max-width: 800px) {
+          #name, #state {
+            font-size: 3.1vw;
+            letter-spacing: 0.12vw;
+          }
+        }
+        @keyframes card_bounce {
+          0% {
+            transform: scale(1);
+          }
+          15% {
+            transform: scale(0.9);
+          }
+          25% {
+            transform: scale(1);
+          }
+          30% {
+            transform: scale(0.98);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+      `
+    ]]]
+
+#################################################
+#                                               #
+#                    CIRCLE                     #
+#                                               #
+#################################################
+
+circle:
+  custom_fields:
+    circle: >
+      [[[
+        if (variables.state === 'on') {
+          let input = variables.circle_input,
+            radius = 20.5,
+            circumference = radius * 2 * Math.PI;
+          return `
+            <svg viewBox="0 0 50 50">
+              <style>
+                circle {
+                  transform: rotate(-90deg);
+                  transform-origin: 50% 50%;
+                  stroke-dasharray: ${circumference};
+                  stroke-dashoffset: ${circumference - input / 100 * circumference};
+                }
+                tspan {
+                  font-size: 10px;
+                }
+              </style>
+              <circle cx="25" cy="25" r="${radius}" stroke="#b2b2b2" stroke-width="1.5" fill="none" />
+              <text x="50%" y="54%" fill="#8d8e90" font-size="14" text-anchor="middle" alignment-baseline="middle" dominant-baseline="middle">${input}<tspan font-size="10">%</tspan></text>
+            </svg>
+          `;
+        }
+      ]]]
+  styles:
+    custom_fields:
+      circle: &person
+        - display: initial
+        - width: 90%
+        - letter-spacing: 0.03vw
+        - margin: -6% -6% 0 0
+        - justify-self: end
+        - opacity: 1
+#################################################
+#                                               #
+#                     LIGHT                     #
+#                                               #
+#################################################
+
+light:
+  template:
+    - base
+    - circle
+    - light_hold_action
+  variables:
+    circle_input: >
+      [[[ return entity === undefined || Math.round(entity.attributes.brightness / 2.54); ]]]
+
+light_hold_action:
+  hold_action:
+    action: fire-dom-event
+    browser_mod:
+      command: popup
+      title: >
+        [[[ return entity.attributes.friendly_name; ]]]
+      card:
+        type: custom:light-popup-card
+        entity: >
+          [[[ return entity.entity_id ]]]
+        icon: none
+        fullscreen: false
+        brightnessWidth: 130px
+        brightnessHeight: 360px
+        borderRadius: 1.7em
+        sliderColor: "#c7c7c7"
+        sliderTrackColor: rgba(25, 25, 25, 0.9)
+        displayType: slider
+        actionSize: 4.5em
+        actionsInARow: 2
+        actions:
+          - action: call-service
+            service: light.turn_on
+            color: "#d8d9e1"
+            service_data:
+              entity_id: >
+                [[[ return entity.entity_id ]]]
+              color_temp: 153
+          - action: call-service
+            service: light.turn_on
+            color: "#d5b08d"
+            service_data:
+              entity_id: >
+                [[[ return entity.entity_id ]]]
+              color_temp: 326
+          - action: call-service
+            service: light.turn_on
+            color: "#ce944b"
+            service_data:
+              entity_id: >
+                [[[ return entity.entity_id ]]]
+              color_temp: 500
+          - action: fire-dom-event
+            image: >-
+              data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 
+              50 50"%3E%3Cstyle%3Esvg%7Bbackground:radial-gradient(circle,rgba(255,255,
+              255,1) 0%25,rgba(255,255,255,0) 80%25),conic-gradient(%237827e6,%23e622e7,
+              %23e40588,%23e41919,%23e5691e,%23e8e22e,%237de629,%2334e828,%2333e75c,
+              %2334e8e0,%23207de5,%231227e5,%237827e6)%7D%3C/style%3E%3C/svg%3E
+            browser_mod:
+              command: popup
+              title: >
+                [[[ return entity.attributes.friendly_name ]]]
+              card:
+                type: custom:light-entity-card
+                entity: >
+                  [[[ return entity.entity_id ]]]
+                brightness: true
+                color_temp: true
+                full_width_sliders: false
+                hide_header: true
+                show_slider_percent: true
+                smooth_color_wheel: true
+                persist_features: true
+                consolidate_entities: false
+
+#################################################
+#                                               #
+#                  SENSOR                       #
+#            State based updates                #
+#                                               #
+#################################################
+climate_btn_states:
+  state:
+    - styles:
+        card:
+          - background-color: red
+        custom_fields:
+          s2:
+            - color: white
+        icon:
+          - color: white
+        label:
+          - color: white
+        name:
+          - color: white
+        state:
+          - color: white
+      value: unavailable
+    - icon: mdi:power
+      styles:
+        card:
+          - background-color: grey
+        custom_fields:
+          s2:
+            - color: white
+        icon:
+          - color: white
+        label:
+          - color: white
+        name:
+          - color: white
+        state:
+          - color: white
+      value: "off"
+    - icon: mdi:fire
+      styles:
+        custom_fields:
+          s2:
+            - color: white
+        icon:
+          - color: white
+        label:
+          - color: white
+        name:
+          - color: white
+        state:
+          - color: white
+      value: heat
+    - styles:
+        custom_fields:
+          s2:
+            - color: white
+        icon:
+          - color: white
+        label:
+          - color: white
+        name:
+          - color: white
+        state:
+          - color: white
+      value: auto
+motion_icon_state:
+  show_name: true
+  show_state: true
+  state_display: |
+    [[[
+      if ( entity.state == "on" ) return "Detected";
+      if ( entity.state == "off" ) return "Not Detected";
+      return "Unknown";
+    ]]]
+  icon: |
+    [[[ 
+      if (entity.state == 'on') return "mdi:motion-sensor";
+      if (entity.state == 'off') return "mdi:motion-sensor-off";
+      else return "Unknown" 
+    ]]]
+window_icon_state:
+  show_name: true
+  show_state: true
+  state_display: |
+    [[[ 
+      if (entity.state == 'on') return "Open";
+      if (entity.state == 'off') return "Closed";
+      else return "Unknown" 
+    ]]]
+  icon: |
+    [[[ 
+      if (entity.state == 'on') return "mdi:window-open";
+      if (entity.state == 'off') return "mdi:window-closed";
+      else return "Unknown" 
+    ]]]
+door_icon_state:
+  show_name: true
+  show_state: true
+  state_display: |
+    [[[ 
+      if (entity.state == 'on') return "Open";
+      if (entity.state == 'off') return "Closed";
+      else return "Unknown" 
+    ]]]
+  icon: |
+    [[[ 
+      if (entity.state == 'on') return "mdi:door-open";
+      if (entity.state == 'off') return "mdi:door-closed";
+      else return "Unknown" 
+    ]]]
+sensor-alarm-states:
+  state:
+    - icon: mdi:shield-check
+      styles:
+        card: null
+        icon:
+          - color: "#0DD58C"
+        label:
+          - color: var--(primary-text-color)
+        name:
+          - color: var--(primary-text-color)
+        state:
+          - color: var--(primary-text-color)
+      value: disarmed
+    - icon: mdi:shield-key
+      styles:
+        card: null
+        icon:
+          - color: var--(primary-text-color)
+        label:
+          - color: var--(primary-text-color)
+        name:
+          - color: var--(primary-text-color)
+        state:
+          - color: var--(primary-text-color)
+      value: arming
+    - icon: mdi:shield-home
+      styles:
+        card: null
+        icon:
+          - color: "#45aaf2"
+        label:
+          - color: var--(primary-text-color)
+        name:
+          - color: var--(primary-text-color)
+        state:
+          - color: var--(primary-text-color)
+      value: armed_home
+    - icon: mdi:shield-lock
+      styles:
+        card: null
+        icon:
+          - color: "#f44336"
+        label:
+          - color: var--(primary-text-color)
+        name:
+          - color: var--(primary-text-color)
+        state:
+          - color: var--(primary-text-color)
+      value: armed_away
+    - icon: mdi:shield-alert
+      styles:
+        card:
+          - background-color: "#d50d0d"
+        icon:
+          - color: white
+        label:
+          - color: var--(primary-text-color)
+        name:
+          - color: var--(primary-text-color)
+        state:
+          - color: var--(primary-text-color)
+      value: triggered
+  state_display: |
+    [[[ 
+      if (entity.state == "arming") return "Arming";
+      if (entity.state == "pending") return "Pending";
+      if (entity.state == "disarmed") return "Disarmed";
+      if (entity.state == "armed_home") return "Armed Home";
+      if (entity.state == "armed_away") return "Armed Away";
+      if (entity.state == "triggered") return "Triggered";
+      else return "Alarm Malfunction" 
+    ]]]
+temperature-indoor:
+  template: temperature
+  state:
+    - operator: ">"
+      value: 72
+      icon: mdi:thermometer-high
+      show_icon: true
+      styles:
+        icon:
+          - color: rgb(255,0,0)
+    - operator: <
+      value: 68
+      icon: mdi:snowflake
+      show_icon: true
+      styles:
+        icon:
+          - color: rgb(0,0,255)
+    - value: Unknown
+      icon: mdi:alert
+      show_icon: true
+      styles:
+        icon:
+          - color: rgb(255,255,255)
+temperature-outdoor:
+  template: temperature
+  state:
+    - operator: ">"
+      value: 80
+      icon: mdi:sun-thermometer
+      show_icon: true
+      styles:
+        icon:
+          - color: rgb(255,0,0)
+    - operator: ">"
+      value: 90
+      icon: mdi:thermometer-alert
+      show_icon: true
+      styles:
+        icon:
+          - color: rgb(255,0,0)
+    - operator: <
+      value: 40
+      icon: mdi:thermometer-low
+      show_icon: true
+      styles:
+        icon:
+          - color: rgb(0,0,255)
+    - operator: <
+      value: 32
+      icon: mdi:snowflake
+      show_icon: true
+      styles:
+        icon:
+          - color: rgb(0,0,255)
+    - value: Unknown
+      icon: mdi:alert
+      show_icon: true
+      styles:
+        icon:
+          - color: rgb(255,255,255)
+humidity:
+  template: standard
+  color: darker
+  show_state: true
+  show_name: false
+  state:
+    - operator: ">"
+      value: 60
+      icon: mdi:water-plus
+      show_icon: true
+      styles:
+        state:
+          - color: rgb(255,0,0)
+        icon:
+          - color: rgb(255,0,0)
+    - operator: <
+      value: 20
+      icon: mdi:water-minus
+      show_icon: true
+      styles:
+        state:
+          - color: rgb(0,0,255)
+        icon:
+          - color: rgb(0,0,255)
+    - value: Unknown
+      icon: mdi:alert
+      show_icon: true
+      styles:
+        state:
+          - color: rgb(255,255,255)
+        icon:
+          - color: rgb(255,255,255)
+  styles:
+    card:
+      - height: 100%
+    img_cell:
+      - align-self: start
+      - text-align: start
+    state:
+      - font-size: 25px
+
+#################################################
+#                                               #
+#                  SHAPES                       #
+#                                               #
+#################################################
+
+standard:
+  color_type: card
+  color: auto
+  size: 80%
+  hold_action:
+    action: more-info
+  styles:
+    card:
+      - padding: 0.2em
+      - "--mdc-ripple-color": yellow
+      - "--mdc-ripple-press-opacity": 0.5
+    icon:
+      - opacity: 0.5
+    name:
+      - font-size: 0.65em
+      - white-space: normal
+    state:
+      - font-size: 0.65em
+      - white-space: normal
+      - value: Unavailable
+        icon: hass:sync-alert
+        color: rgb(100,100,100)
+    label:
+      - font-size: 0.4em
+      - white-space: normal
+wide:
+  template: standard
+  styles:
+    grid:
+      - position: relative
+      - grid-template-areas: '"i n"'
+      - grid-template-columns: 1fr 1fr
+      - grid-template-rows: 1fr
+
+half_btn:
+  aspect_ratio: 2/1
+  show_name: true
+  show_state: true
+  styles:
+    grid:
+      - grid-template-areas: '"i n" "i s" '
+      - grid-template-rows: 50%
+      - grid-template-columns: 50% 50%
+    card:
+      - border-radius: 0
+      - box-shadow: none
+    icon:
+      - width: 50%
+    state:
+      - font-size: 10pt
+      - justify-self: start
+      - margin-left: 10%
+      - margin-bottom: 10px
+    name:
+      - justify-self: start
+      - margin-left: 10%
+      - font-weight: bold
+      - padding: 0
+      - margin-top: 10px
+container:
+  color_type: label-card
+  color: dimgray
+  styles:
+    card:
+      - padding: 0
+      - text-align: start
+    name:
+      - border-radius: 0.4em 0.4em 0 0
+      - padding: 0.1em
+      - width: 100%
+      - font-weight: bold
+      - color: white
+    state:
+      - value: Unavailable
+        icon: hass:sync-alert
+      - color: white
+    grid:
+      - grid-template-areas: '"i" "n" "buttons"'
+      - grid-template-columns: 1fr
+      - grid-template-rows: 1fr min-content min-content
+      - color: white
+    custom_fields:
+      s2:
+        - color: white
+      buttons:
+        - background-color: rgba(0,0,0,0.3)
+        - margin: 0
+        - padding: 0.3em
+small_btn_layout:
+  aspect_ratio: 1/1
+  show_label: false
+  show_name: false
+  show_state: false
+standard_btn_layout:
+  aspect_ratio: 1/1
+  show_label: true
+  show_name: true
+  size: 70%
+  styles:
+    card: null
+    custom_fields:
+      s2:
+        - justify-self: start
+        - margin-left: 10%
+        - padding-bottom: 5%
+        - font-size: 10pt
+      power_icon:
+        - justify-self: right
+        - margin-left: 5%
+        - margin-top: 10%
+      slider:
+        - margin-left: 3%
+    grid:
+      - grid-template-areas: '"i power_icon" "n n" "slider slider" "s s" "s2 s2" "l l" '
+      - grid-template-columns: 1fr 1fr
+      - grid-template-rows: 1fr auto auto auto auto auto
+    label:
+      - justify-self: start
+      - margin-left: 10%
+      - font-size: 10pt
+    name:
+      - justify-self: start
+      - margin-left: 10%
+      - font-weight: bold
+    state:
+      - justify-self: start
+      - margin-left: 10%
+      - font-size: 10pt
+
+#################################################
+#                                               #
+#            ACTIVE BUTTONS                     #
+#                                               #
+#################################################
+alerter:
+  template: standard
+  show_last_changed: true
+  color_type: icon
+  extra_styles: |
+    [[[ return `
+      @keyframes pulse {
+        20% {
+          background-color: ${variables.color};
+        }
+      }
+    `]]]
+  variables:
+    color: var(--paper-item-icon-active-color)
+  state:
+    - value: "on"
+      id: value_on
+      styles:
+        card:
+          - animation: pulse 1s infinite
+rotater:
+  show_last_changed: false
+  state:
+    - value: "on"
+      id: value_on
+      styles:
+        card:
+          - animation: rotation 2s infinite linear
+alerter-dual:
+  show_last_changed: true
+  color_type: icon
+  extra_styles: |
+    [[[ return `
+      @keyframes pulse1 {
+        20% {
+          background-color: ${variables.color_initial};
+        }
+      }
+      @keyframes pulse2 {
+        20% {
+          background-color: ${variables.color_extended};
+        }
+      }
+      @keyframes color {
+        0% {
+          color: unset;
+          opacity: 0.5
+        }
+        99% {
+          color: unset;
+          opacity: 0.5
+        }
+        100% {
+          color: ${variables.color_extended};
+        }
+      }
+    `]]]
+  variables:
+    color_initial: var(--paper-item-icon-active-color)
+    color_extended: rgba(240,52,52, 0.9)
+    color_seconds: 60
+  state:
+    - value: "on"
+      id: value_on
+      styles:
+        card:
+          - animation: >-
+              [[[ return `pulse1 1s ${variables.color_seconds}, pulse2 1s
+              ${variables.color_seconds}s infinite` ]]]
+        icon:
+          - color: "[[[ return variables.color_extended ]]]"
+          - opacity: 1
+          - animation: "[[[ return `color ${variables.color_seconds}s 1` ]]]"
+        name:
+          - font-weight: bold
+animated_btn_states_on:
+  state:
+    - spin: true
+      styles:
+        card:
+          - background-color: "#DFDFDF"
+        custom_fields:
+          s2:
+            - color: Grey
+        label:
+          - color: Grey
+          - font-size: 11pt
+        name:
+          - color: "#171717"
+        state:
+          - color: Grey
+      value: "on"
+
+#################################################
+#                                               #
+#                  NAV BUTTONS                  #
+#                                               #
+#################################################
+view_button:
+  color: var(-primary-text-color)
+  icon: mdi:arrow-left-circle
+  tap_action:
+    action: navigate
+view_back_button:
+  template: view_button
+  icon: mdi:arrow-left-circle
+  tap_action:
+    navigation_path: ../lovelace/main
+
+#################################################
+#                                               #
+#                 POPUP BUTTONS                 #
+#                                               #
+#################################################
+
+icon_name:
+  size: 1.4em
+  color: "#9da0a2"
+  styles:
+    grid:
+      - grid-template-areas: '"i n"'
+      - grid-column-gap: 0.3em
+    name:
+      - font-size: 1.06em
+      - letter-spacing: 0.015em
+    card:
+      - color: "#9da0a2"
+      - border-radius: 0.6em
+      - padding: 1em 1.4em 1em 1.2em
+      - width: max-content
+      - font-size: 1.06em
+      - font-weight: 500
+      - letter-spacing: 0.015em
+      - background: "#FFFFFF10"
+
+icon_only:
+  show_name: false
+  show_label: false
+  show_state: false
+  color: "#9da0a2"
+  styles:
+    card:
+      - color: "#9da0a2"
+      - border-radius: 0.6em
+      - width: 4em
+      - height: 3.7em
+      - background: "#FFFFFF10"
+icon_only_fill:
+  show_name: false
+  show_label: false
+  show_state: false
+  aspect_ratio: 1/1
+  styles:
+    icon:
+      - transform: scale(1.4)
+icon_only_sm:
+  show_name: false
+  show_label: false
+  show_state: false
+  color: "#9da0a2"
+  styles:
+    card:
+      - color: "#9da0a2"
+      - border-radius: 0.4em
+      - width: 3em
+      - height: 2.7em
+      - background: "#FFFFFF10"
+
+#################################################
+#                                               #
+#                    ICONS                      #
+#                                               #
+#################################################
+
+generic_color_bulb:
+  custom_fields:
+    icon_hue: >
+      <svg viewBox="0 0 32 32"><path xmlns="http://www.w3.org/2000/svg"
+      id="bulb" d="M9.573,13.208c1.887,0.597 4.639,0.792 6.427,0.792c1.788,0
+      4.54,-0.195 6.427,-0.792c-0.768,2.018 -2.1,2.911
+      -2.417,4.792c-0.138,0.819 -0.255,1.963 -0.177,2.801c0.049,0.533
+      -0.357,1.001 -0.89,1.055c-0.864,0.089 -1.846,0.144 -2.943,0.144c-1.098,0
+      -2.079,-0.055 -2.944,-0.144c-0.533,-0.054 -0.938,-0.522
+      -0.889,-1.055c0.078,-0.838 -0.039,-1.982 -0.177,-2.801c-0.317,-1.881
+      -1.649,-2.774 -2.417,-4.792Zm3.427,9.654c1.041,0.101 2.187,0.138
+      3,0.138c0.813,0 1.959,-0.037 3,-0.138l-0.501,3.108c-0.026,0.218
+      -0.132,0.42 -0.3,0.573l-0.467,0.424c-0.031,0.029 -0.06,0.06
+      -0.087,0.092l-0.494,0.583c-0.19,0.226 -0.479,0.358
+      -0.786,0.358l-0.365,0l-0.365,0c-0.307,0 -0.596,-0.132
+      -0.786,-0.358l-0.494,-0.583c-0.027,-0.032 -0.056,-0.063
+      -0.087,-0.092l-0.467,-0.424c-0.168,-0.153 -0.274,-0.355
+      -0.3,-0.573l-0.501,-3.108Z" style="fill:#C0C0C0;"/><path
+      xmlns="http://www.w3.org/2000/svg" id="light" d="M16,4c3.853,0 7,3.332
+      7,6.5c0,0.289 -0.055,0.543 -0.085,0.805c-0.031,0.256 -0.074,0.47
+      -0.127,0.707c-1.09,0.46 -3.404,0.988 -6.788,0.988c-3.384,0 -5.698,-0.528
+      -6.788,-0.988c-0.053,-0.237 -0.096,-0.451 -0.127,-0.707c-0.03,-0.262
+      -0.085,-0.516 -0.085,-0.805c0,-3.168 3.147,-6.5 7,-6.5Z"
+      style="fill:var(--button-card-light-color)"/></svg>
+  template: view_light_layout
+
+ceiling_fan_icon:
+  template: view_light_layout
+  custom_fields:
+    icon_hue: >
+      <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 122.88 66.29" style="enable-background:new 0 0 122.88 66.29" xml:space="preserve"><g><path d="M45.39,41.96c0.02-0.3,0.06-0.6,0.12-0.9c0.1-0.46,0.25-0.91,0.45-1.36c0.21-0.47,0.48-0.92,0.81-1.36 c0.22-0.3,0.47-0.59,0.75-0.88c-7.09-3.64-24.28-11.3-29.76-15.29c-0.69-0.46-1.37-0.84-2.06-1.14c-0.69-0.3-1.39-0.52-2.08-0.65 c-0.69-0.13-1.37-0.18-2.06-0.16c-0.69,0.03-1.39,0.14-2.09,0.32c-0.76,0.2-1.58,0.54-2.38,0.97c-0.77,0.42-1.53,0.93-2.21,1.51 c-0.6,0.52-1.14,1.09-1.56,1.69c-0.38,0.55-0.67,1.12-0.83,1.71c-0.11,0.4-0.13,0.78-0.05,1.16c0.08,0.38,0.25,0.75,0.52,1.12 c0.32,0.43,0.78,0.86,1.38,1.29c0.6,0.43,1.35,0.85,2.25,1.26L45.39,41.96L45.39,41.96z M112.49,34.39l-18.78,5.17 C100.37,37.91,107.2,36.13,112.49,34.39L112.49,34.39z M28.91,39.49l-18.13-5C16.03,36.2,22.53,37.89,28.91,39.49L28.91,39.49z M59.75,0h3.69c0.21,0,0.37,0.17,0.37,0.37v23.81c0.47,0.12,0.93,0.29,1.39,0.5c0.53,0.25,1.06,0.56,1.57,0.95 c0.35,0.26,0.68,0.55,1,0.87c0.32,0.31,0.63,0.66,0.92,1.02c0.41,0.52,0.78,1.1,1.1,1.74c0.32,0.64,0.59,1.34,0.81,2.12 c0.19,0.67,0.34,1.39,0.44,2.17c0.09,0.69,0.15,1.42,0.18,2.2c0.25,0.04,0.49,0.09,0.73,0.15c0.28,0.06,0.55,0.14,0.82,0.22 l31.06-15.94c0.82-0.55,1.64-1,2.47-1.35c0.84-0.36,1.68-0.62,2.53-0.78c0.86-0.17,1.73-0.23,2.6-0.2c0.87,0.03,1.74,0.17,2.62,0.4 c0.93,0.25,1.92,0.65,2.88,1.17c0.93,0.5,1.83,1.11,2.64,1.81c0.77,0.66,1.46,1.4,2.01,2.2c0.51,0.75,0.91,1.55,1.13,2.39 c0.2,0.76,0.24,1.5,0.1,2.22l0,0.02c-0.14,0.72-0.46,1.41-0.96,2.08c-0.45,0.6-1.06,1.19-1.84,1.75c-0.76,0.55-1.69,1.07-2.78,1.58 c-8.78,3.74-29.55,8.16-39.87,11c-0.19,0.59-0.46,1.19-0.79,1.79c-0.36,0.65-0.81,1.32-1.35,1.98c-0.43,0.53-0.89,1-1.4,1.43 c-0.5,0.43-1.05,0.81-1.62,1.15c-0.43,0.25-0.88,0.49-1.36,0.7c-0.37,0.16-0.75,0.31-1.13,0.45l0.79,3.35 c0.1,0.41,0.23,0.96,0.36,1.64c0.13,0.66,0.26,1.39,0.35,2.1c0.09,0.79,0.14,1.58,0.08,2.31c-0.05,0.75-0.21,1.43-0.52,1.96 c-0.1,0.17-0.22,0.34-0.34,0.49c-0.13,0.15-0.27,0.29-0.42,0.41l-0.08,0.06c-0.14,0.11-0.29,0.21-0.44,0.29 c-0.17,0.09-0.34,0.17-0.53,0.24l-0.05,0.02c-0.99,0.39-1.99,0.7-3.01,0.94c-1.02,0.24-2.05,0.39-3.09,0.46 c-1.05,0.07-2.11,0.05-3.19-0.05c-1.07-0.11-2.16-0.31-3.25-0.6l-0.39-0.1c-0.79-0.21-1.58-0.41-2.27-0.81 c-0.73-0.42-1.33-1.03-1.69-2.04c-0.35-0.98-0.17-3.1,0.18-5.32c0.32-2.04,0.77-4.15,1.07-5.53c-0.31-0.13-0.62-0.26-0.91-0.4 c-0.37-0.18-0.75-0.37-1.12-0.59c-0.48-0.28-0.93-0.57-1.36-0.89c-0.43-0.32-0.83-0.65-1.21-1.01c-0.15-0.14-0.3-0.3-0.45-0.45 c-0.15-0.15-0.28-0.31-0.42-0.46c-0.14-0.16-0.27-0.32-0.4-0.49l-0.02-0.02c-0.13-0.17-0.25-0.33-0.35-0.49 c-0.27-0.4-0.51-0.81-0.71-1.22c-0.21-0.41-0.37-0.82-0.51-1.23l0-0.01c-9.41-2.59-32.67-7.67-40.15-11.08 c-1.1-0.5-2.02-1.03-2.78-1.58c-0.78-0.56-1.39-1.14-1.84-1.75c-0.5-0.68-0.82-1.38-0.96-2.1c-0.14-0.72-0.1-1.47,0.1-2.22 c0.23-0.84,0.62-1.64,1.13-2.39c0.55-0.8,1.24-1.54,2.01-2.2c0.81-0.7,1.72-1.31,2.64-1.81c0.96-0.52,1.95-0.92,2.88-1.17 c0.87-0.23,1.75-0.37,2.62-0.4c0.87-0.03,1.74,0.03,2.6,0.2c0.85,0.16,1.69,0.42,2.53,0.78c0.83,0.35,1.65,0.8,2.47,1.35 l31.08,15.95c0.06,0.03,0.11,0.06,0.16,0.09l0.39-0.13c0.23-0.07,0.47-0.14,0.73-0.2c0.17-0.04,0.35-0.08,0.54-0.12 c0.01-0.55,0.05-1.09,0.1-1.62c0.07-0.63,0.17-1.25,0.31-1.84c0.17-0.74,0.41-1.45,0.71-2.13c0.31-0.69,0.69-1.34,1.15-1.95 l0.02-0.02c0.32-0.43,0.66-0.83,1.01-1.19c0.36-0.38,0.74-0.72,1.13-1.03c0.51-0.4,1.03-0.75,1.58-1.04 c0.46-0.24,0.93-0.44,1.41-0.6V0.37C59.37,0.17,59.54,0,59.75,0L59.75,0z M56.41,50.32c0.85,0.2,1.69,0.34,2.54,0.43 c0.85,0.09,1.69,0.13,2.53,0.12c1.08-0.01,2.16-0.1,3.25-0.25c1.08-0.15,2.17-0.37,3.26-0.64c0.07-0.02,0.14-0.03,0.22-0.03 c0.5-0.15,0.98-0.32,1.43-0.51c0.46-0.2,0.91-0.42,1.33-0.67c0.46-0.27,0.89-0.57,1.28-0.91c0.4-0.34,0.77-0.71,1.1-1.12 c0.46-0.56,0.83-1.12,1.13-1.65c0.29-0.52,0.51-1.03,0.65-1.52c0-0.06,0-0.11,0-0.17c0.01-0.07,0.02-0.15,0.04-0.21 c0.02-0.1,0.06-0.2,0.09-0.3l0.06-0.23c0.02-0.14,0.02-0.26,0.03-0.38c0.01-0.29-0.02-0.57-0.07-0.84 c-0.05-0.26-0.13-0.52-0.24-0.76c-0.11-0.24-0.25-0.47-0.42-0.68c-0.17-0.22-0.37-0.42-0.6-0.6c-0.54-0.44-1.24-0.79-2.09-1.05 c-0.84-0.25-1.81-0.4-2.92-0.43l-0.09,0c-1.53-0.1-3.7-0.22-6.02-0.27c-1.7-0.04-3.49-0.06-5.18-0.01c-0.5,0.01-1,0.03-1.49,0.06 c-0.44,0.02-0.89,0.05-1.33,0.09l-0.77,0.11l-0.78,0.12c-0.08,0.01-0.17,0.02-0.25,0.02c-0.06,0-0.11-0.01-0.17-0.02 c-0.28,0.05-0.54,0.09-0.78,0.15c-0.25,0.06-0.49,0.12-0.71,0.19c-0.35,0.11-0.67,0.24-0.97,0.38c-0.3,0.14-0.57,0.3-0.83,0.47 l-0.03,0.02c-0.4,0.27-0.73,0.58-0.99,0.91c-0.27,0.34-0.47,0.7-0.59,1.09c-0.1,0.31-0.16,0.64-0.17,0.98 c-0.01,0.34,0.02,0.7,0.1,1.07l0.07,0.27l0.08,0.28c0.1,0.3,0.23,0.61,0.38,0.92c0.15,0.31,0.34,0.62,0.55,0.94 c0.1,0.15,0.2,0.29,0.29,0.41c0.1,0.13,0.21,0.26,0.31,0.39c0.11,0.13,0.22,0.25,0.33,0.37c0.11,0.12,0.23,0.24,0.35,0.35 c0.31,0.29,0.64,0.57,0.98,0.83c0.36,0.26,0.73,0.51,1.12,0.73c0.4,0.23,0.83,0.45,1.27,0.64c0.45,0.2,0.91,0.38,1.39,0.55 c0.21,0.07,0.43,0.13,0.67,0.2C55.96,50.21,56.19,50.27,56.41,50.32L56.41,50.32z M61.55,34.95c1.29,0,2.57,0.04,3.85,0.12 c1.13,0.07,2.27,0.18,3.42,0.32c-0.03-0.57-0.08-1.1-0.16-1.61c-0.09-0.63-0.21-1.21-0.36-1.75c-0.17-0.62-0.39-1.18-0.64-1.68 c-0.25-0.5-0.53-0.94-0.84-1.34c-0.23-0.29-0.47-0.56-0.72-0.81l-0.02-0.02c-0.24-0.24-0.49-0.45-0.74-0.64 c-0.58-0.43-1.18-0.75-1.8-0.95c-0.63-0.2-1.28-0.29-1.92-0.25c-0.64,0.03-1.28,0.18-1.91,0.43c-0.63,0.26-1.25,0.62-1.85,1.09 c-0.31,0.25-0.62,0.52-0.91,0.82c-0.29,0.3-0.57,0.63-0.83,0.97c-0.35,0.47-0.65,0.97-0.88,1.51c-0.24,0.53-0.42,1.1-0.56,1.69 c-0.11,0.47-0.19,0.96-0.25,1.46c-0.04,0.37-0.07,0.75-0.09,1.13l0.23-0.02c1.16-0.16,2.32-0.27,3.48-0.35 C59.2,34.99,60.37,34.95,61.55,34.95L61.55,34.95z M77.19,39.47c0.23,0.45,0.39,0.92,0.49,1.4c0.06,0.33,0.1,0.66,0.1,1 l38.53-10.62c0.89-0.41,1.64-0.83,2.24-1.26c0.59-0.42,1.05-0.85,1.37-1.28c0.28-0.37,0.45-0.74,0.52-1.12 c0.08-0.38,0.06-0.76-0.05-1.16c-0.16-0.59-0.45-1.16-0.83-1.71c-0.42-0.6-0.96-1.17-1.56-1.69c-0.68-0.58-1.44-1.1-2.21-1.51 c-0.8-0.43-1.62-0.76-2.38-0.97c-0.7-0.19-1.4-0.3-2.09-0.32c-0.69-0.03-1.38,0.02-2.06,0.16c-0.69,0.13-1.39,0.35-2.08,0.65 c-0.7,0.3-1.4,0.69-2.09,1.15c-8.84,5.24-20.24,10.39-29.58,15.19c0.29,0.25,0.55,0.51,0.79,0.78c0.36,0.41,0.65,0.84,0.88,1.29 L77.19,39.47L77.19,39.47z M67.4,52.61c-1.05,0.24-2.08,0.42-3.08,0.53c-1.12,0.13-2.21,0.18-3.28,0.16 c-0.87-0.02-1.72-0.08-2.56-0.18c-0.83-0.11-1.65-0.26-2.45-0.45l-0.49-0.12c-0.29,1.35-0.7,3.27-0.99,5.04 c-0.32,1.91-0.51,3.64-0.29,4.24c0.14,0.4,0.45,0.67,0.83,0.86c0.43,0.22,0.97,0.36,1.51,0.5c0.13,0.04,0.26,0.06,0.39,0.1 c0.97,0.26,1.93,0.43,2.87,0.53c0.94,0.09,1.88,0.11,2.8,0.05c0.91-0.06,1.82-0.2,2.72-0.4c0.9-0.21,1.79-0.49,2.67-0.83l0.08-0.03 c0.07-0.02,0.13-0.05,0.19-0.08l0.02-0.01c0.05-0.03,0.09-0.05,0.13-0.08l0.03-0.03c0.04-0.03,0.08-0.07,0.12-0.12 c0.04-0.04,0.07-0.09,0.1-0.14c0.14-0.24,0.2-0.63,0.22-1.1c0.02-0.5-0.02-1.1-0.09-1.7c-0.08-0.67-0.2-1.34-0.32-1.94 c-0.12-0.57-0.25-1.13-0.34-1.55L67.4,52.61L67.4,52.61z" style="fill:var(--button-card-light-color-no-temperature)"/></g></svg>
+
+table_fan_icon:
+  template: view_light_layout
+  custom_fields:
+    icon_hue: >
+      <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 108.84 122.88" style="enable-background:new 0 0 108.84 122.88" xml:space="preserve">
+      <style type="text/css">.st0{fill-rule:evenodd;clip-rule:evenodd;}</style>
+      <path class="st0" d="M89.84,122.88H19c0.68-8.61,5.08-15.16,11.38-19.62c-5.37-2.65-10.25-6.16-14.44-10.36 C6.09,83.05,0,69.45,0,54.42c0-15.03,6.09-28.63,15.94-38.48C25.79,6.09,39.39,0,54.42,0C69.45,0,83.05,6.09,92.9,15.94 c9.85,9.85,15.94,23.45,15.94,38.48c0,15.03-6.09,28.63-15.94,38.48c-4.15,4.15-8.97,7.64-14.28,10.28 C84.82,107.62,89.15,114.18,89.84,122.88L89.84,122.88z M58.75,42.7l0.15,0.02c0.32-0.41,0.66-0.82,1-1.22 c0.59-0.69,1.21-1.36,1.86-2.01c2.66-2.67,5.3-4.15,7.92-5.63c1.71-0.96,3.41-1.91,5.02-3.16c0.58-0.45,1-0.91,1.3-1.38 c0.51-0.82,0.64-1.7,0.49-2.58c-0.17-0.99-0.69-2-1.41-2.92c-0.79-1.02-1.82-1.93-2.93-2.63c-0.99-0.63-2.1-1.15-3.24-1.58 c-1.16-0.44-2.37-0.78-3.57-1.07c-1.1-0.26-2.18-0.44-3.25-0.54c-1.11-0.11-2.21-0.16-3.31-0.15c-3.72,0.03-6.81,0.73-9.24,1.95 c-2.22,1.12-3.89,2.68-5,4.58c-1.12,1.93-1.68,4.23-1.66,6.79c0.03,3.29,1.01,7,2.99,10.93c0.34,0.67,0.75,1.25,1.22,1.76 c0.18,0.2,0.37,0.39,0.57,0.57c2.09-1.44,4.63-2.29,7.36-2.29C56.31,42.15,57.57,42.35,58.75,42.7L58.75,42.7z M53.24,46.2 c-1.64,0.28-3.1,0.91-4.38,1.87c-0.16,0.14-0.32,0.29-0.47,0.44c-1.69,1.69-2.74,4.03-2.74,6.62s1.05,4.93,2.74,6.62 c0.35,0.35,0.72,0.67,1.12,0.95c0.23,0.15,0.46,0.29,0.7,0.43l0,0c0.1,0.06,0.2,0.13,0.29,0.2c1.34,0.74,2.88,1.16,4.51,1.16 c2.59,0,4.93-1.05,6.62-2.74c1.69-1.69,2.74-4.03,2.74-6.62s-1.05-4.93-2.74-6.62c-1.03-1.03-2.3-1.82-3.73-2.29 C56.2,45.96,54.64,45.96,53.24,46.2L53.24,46.2z M44.99,46.88c-0.2-0.19-0.39-0.39-0.58-0.6c-0.68-0.75-1.29-1.6-1.77-2.55 c-2.23-4.43-3.34-8.69-3.37-12.52c-0.03-3.22,0.7-6.14,2.14-8.62c1.46-2.51,3.63-4.56,6.49-6c2.91-1.47,6.54-2.3,10.84-2.33 c1.24-0.01,2.47,0.04,3.69,0.16c1.26,0.13,2.5,0.33,3.72,0.61c1.32,0.31,2.68,0.7,4.02,1.21c1.35,0.51,2.67,1.13,3.89,1.9 c1.45,0.91,2.81,2.12,3.87,3.48c1.06,1.37,1.83,2.92,2.11,4.52c0.3,1.71,0.04,3.46-1,5.1c-0.52,0.82-1.22,1.6-2.15,2.32 c-1.85,1.43-3.65,2.45-5.45,3.46c-2.41,1.36-4.84,2.72-7.13,5.02c-0.58,0.58-1.14,1.19-1.67,1.82c-0.14,0.16-0.28,0.33-0.41,0.49 c0.71,0.47,1.36,1.01,1.96,1.61c1.9,1.9,3.22,4.4,3.65,7.18c0.34-0.04,0.68-0.07,1.03-0.08c1.01-0.04,2.04,0.03,3.09,0.27 c4.84,1.12,8.82,2.99,11.79,5.41c2.49,2.03,4.27,4.46,5.26,7.17c1,2.72,1.18,5.7,0.46,8.81c-0.74,3.19-2.41,6.51-5.13,9.83l0,0 c-0.78,0.96-1.61,1.87-2.48,2.73c-0.9,0.88-1.84,1.71-2.85,2.46c-1.08,0.81-2.25,1.61-3.5,2.32c-1.26,0.72-2.59,1.34-3.95,1.78 c-1.63,0.53-3.42,0.8-5.14,0.74c-1.73-0.06-3.42-0.46-4.83-1.27c-1.52-0.87-2.7-2.19-3.3-4.03c-0.3-0.91-0.44-1.95-0.4-3.12 c0.08-2.33,0.45-4.37,0.83-6.41c0.5-2.72,1-5.46,0.7-8.7c-0.07-0.78-0.18-1.59-0.33-2.44c-0.06-0.37-0.13-0.74-0.21-1.1 c-1.22,0.38-2.51,0.58-3.86,0.58c-1.62,0-3.17-0.3-4.61-0.84c-0.08,0.19-0.16,0.38-0.25,0.57c-0.42,0.91-0.96,1.8-1.66,2.63 c-3.2,3.79-6.68,6.47-10.2,8c-2.95,1.29-5.92,1.77-8.77,1.41c-2.88-0.36-5.61-1.56-8.06-3.63c-2.49-2.11-4.68-5.11-6.39-9.05 c-0.5-1.14-0.93-2.29-1.3-3.46c-0.37-1.19-0.67-2.41-0.89-3.67c-0.23-1.33-0.4-2.73-0.46-4.17c-0.06-1.44,0-2.9,0.22-4.32 c0.27-1.7,0.85-3.42,1.68-4.92c0.85-1.52,1.97-2.83,3.33-3.71c1.47-0.95,3.18-1.4,5.09-1.09c0.96,0.15,1.95,0.5,2.97,1.07 c2.03,1.13,3.68,2.4,5.32,3.67c2.19,1.69,4.39,3.38,7.42,4.59c0.75,0.3,1.53,0.58,2.32,0.83c0.5,0.16,1.01,0.3,1.54,0.44 C42.75,50.37,43.69,48.47,44.99,46.88L44.99,46.88z M68.12,56.72c-0.24,1.72-0.81,3.38-1.73,4.96c-0.98,1.69-2.33,3.28-4.07,4.77 c0.11,0.52,0.21,1.04,0.3,1.55c0.15,0.86,0.27,1.77,0.36,2.72c0.35,3.74-0.2,6.71-0.74,9.68c-0.35,1.92-0.7,3.83-0.77,5.88 c-0.02,0.73,0.06,1.36,0.24,1.9c0.3,0.92,0.9,1.58,1.66,2.02c0.87,0.5,1.97,0.75,3.15,0.79c1.29,0.04,2.66-0.17,3.91-0.58 c1.13-0.37,2.23-0.88,3.29-1.48c1.07-0.61,2.12-1.32,3.1-2.06c0.9-0.68,1.73-1.4,2.5-2.15c0.79-0.78,1.53-1.59,2.22-2.44l0,0l0,0 c2.36-2.88,3.8-5.7,4.41-8.35c0.56-2.42,0.43-4.71-0.33-6.78c-0.76-2.08-2.17-3.98-4.16-5.6c-2.55-2.08-6.03-3.71-10.31-4.69 c-0.72-0.17-1.44-0.22-2.14-0.19C68.7,56.66,68.41,56.69,68.12,56.72L68.12,56.72z M47.17,65.46c-1.4-1-2.6-2.25-3.58-3.77 c-1.05-1.63-1.84-3.56-2.37-5.79c-0.5-0.14-1.01-0.28-1.51-0.44c-0.86-0.27-1.72-0.58-2.59-0.92c-3.49-1.4-5.89-3.25-8.28-5.09 c-1.54-1.19-3.08-2.37-4.87-3.37c-0.64-0.36-1.24-0.57-1.79-0.66c-0.96-0.15-1.82,0.07-2.56,0.55c-0.85,0.55-1.57,1.41-2.14,2.44 c-0.63,1.13-1.07,2.44-1.28,3.73c-0.19,1.17-0.23,2.39-0.18,3.61c0.05,1.23,0.21,2.48,0.42,3.7c0.19,1.09,0.45,2.16,0.78,3.2 c0.33,1.06,0.72,2.09,1.16,3.09c1.49,3.41,3.34,5.98,5.42,7.74c1.89,1.6,3.98,2.52,6.17,2.8c2.22,0.28,4.55-0.11,6.9-1.13 c3.01-1.31,6.05-3.67,8.89-7.03c0.47-0.56,0.85-1.17,1.14-1.81c0.13-0.27,0.24-0.54,0.33-0.82L47.17,65.46L47.17,65.46z M90.35,18.49C81.15,9.3,68.45,3.61,54.42,3.61c-14.03,0-26.73,5.69-35.93,14.88C9.3,27.69,3.61,40.39,3.61,54.42 c0,14.03,5.69,26.73,14.88,35.93c9.19,9.19,21.9,14.88,35.93,14.88c14.03,0,26.73-5.69,35.93-14.88 c9.19-9.19,14.88-21.9,14.88-35.93C105.23,40.39,99.54,27.69,90.35,18.49L90.35,18.49z"
+      style="fill:var(--button-card-light-color-no-temperature)"
+      /></svg>
+
+
+christmas_lights_icon:
+  template: view_light_layout
+  custom_fields:
+    icon_hue: >
+      <svg version="1.1" id="Layer_1" xmlns:serif="http://www.serif.com/"
+        xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 422.4 204.2"
+        style="enable-background:new 0 0 422.4 204.2;" xml:space="preserve">
+      <style type="text/css">
+        .st0{fill:#006837;}
+        .st1{fill:#FF0000;}
+        .st2{fill:#F7931E;}
+        .st3{fill:#FFFF00;}
+        .st4{fill:#39B54A;}
+        .st5{fill:#0000FF;}
+      </style>
+      <path class="st1" d="M77.7,159.5c11.4-33.3-2.3-47.8-24.2-44.7c-15.2,2.1-23.9,11.7-22.1,24.5C34.4,160.8,62.7,203.4,77.7,159.5z"/>
+      <path class="st2" d="M83.7,24c-0.4,35.2,17.1,44.7,37,34.9c13.8-6.8,19-18.6,13.3-30.1C124.5,9.2,84.3-22.4,83.7,24z"/>
+      <path class="st3" d="M233.8,185.4c12.1-33-1.4-47.8-23.4-45.2c-15.2,1.8-24.1,11.2-22.6,24C190.5,185.9,217.9,229,233.8,185.4z"/>
+      <path class="st4" d="M221.4,76.6c14.1,32.2,34,33.6,48.1,16.5c9.8-11.8,9.7-24.8-0.3-33C252.5,46.3,202.9,34.1,221.4,76.6z"/>
+      <path class="st0" d="M417.3,104.1c-12.6,0.1-22.4-1-30.5-2.8l0.1-0.4c0.3-1.8-0.6-3.7-2.1-4.7c-4-2.6-12.4-5.8-14.8-1
+        c0,0.1-0.1,0.1-0.1,0.2c-17.9-8.7-24.8-20.8-49.4-21.1c-15.9,0-29.6,5-40.5,13.8c-2.6-2.9-3.9-4.4-4.7-5.2c-1.2,3.3-3.1,6.7-5.8,10
+        c-3,3.6-6.2,6.3-9.5,8.1l5.7,3.1c-2.7,4.2-5.1,8.8-7.1,13.7c-9.7,0.9-19.6,2.7-28.8,4.4c-4.4,0.8-8.4,1.5-12,2.1l0,0
+        c-0.6-1.8-2.1-3.1-4-3.3c-4.7-0.6-13.5,0.1-13.8,5.4c-17.1,0.3-21.4-7.5-25-32.8c-2.9-20.1-7.4-39.3-30.6-39.5
+        c-5-0.1-9.2,0.7-12.8,2.2c-0.7-2.2-1.1-3.5-1.4-4.3c-2.4,2.5-5.6,4.8-9.4,6.7c-4.2,2.1-8.2,3.2-12,3.5l5.3,7.1
+        c-10.6,10-23.7,22.6-53.6,29.4c-0.6-1.7-2.2-2.9-4-3.2c-4.7-0.5-13.6,0.4-13.7,5.8c0,0.2,0,0.3,0,0.4C32,103,19.5,103.8,5,103.6
+        c-6.7,0-6.7,10-0.1,10.1c14.4,0.1,26.9-0.6,37.8-1.9c0,3.7-0.1,5.7,0,6.7c3.1-1.7,6.8-2.8,11-3.4c4.6-0.6,8.8-0.5,12.5,0.5l-2.5-7.5
+        c31.6-7.5,45.8-20.9,56.6-31c1.1,0.9,2.6,1.3,4.1,1c4.7-1,12.9-4.6,11.2-9.8c-0.3-0.8-0.5-1.6-0.8-2.3c2.8-1.2,5.8-1.9,9.2-1.9
+        c16.7,0,18.7,14.3,21.1,30.8c4.8,33.7,15.6,41.8,34.7,41.4c-0.1,4.2-0.2,6.3-0.2,7.5c3.1-1.6,6.9-2.7,11.1-3.2
+        c4.6-0.6,8.8-0.3,12.5,0.7l-2.4-7.5c9.9-1.7,21.3-3.9,34.3-5.4c-10.7,40.3,8.4,69.5,33.9,69.5c22.4,0,40.9-21.4,30.5-49.8
+        c-9.3-24.2-28.5-30.7-49.6-30.7c-0.1,0,1.3-3.5,4.5-8.3l1.1,0.6c1.6,0.9,3.7,0.8,5.2-0.3c3.9-2.8,9.8-9.5,6.2-13.5c0,0,0,0,0-0.1
+        c7.9-6.2,18.9-11.3,33.6-11.4c20.4,0.2,27.6,11.4,44.8,20c-1.8,3.4-2.7,5.2-3.1,6.2c3.5-0.1,7.4,0.5,11.4,1.9c4.4,1.5,8.1,3.6,11,6
+        l1-7.2c8.5,1.8,18.9,2.9,32,2.8C424,114.1,424,104.1,417.3,104.1z M310,151.5c8.9,24.3-9.4,39.5-26.1,35.7
+        c-22.4-5.1-25.4-37.1-18.2-59.8C285.3,126.6,302.1,131.2,310,151.5z"/>
+      <path class="st5" d="M375.1,163c25.1-24.6,19.4-43.7-1.6-50.9c-14.5-4.9-26.6-0.3-30.7,11.9C335.8,144.7,342,195.5,375.1,163z"/>
+      </svg>
+
+hue_gu10_bulb:
+  template: view_light_layout
+  custom_fields:
+    icon_hue: >
+      <svg viewBox="0 0 32 32"><path id="Bulb" d="M8.215,10.087c2.168,0.92
+      5.474,1.219 7.785,1.219c2.312,-0 5.617,-0.299 7.785,-1.219c-0.328,1.919
+      -1.137,4.545 -3.561,6.294c-0.203,0.187 -0.224,0.5
+      -0.224,1.125l-0,3.686c-0,0.477 -0.153,0.946 -0.466,1.3c-0.5,0.567
+      -1.575,1 -3.534,1c-1.959,-0 -3.034,-0.433 -3.534,-1c-0.313,-0.354
+      -0.466,-0.823 -0.466,-1.3l-0,-3.686c-0,-0.625 -0.02,-0.938
+      -0.223,-1.125c-2.424,-1.749 -3.234,-4.375
+      -3.562,-6.294Zm8.785,15.913l0,-1.542c0.894,-0.083 1.548,-0.274
+      2,-0.533l0,2.075c0,0.55 -0.45,1 -1,1c-0.55,0 -1,-0.45
+      -1,-1Zm-4,0l0,-2.075c0.452,0.259 1.106,0.45 2,0.533l0,1.542c0,0.55
+      -0.45,1 -1,1c-0.55,0 -1,-0.45 -1,-1Z" style="fill:#C0C0C0;"/><path
+      id="Light" d="M16,5c4.97,0 9,1.188 9,2.653c0,1.464 -4.03,2.653
+      -9,2.653c-4.97,-0 -9,-1.189 -9,-2.653c0,-0.18 0.06,-0.361
+      0.18,-0.531c0.83,-1.21 4.47,-2.122 8.82,-2.122Z"
+      style="fill:var(--button-card-light-color-no-temperature)"/></svg>
+
+hue_led_strip:
+  template: view_light_layout
+  custom_fields:
+    icon_hue: >
+      <svg viewBox="0 0 32 32"><path d="M8.4395,16.668 C8.9795,16.552
+      9.5115,16.895 9.6285,17.435 C9.7455,17.974 9.4025,18.506 8.8625,18.623
+      C8.3225,18.74 7.7905,18.397 7.6735,17.857 C7.5565,17.317 7.9005,16.785
+      8.4395,16.668 M13.3275,15.611 C13.8665,15.495 14.3985,15.838
+      14.5155,16.377 C14.6325,16.917 14.2895,17.449 13.7505,17.566
+      C13.2105,17.683 12.6775,17.34 12.5605,16.8 C12.4445,16.261
+      12.7875,15.729 13.3275,15.611 M18.2135,14.555 C18.7535,14.438
+      19.2865,14.781 19.4025,15.32 C19.5195,15.86 19.1765,16.393 18.6365,16.51
+      C18.0965,16.626 17.5645,16.283 17.4485,15.743 C17.3315,15.203
+      17.6735,14.671 18.2135,14.555 M23.1005,13.498 C23.6405,13.381
+      24.1725,13.724 24.2905,14.264 C24.4065,14.804 24.0635,15.336
+      23.5235,15.453 C22.9835,15.569 22.4515,15.227 22.3355,14.687
+      C22.2175,14.147 22.5615,13.614 23.1005,13.498 M10.6695,20.639
+      L25.4735,17.444 C26.5535,17.211 27.2405,16.147 27.0065,15.067
+      C26.4495,12.484 23.9035,10.842 21.3205,11.399 L6.5165,14.594
+      C5.4365,14.827 4.7505,15.891 4.9835,16.971 C5.5415,19.554 8.0865,21.196
+      10.6695,20.639 M25,26 C24.447,26 24,25.553 24,25 C24,24.447 24.447,24
+      25,24 C25.553,24 26,24.447 26,25 C26,25.553 25.553,26 25,26 M20,26
+      C19.447,26 19,25.553 19,25 C19,24.447 19.447,24 20,24 C20.553,24
+      21,24.447 21,25 C21,25.553 20.553,26 20,26 M15,26 C14.447,26 14,25.553
+      14,25 C14,24.447 14.447,24 15,24 C15.553,24 16,24.447 16,25 C16,25.553
+      15.553,26 15,26 M10,26 C9.447,26 9,25.553 9,25 C9,24.447 9.447,24 10,24
+      C10.553,24 11,24.447 11,25 C11,25.553 10.553,26 10,26 M27,22 L9,22 C5,22
+      4,19 4,18 L4,23 C4,25.762 6.238,28 9,28 L27,28 C27.553,28 28,27.553
+      28,27 L28,23 C28,22.447 27.553,22 27,22 M22,8 C21.447,8 21,7.553 21,7
+      C21,6.447 21.447,6 22,6 C22.553,6 23,6.447 23,7 C23,7.553 22.553,8 22,8
+      M17,8 C16.447,8 16,7.553 16,7 C16,6.447 16.447,6 17,6 C17.553,6 18,6.447
+      18,7 C18,7.553 17.553,8 17,8 M12,8 C11.447,8 11,7.553 11,7 C11,6.447
+      11.447,6 12,6 C12.553,6 13,6.447 13,7 C13,7.553 12.553,8 12,8 M7,8
+      C6.447,8 6,7.553 6,7 C6,6.447 6.447,6 7,6 C7.553,6 8,6.447 8,7 C8,7.553
+      7.553,8 7,8 M23,4 L5,4 C4.447,4 4,4.447 4,5 L4,9 C4,9.553 4.447,10 5,10
+      L23,10 C27,10 28,13 28,14 L28,9 C28,6.238 25.762,4 23,4"
+      style="fill:#C0C0C0;"></path> <g><circle cx="7" cy="7" r="0.878"
+      style="fill:var(--button-card-light-color)"/> <circle cx="17" cy="7"
+      r="0.878" style="fill:var(--button-card-light-color)"/> <circle cx="22"
+      cy="7" r="0.878" style="fill:var(--button-card-light-color)"/> <circle
+      cx="8.651" cy="17.646" r="0.878"
+      style="fill:var(--button-card-light-color)"/> <circle cx="13.538"
+      cy="16.589" r="0.878" style="fill:var(--button-card-light-color)"/>
+      <circle cx="18.425" cy="15.532" r="0.878"
+      style="fill:var(--button-card-light-color)"/> <circle cx="23.313"
+      cy="14.475" r="0.878" style="fill:var(--button-card-light-color)"/>
+      <circle cx="10" cy="25" r="0.878"
+      style="fill:var(--button-card-light-color)"/> <circle cx="15" cy="25"
+      r="0.878" style="fill:var(--button-card-light-color)"/> <circle cx="20"
+      cy="25" r="0.878" style="fill:var(--button-card-light-color)"/> <circle
+      cx="25" cy="25" r="0.878" style="fill:var(--button-card-light-color)"/>
+      <circle cx="12" cy="7" r="0.878"
+      style="fill:var(--button-card-light-color)"/></g> </svg>
+
+hue_white_bulb:
+  template: view_light_layout
+  custom_fields:
+    icon_hue: >
+      <svg viewBox="0 0 32 32"><path xmlns="http://www.w3.org/2000/svg"
+      id="bulb" d="M9.573,13.208c1.887,0.597 4.639,0.792 6.427,0.792c1.788,0
+      4.54,-0.195 6.427,-0.792c-0.768,2.018 -2.1,2.911
+      -2.417,4.792c-0.138,0.819 -0.255,1.963 -0.177,2.801c0.049,0.533
+      -0.357,1.001 -0.89,1.055c-0.864,0.089 -1.846,0.144 -2.943,0.144c-1.098,0
+      -2.079,-0.055 -2.944,-0.144c-0.533,-0.054 -0.938,-0.522
+      -0.889,-1.055c0.078,-0.838 -0.039,-1.982 -0.177,-2.801c-0.317,-1.881
+      -1.649,-2.774 -2.417,-4.792Zm3.427,9.654c1.041,0.101 2.187,0.138
+      3,0.138c0.813,0 1.959,-0.037 3,-0.138l-0.501,3.108c-0.026,0.218
+      -0.132,0.42 -0.3,0.573l-0.467,0.424c-0.031,0.029 -0.06,0.06
+      -0.087,0.092l-0.494,0.583c-0.19,0.226 -0.479,0.358
+      -0.786,0.358l-0.365,0l-0.365,0c-0.307,0 -0.596,-0.132
+      -0.786,-0.358l-0.494,-0.583c-0.027,-0.032 -0.056,-0.063
+      -0.087,-0.092l-0.467,-0.424c-0.168,-0.153 -0.274,-0.355
+      -0.3,-0.573l-0.501,-3.108Z" style="fill:#C0C0C0;"/><path
+      xmlns="http://www.w3.org/2000/svg" id="light" d="M16,4c3.853,0 7,3.332
+      7,6.5c0,0.289 -0.055,0.543 -0.085,0.805c-0.031,0.256 -0.074,0.47
+      -0.127,0.707c-1.09,0.46 -3.404,0.988 -6.788,0.988c-3.384,0 -5.698,-0.528
+      -6.788,-0.988c-0.053,-0.237 -0.096,-0.451 -0.127,-0.707c-0.03,-0.262
+      -0.085,-0.516 -0.085,-0.805c0,-3.168 3.147,-6.5 7,-6.5Z"
+      style="fill:var(--button-card-light-color-no-temperature)"/></svg>
+
+hue_color_bulb:
+  template: view_light_layout
+  custom_fields:
+    icon_hue: >
+      <svg viewBox="0 0 32 32"><path id="Bulb" d="M16,11.999c1.523,0
+      3.746,-0.143 5.539,-0.553c-1.358,4.219 -1.591,8.078
+      -1.545,9.176c0.011,0.255 -0.076,0.496
+      -0.242,0.689l-0.441,0.504c-0.952,0.113 -2.055,0.184
+      -3.311,0.184c-1.256,0 -2.359,-0.071
+      -3.311,-0.184l-0.441,-0.504c-0.166,-0.193 -0.253,-0.434
+      -0.242,-0.689c0.046,-1.098 -0.187,-4.957 -1.545,-9.176c1.793,0.41
+      4.016,0.553 5.539,0.553Zm-2.998,10.862c1.042,0.101 2.188,0.138
+      3.002,0.138c0.814,0 1.96,-0.037 3.002,-0.138l-0.501,3.108c-0.026,0.218
+      -0.132,0.42 -0.3,0.573l-0.467,0.424c-0.032,0.029 -0.061,0.06
+      -0.089,0.092l-0.493,0.583c-0.19,0.226 -0.48,0.358
+      -0.787,0.358l-0.365,0l-0.365,0c-0.307,0 -0.596,-0.132
+      -0.786,-0.358l-0.495,-0.583c-0.027,-0.032 -0.056,-0.063
+      -0.087,-0.092l-0.467,-0.424c-0.168,-0.153 -0.275,-0.355
+      -0.301,-0.573l-0.501,-3.108Z" style="fill:#C0C0C0;"/><path id="Light"
+      d="M22.304,5.398c1.525,1.402 0.137,3.985 -0.329,4.907c-1.257,0.366
+      -3.269,0.695 -5.975,0.695c-2.706,0 -4.717,-0.329
+      -5.974,-0.695c-0.466,-0.922 -1.855,-3.505 -0.329,-4.907c1.631,-1.499
+      6.028,-1.396 6.303,-1.396c0.276,0 4.672,-0.103 6.304,1.396Z"
+      style="fill:var(--button-card-light-color)"/></svg>
+
+view_hue_color_bulb:
+  template: view_light_button_style
+  custom_fields:
+    icon_hue: >
+      <svg viewBox="6 0 32 32"><path id="Bulb" d="M16,11.999c1.523,0
+      3.746,-0.143 5.539,-0.553c-1.358,4.219 -1.591,8.078
+      -1.545,9.176c0.011,0.255 -0.076,0.496
+      -0.242,0.689l-0.441,0.504c-0.952,0.113 -2.055,0.184
+      -3.311,0.184c-1.256,0 -2.359,-0.071
+      -3.311,-0.184l-0.441,-0.504c-0.166,-0.193 -0.253,-0.434
+      -0.242,-0.689c0.046,-1.098 -0.187,-4.957 -1.545,-9.176c1.793,0.41
+      4.016,0.553 5.539,0.553Zm-2.998,10.862c1.042,0.101 2.188,0.138
+      3.002,0.138c0.814,0 1.96,-0.037 3.002,-0.138l-0.501,3.108c-0.026,0.218
+      -0.132,0.42 -0.3,0.573l-0.467,0.424c-0.032,0.029 -0.061,0.06
+      -0.089,0.092l-0.493,0.583c-0.19,0.226 -0.48,0.358
+      -0.787,0.358l-0.365,0l-0.365,0c-0.307,0 -0.596,-0.132
+      -0.786,-0.358l-0.495,-0.583c-0.027,-0.032 -0.056,-0.063
+      -0.087,-0.092l-0.467,-0.424c-0.168,-0.153 -0.275,-0.355
+      -0.301,-0.573l-0.501,-3.108Z" style="fill:#C0C0C0;"/><path id="Light"
+      d="M22.304,5.398c1.525,1.402 0.137,3.985 -0.329,4.907c-1.257,0.366
+      -3.269,0.695 -5.975,0.695c-2.706,0 -4.717,-0.329
+      -5.974,-0.695c-0.466,-0.922 -1.855,-3.505 -0.329,-4.907c1.631,-1.499
+      6.028,-1.396 6.303,-1.396c0.276,0 4.672,-0.103 6.304,1.396Z"
+      style="fill:var(--button-card-light-color)"/></svg>
+
+view_hue_led:
+  template: view_light_button_style
+  custom_fields:
+    icon_hue: >
+      <svg viewBox="0 0 32 32"><path d="M8.4395,16.668 C8.9795,16.552
+      9.5115,16.895 9.6285,17.435 C9.7455,17.974 9.4025,18.506 8.8625,18.623
+      C8.3225,18.74 7.7905,18.397 7.6735,17.857 C7.5565,17.317 7.9005,16.785
+      8.4395,16.668 M13.3275,15.611 C13.8665,15.495 14.3985,15.838
+      14.5155,16.377 C14.6325,16.917 14.2895,17.449 13.7505,17.566
+      C13.2105,17.683 12.6775,17.34 12.5605,16.8 C12.4445,16.261
+      12.7875,15.729 13.3275,15.611 M18.2135,14.555 C18.7535,14.438
+      19.2865,14.781 19.4025,15.32 C19.5195,15.86 19.1765,16.393 18.6365,16.51
+      C18.0965,16.626 17.5645,16.283 17.4485,15.743 C17.3315,15.203
+      17.6735,14.671 18.2135,14.555 M23.1005,13.498 C23.6405,13.381
+      24.1725,13.724 24.2905,14.264 C24.4065,14.804 24.0635,15.336
+      23.5235,15.453 C22.9835,15.569 22.4515,15.227 22.3355,14.687
+      C22.2175,14.147 22.5615,13.614 23.1005,13.498 M10.6695,20.639
+      L25.4735,17.444 C26.5535,17.211 27.2405,16.147 27.0065,15.067
+      C26.4495,12.484 23.9035,10.842 21.3205,11.399 L6.5165,14.594
+      C5.4365,14.827 4.7505,15.891 4.9835,16.971 C5.5415,19.554 8.0865,21.196
+      10.6695,20.639 M25,26 C24.447,26 24,25.553 24,25 C24,24.447 24.447,24
+      25,24 C25.553,24 26,24.447 26,25 C26,25.553 25.553,26 25,26 M20,26
+      C19.447,26 19,25.553 19,25 C19,24.447 19.447,24 20,24 C20.553,24
+      21,24.447 21,25 C21,25.553 20.553,26 20,26 M15,26 C14.447,26 14,25.553
+      14,25 C14,24.447 14.447,24 15,24 C15.553,24 16,24.447 16,25 C16,25.553
+      15.553,26 15,26 M10,26 C9.447,26 9,25.553 9,25 C9,24.447 9.447,24 10,24
+      C10.553,24 11,24.447 11,25 C11,25.553 10.553,26 10,26 M27,22 L9,22 C5,22
+      4,19 4,18 L4,23 C4,25.762 6.238,28 9,28 L27,28 C27.553,28 28,27.553
+      28,27 L28,23 C28,22.447 27.553,22 27,22 M22,8 C21.447,8 21,7.553 21,7
+      C21,6.447 21.447,6 22,6 C22.553,6 23,6.447 23,7 C23,7.553 22.553,8 22,8
+      M17,8 C16.447,8 16,7.553 16,7 C16,6.447 16.447,6 17,6 C17.553,6 18,6.447
+      18,7 C18,7.553 17.553,8 17,8 M12,8 C11.447,8 11,7.553 11,7 C11,6.447
+      11.447,6 12,6 C12.553,6 13,6.447 13,7 C13,7.553 12.553,8 12,8 M7,8
+      C6.447,8 6,7.553 6,7 C6,6.447 6.447,6 7,6 C7.553,6 8,6.447 8,7 C8,7.553
+      7.553,8 7,8 M23,4 L5,4 C4.447,4 4,4.447 4,5 L4,9 C4,9.553 4.447,10 5,10
+      L23,10 C27,10 28,13 28,14 L28,9 C28,6.238 25.762,4 23,4"
+      style="fill:#C0C0C0;"></path> <g><circle cx="7" cy="7" r="0.878"
+      style="fill:var(--button-card-light-color)"/> <circle cx="17" cy="7"
+      r="0.878" style="fill:var(--button-card-light-color)"/> <circle cx="22"
+      cy="7" r="0.878" style="fill:var(--button-card-light-color)"/> <circle
+      cx="8.651" cy="17.646" r="0.878"
+      style="fill:var(--button-card-light-color)"/> <circle cx="13.538"
+      cy="16.589" r="0.878" style="fill:var(--button-card-light-color)"/>
+      <circle cx="18.425" cy="15.532" r="0.878"
+      style="fill:var(--button-card-light-color)"/> <circle cx="23.313"
+      cy="14.475" r="0.878" style="fill:var(--button-card-light-color)"/>
+      <circle cx="10" cy="25" r="0.878"
+      style="fill:var(--button-card-light-color)"/> <circle cx="15" cy="25"
+      r="0.878" style="fill:var(--button-card-light-color)"/> <circle cx="20"
+      cy="25" r="0.878" style="fill:var(--button-card-light-color)"/> <circle
+      cx="25" cy="25" r="0.878" style="fill:var(--button-card-light-color)"/>
+      <circle cx="12" cy="7" r="0.878"
+      style="fill:var(--button-card-light-color)"/></g> </svg>
+
+view_hue_white_bulb:
+  template: view_light_button_style
+  custom_fields:
+    icon_hue: >
+      <svg viewBox="6 0 32 32"><path xmlns="http://www.w3.org/2000/svg"
+      id="bulb" d="M9.573,13.208c1.887,0.597 4.639,0.792 6.427,0.792c1.788,0
+      4.54,-0.195 6.427,-0.792c-0.768,2.018 -2.1,2.911
+      -2.417,4.792c-0.138,0.819 -0.255,1.963 -0.177,2.801c0.049,0.533
+      -0.357,1.001 -0.89,1.055c-0.864,0.089 -1.846,0.144 -2.943,0.144c-1.098,0
+      -2.079,-0.055 -2.944,-0.144c-0.533,-0.054 -0.938,-0.522
+      -0.889,-1.055c0.078,-0.838 -0.039,-1.982 -0.177,-2.801c-0.317,-1.881
+      -1.649,-2.774 -2.417,-4.792Zm3.427,9.654c1.041,0.101 2.187,0.138
+      3,0.138c0.813,0 1.959,-0.037 3,-0.138l-0.501,3.108c-0.026,0.218
+      -0.132,0.42 -0.3,0.573l-0.467,0.424c-0.031,0.029 -0.06,0.06
+      -0.087,0.092l-0.494,0.583c-0.19,0.226 -0.479,0.358
+      -0.786,0.358l-0.365,0l-0.365,0c-0.307,0 -0.596,-0.132
+      -0.786,-0.358l-0.494,-0.583c-0.027,-0.032 -0.056,-0.063
+      -0.087,-0.092l-0.467,-0.424c-0.168,-0.153 -0.274,-0.355
+      -0.3,-0.573l-0.501,-3.108Z" style="fill:#C0C0C0;"/><path
+      xmlns="http://www.w3.org/2000/svg" id="light" d="M16,4c3.853,0 7,3.332
+      7,6.5c0,0.289 -0.055,0.543 -0.085,0.805c-0.031,0.256 -0.074,0.47
+      -0.127,0.707c-1.09,0.46 -3.404,0.988 -6.788,0.988c-3.384,0 -5.698,-0.528
+      -6.788,-0.988c-0.053,-0.237 -0.096,-0.451 -0.127,-0.707c-0.03,-0.262
+      -0.085,-0.516 -0.085,-0.805c0,-3.168 3.147,-6.5 7,-6.5Z"
+      style="fill:var(--button-card-light-color)"/></svg>
+
+view_hue_white_gu10:
+  template: view_light_button_style
+  custom_fields:
+    icon_hue: >
+      <svg viewBox="6 0 32 32"><path id="Bulb" d="M8.215,10.087c2.168,0.92
+      5.474,1.219 7.785,1.219c2.312,-0 5.617,-0.299 7.785,-1.219c-0.328,1.919
+      -1.137,4.545 -3.561,6.294c-0.203,0.187 -0.224,0.5
+      -0.224,1.125l-0,3.686c-0,0.477 -0.153,0.946 -0.466,1.3c-0.5,0.567
+      -1.575,1 -3.534,1c-1.959,-0 -3.034,-0.433 -3.534,-1c-0.313,-0.354
+      -0.466,-0.823 -0.466,-1.3l-0,-3.686c-0,-0.625 -0.02,-0.938
+      -0.223,-1.125c-2.424,-1.749 -3.234,-4.375
+      -3.562,-6.294Zm8.785,15.913l0,-1.542c0.894,-0.083 1.548,-0.274
+      2,-0.533l0,2.075c0,0.55 -0.45,1 -1,1c-0.55,0 -1,-0.45
+      -1,-1Zm-4,0l0,-2.075c0.452,0.259 1.106,0.45 2,0.533l0,1.542c0,0.55
+      -0.45,1 -1,1c-0.55,0 -1,-0.45 -1,-1Z" style="fill:#C0C0C0;"/><path
+      id="Light" d="M16,5c4.97,0 9,1.188 9,2.653c0,1.464 -4.03,2.653
+      -9,2.653c-4.97,-0 -9,-1.189 -9,-2.653c0,-0.18 0.06,-0.361
+      0.18,-0.531c0.83,-1.21 4.47,-2.122 8.82,-2.122Z"
+      style="fill:var(--button-card-light-color)"/></svg>
+
+entertainment_center_icon:
+  template: view_light_layout
+  custom_fields:
+    icon_hue: >
+      <svg viewBox="0 0 750 750">
+        <path d="m198.09 445.28-2.7734 36.324h-7.2188l-2.7773-36.324h-11.656v-7.2656h-25.266v-90.812h324.8v90.812h-25.262v7.2656h-11.66l-2.7734 36.324h-7.2188l-2.7773-36.324zm156.02-18.164v-69.016h3.6094v32.691h108.27v-36.324h-310.36v76.281h310.36v-36.324h-108.27v32.691zm-3.6094 0h-90.219v-69.016h90.219zm-93.828 0h-97.441v-69.016h97.441z" fill-rule="evenodd"/>
+        <path d="m114.8 283.01c0-1.6641 1.3516-3.0117 3.1016-3.0117h21.793c1.7148 0 3.1055 1.3828 3.1055 3.0117v49.977c0 1.6641-1.3516 3.0117-3.1055 3.0117h-21.793c-1.7109 0-3.1016-1.3828-3.1016-3.0117zm8.3984 46.145v3.1094h11.199v-3.1094z" fill-rule="evenodd" style="fill:var(--button-card-light-color-no-temperature)"/>
+        <path d="m126 334.23h5.6016v147.38h-5.6016z" fill-rule="evenodd"/>
+        <path d="m103.56 478.15c0.94922-1.1875 2.9766-2.1484 4.5195-2.1484h41.438c1.5469 0 3.582 0.97656 4.5195 2.1484l2.7617 3.4531h-56z" fill-rule="evenodd"/>
+        <path d="m478.8 283.01c0-1.6641 1.3516-3.0117 3.1016-3.0117h21.793c1.7148 0 3.1055 1.3828 3.1055 3.0117v49.977c0 1.6641-1.3516 3.0117-3.1055 3.0117h-21.793c-1.7109 0-3.1016-1.3828-3.1016-3.0117zm8.3984 46.145v3.1094h11.199v-3.1094z" fill-rule="evenodd" style="fill:var(--button-card-light-color-no-temperature)"/>
+        <path d="m490 334.23h5.6016v147.38h-5.6016z" fill-rule="evenodd"/>
+        <path d="m467.56 478.15c0.94922-1.1875 2.9766-2.1484 4.5195-2.1484h41.438c1.5469 0 3.582 0.97656 4.5195 2.1484l2.7617 3.4531h-56z" fill-rule="evenodd"/>
+        <path d="m562.8 190.4h5.6016v285.6h-5.6016z" fill-rule="evenodd"/>
+        <path d="m532.99 477.96c1.125-1.082 3.3125-1.957 4.8203-1.957h55.582c1.5391 0 3.6953 0.875 4.8242 1.957l3.7852 3.6445h-72.801z" fill-rule="evenodd"/>
+        <path d="m565.6 196-36.402-22.398h72.801z" fill-rule="evenodd"/>
+        <path transform="matrix(5.6 0 0 5.6 70 3.979e-14)" d="m87 29.943c-0.15206-0.79869 0.35993-1.5946 1.1509-1.7732 0 0 0.07673-0.027902 0.14997-0.027902 0.030692 0 0.11858-0.1416 0.19601-0.1416 0.077428 0 0.16044 0.1416 0.18834 0.1416 0.075335 0 0.15067 0.027902 0.15067 0.027902 0.79171 0.18066 1.3128 0.98005 1.1656 1.7732l-0.68848 3.713c-0.035575 0.18973-0.22182 0.34389-0.42132 0.34389h-0.76242c-0.1974 0-0.38784-0.15834-0.42271-0.34389z" fill="none" stroke="#000" stroke-width=".3" style="fill:var(--button-card-light-color-no-temperature)"/>
+        <path d="m282.28 344.43v-11.41h-99.836v-142.62h256.71v142.62h-99.832v11.41h42.785v2.8516h-142.62v-2.8516zm-91.277-145.47v125.5h239.6v-125.5z" fill-rule="evenodd" style="fill:var(--button-card-light-color-no-temperature)"/>
+      </svg>
+
+
+#################################################
+#                                               #
+#                    MISC                       #
+#                                               #
+#################################################
+
+climate_btn:
+  show_label: true
+  show_state: true
+  tap_action:
+    action: more-info
+
+light_btn:
+  double_tap_action:
+    action: more-info
+  show_label: false
+  show_state: true
+  state_display: |
+    [[[ 
+      var bri = ( entity?.attributes?.brightness / 255 ) * 100 ;
+      if (entity?.state == "on") return "Lights on at " + bri.toFixed() + "%";
+      if (entity?.state == "Unavailable") return "Lights are Unavailable";
+      else return "Lights are off" 
+    ]]]
+  tap_action:
+    action: toggle
+  styles:
+    custom_fields:
+      power_icon:
+        - position: relative
+        - bottom: 35%
+        - right: 35%
+fan_btn:
+  double_tap_action:
+    action: more-info
+  show_label: false
+  show_state: true
+  state_display: |
+    [[[ 
+      var bri = entity?.attributes?.percentage;
+      if (bri && entity?.state == "on") return "Fan is on at " + bri + "%";
+      if (entity?.state == "on") return "Fan is on";
+      if (entity?.state == "Unavailable") return "Fan is unavailable";
+      else return "Fan is off" 
+    ]]]
+  tap_action:
+    action: toggle
+  styles:
+    custom_fields:
+      power_icon:
+        - position: relative
+        - bottom: 35%
+        - right: 35%
+      card:
+        - animation: rotation 2s infinite linear
+
+quick_toggle_btn:
+  aspect_ratio: 1/1
+  show_name: false
+  state:
+    - id: id_off
+      styles:
+        card: null
+        icon: null
+        label: null
+        name: null
+        state: null
+      value: "off"
+    - id: id_on
+      styles:
+        card:
+          - background-color: "#0DD58C"
+        icon:
+          - color: white
+        label:
+          - color: white
+        name:
+          - color: white
+        state:
+          - color: white
+      value: "on"
+
+standard_btn_states:
+  state:
+    - value: unavailable
+      styles:
+        card:
+          - background-color: "#600000"
+        custom_fields:
+          s2:
+            - color: white
+        icon:
+          - color: white
+        label:
+          - color: white
+        name:
+          - color: white
+        state:
+          - color: white
+    - styles:
+        card: null
+        custom_fields:
+          s2: null
+        icon: null
+        label: null
+        name: null
+        state: null
+      value: "off"
+standard_btn_states_on:
+  state:
+    - value: "on"
+      styles:
+        card:
+          - background-color: "#BFBFBF"
+        custom_fields:
+          s2:
+            - color: Grey
+        label:
+          - color: Grey
+          - font-size: 11pt
+        name:
+          - color: "#171717"
+        state:
+          - color: Grey
+
+switch_btn:
+  double_tap_action:
+    action: more-info
+  show_state: true
+  tap_action:
+    action: toggle
+  show_label: false
+  styles:
+    custom_fields:
+      power_icon:
+        - position: relative
+        - bottom: 35%
+        - right: 35%
+
+# Light layout
+view_light_layout:
+  label: Second Info
+  show_label: true
+  show_state: true
+  show_last_changed: true
+  show_icon: false
+  variables:
+    custom_state_display: |
+      [[[ 
+        return ""
+      ]]]
+  state_display: |
+    [[[ 
+      if (entity && entity.state == 'unavailable') return entity.state;
+      else return variables.custom_state_display ; 
+    ]]]
+  state:
+    - styles:
+        custom_fields:
+          icon_hue:
+            - filter: brightness(75%)
+        state:
+          - color: var(--disabled-text-color)
+        label:
+          - color: var(--disabled-text-color)
+      value: "off"
+    - styles:
+        label:
+          - color: var(--disabled-text-color)
+        name:
+          - color: var(--primary-text-color)
+        state:
+          - color: var(--primary-text-color)
+      value: "on"
+    - styles:
+        label:
+          - color: var(--disabled-text-color)
+        name:
+          - color: "#F44336"
+        state:
+          - color: "#F44336"
+      value: unavailable
+  styles:
+    card:
+      - height: 150px
+    custom_fields:
+      power_icon:
+        - justify-self: end
+        - margin: 0% 10% 0% 0%
+      slider:
+        - margin: 0% 5% 5% 0%
+    grid:
+      - grid-template-areas: >-
+          "icon_hue n n" "icon_hue slider slider" "icon_hue s power_icon"
+          "icon_hue l power_icon"
+      - grid-template-columns: 30% 45% 25%
+      - grid-template-rows: 30% 30% 20% 20%
+    name:
+      - font-weight: bold
+      - justify-self: start
+      - margin: 0% 0% 5% 0%
+    state:
+      - justify-self: start
+      - margin: 0% 0% 0% 0%
+    label:
+      - justify-self: start
+      - margin: 0% 0% 0% 0%
+  tap_action:
+    action: more-info
+
+# HUE G10
+view_gu10_uplight:
+  styles:
+    custom_fields:
+      icon_hue:
+        - transform: scale(1.4)
+        - position: relative
+        - top: 35%
+
+view_gu10_downlight:
+  styles:
+    custom_fields:
+      icon_hue:
+        - transform: scale(1.4) rotate(180deg)
+        - position: relative
+        - bottom: 35%
+
+# HUE Bulb
+view_bulb_uplight:
+  styles:
+    custom_fields:
+      icon_hue:
+        - transform: scale(1.6)
+        - position: relative
+        - top: 35%
+view_bulb_downlight:
+  styles:
+    custom_fields:
+      icon_hue:
+        - transform: scale(1.6) rotate(180deg)
+        - position: relative
+        - bottom: 35%
+
+view_light_button_style:
+  aspect_ratio: 1/1.25
+  color: auto
+  label: "Label"
+  show_label: false
+  show_state: true
+  show_last_changed: true
+  state:
+    - styles:
+        card: null
+        icon:
+          - filter: grayscale(100%)
+      value: "off"
+    - styles:
+        card: null
+        label:
+          - color: Grey
+        name:
+          - color: var(--primary-text-color)
+        state:
+          - color: var(--primary-text-color)
+      value: "on"
+  styles:
+    card: null
+    custom_fields:
+      power_icon:
+        - justify-self: right
+        - padding-right: 10%
+      slider:
+        - margin-right: 3%
+    grid:
+      - grid-template-areas: '"n power_icon" "icon_hue ." "s ." "l ." "slider slider"'
+      - grid-template-columns: 60% 40%
+      - grid-template-rows: auto auto auto auto
+    icon:
+      - justify-self: start
+      - padding-right: 50px
+    name:
+      - justify-self: start
+      - margin-left: 10%
+      - padding: 10% 0% 10% 0%
+    state:
+      - justify-self: start
+      - margin-left: 10%
+      - padding: 10% 0% 5% 0%
+    label:
+      - justify-self: start
+      - margin-left: 10%
+      - padding: 0% 0% 5% 0%
+  tap_action:
+    action: more-info
+view_lightgroup_button_style:
+  label: "lablel is not set"
+  show_label: false
+  show_state: true
+  custom_fields:
+    power_icon:
+      card:
+        entity: >
+          [[[ return entity.entity_id ]]]
+        template: view_power_icon_style
+        type: custom:button-card
+    slider:
+      card:
+        entity: >
+          [[[ return entity.entity_id ]]]
+        full_row: true
+        toggle: false
+        type: custom:slider-entity-row
+  state:
+    - styles:
+        card: null
+        icon:
+          - filter: grayscale(100%)
+      value: "off"
+    - styles:
+        card: null
+        label:
+          - color: Grey
+        name:
+          - color: var(--primary-text-color)
+        state:
+          - color: var(--primary-text-color)
+      value: "on"
+  styles:
+    card: null
+    custom_fields:
+      power_icon:
+        - justify-self: center
+        - margin-left: 3%
+      slider:
+        - margin-right: 3%
+        - margin-top: 3%
+    grid:
+      - grid-template-areas: '"i n power_icon" "i s power_icon" "slider slider slider"'
+      - grid-template-columns: 0.25fr 0.6fr 0.2fr
+      - grid-template-rows: auto auto
+    icon:
+      - justify-self: start
+      - padding-right: 20%
+    name:
+      - justify-self: start
+    state:
+      - justify-self: start
+  tap_action:
+    action: more-info
+
+view_sensor_button:
+  aspect_ratio: 1.65/1
+  show_last_changed: true
+  show_state: true
+  styles:
+    grid:
+      - grid-template-areas: '"i n" "i s" "i l" '
+      - grid-template-columns: 1fr 1fr
+      - grid-template-rows: auto auto auto
+    icon:
+      - width: 65%
+    label:
+      - justify-self: start
+      - font-size: 0.8em
+      - padding-bottom: 25%
+    name:
+      - justify-self: start
+      - padding-top: 25%
+    state:
+      - justify-self: start
+      - font-size: 0.8em
+  type: custom:button-card
+view_switch_button_style:
+  aspect_ratio: 1/1.25
+  color: auto
+  show_label: false
+  show_state: true
+  show_last_changed: true
+  size: 140px
+  state:
+    - styles:
+        card: null
+        icon:
+          - filter: grayscale(100%)
+      value: "off"
+    - styles:
+        card: null
+        label:
+          - color: Grey
+        name:
+          - color: var(--primary-text-color)
+        state:
+          - color: var(--primary-text-color)
+      value: "on"
+  styles:
+    card: null
+    custom_fields:
+      power_icon:
+        - justify-self: right
+        - padding-right: 10%
+      slider:
+        - margin-right: 3%
+    grid:
+      - grid-template-areas: '"n power_icon" "i ." "s ." "l ." "slider slider"'
+      - grid-template-columns: 60% 40%
+      - grid-template-rows: auto 160px auto auto
+    icon:
+      - justify-self: start
+    name:
+      - justify-self: start
+      - margin-left: 10%
+      - padding: 10% 0% 10% 0%
+    state:
+      - justify-self: start
+      - margin-left: 10%
+      - padding: 10% 0% 5% 0%
+    label:
+      - justify-self: start
+      - margin-left: 10%
+      - padding: 0% 0% 5% 0%
+  tap_action:
+    action: more-info
+view_power_icon_layout:
+  icon: "mdi:power"
+  show_name: false
+  show_state: false
+  state:
+    - styles:
+        card:
+          - border: 3px solid var(--disabled-text-color)
+          - transition: border 0.2s ease
+        icon:
+          - color: var(--primary-text-color)
+          - background-color: var(--disabled-text-color)
+          - transition: left 0.2s ease
+          - position: relative
+          - left: "-19px"
+      value: "off"
+    - styles:
+        card:
+          - border: "3px solid #4CAF50"
+          - transition: border 0.2s ease
+        icon:
+          - color: white
+          - background-color: "#4CAF50"
+          - transition: left 0.2s ease
+          - position: relative
+          - left: 20px
+      value: "on"
+    - styles:
+        card:
+          - border: "3px solid #F44336"
+          - transition: border 0.2s ease
+        icon:
+          - color: white
+          - background-color: "#F44336"
+          - transition: left 0.2s ease
+          - position: relative
+          - left: "-19px"
+      value: unavailable
+  styles:
+    card:
+      - width: 75px
+      - height: 37px
+      - border-radius: 500px
+      - box-shadow: none
+    icon:
+      - height: 25px
+      - width: 25px
+      - border-radius: 25px

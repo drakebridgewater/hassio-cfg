@@ -1,0 +1,335 @@
+type: custom:plotly-graph
+title: |
+  $fn ({ hass, vars }) => {
+      const nums = ["1", "2", "3"];
+      let detection_count = 0;
+      vars.target_states = [];
+      nums.forEach(num => {
+          const xpos = hass.states[`sensor.screek_human_sensor_2a_d11b4c_target${num}_x`].state;
+          const ypos = hass.states[`sensor.screek_human_sensor_2a_d11b4c_target${num}_y`].state;
+          if (xpos != 0 || ypos != 0) {
+            vars.target_states.push([xpos, ypos]);
+            detection_count += 1;
+          }
+          else {
+            vars.target_states.push([NaN, NaN]);
+          }
+        }
+      )
+      if (detection_count == 0) {
+       return "No targets detected";
+      } else if (detection_count == 1) {
+        return "1 target detected";
+      } else {
+        return `${detection_count} targets detected`;
+      }
+  }
+refresh_interval: 1
+hours_to_show: current_day
+layout:
+  height: 230
+  margin:
+    l: 50
+    r: 20
+    t: 20
+    b: 40
+  showlegend: true
+  xaxis:
+    dtick: 39
+    gridcolor: RGBA(200,200,200,0.15)
+    zerolinecolor: RGBA(200,200,200,0.15)
+    type: number
+    fixedrange: true
+    range:
+      - 160
+      - -160
+  yaxis:
+    dtick: 39
+    gridcolor: RGBA(200,200,200,0.15)
+    zerolinecolor: RGBA(200,200,200,0.15)
+    scaleanchor: x
+    scaleratio: 1
+    fixedrange: true
+    range:
+      - 300
+      - 0
+entities:
+  - entity: ''
+    name: Target1
+    marker:
+      size: 12
+    line:
+      shape: spline
+      width: 5
+    x:
+      - $ex vars.target_states[0][0]
+    'y':
+      - $ex vars.target_states[0][1]
+  - entity: ''
+    name: Target2
+    marker:
+      size: 12
+    line:
+      shape: spline
+      width: 5
+    x:
+      - $ex vars.target_states[1][0]
+    'y':
+      - $ex vars.target_states[1][1]
+  - entity: ''
+    name: Target3
+    marker:
+      size: 12
+    line:
+      shape: spline
+      width: 5
+    x:
+      - $ex vars.target_states[2][0]
+    'y':
+      - $ex vars.target_states[2][1]
+  - entity: ''
+    name: Zone1
+    mode: lines
+    fill: toself
+    fillcolor: RGBA(20,200,0,0.06)
+    line:
+      color: RGBA(20,200,0,0.2)
+      shape: line
+      width: 2
+    x:
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone1_x_begin"].state
+        / 25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone1_x_begin"].state
+        / 25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone1_x_end"].state /
+        25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone1_x_end"].state /
+        25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone1_x_begin"].state
+        / 25.4
+    'y':
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone1_y_begin"].state
+        / 25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone1_y_end"].state /
+        25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone1_y_end"].state /
+        25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone1_y_begin"].state
+        / 25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone1_y_begin"].state
+        / 25.4
+  - entity: ''
+    name: Zone2
+    mode: lines
+    fill: toself
+    fillcolor: RGBA(200,0,255,0.06)
+    line:
+      color: RGBA(200,0,255,0.2)
+      shape: line
+      width: 2
+    x:
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone2_x_begin"].state
+        / 25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone2_x_begin"].state
+        / 25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone2_x_end"].state /
+        25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone2_x_end"].state /
+        25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone2_x_begin"].state
+        / 25.4
+    'y':
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone2_y_begin"].state
+        / 25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone2_y_end"].state /
+        25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone2_y_end"].state /
+        25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone2_y_begin"].state
+        / 25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone2_y_begin"].state
+        / 25.4
+  - entity: ''
+    name: Zone3
+    mode: lines
+    fill: toself
+    fillcolor: RGBA(200,120,55,0.06)
+    line:
+      color: RGBA(200,120,55,0.2)
+      shape: line
+      width: 2
+    x:
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone3_x_begin"].state
+        / 25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone3_x_begin"].state
+        / 25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone3_x_end"].state /
+        25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone3_x_end"].state /
+        25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone3_x_begin"].state
+        / 25.4
+    'y':
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone3_y_begin"].state
+        / 25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone3_y_end"].state /
+        25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone3_y_end"].state /
+        25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone3_y_begin"].state
+        / 25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zone3_y_begin"].state
+        / 25.4
+  - entity: ''
+    name: ExZone
+    mode: lines
+    fill: toself
+    fillcolor: RGBA(255,0,0,0.15)
+    line:
+      shape: line
+      width: 1
+      color: RGBA(255,0,0,0.2)
+    x:
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zout1_x_begin"].state
+        / 25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zout1_x_begin"].state
+        / 25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zout1_x_end"].state /
+        25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zout1_x_end"].state /
+        25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zout1_x_begin"].state
+        / 25.4
+    'y':
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zout1_y_begin"].state
+        / 25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zout1_y_end"].state /
+        25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zout1_y_end"].state /
+        25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zout1_y_begin"].state
+        / 25.4
+      - >-
+        $ex
+        hass.states["number.screek_human_sensor_2a_d11b4c_zout1_y_begin"].state
+        / 25.4
+  - entity: ''
+    name: Coverage
+    mode: lines
+    fill: tonexty
+    fillcolor: rgba(168, 216, 234, 0.15)
+    line:
+      shape: line
+      width: 1
+      dash: dot
+    x:
+      - 0
+      - $ex 295 * Math.sin((2 * Math.PI)/360 * 60)
+      - 177
+      - 157
+      - 118
+      - 79
+      - 39
+      - 0
+      - -39
+      - -79
+      - -118
+      - -157
+      - -177
+      - $ex -295 * Math.sin((2 * Math.PI)/360 * 60)
+      - 0
+    'y':
+      - 0
+      - $ex 295 * Math.cos((2 * Math.PI)/360 * 60)
+      - $ex Math.sqrt( 295**2 - 177**2 )
+      - $ex Math.sqrt( 295**2 - 157**2 )
+      - $ex Math.sqrt( 295**2 - 118**2 )
+      - $ex Math.sqrt( 295**2 - 79**2 )
+      - $ex Math.sqrt( 295**2 - 39**2 )
+      - 295
+      - $ex Math.sqrt( 295**2 - 39**2 )
+      - $ex Math.sqrt( 295**2 - 79**2 )
+      - $ex Math.sqrt( 295**2 - 118**2 )
+      - $ex Math.sqrt( 295**2 - 157**2 )
+      - $ex Math.sqrt( 295**2 - 177**2 )
+      - $ex 295 * Math.cos((2 * Math.PI)/360 * 60)
+      - 0
+raw_plotly_config: true

@@ -1,0 +1,46 @@
+type: vertical-stack
+cards: []
+
+    # - type: custom:mushroom-climate-card
+    #   entity: climate.thermostat
+    #   show_temperature_control: true
+    #   fill_container: true
+    #   collapsible_controls: false
+    #   layout: horizontal
+    #   tap_action: 
+    #     action: more-info
+  # - type: custom:bubble-card
+  #   card_type: button
+  #   entity: alarm_control_panel.abode_alarm
+  #   sub_button:
+  #     - entity: alarm_control_panel.abode_alarm
+  #       show_state: false
+  #     - entity: cover.garage_door
+  #       show_state: false
+  #       tap_action:
+  #         action: more-info
+  #     - entity: binary_sensor.any_door_open_group
+  #       show_state: false
+  #       tap_action:
+  #         action: navigate
+  #         navigation_path: "#door_overview"
+  #     - entity: binary_sensor.window_open_group
+  #       show_state: false
+  #       tap_action:
+  #         action: navigate
+  #         navigation_path: "#window_overview"
+  #     - entity: binary_sensor.whole_house_motion_group
+  #       show_state: false
+  #       icon: mdi:motion-sensor
+  #       tap_action:
+  #         action: navigate
+  #         navigation_path: "#motion_overview"
+
+  #   # card_layout: large-2-rows
+  #   button_type: state
+  #   scrolling_effect: false
+  #   show_icon: false
+  #   show_name: false
+  #   show_state: false
+  #   name: Status
+  #   show_attribute: false

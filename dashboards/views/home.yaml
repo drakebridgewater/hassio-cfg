@@ -1,0 +1,2019 @@
+title: Home
+icon: mdi:home
+path: home
+# background: center / cover no-repeat fixed url('/local/tropical-background.jpg')
+type: custom:grid-layout
+layout: !include ../layouts/grid.yaml
+# badges:
+  # - type: custom:mushroom-template-badge
+  #   entity: alarm_control_panel.abode_alarm
+  #   visibility:
+  #     - condition: user
+  #       users:
+  #         - b5a0f36540a94a4fabedc323d0906537
+  #         - 39499af0dfe14dc8be352c27a4e76b53
+  #   tap_action:
+  #     action: more-info
+  #   icon: |-
+  #     {% if is_state('alarm_control_panel.abode_alarm', 'disarmed') %} 
+  #       mdi:shield-off
+  #     {% elif is_state('alarm_control_panel.abode_alarm', 'armed_home') %}
+  #       mdi:shield-home
+  #     {% elif is_state('alarm_control_panel.abode_alarm', 'armed_away') %}
+  #       mdi:shield
+  #     {% endif %}
+  #   icon_color: |-
+  #     {% if is_state('alarm_control_panel.abode_alarm', 'disarmed') %} 
+  #       blue
+  #     {% elif is_state('alarm_control_panel.abode_alarm', 'armed_home') %}
+  #       red
+  #     {% elif is_state('alarm_control_panel.abode_alarm', 'armed_away') %}
+  #       red
+  #     {% endif %}
+  #   card_mod:
+  #     style: |
+  #       ha-card {
+  #         --chip-icon-size: 0.8em
+  #       }
+  #       {% if not is_state(config.entity, 'disarmed') %}
+  #         .content {
+  #         animation: boing 3s ease infinite;
+  #         transform-origin: 50% 90%;
+  #       }
+  #       @keyframes boing {
+  #         0% { transform: scale3d(1, 1, 1); }
+  #         7% { transform: scale3d(1.25, 0.75, 1); }
+  #         10% { transform: scale3d(0.75, 1.25, 1); }
+  #         12% { transform: scale3d(1.15, 0.85, 1); }
+  #         16% { transform: scale3d(0.95, 1.05, 1); }
+  #         19% { transform: scale3d(1.05, 0.95, 1); }
+  #         25% { transform: scale3d(1, 1, 1); }
+  #       } 
+  #       {% endif %}
+  #           conditions:
+  # - type: entity
+  #   entity: weather.home
+  #   show_name: true
+  #   show_state: true
+  #   show_icon: true
+  #   card_mod:
+  #     style: |
+  #       ha-card {
+  #         --chip-icon-size: 0.8em
+  # - type: entity
+  #   show_name: true
+  #   show_state: true
+  #   show_icon: true
+  #   entity: sensor.wirelesstag_outdoor_temperature
+
+  # - type: entity
+  #   show_name: true
+  #   show_state: true
+  #   show_icon: true
+  #   entity: cover.garage_door
+  #   tap_action:
+  #     action: more-info
+    
+  # - entity: binary_sensor.any_door_open_group
+  #   type: entity
+  #   name: Doors
+  #   show_name: true
+  #   show_state: true
+  #   show_icon: true
+  #   tap_action:
+  #     action: navigate
+  #     navigation_path: "#door_overview"
+
+
+  # - entity: binary_sensor.window_open_group
+  #   type: entity
+  #   name: Windows
+  #   show_name: true
+  #   show_state: true
+  #   show_icon: true
+  #   tap_action:
+  #     action: navigate
+  #     navigation_path: "#window_overview"
+  #   content_info: none
+
+  # - entity: binary_sensor.whole_house_motion_group
+  #   type: entity
+  #   name: Motion
+  #   show_name: true
+  #   show_state: true
+  #   show_icon: true
+  #   tap_action:
+  #     action: navigate
+  #     navigation_path: "#motion_overview"
+  #   icon: mdi:motion-sensor
+  #   content_info: none
+  # - entity: climate.thermostat
+  #   type: entity
+  #   show_name: true
+  #   show_state: true
+  #   show_icon: true
+#   - type: entity
+#     name: Switches
+#     entity: light.wall_switch_light_group
+#     icon: mdi:light-switch
+#     tap_action: !include ../popup/wall_switches.yaml
+#     show_name: true
+#     show_state: false
+#     show_icon: true
+#   - type: entity
+#     name: Lights
+#     entity: light.wall_switch_light_group
+#     icon: mdi:lightbulb-group
+#     tap_action:
+#       action: navigate
+#       navigation_path: "#lights_overview"
+#     show_name: true
+#     show_state: false
+#     show_icon: true
+
+
+#   - type: entity
+#     entity: todo.bring_todo_baywaters_shopping_list
+#     tap_action:
+#       action: navigate
+#       navigation_path: /todo
+#     state_content: state
+#     show_entity_picture: false
+#     icon: mdi:cart-variant
+cards:
+  - type: vertical-stack
+    view_layout:
+      grid-area: sidebar
+    cards: !include_dir_list ../sections/sidebar
+
+  ######################### Status Bar ############################################
+  
+  - type: custom:mushroom-chips-card
+    view_layout:
+      grid-area: banner
+    chips: !include ../sections/status-bar.yaml
+
+  ##################################################################################################
+  ##################################################################################################
+  ##################################################################################################
+  ##################################################################################################
+  ##################################################################################################
+
+
+
+  ####################################################################################
+  ##################### Kitchen  #####################################################
+  ####################################################################################
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: section1
+    cards:
+      - type: custom:bubble-card
+        card_type: button
+        button_type: state
+        name: Kitchen
+        entity: binary_sensor.kitchen_motion_sensor_occupancy
+        icon: mdi:silverware-fork-knife
+        show_attribute: true
+        show_state: true
+        show_name: true
+        show_icon: true
+        scrolling_effect: false
+        use_accent_color: false
+        show_last_changed: false
+        tap_action:
+          action: navigate
+          navigation_path: "#kitchen"
+        double_tap_action:
+          action: none
+        hold_action:
+          action: none
+        button_action:
+          tap_action:
+            action: navigate
+            navigation_path: "#kitchen"
+          double_tap_action:
+            action: none
+          hold_action:
+            action: none
+        sub_button:
+          - entity: light.kitchen_wall_switch
+            icon: mdi:lightbulb-fluorescent-tube
+            tap_action:
+              service: ""
+              action: toggle
+            hold_action:
+              action: more-info
+          - entity: light.vaulted_light
+            icon: mdi:ceiling-fan-light
+            tap_action:
+              service: ""
+              action: toggle
+            hold_action:
+              action: more-info
+          - entity: fan.ceiling_fan
+            icon: mdi:ceiling-fan
+            tap_action:
+              service: ""
+              action: toggle
+            hold_action:
+              action: more-info
+          - entity: input_boolean.motion_in_main_disabled
+            icon: mdi:lightbulb-auto
+            tap_action:
+              service: ""
+              action: toggle
+            hold_action:
+              action: more-info
+            show_state: false
+            state_background: true
+            show_background: true
+            show_name: false
+        styles: |-
+              ${card.querySelector('.bubble-state').innerText = 
+                hass.formatEntityState(hass.states['sensor.thermostat_temperature']) + " | " +  
+                hass.formatEntityState(hass.states['sensor.thermostat_humidity'])}
+              
+              .bubble-sub-button-4 > ha-icon {
+                color: ${hass.states['input_boolean.motion_in_main_disabled'].state === 'on' ? 'red' : 'green'} !important;
+              } 
+              .bubble-icon-container::after {
+                border-radius: 100%;
+              }
+              .bubble-icon-container {
+                overflow: visible !important;
+              }
+
+              .bubble-entity-picture {
+                border-radius: var(--bubble-icon-border-radius, var(--bubble-border-radius, 50%));
+              }
+              .badge {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: absolute;
+                z-index: 1;
+                background: var(--accent-color);
+                color: var(--primary-text-color);
+                font-size: 12px;
+                height: 20px;
+                width: 20px;
+                border-radius: 50%;
+                --mdc-icon-size: 12px;
+                box-sizing: border-box;
+              }
+
+              .badge.text {
+                border-radius: 10px;
+                padding: 0 4px;
+                width: auto;
+                min-width: 20px;
+              }
+
+              .badge.position-1 {
+                top: -4px;
+                right: -4px;
+              }
+
+              .badge.position-2 {
+                bottom: -4px;
+                right: -4px;
+              }
+
+              .badge.position-3 {
+                bottom: -4px;
+                left: -4px;
+              }
+
+              .badge.position-4 {
+                top: -4px;
+                left: -4px;
+              }
+
+              @keyframes blink {
+                50% {opacity: 0;}
+              }
+              ${(() => {
+                // Up to 4 badges at the same time in each configs
+                
+                const containersConfig = [
+                
+                  {
+                    // Example for the main icon
+                    containerSelector: '.bubble-icon-container',
+                    badgesConfig: [
+                    
+                      // Show home icon when drake is home
+                      // ${ expand(states.light) |selectattr('state', 'eq', 'on') |selectattr('entity_id', 'in', area_entities('Living Room')) |map(attribute='entity_id') |list | count }}';
+                      { 
+                        entity: 'input_boolean.motion_in_main_disabled', 
+                        icon: 'mdi:home', 
+                        text: '⚠️',
+                        color: 'rgb(200, 0, 0)',
+                        condition: (state) => state === 'on', 
+                        animation: 'blink 2s linear infinite',
+                      },
+                      { 
+                        entity: 'sensor.thermostat_temperature', 
+                        icon: 'mdi:snowflake-alert', 
+                        color: 'rgb(0, 0, 200)',
+                        condition: (state) => state < 69, 
+                      },
+                      { 
+                        entity: 'sensor.thermostat_temperature', 
+                        icon: 'mdi:fire', 
+                        color: 'rgb(200, 0, 0)',
+                        condition: (state) => state > 72, 
+                      },
+                    ],
+                  },
+                  
+                  {
+                    // Example for sub-button(s) (can be empty or removed if not used)
+                    containerSelector: '.bubble-sub-button-1',
+                    badgesConfig: [
+                      // Add badges for this container if necessary
+                    ],
+                  },
+
+                  // Add more configs if needed...
+                ];
+
+                card.badges ||= {};
+                containersConfig.forEach(({ containerSelector, badgesConfig }) => {
+                  const container = card.querySelector(containerSelector);
+                  if (!container) return;
+                  card.badges[containerSelector] ||= [];
+                  badgesConfig.forEach((badgeConfig) => {
+                    const state = hass.states[badgeConfig.entity]?.state;
+                    const existingBadge = card.badges[containerSelector].find(b => 
+                      b.entity === badgeConfig.entity && b.condition.toString() === badgeConfig.condition.toString()
+                    );
+                    if (badgeConfig.condition(state)) {
+                      if (existingBadge) {
+                        if (badgeConfig.text) {
+                          existingBadge.element.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
+                        }
+                      } else {
+                        const el = document.createElement("div");
+                        el.className = `badge position-${card.badges[containerSelector].length + 1} ${badgeConfig.text ? 'text' : ''}`;
+                        if (badgeConfig.color) el.style.backgroundColor = badgeConfig.color;
+                        if (badgeConfig.text) {
+                          el.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
+                        } else if (badgeConfig.icon) {
+                          const icon = document.createElement("ha-icon");
+                          icon.icon = badgeConfig.icon;
+                          el.appendChild(icon);
+                        }
+                        if (badgeConfig.animation) {
+                          el.style.animation = badgeConfig.animation;
+                        }
+                        container.appendChild(el);
+                        card.badges[containerSelector].push({ 
+                          entity: badgeConfig.entity, 
+                          condition: badgeConfig.condition, 
+                          element: el 
+                        });
+                      }
+                    } else if (existingBadge) {
+                      container.removeChild(existingBadge.element);
+                      card.badges[containerSelector] = card.badges[containerSelector].filter(b => b !== existingBadge);
+                    }
+                  });
+                });
+              })()}
+      
+
+  ####################################################################################
+  ##################### Living Room ##################################################
+  ####################################################################################
+      - type: custom:stack-in-card
+        cards:
+        - type: vertical-stack
+          cards: 
+            - type: custom:bubble-card
+              card_type: button
+              button_type: state
+              name: Living Room
+              entity: binary_sensor.living_room_presence_sensor_occupancy
+              icon: mdi:sofa
+              show_attribute: true
+              show_state: true
+              show_name: true
+              show_icon: true
+              scrolling_effect: false
+              use_accent_color: true
+              show_last_changed: false
+              tap_action:
+                action: navigate
+                navigation_path: "#living-room"
+              double_tap_action:
+                action: none
+              hold_action:
+                action: none
+              button_action:
+                tap_action:
+                  action: navigate
+                  navigation_path: "#living-room"
+                double_tap_action:
+                  action: none
+                hold_action:
+                  action: none
+              sub_button:
+                - entity: light.awning_lights_group
+                  icon: mdi:blinds-vertical
+                  tap_action:
+                    action: toggle
+                  hold_action:
+                    action: more-info
+                - entity: light.0x94deb8fffe4580e5
+                  icon: mdi:stairs
+                  tap_action:
+                    action: toggle
+                  hold_action:
+                    action: more-info
+                - entity: light.tv_lights_group
+                  icon: mdi:television
+                  tap_action:
+                    service: ""
+                    action: toggle
+                  hold_action:
+                    action: more-info
+                - entity: input_boolean.motion_in_main_disabled
+                  icon: mdi:lightbulb-auto
+                  tap_action:
+                    service: ""
+                    action: toggle
+                  hold_action:
+                    action: more-info
+                  show_state: false
+                  state_background: true
+                  show_background: true
+                  show_name: false
+              styles: |-
+                    ${card.querySelector('.bubble-state').innerText = 
+                      hass.formatEntityState(hass.states['sensor.wirelesstag_main_freezer_temperature']) + " | " + 
+                      hass.formatEntityState(hass.states['sensor.wirelesstag_main_freezer_humidity'])}
+
+                    .bubble-sub-button-4 > ha-icon {
+                      color: ${hass.states['input_boolean.motion_in_main_disabled'].state === 'on' ? 'red' : 'green'} !important;
+                    } 
+                    
+                    .bubble-icon-container::after {
+                      border-radius: 100%;
+                    }
+                    .bubble-icon-container {
+                      overflow: visible !important;
+                    }
+
+                    .bubble-entity-picture {
+                      border-radius: var(--bubble-icon-border-radius, var(--bubble-border-radius, 50%));
+                    }
+                    .badge {
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      position: absolute;
+                      z-index: 1;
+                      background: var(--accent-color);
+                      color: var(--primary-text-color);
+                      font-size: 12px;
+                      height: 20px;
+                      width: 20px;
+                      border-radius: 50%;
+                      --mdc-icon-size: 12px;
+                      box-sizing: border-box;
+                    }
+
+                    .badge.text {
+                      border-radius: 10px;
+                      padding: 0 4px;
+                      width: auto;
+                      min-width: 20px;
+                    }
+
+                    .badge.position-1 {
+                      top: -4px;
+                      right: -4px;
+                    }
+
+                    .badge.position-2 {
+                      bottom: -4px;
+                      right: -4px;
+                    }
+
+                    .badge.position-3 {
+                      bottom: -4px;
+                      left: -4px;
+                    }
+
+                    .badge.position-4 {
+                      top: -4px;
+                      left: -4px;
+                    }
+
+                    @keyframes blink {
+                      50% {opacity: 0;}
+                    }
+                    ${(() => {
+                      // Up to 4 badges at the same time in each configs
+                      
+                      const containersConfig = [
+                      
+                        {
+                          // Example for the main icon
+                          containerSelector: '.bubble-icon-container',
+                          badgesConfig: [
+                          
+                            // Show home icon when drake is home
+                            // ${ expand(states.light) |selectattr('state', 'eq', 'on') |selectattr('entity_id', 'in', area_entities('Living Room')) |map(attribute='entity_id') |list | count }}';
+                            { 
+                              entity: 'input_boolean.motion_in_main_disabled', 
+                              icon: 'mdi:home', 
+                              text: '⚠️',
+                              color: 'rgb(200, 0, 0)',
+                              condition: (state) => state === 'on', 
+                              animation: 'blink 2s linear infinite',
+                            },
+                            { 
+                              entity: 'sensor.wirelesstag_main_freezer_temperature', 
+                              icon: 'mdi:snowflake-alert', 
+                              color: 'rgb(0, 0, 200)',
+                              condition: (state) => state < 69, 
+                            },
+                            { 
+                              entity: 'sensor.wirelesstag_main_freezer_temperature', 
+                              icon: 'mdi:fire', 
+                              color: 'rgb(200, 0, 0)',
+                              condition: (state) => state > 72, 
+                            },
+                          ],
+                        },
+                        
+                        {
+                          // Example for sub-button(s) (can be empty or removed if not used)
+                          containerSelector: '.bubble-sub-button-1',
+                          badgesConfig: [
+                            // Add badges for this container if necessary
+                          ],
+                        },
+
+                        // Add more configs if needed...
+                      ];
+
+                      card.badges ||= {};
+                      containersConfig.forEach(({ containerSelector, badgesConfig }) => {
+                        const container = card.querySelector(containerSelector);
+                        if (!container) return;
+                        card.badges[containerSelector] ||= [];
+                        badgesConfig.forEach((badgeConfig) => {
+                          const state = hass.states[badgeConfig.entity]?.state;
+                          const existingBadge = card.badges[containerSelector].find(b => 
+                            b.entity === badgeConfig.entity && b.condition.toString() === badgeConfig.condition.toString()
+                          );
+                          if (badgeConfig.condition(state)) {
+                            if (existingBadge) {
+                              if (badgeConfig.text) {
+                                existingBadge.element.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
+                              }
+                            } else {
+                              const el = document.createElement("div");
+                              el.className = `badge position-${card.badges[containerSelector].length + 1} ${badgeConfig.text ? 'text' : ''}`;
+                              if (badgeConfig.color) el.style.backgroundColor = badgeConfig.color;
+                              if (badgeConfig.text) {
+                                el.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
+                              } else if (badgeConfig.icon) {
+                                const icon = document.createElement("ha-icon");
+                                icon.icon = badgeConfig.icon;
+                                el.appendChild(icon);
+                              }
+                              if (badgeConfig.animation) {
+                                el.style.animation = badgeConfig.animation;
+                              }
+                              container.appendChild(el);
+                              card.badges[containerSelector].push({ 
+                                entity: badgeConfig.entity, 
+                                condition: badgeConfig.condition, 
+                                element: el 
+                              });
+                            }
+                          } else if (existingBadge) {
+                            container.removeChild(existingBadge.element);
+                            card.badges[containerSelector] = card.badges[containerSelector].filter(b => b !== existingBadge);
+                          }
+                        });
+                      });
+                    })()}
+            - type: conditional
+              conditions:
+                - condition: or
+                  conditions:
+                    - condition: state
+                      entity: media_player.living_room
+                      state: playing
+                    - condition: state
+                      entity: media_player.living_room
+                      state: paused
+              card:
+                type: custom:mini-media-player
+                entity: media_player.living_room
+                artwork: material
+                volume_stateless: true
+                sound_mode: icon
+                info: short
+                group: false
+                source: full
+
+      # - theme: dark
+      #   type: markdown
+      #   content: |-
+      #     {% if ( states('media_player.living_room') == "playing") %}
+      #       Playing {{ state_attr('media_player.living_room', 'media_title') }} on {{ state_attr('media_player.living_room', 'app_name') }}
+      #     {% elif ( states('media_player.marantz_sr5012_3') == "on") %}
+      #       Playing {{ state_attr('media_player.marantz_sr5012_3', 'source') }}
+      #     {% else %}
+      #       Nothing playing
+      #     {%- endif %}
+
+  ####################################################################################
+  ######################### Master ###################################################
+  ####################################################################################
+  # - type: custom:stack-in-card
+  #   view_layout:
+  #     grid-area: section2
+  #   cards:
+      - type: custom:bubble-card
+        card_type: button
+        button_type: state
+        name: Master Bedroom
+        entity: binary_sensor.master_bedroom_motion_sensor_occupancy
+        icon: mdi:bed-king-outline
+        show_attribute: true
+        show_state: true
+        show_name: true
+        show_icon: true
+        scrolling_effect: false
+        use_accent_color: true
+        show_last_changed: false
+        tap_action:
+          action: navigate
+          navigation_path: "#master"
+        double_tap_action:
+          action: none
+        hold_action:
+          action: none
+        button_action:
+          tap_action:
+            action: navigate
+            navigation_path: "#master"
+          double_tap_action:
+            action: none
+          hold_action:
+            action: none
+        sub_button:
+          - entity: light.master_bedroom_wall_switch
+            icon: mdi:ceiling-light
+            tap_action:
+              service: ""
+              action: toggle
+            hold_action:
+              action: more-info
+          - entity: fan.master_bedroom_fan
+            icon: mdi:fan
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          # - entity: light.master_bathroom_wall_switch
+          #   icon: mdi:shower
+          #   tap_action:
+          #     action: toggle
+          - entity: switch.master_bedroom_grow_lamp
+            icon: mdi:flower
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - entity: input_boolean.master_bedroom_lighting_automation_on_disabled
+            icon: mdi:lightbulb-auto
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+            show_state: false
+            state_background: true
+            show_background: true
+            show_name: false
+        styles: |-
+              ${card.querySelector('.bubble-state').innerText = 
+                hass.formatEntityState(hass.states['sensor.master_bedroom_temperature_temperature']) + " | " + 
+                hass.formatEntityState(hass.states['sensor.master_bedroom_temperature_humidity']) + 
+                (hass.states['binary_sensor.master_bedroom_window'].state === 'on' ? " | Window Opened" : "")}
+              
+              .bubble-sub-button-5 > ha-icon {
+                color: ${hass.states['input_boolean.master_bedroom_lighting_automation_on_disabled'].state === 'on' ? 'red' : 'green'} !important;
+              } 
+              .bubble-sub-button-2 > ha-icon {
+                animation: ${hass.states['fan.master_bedroom_fan'].state === 'on' ? 'slow-rotate 2s linear infinite' : ''};
+              }
+              @keyframes slow-rotate {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+              
+              .bubble-icon-container::after {
+                border-radius: 100%;
+              }
+              .bubble-icon-container {
+                overflow: visible !important;
+              }
+
+              .bubble-entity-picture {
+                border-radius: var(--bubble-icon-border-radius, var(--bubble-border-radius, 50%));
+              }
+              .badge {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: absolute;
+                z-index: 1;
+                background: var(--accent-color);
+                color: var(--primary-text-color);
+                font-size: 12px;
+                height: 20px;
+                width: 20px;
+                border-radius: 50%;
+                --mdc-icon-size: 12px;
+                box-sizing: border-box;
+              }
+
+              .badge.text {
+                border-radius: 10px;
+                padding: 0 4px;
+                width: auto;
+                min-width: 20px;
+              }
+
+              .badge.position-1 {
+                top: -4px;
+                right: -4px;
+              }
+
+              .badge.position-2 {
+                bottom: -4px;
+                right: -4px;
+              }
+
+              .badge.position-3 {
+                bottom: -4px;
+                left: -4px;
+              }
+
+              .badge.position-4 {
+                top: -4px;
+                left: -4px;
+              }
+
+              @keyframes blink {
+                50% {opacity: 0;}
+              }
+              ${(() => {
+                // Up to 4 badges at the same time in each configs
+                
+                const containersConfig = [
+                
+                  {
+                    // Example for the main icon
+                    containerSelector: '.bubble-icon-container',
+                    badgesConfig: [
+                    
+                      // Show home icon when drake is home
+                      // ${ expand(states.light) |selectattr('state', 'eq', 'on') |selectattr('entity_id', 'in', area_entities('Living Room')) |map(attribute='entity_id') |list | count }}';
+                      { 
+                        entity: 'input_boolean.master_bedroom_lighting_automation_on_disabled', 
+                        text: '⚠️',
+                        color: 'rgb(200, 0, 0)',
+                        condition: (state) => state === 'on', 
+                        animation: 'blink 2s linear infinite',
+                      },
+                      { 
+                        entity: 'sensor.master_bedroom_temperature_temperature', 
+                        icon: 'mdi:snowflake-alert', 
+                        color: 'rgb(0, 0, 200)',
+                        condition: (state) => state < 69, 
+                      },
+                      { 
+                        entity: 'sensor.master_bedroom_temperature_temperature', 
+                        icon: 'mdi:fire', 
+                        color: 'rgb(200, 0, 0)',
+                        condition: (state) => state > 72, 
+                      },
+                    ],
+                  },
+                  
+                  {
+                    // Example for sub-button(s) (can be empty or removed if not used)
+                    containerSelector: '.bubble-sub-button-1',
+                    badgesConfig: [
+                      // Add badges for this container if necessary
+                    ],
+                  },
+
+                  // Add more configs if needed...
+                ];
+
+                card.badges ||= {};
+                containersConfig.forEach(({ containerSelector, badgesConfig }) => {
+                  const container = card.querySelector(containerSelector);
+                  if (!container) return;
+                  card.badges[containerSelector] ||= [];
+                  badgesConfig.forEach((badgeConfig) => {
+                    const state = hass.states[badgeConfig.entity]?.state;
+                    const existingBadge = card.badges[containerSelector].find(b => 
+                      b.entity === badgeConfig.entity && b.condition.toString() === badgeConfig.condition.toString()
+                    );
+                    if (badgeConfig.condition(state)) {
+                      if (existingBadge) {
+                        if (badgeConfig.text) {
+                          existingBadge.element.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
+                        }
+                      } else {
+                        const el = document.createElement("div");
+                        el.className = `badge position-${card.badges[containerSelector].length + 1} ${badgeConfig.text ? 'text' : ''}`;
+                        if (badgeConfig.color) el.style.backgroundColor = badgeConfig.color;
+                        if (badgeConfig.text) {
+                          el.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
+                        } else if (badgeConfig.icon) {
+                          const icon = document.createElement("ha-icon");
+                          icon.icon = badgeConfig.icon;
+                          el.appendChild(icon);
+                        }
+                        if (badgeConfig.animation) {
+                          el.style.animation = badgeConfig.animation;
+                        }
+                        container.appendChild(el);
+                        card.badges[containerSelector].push({ 
+                          entity: badgeConfig.entity, 
+                          condition: badgeConfig.condition, 
+                          element: el 
+                        });
+                      }
+                    } else if (existingBadge) {
+                      container.removeChild(existingBadge.element);
+                      card.badges[containerSelector] = card.badges[containerSelector].filter(b => b !== existingBadge);
+                    }
+                  });
+                });
+              })()}
+
+  ####################################################################################
+  #########################  Ethan ###################################################
+  ####################################################################################
+  # - type: custom:stack-in-card
+  #   view_layout:
+  #     grid-area: section3
+  #   cards:
+      - type: custom:bubble-card
+        card_type: button
+        button_type: state
+        # card_layout: large-2-rows
+        name: Ethan's Bedroom
+        entity: binary_sensor.ethan_s_room_occupied_group
+        icon: mdi:teddy-bear
+        show_attribute: true
+        show_state: true
+        show_name: true
+        show_icon: true
+        scrolling_effect: false
+        use_accent_color: true
+        show_last_changed: false
+        tap_action:
+          action: navigate
+          navigation_path: "#ethan"
+        double_tap_action:
+          action: none
+        hold_action:
+          action: none
+        button_action:
+          tap_action:
+            action: navigate
+            navigation_path: "#ethan"
+          double_tap_action:
+            action: none
+          hold_action:
+            action: none
+        sub_button:
+          - entity: light.0x70ac08fffe7106cc
+            icon: mdi:ceiling-light
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - entity: fan.ethan_s_cribside
+            icon: mdi:fan
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - entity: switch.twinkle_lights
+            icon: mdi:star-shooting
+            content_info: none
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          # - entity: switch.ethan_s_door_switch
+          #   icon: mdi:sleep
+          #   tap_action:
+          #     action: toggle
+          #   hold_action:
+          #     action: more-info
+          - entity: input_boolean.ethan_s_bedroom_lighting_automation_on_disabled
+            icon: mdi:lightbulb-auto
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+            show_state: false
+            state_background: true
+            show_background: true
+            show_name: false
+        styles: |-
+              ${card.querySelector('.bubble-state').innerText = 
+                hass.formatEntityState(hass.states['sensor.ethans_bedroom_temperature_sensor_temperature']) + " | " + 
+                hass.formatEntityState(hass.states['sensor.ethans_bedroom_temperature_sensor_humidity']) + 
+                (hass.states['binary_sensor.ethan_s_bedroom_window_contact'].state === 'on' ? " | Window Opened" : "")}
+              
+              .bubble-sub-button-5 > ha-icon {
+                color: ${hass.states['input_boolean.ethan_s_bedroom_lighting_automation_on_disabled'].state === 'on' ? 'red' : 'green'} !important;
+              } 
+              .bubble-sub-button-2 > ha-icon {
+                animation: ${hass.states['fan.ethan_s_cribside'].state === 'on' ? 'slow-rotate 2s linear infinite' : ''};
+              }
+              @keyframes slow-rotate {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+              
+              .bubble-icon-container::after {
+                border-radius: 100%;
+              }
+              .bubble-icon-container {
+                overflow: visible !important;
+              }
+
+              .bubble-entity-picture {
+                border-radius: var(--bubble-icon-border-radius, var(--bubble-border-radius, 50%));
+              }
+              .badge {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: absolute;
+                z-index: 1;
+                background: var(--accent-color);
+                color: var(--primary-text-color);
+                font-size: 12px;
+                height: 20px;
+                width: 20px;
+                border-radius: 50%;
+                --mdc-icon-size: 12px;
+                box-sizing: border-box;
+              }
+
+              .badge.text {
+                border-radius: 10px;
+                padding: 0 4px;
+                width: auto;
+                min-width: 20px;
+              }
+
+              .badge.position-1 {
+                top: -4px;
+                right: -4px;
+              }
+
+              .badge.position-2 {
+                bottom: -4px;
+                right: -4px;
+              }
+
+              .badge.position-3 {
+                bottom: -4px;
+                left: -4px;
+              }
+
+              .badge.position-4 {
+                top: -4px;
+                left: -4px;
+              }
+
+              @keyframes blink {
+                50% {opacity: 0;}
+              }
+              ${(() => {
+                // Up to 4 badges at the same time in each configs
+                
+                const containersConfig = [
+                
+                  {
+                    // Example for the main icon
+                    containerSelector: '.bubble-icon-container',
+                    badgesConfig: [
+                    
+                      // Show home icon when drake is home
+                      // ${ expand(states.light) |selectattr('state', 'eq', 'on') |selectattr('entity_id', 'in', area_entities('Living Room')) |map(attribute='entity_id') |list | count }}';
+                      { 
+                        entity: 'input_boolean.ethan_s_bedroom_lighting_automation_on_disabled', 
+                        text: '⚠️',
+                        color: 'rgb(200, 0, 0)',
+                        condition: (state) => state === 'on', 
+                        animation: 'blink 2s linear infinite',
+                      },
+                      { 
+                        entity: 'sensor.ethans_bedroom_temperature_sensor_temperature', 
+                        icon: 'mdi:snowflake-alert', 
+                        color: 'rgb(0, 0, 200)',
+                        condition: (state) => state < 69, 
+                      },
+                      { 
+                        entity: 'sensor.ethans_bedroom_temperature_sensor_temperature', 
+                        icon: 'mdi:fire', 
+                        color: 'rgb(200, 0, 0)',
+                        condition: (state) => state > 72, 
+                      },
+                    ],
+                  },
+                  
+                  {
+                    // Example for sub-button(s) (can be empty or removed if not used)
+                    containerSelector: '.bubble-sub-button-1',
+                    badgesConfig: [
+                      // Add badges for this container if necessary
+                    ],
+                  },
+
+                  // Add more configs if needed...
+                ];
+
+                card.badges ||= {};
+                containersConfig.forEach(({ containerSelector, badgesConfig }) => {
+                  const container = card.querySelector(containerSelector);
+                  if (!container) return;
+                  card.badges[containerSelector] ||= [];
+                  badgesConfig.forEach((badgeConfig) => {
+                    const state = hass.states[badgeConfig.entity]?.state;
+                    const existingBadge = card.badges[containerSelector].find(b => 
+                      b.entity === badgeConfig.entity && b.condition.toString() === badgeConfig.condition.toString()
+                    );
+                    if (badgeConfig.condition(state)) {
+                      if (existingBadge) {
+                        if (badgeConfig.text) {
+                          existingBadge.element.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
+                        }
+                      } else {
+                        const el = document.createElement("div");
+                        el.className = `badge position-${card.badges[containerSelector].length + 1} ${badgeConfig.text ? 'text' : ''}`;
+                        if (badgeConfig.color) el.style.backgroundColor = badgeConfig.color;
+                        if (badgeConfig.text) {
+                          el.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
+                        } else if (badgeConfig.icon) {
+                          const icon = document.createElement("ha-icon");
+                          icon.icon = badgeConfig.icon;
+                          el.appendChild(icon);
+                        }
+                        if (badgeConfig.animation) {
+                          el.style.animation = badgeConfig.animation;
+                        }
+                        container.appendChild(el);
+                        card.badges[containerSelector].push({ 
+                          entity: badgeConfig.entity, 
+                          condition: badgeConfig.condition, 
+                          element: el 
+                        });
+                      }
+                    } else if (existingBadge) {
+                      container.removeChild(existingBadge.element);
+                      card.badges[containerSelector] = card.badges[containerSelector].filter(b => b !== existingBadge);
+                    }
+                  });
+                });
+              })()}
+
+  ####################################################################################
+  #########################  Family ##################################################
+  ####################################################################################
+
+      - type: conditional
+        # view_layout:
+        #   grid-area: section4
+        conditions:
+          - condition: or
+            conditions:
+              - condition: state
+                entity: input_select.view_mode
+                state: "All"
+              - condition: and
+                conditions:
+                  - condition: state
+                    entity: input_select.view_mode
+                    state: "Auto"
+                  - condition: state
+                    entity: binary_sensor.activity_in_family_room
+                    state: "on"
+        card:
+          type: custom:stack-in-card
+          cards:
+              - type: vertical-stack
+                cards: 
+
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: state
+                    # card_layout: large-2-rows
+                    name: Family Room
+                    entity: binary_sensor.athom_family_room_presence_sensor_occupancy
+                    icon: mdi:sofa-single
+                    show_attribute: true
+                    show_state: true
+                    show_name: true
+                    show_icon: true
+                    scrolling_effect: false
+                    use_accent_color: true
+                    show_last_changed: false
+                    tap_action:
+                      action: navigate
+                      navigation_path: "#family"
+                    double_tap_action:
+                      action: none
+                    hold_action:
+                      action: none
+                    button_action:
+                      tap_action:
+                        action: navigate
+                        navigation_path: "#family"
+                      double_tap_action:
+                        action: none
+                      hold_action:
+                        action: none
+                    sub_button:
+                    
+                        - entity: light.family_room_wall_switch
+                          icon: mdi:ceiling-light
+                          tap_action:
+                            action: toggle
+                          hold_action:
+                            action: more-info
+                        - entity: light.family_room_ambiance_lights_group
+                          icon: hue:floor-spot
+                          tap_action:
+                            action: toggle
+                          hold_action:
+                            action: more-info
+                        - entity: light.family_room_tv_lights_group
+                          icon: mdi:television
+                          tap_action:
+                            action: toggle
+                          hold_action:
+                            action: more-info
+                        - entity: input_boolean.family_room_lighting_automation_on_disabled
+                          icon: mdi:lightbulb-auto
+                          tap_action:
+                            action: toggle
+                          hold_action:
+                            action: more-info
+                          show_state: false
+                          state_background: true
+                          show_background: true
+                          show_name: false
+                    styles: |-
+                          ${card.querySelector('.bubble-state').innerText = 
+                            hass.formatEntityState(hass.states['sensor.family_room_smartsensor_temperature']) + " | " + 
+                            hass.formatEntityState(hass.states['sensor.acurite_tower_family_room_humidity']) + 
+                            (hass.states['binary_sensor.basement_sliding_door'].state === 'on' ? " | Slider Opened" : "")}
+                          
+                          .bubble-sub-button-5 > ha-icon {
+                            color: ${hass.states['input_boolean.family_room_lighting_automation_on_disabled'].state === 'on' ? 'red' : 'green'} !important;
+                          } 
+                          
+                          .bubble-icon-container::after {
+                            border-radius: 100%;
+                          }
+                          .bubble-icon-container {
+                            overflow: visible !important;
+                          }
+
+                          .bubble-entity-picture {
+                            border-radius: var(--bubble-icon-border-radius, var(--bubble-border-radius, 50%));
+                          }
+                          .badge {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            position: absolute;
+                            z-index: 1;
+                            background: var(--accent-color);
+                            color: var(--primary-text-color);
+                            font-size: 12px;
+                            height: 20px;
+                            width: 20px;
+                            border-radius: 50%;
+                            --mdc-icon-size: 12px;
+                            box-sizing: border-box;
+                          }
+
+                          .badge.text {
+                            border-radius: 10px;
+                            padding: 0 4px;
+                            width: auto;
+                            min-width: 20px;
+                          }
+
+                          .badge.position-1 {
+                            top: -4px;
+                            right: -4px;
+                          }
+
+                          .badge.position-2 {
+                            bottom: -4px;
+                            right: -4px;
+                          }
+
+                          .badge.position-3 {
+                            bottom: -4px;
+                            left: -4px;
+                          }
+
+                          .badge.position-4 {
+                            top: -4px;
+                            left: -4px;
+                          }
+
+                          @keyframes blink {
+                            50% {opacity: 0;}
+                          }
+                          ${(() => {
+                            // Up to 4 badges at the same time in each configs
+                            
+                            const containersConfig = [
+                            
+                              {
+                                // Example for the main icon
+                                containerSelector: '.bubble-icon-container',
+                                badgesConfig: [
+                                
+                                  // Show home icon when drake is home
+                                  // ${ expand(states.light) |selectattr('state', 'eq', 'on') |selectattr('entity_id', 'in', area_entities('Living Room')) |map(attribute='entity_id') |list | count }}';
+                                  { 
+                                    entity: 'input_boolean.family_room_lighting_automation_on_disabled', 
+                                    text: '⚠️',
+                                    color: 'rgb(200, 0, 0)',
+                                    condition: (state) => state === 'on', 
+                                    animation: 'blink 2s linear infinite',
+                                  },
+                                  { 
+                                    entity: 'sensor.family_room_smartsensor_temperature', 
+                                    icon: 'mdi:snowflake-alert', 
+                                    color: 'rgb(0, 0, 200)',
+                                    condition: (state) => state < 69, 
+                                  },
+                                  { 
+                                    entity: 'sensor.family_room_smartsensor_temperature', 
+                                    icon: 'mdi:fire', 
+                                    color: 'rgb(200, 0, 0)',
+                                    condition: (state) => state > 72, 
+                                  },
+                                ],
+                              },
+                              
+                              {
+                                // Example for sub-button(s) (can be empty or removed if not used)
+                                containerSelector: '.bubble-sub-button-1',
+                                badgesConfig: [
+                                  // Add badges for this container if necessary
+                                ],
+                              },
+
+                              // Add more configs if needed...
+                            ];
+
+                            card.badges ||= {};
+                            containersConfig.forEach(({ containerSelector, badgesConfig }) => {
+                              const container = card.querySelector(containerSelector);
+                              if (!container) return;
+                              card.badges[containerSelector] ||= [];
+                              badgesConfig.forEach((badgeConfig) => {
+                                const state = hass.states[badgeConfig.entity]?.state;
+                                const existingBadge = card.badges[containerSelector].find(b => 
+                                  b.entity === badgeConfig.entity && b.condition.toString() === badgeConfig.condition.toString()
+                                );
+                                if (badgeConfig.condition(state)) {
+                                  if (existingBadge) {
+                                    if (badgeConfig.text) {
+                                      existingBadge.element.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
+                                    }
+                                  } else {
+                                    const el = document.createElement("div");
+                                    el.className = `badge position-${card.badges[containerSelector].length + 1} ${badgeConfig.text ? 'text' : ''}`;
+                                    if (badgeConfig.color) el.style.backgroundColor = badgeConfig.color;
+                                    if (badgeConfig.text) {
+                                      el.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
+                                    } else if (badgeConfig.icon) {
+                                      const icon = document.createElement("ha-icon");
+                                      icon.icon = badgeConfig.icon;
+                                      el.appendChild(icon);
+                                    }
+                                    if (badgeConfig.animation) {
+                                      el.style.animation = badgeConfig.animation;
+                                    }
+                                    container.appendChild(el);
+                                    card.badges[containerSelector].push({ 
+                                      entity: badgeConfig.entity, 
+                                      condition: badgeConfig.condition, 
+                                      element: el 
+                                    });
+                                  }
+                                } else if (existingBadge) {
+                                  container.removeChild(existingBadge.element);
+                                  card.badges[containerSelector] = card.badges[containerSelector].filter(b => b !== existingBadge);
+                                }
+                              });
+                            });
+                          })()}
+                  - type: conditional
+                    conditions:
+                      - condition: or
+                        conditions:
+                          - condition: state
+                            entity: media_player.family_room
+                            state: playing
+                          - condition: state
+                            entity: media_player.family_room
+                            state: paused
+                    card:
+                      type: custom:mini-media-player
+                      entity: media_player.family_room
+                      artwork: material
+                      volume_stateless: true
+                      sound_mode: icon
+                      info: short
+                      group: false
+                      source: full
+        # - type: custom:mushroom-template-card
+        #   primary: Family Room
+        #   # secondary: |-
+        #   #   {{ states('sensor.family_room_smartsensor_temperature') }}°F |
+        #   #   {{ states('sensor.family_room_smartsensor_humidity') }} %
+        #   secondary: |-
+        #     {{ states('sensor.family_room_smartsensor_temperature') }}°F |
+        #     {{ states('sensor.acurite_tower_family_room_humidity') }} %
+        #     {% if is_state('binary_sensor.basement_sliding_door', 'on') %} 
+        #         | Slider Open 
+        #     {% endif %}
+        #   icon: mdi:sofa
+        #   entity: light.family_room_lights_group
+        #   icon_color: |-
+        #     {% if is_state('light.family_room_lights_group', 'on') %} 
+        #       blue 
+        #     {% elif is_state('light.family_room_lights_group', 'on') %}
+        #       blue
+        #     {% endif %}
+        #   tap_action:
+        #     action: navigate
+        #     navigation_path: "#family"
+        #   multiline_secondary: false
+        # - theme: dark
+        #   type: markdown
+        #   content: |-
+        #     {% if ( states('media_player.family_room_apple_tv') == "playing") %}
+        #       Playing {{ state_attr('media_player.family_room_apple_tv', 'media_title') }} on {{ state_attr('media_player.family_room_apple_tv', 'app_name') }}
+        #     {% elif ( states('media_player.family_room_tv_2') == "playing") %}
+        #       Playing {{ state_attr('media_player.family_room_tv_2', 'app_name') }}
+        #     {% else %}
+        #       Nothing playing
+        #     {%- endif %}
+        #   style: |
+        #     ha-card {
+        #       font-family: helvetica neue, helvetica, Arial;
+        #       color: 'rgba(255, 255, 255, 0.7)';
+        #       font-size: 11px;
+        #       letter-spacing: '-0.05vw';
+        #       padding-left: 50px;
+        #       margin-top: -30px;
+        #       margin-bottom: -15px;
+        #     }
+
+  ####################################################################################
+  ######################### Office ###################################################
+  ####################################################################################
+
+      - type: custom:bubble-card
+        card_type: button
+        button_type: state
+        # card_layout: large-2-rows
+        name: Office
+        entity: binary_sensor.activity_in_office
+        icon: mdi:chair
+        show_attribute: true
+        show_state: true
+        show_name: true
+        show_icon: true
+        scrolling_effect: false
+        use_accent_color: true
+        show_last_changed: false
+        tap_action:
+          action: navigate
+          navigation_path: "#office"
+        double_tap_action:
+          action: none
+        hold_action:
+          action: none
+        button_action:
+          tap_action:
+            action: navigate
+            navigation_path: "#office"
+          double_tap_action:
+            action: none
+          hold_action:
+            action: none
+        sub_button:
+            - entity: light.office_wall_switch
+              icon: mdi:ceiling-light
+              tap_action:
+                action: toggle
+              hold_action:
+                action: more-info
+            - entity: light.desk_lights_group
+              icon: mdi:desk
+              content_info: none
+              tap_action:
+                action: toggle
+              hold_action:
+                action: more-info
+            - entity: input_boolean.office_lighting_automation_on_disabled
+              icon: mdi:lightbulb-auto
+              tap_action:
+                action: toggle
+              hold_action:
+                action: more-info
+              show_state: false
+              state_background: true
+              show_background: true
+              show_name: false
+        styles: |-
+              ${card.querySelector('.bubble-state').innerText = 
+                hass.formatEntityState(hass.states['sensor.office_temperature_sensor_temperature']) + " | " + 
+                hass.formatEntityState(hass.states['sensor.office_temperature_sensor_humidity']) + 
+                (hass.states['binary_sensor.office_window'].state === 'on' ? " | Window Opened" : "")}
+              
+              ${card.querySelector('.bubble-name').innerText = hass.states['input_boolean.guest_mode'].state === "off" ? "Office" : "Guest Room" }
+              
+              ${icon.setAttribute("icon", hass.states['input_boolean.guest_mode'].state === "off" ? 'mdi:chair-rolling' : 'mdi:bed')}
+              
+              .bubble-icon-container::after {
+                border-radius: 100%;
+              }
+              .bubble-icon-container {
+                overflow: visible !important;
+              }
+
+              .bubble-entity-picture {
+                border-radius: var(--bubble-icon-border-radius, var(--bubble-border-radius, 50%));
+              }
+              .badge {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: absolute;
+                z-index: 1;
+                background: var(--accent-color);
+                color: var(--primary-text-color);
+                font-size: 12px;
+                height: 20px;
+                width: 20px;
+                border-radius: 50%;
+                --mdc-icon-size: 12px;
+                box-sizing: border-box;
+              }
+
+              .badge.text {
+                border-radius: 10px;
+                padding: 0 4px;
+                width: auto;
+                min-width: 20px;
+              }
+
+              .badge.position-1 {
+                top: -4px;
+                right: -4px;
+              }
+
+              .badge.position-2 {
+                bottom: -4px;
+                right: -4px;
+              }
+
+              .badge.position-3 {
+                bottom: -4px;
+                left: -4px;
+              }
+
+              .badge.position-4 {
+                top: -4px;
+                left: -4px;
+              }
+
+              @keyframes blink {
+                50% {opacity: 0;}
+              }
+              ${(() => {
+                // Up to 4 badges at the same time in each configs
+                
+                const containersConfig = [
+                
+                  {
+                    // Example for the main icon
+                    containerSelector: '.bubble-icon-container',
+                    badgesConfig: [
+                    
+                      // Show home icon when drake is home
+                      // ${ expand(states.light) |selectattr('state', 'eq', 'on') |selectattr('entity_id', 'in', area_entities('Living Room')) |map(attribute='entity_id') |list | count }}';
+                      { 
+                        entity: 'input_boolean.office_lighting_automation_on_disabled', 
+                        text: '⚠️',
+                        color: 'rgb(200, 0, 0)',
+                        condition: (state) => state === 'on', 
+                        animation: 'blink 2s linear infinite',
+                      },
+                      { 
+                        entity: 'sensor.office_temperature_sensor_temperature', 
+                        icon: 'mdi:snowflake-alert', 
+                        color: 'rgb(0, 0, 200)',
+                        condition: (state) => state < 69, 
+                      },
+                      { 
+                        entity: 'sensor.office_temperature_sensor_temperature', 
+                        icon: 'mdi:fire', 
+                        color: 'rgb(200, 0, 0)',
+                        condition: (state) => state > 72, 
+                      },
+                    ],
+                  },
+                  
+                  {
+                    // Example for sub-button(s) (can be empty or removed if not used)
+                    containerSelector: '.bubble-sub-button-1',
+                    badgesConfig: [
+                      // Add badges for this container if necessary
+                    ],
+                  },
+
+                  // Add more configs if needed...
+                ];
+
+                card.badges ||= {};
+                containersConfig.forEach(({ containerSelector, badgesConfig }) => {
+                  const container = card.querySelector(containerSelector);
+                  if (!container) return;
+                  card.badges[containerSelector] ||= [];
+                  badgesConfig.forEach((badgeConfig) => {
+                    const state = hass.states[badgeConfig.entity]?.state;
+                    const existingBadge = card.badges[containerSelector].find(b => 
+                      b.entity === badgeConfig.entity && b.condition.toString() === badgeConfig.condition.toString()
+                    );
+                    if (badgeConfig.condition(state)) {
+                      if (existingBadge) {
+                        if (badgeConfig.text) {
+                          existingBadge.element.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
+                        }
+                      } else {
+                        const el = document.createElement("div");
+                        el.className = `badge position-${card.badges[containerSelector].length + 1} ${badgeConfig.text ? 'text' : ''}`;
+                        if (badgeConfig.color) el.style.backgroundColor = badgeConfig.color;
+                        if (badgeConfig.text) {
+                          el.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
+                        } else if (badgeConfig.icon) {
+                          const icon = document.createElement("ha-icon");
+                          icon.icon = badgeConfig.icon;
+                          el.appendChild(icon);
+                        }
+                        if (badgeConfig.animation) {
+                          el.style.animation = badgeConfig.animation;
+                        }
+                        container.appendChild(el);
+                        card.badges[containerSelector].push({ 
+                          entity: badgeConfig.entity, 
+                          condition: badgeConfig.condition, 
+                          element: el 
+                        });
+                      }
+                    } else if (existingBadge) {
+                      container.removeChild(existingBadge.element);
+                      card.badges[containerSelector] = card.badges[containerSelector].filter(b => b !== existingBadge);
+                    }
+                  });
+                });
+              })()}
+            
+  # - type: conditional
+  #   view_layout:
+  #     grid-area: section5
+  #   conditions:
+  #     - condition: or
+  #       conditions:
+  #         - condition: state
+  #           entity: input_select.view_mode
+  #           state: "All"
+  #         - condition: and
+  #           conditions:
+  #             - condition: state
+  #               entity: input_select.view_mode
+  #               state: "Auto"
+  #             - condition: state
+  #               entity: binary_sensor.activity_in_office
+  #               state: "on"
+
+  ####################################################################################
+  ######################### Outside ##################################################
+  ####################################################################################
+
+      - type: custom:bubble-card
+        card_type: button
+        button_type: state
+        # card_layout: large-2-rows
+        name: Outdoor
+        entity: binary_sensor.athom_family_room_presence_sensor_occupancy
+        icon: mdi:balcony
+        show_attribute: true
+        show_state: true
+        show_name: true
+        show_icon: true
+        scrolling_effect: false
+        use_accent_color: true
+        show_last_changed: false
+        tap_action:
+          action: navigate
+          navigation_path: "#outdoors"
+        double_tap_action:
+          action: none
+        hold_action:
+          action: none
+        button_action:
+          tap_action:
+            action: navigate
+            navigation_path: "#outdoors"
+          double_tap_action:
+            action: none
+          hold_action:
+            action: none
+        sub_button:
+
+          - entity: light.0x94deb8fffe4fcaf4
+            icon: mdi:ceiling-light
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - entity: weather.pirateweather
+            show_state: true
+            show_attribute: false
+            show_name: false
+            show_last_changed: false
+          - entity: sensor.airnow_aqi
+            show_state: false
+            show_attribute: false
+            show_name: false
+            show_last_changed: false
+            show_background: false
+            tap_action:
+              action: navigate
+              navigation_path: "#aqi-overview"
+          - entity: sensor.pollen_max
+            show_state: true
+            show_attribute: false
+            show_name: false
+            show_last_changed: false
+            show_background: false
+            tap_action: !include ../popup/pollen_overview.yaml
+        styles: |-
+              .bubble-sub-button-3 > ha-icon {
+                color: ${hass.states['sensor.pollen_max'].state > 100 ? 'red' : 'rgb(100, 255, 255)'} !important;
+              }
+              .bubble-sub-button-4 > ha-icon {
+                color: ${hass.states['sensor.airnow_aqi'].state > 50 ? 'red' : 'rgb(100, 255, 100)'} !important;
+              }
+              ${card.querySelector('.bubble-state').innerText = 
+                hass.formatEntityState(hass.states['sensor.wirelesstag_outdoor_temperature']) + " | " + 
+                hass.formatEntityState(hass.states['sensor.wirelesstag_outdoor_humidity']) }
+              
+              ${subButtonIcon[2].setAttribute("icon", hass.states['sensor.airnow_aqi'].state > 100 ? 'mdi:weather-dust' : 'mdi:leaf')}
+              
+              ${subButtonIcon[3].setAttribute("icon", hass.states['sensor.pollen_max'].state > 50 ? 'mdi:virus' : 'mdi:leaf')}              
+              
+              .bubble-icon-container::after {
+                border-radius: 100%;
+              }
+              .bubble-icon-container {
+                overflow: visible !important;
+              }
+
+              .bubble-entity-picture {
+                border-radius: var(--bubble-icon-border-radius, var(--bubble-border-radius, 50%));
+              }
+              .badge {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: absolute;
+                z-index: 1;
+                background: var(--accent-color);
+                color: var(--primary-text-color);
+                font-size: 12px;
+                height: 20px;
+                width: 20px;
+                border-radius: 50%;
+                --mdc-icon-size: 12px;
+                box-sizing: border-box;
+              }
+
+              .badge.text {
+                border-radius: 10px;
+                padding: 0 4px;
+                width: auto;
+                min-width: 20px;
+              }
+
+              .badge.position-1 {
+                top: -4px;
+                right: -4px;
+              }
+
+              .badge.position-2 {
+                bottom: -4px;
+                right: -4px;
+              }
+
+              .badge.position-3 {
+                bottom: -4px;
+                left: -4px;
+              }
+
+              .badge.position-4 {
+                top: -4px;
+                left: -4px;
+              }
+
+              @keyframes blink {
+                50% {opacity: 0;}
+              }
+              ${(() => {
+                // Up to 4 badges at the same time in each configs
+                
+                const containersConfig = [
+                
+                  {
+                    // Example for the main icon
+                    containerSelector: '.bubble-icon-container',
+                    badgesConfig: [
+                    
+                      // Show home icon when drake is home
+                      // ${ expand(states.light) |selectattr('state', 'eq', 'on') |selectattr('entity_id', 'in', area_entities('outdoors')) |map(attribute='entity_id') |list | count }}';
+                      { 
+                        entity: 'sensor.wirelesstag_outdoor_temperature', 
+                        icon: 'mdi:snowflake-alert', 
+                        color: 'rgb(0, 0, 200)',
+                        condition: (state) => state < 40, 
+                      },
+                      { 
+                        entity: 'sensor.wirelesstag_outdoor_temperature', 
+                        icon: 'mdi:fire', 
+                        color: 'rgb(200, 0, 0)',
+                        condition: (state) => state > 80, 
+                      },
+                    ],
+                  },
+                  
+                  {
+                    // Example for sub-button(s) (can be empty or removed if not used)
+                    containerSelector: '.bubble-sub-button-1',
+                    badgesConfig: [
+                      // Add badges for this container if necessary
+                    ],
+                  },
+
+                  // Add more configs if needed...
+                ];
+
+                card.badges ||= {};
+                containersConfig.forEach(({ containerSelector, badgesConfig }) => {
+                  const container = card.querySelector(containerSelector);
+                  if (!container) return;
+                  card.badges[containerSelector] ||= [];
+                  badgesConfig.forEach((badgeConfig) => {
+                    const state = hass.states[badgeConfig.entity]?.state;
+                    const existingBadge = card.badges[containerSelector].find(b => 
+                      b.entity === badgeConfig.entity && b.condition.toString() === badgeConfig.condition.toString()
+                    );
+                    if (badgeConfig.condition(state)) {
+                      if (existingBadge) {
+                        if (badgeConfig.text) {
+                          existingBadge.element.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
+                        }
+                      } else {
+                        const el = document.createElement("div");
+                        el.className = `badge position-${card.badges[containerSelector].length + 1} ${badgeConfig.text ? 'text' : ''}`;
+                        if (badgeConfig.color) el.style.backgroundColor = badgeConfig.color;
+                        if (badgeConfig.text) {
+                          el.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
+                        } else if (badgeConfig.icon) {
+                          const icon = document.createElement("ha-icon");
+                          icon.icon = badgeConfig.icon;
+                          el.appendChild(icon);
+                        }
+                        if (badgeConfig.animation) {
+                          el.style.animation = badgeConfig.animation;
+                        }
+                        container.appendChild(el);
+                        card.badges[containerSelector].push({ 
+                          entity: badgeConfig.entity, 
+                          condition: badgeConfig.condition, 
+                          element: el 
+                        });
+                      }
+                    } else if (existingBadge) {
+                      container.removeChild(existingBadge.element);
+                      card.badges[containerSelector] = card.badges[containerSelector].filter(b => b !== existingBadge);
+                    }
+                  });
+                });
+              })()}
+  
+  
+      - type: custom:bubble-card
+        card_type: button
+        button_type: state
+        entity: sensor.next_holiday
+        show_attribute: true
+        show_last_changed: false
+        force_icon: false
+        tap_action:
+          action: navigate
+          navigation_path: "#holiday"
+        double_tap_action:
+          action: none
+        hold_action:
+          action: none
+        button_action:
+          tap_action:
+            action: navigate
+            navigation_path: "#holiday"
+          double_tap_action:
+            action: none
+          hold_action:
+            action: none
+
+        sub_button:
+          - entity: sensor.next_holiday
+            show_name: false
+            show_state: false
+            show_attribute: true
+            show_last_changed: false
+            attribute: days_until_next_holiday
+            show_icon: true
+            icon: mdi:calendar-arrow-right
+            tap_action:
+              action: navigate
+              navigation_path: "#holiday"
+        styles: |-
+              .bubble-icon-container::after {
+                border-radius: 100%;
+              }
+              .bubble-icon-container {
+                overflow: visible !important;
+              }
+
+              .bubble-entity-picture {
+                border-radius: var(--bubble-icon-border-radius, var(--bubble-border-radius, 50%));
+              }
+              .badge {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: absolute;
+                z-index: 1;
+                background: var(--accent-color);
+                color: var(--primary-text-color);
+                font-size: 12px;
+                height: 20px;
+                width: 20px;
+                border-radius: 50%;
+                --mdc-icon-size: 12px;
+                box-sizing: border-box;
+              }
+
+              .badge.text {
+                border-radius: 10px;
+                padding: 0 4px;
+                width: auto;
+                min-width: 20px;
+              }
+
+              .badge.position-1 {
+                top: -4px;
+                right: -4px;
+              }
+
+              .badge.position-2 {
+                bottom: -4px;
+                right: -4px;
+              }
+
+              .badge.position-3 {
+                bottom: -4px;
+                left: -4px;
+              }
+
+              .badge.position-4 {
+                top: -4px;
+                left: -4px;
+              }
+
+              @keyframes blink {
+                50% {opacity: 0;}
+              }
+              ${(() => {
+                // Up to 4 badges at the same time in each configs
+                
+                const containersConfig = [
+                
+                  {
+                    // Example for the main icon
+                    containerSelector: '.bubble-icon-container',
+                    badgesConfig: [
+                    
+                    ],
+                  },
+                  
+                  {
+                    // Example for sub-button(s) (can be empty or removed if not used)
+                    containerSelector: '.bubble-sub-button-1',
+                    badgesConfig: [
+                      // Add badges for this container if necessary
+                    ],
+                  },
+
+                  // Add more configs if needed...
+                ];
+
+                card.badges ||= {};
+                containersConfig.forEach(({ containerSelector, badgesConfig }) => {
+                  const container = card.querySelector(containerSelector);
+                  if (!container) return;
+                  card.badges[containerSelector] ||= [];
+                  badgesConfig.forEach((badgeConfig) => {
+                    const state = hass.states[badgeConfig.entity]?.state;
+                    const existingBadge = card.badges[containerSelector].find(b => 
+                      b.entity === badgeConfig.entity && b.condition.toString() === badgeConfig.condition.toString()
+                    );
+                    if (badgeConfig.condition(state)) {
+                      if (existingBadge) {
+                        if (badgeConfig.text) {
+                          existingBadge.element.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
+                        }
+                      } else {
+                        const el = document.createElement("div");
+                        el.className = `badge position-${card.badges[containerSelector].length + 1} ${badgeConfig.text ? 'text' : ''}`;
+                        if (badgeConfig.color) el.style.backgroundColor = badgeConfig.color;
+                        if (badgeConfig.text) {
+                          el.textContent = typeof badgeConfig.text === 'function' ? badgeConfig.text(state) : badgeConfig.text;
+                        } else if (badgeConfig.icon) {
+                          const icon = document.createElement("ha-icon");
+                          icon.icon = badgeConfig.icon;
+                          el.appendChild(icon);
+                        }
+                        if (badgeConfig.animation) {
+                          el.style.animation = badgeConfig.animation;
+                        }
+                        container.appendChild(el);
+                        card.badges[containerSelector].push({ 
+                          entity: badgeConfig.entity, 
+                          condition: badgeConfig.condition, 
+                          element: el 
+                        });
+                      }
+                    } else if (existingBadge) {
+                      container.removeChild(existingBadge.element);
+                      card.badges[containerSelector] = card.badges[containerSelector].filter(b => b !== existingBadge);
+                    }
+                  });
+                });
+              })()}
+
+  ####################################################################################
+  ######################### Footer ###################################################
+  ####################################################################################
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: footer
+    cards: !include_dir_list ../sections/footer

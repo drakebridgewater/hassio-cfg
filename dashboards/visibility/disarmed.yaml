@@ -1,0 +1,11 @@
+
+- condition: or
+  conditions:
+  - condition: state
+    entity: alarm_control_panel.abode_alarm
+    state: disarmed
+
+  - condition: user
+    users:
+      - b5a0f36540a94a4fabedc323d0906537
+      - 39499af0dfe14dc8be352c27a4e76b53

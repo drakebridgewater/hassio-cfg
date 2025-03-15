@@ -1,0 +1,40 @@
+entity: light.tv_lights_group
+icon: mdi:television
+name: Entertainment Center
+type: "custom:button-card"
+tap_action:
+  action: navigate
+  navigation_path: ../dash-room-by-room/tv_main
+hold_action: !include ../popup/tv_preview.yaml
+template: complete_square_btn_light
+custom_fields:
+  s2: |
+    [[[
+      var tv = states['media_player.living_room'].state;
+      if ( tv == "playing") {
+        var media = states['media_player.living_room'].attributes.media_title
+        var app = states['media_player.living_room'].attributes.app_name
+        return `Playing ${media} on ${app}`;
+      }
+
+      var marantz = states['media_player.marantz_sr5012_2'].state;
+      if ( marantz == "on") {
+        var source = states['media_player.marantz_sr5012_2'].attributes.source
+        return `Playing ${source}`;
+      }
+      return "Nothing playing";
+    ]]]
+  power_icon:
+    card:
+      entity: light.tv_lights_group
+      type: "custom:button-card"
+      template: view_power_icon_style
+  slider:
+    card:
+      entity: light.tv_lights_group
+      full_row: true
+      toggle: false
+      hide_state: true
+      type: "custom:slider-entity-row"
+triggers_update:
+  - light.tv_lights_group

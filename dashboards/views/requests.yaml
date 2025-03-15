@@ -1,0 +1,194 @@
+title: Requests
+icon: mdi:help-box
+path: requests
+type: custom:grid-layout
+layout: !include ../layouts/grid.yaml
+cards:
+  - type: vertical-stack
+    view_layout:
+      grid-area: sidebar
+    cards: !include_dir_list ../sections/sidebar
+
+  ######################### Status Bar ############################################
+  - type: custom:mushroom-chips-card
+    view_layout:
+      grid-area: banner
+    chips: !include ../sections/status-bar.yaml
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: footer
+    cards: !include_dir_list ../sections/footer
+  
+  - type: vertical-stack
+    view_layout:
+      grid-area: section1
+    cards:
+    - type: custom:mushroom-template-card
+      primary: Need Help?
+      secondary: Tap to dictate
+      icon: mdi:assistant
+      tap_action:
+        action: assist
+        pipeline_id: 01h8hz1zw6eta2e3dgsgd33gfb
+        start_listening: true
+      badge_color: ''
+      icon_color: purple
+    - type: grid
+      square: false
+      columns: 1
+      cards:
+        - type: entities
+          entities:
+            - entity: input_text.broadcast_message
+  - type: custom:mushroom-template-card
+    view_layout:
+      grid-area: section2
+    primary: Fix wall switch lights
+    secondary: Resets Inovelli Switch Notifications for all LEDs
+    icon: mdi:progress-alert
+    tap_action:
+      action: call-service
+      service: script.1713191378784
+      data:
+        led: All
+        effect: Clear
+        target:
+          device_id:
+            - c8d90d418ff1048266a66863b81ddf34
+            - 804e74de0544c3ddae36e336fc86c1a0
+            - 5c5ec04420534c81b4a7dd52f0bcb680
+            - 3e9a9933634c5a379e9d694574f55695
+            - 084c427334a9198f6ddd056a1cfb7921
+            - 66245c3a1952a0a634def4f846710153
+            - a13be523ef31908b308b2e8bd92c0f9a
+            - df873ab3b3f9c5f6a4a9072d35c0c93e
+            - 4845a6a6beec4d5968ad71e5bd9ebf26
+            - a9f0efec55a3d2b05cebb59f9cfa0fb8
+            - fe33892f63436bdeb8c9497b8fd25fb8
+            - 22feee6161d1ad9d4f0addb7cafaf9d1
+            - 202edd64ebe0f8b215dec062cb4b3d04
+      target: {}
+
+
+
+  - type: horizontal-stack
+    view_layout:
+      grid-area: section3
+    title: Ethan's Bedroom Requests
+    cards: 
+      - show_name: true
+        show_icon: true
+        name: Water
+        icon: mdi:water
+        type: button
+        hold_action:
+          action: none
+        tap_action:
+          action: call-service
+          service: input_text.set_value
+          target:
+            entity_id: input_text.broadcast_message
+          data:
+            value: Can you please bring water down
+        entity: input_text.broadcast_message
+      - show_name: true
+        show_icon: true
+        icon: mdi:cup
+        name:  Milk
+        type: button
+        hold_action:
+          action: none
+        tap_action:
+          action: call-service
+          service: input_text.set_value
+          target:
+            entity_id: input_text.broadcast_message
+          data:
+            value: Can you please bring milk down
+        entity: input_text.broadcast_message
+      - show_name: true
+        show_icon: true
+        name: Automation Help
+        icon: mdi:refresh-auto
+        type: button
+        hold_action:
+          action: none
+        tap_action:
+          action: call-service
+          service: input_text.set_value
+          target:
+            entity_id: input_text.broadcast_message
+          data:
+            value: The automations are not working right
+        entity: input_text.broadcast_message
+  # - type: horizontal-stack
+  #   title: TV Requests
+  #   cards: 
+  #     - type: entities
+  #       entities:
+  #         - input_text.ombi_request_name
+  #         - input_select.ombi_request_type
+  #     - type: vertical-stack
+  #       cards:
+  #         - type: conditional
+  #           conditions:
+  #             - entity: input_select.ombi_request_type
+  #               state: TV Show
+  #           card:
+  #             show_name: true
+  #             show_icon: true
+  #             type: button
+  #             tap_action:
+  #               action: call-service
+  #               service: ombi.submit_tv_request
+  #               data:
+  #                 season: latest
+  #                 name: |
+  #                   {{ input_text.ombi_request_name }}
+  #             entity: input_text.ombi_request_name
+  #             name: Request TV Show
+  #         - type: conditional
+  #           conditions:
+  #             - entity: input_select.ombi_request_type
+  #               state: Movie
+  #           card:
+  #             show_name: true
+  #             show_icon: true
+  #             type: button
+  #             tap_action:
+  #               action: call-service
+  #               service: ombi.submit_movie_request
+  #               data:
+  #                 name: |
+  #                   {{ input_text.ombi_request_name }}
+  #             entity: input_text.ombi_request_name
+  #             name: Request Movie
+
+  - type: entities
+  
+    view_layout:
+      grid-area: section4
+    entities:
+      - input_select.view_mode
+
+  # - type: custom:mushroom-title-card
+  #   title: Last Message
+  #   subtitle: '{{ states(''sensor.tts_last_message'', ''value'') }}'
+
+  # - type: custom:auto-entities
+  #   view_layout:
+  #     grid-area: section5
+  #   card:
+  #     type: entities
+  #     title: Devices with Low Batteries
+  #     state_color: true
+  #   filter:
+  #     include:
+  #       - domain: sensor
+  #         entity_id: '*_battery'
+  #         state: <20
+  #     exclude: []
+  #   sort:
+  #     method: state
+  #     numeric: true
