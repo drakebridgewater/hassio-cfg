@@ -1,23 +1,79 @@
-secrets.yaml
-__pycharm__
-*.log.*
+# Directory specific files
+old-dashboards.tar.gz
+dashboards.tar.gz
+www/community/**/*.zip
+NOT_USED/
+
+# Home Assistant configuration
 .HA_VERSION
-nest/*
-backups/*
-themes/*
-wwww/*
-ssl/*
-*.pickle
 home-assistant.log
-zwcfg_0xc0fbca5d.xml
-custom_components
-.cloud
 home-assistant_v2*
+secrets.yaml
+html5_push_registrations.conf
+
+# Exclude all custom components
+custom_components/*
+
+# But include manifest files for version tracking
+!custom_components/*/manifest.json
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
 music_assistant.db
 zigbee.db*
-aircast.xml
 pyozw.sqlite
+
+# Directories
+.storage/
+.cloud/
+Abode/
+backups/
+themes/
 tts/
 image/
-.storage/
-www/google116dd383046bdefa.html
+nest/
+media/
+ssl/
+# custom_components/
+
+# Logs
+*.log
+*.log.*
+watchman_report.txt
+
+# Cached files
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*.pickle
+
+# IDE related
+.vscode/
+**pycharm**
+.idea/
+
+# Protocol-specific files
+zwcfg_*.xml
+aircast.xml
+
+# OS specific files
+*.DS_Store
+Thumbs.db
+
+# Frigate card assets
+www/community/**/*.js
+www/community/**/*.js.gz
+
+# Image files in www directory
+www/**/*.jpg
+www/**/*.jpeg
+www/**/*.png
+www/**/*.gif
+www/**/*.svg
+www/**/*.webp
+www/**/*.bmp
+www/**/*.ico
