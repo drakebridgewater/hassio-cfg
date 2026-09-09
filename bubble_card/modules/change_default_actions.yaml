@@ -1,0 +1,120 @@
+change_default_actions:
+  name: Change default button/icon actions
+  version: v1.0
+  creator: Clooos
+  description: |
+    <p>
+      This module allows you to customize the default <code>tap</code>, <code>hold</code>, and <code>double-tap</code> actions for all Bubble Cards at once ("All cards" must be enabled), including both the card and the icon.
+    </p>
+    <br>
+    <p>
+      To edit the actions, follow these steps carefully:
+    </p>
+
+    <ol>
+      <li>
+        Click on the
+        <ha-icon icon="mdi:pencil" style="vertical-align: middle;"></ha-icon>
+        pencil icon to edit the module.
+      </li>
+      <li>
+        Expand the section labeled <strong>"Code (CSS/JS template)"</strong>.
+      </li>
+      <li>
+        At the top of the code, you'll find a <strong>CONFIGURATION</strong> block written in JavaScript.
+      </li>
+      <li>
+        Modify the values inside that block to set your desired actions.
+      </li>
+      <li>
+        <strong>Don't forget to save the module</strong> after making your changes.
+      </li>
+    </ol>
+
+    <p>
+      Even though the configuration looks similar to YAML, it follows JavaScript syntax:
+    </p>
+    <br>
+    <ul>
+      <li>Keys and strings must be in quotes (e.g. <code>'navigate'</code>).</li>
+      <li>Commas (<code>,</code>) are required between each item.</li>
+    </ul>
+    <br>
+    <p>Example:</p>
+    <br>
+    <code-block><pre>
+    tap_action: {
+      action: 'navigate',
+      navigation_path: '/lovelace/myview'
+    }
+    </pre></code-block>
+    <br>
+    <p>
+      You can copy existing Home Assistant YAML actions and adapt the formatting to JavaScript by adjusting quotes and adding commas where needed.
+    </p>
+
+    <br><br>
+    <code-block><pre>
+    change_default_actions: 
+        # Your configuration here
+    </pre></code-block>
+  supported:
+    - button
+    - climate
+    - cover
+    - media-player
+    - pop-up
+    - select
+  code: |
+    ${(() => {
+      // === CONFIGURATION START ===
+      const actions = {
+        button: {
+          tap_action: {
+            action: 'navigate',
+            navigation_path: '#test'
+          },
+          hold_action: {
+            action: 'none'
+          },
+          double_tap_action: {
+            action: 'none'
+          }
+        },
+        icon: {
+          tap_action: {
+            action: 'navigate',
+            navigation_path: '#test'
+          },
+          hold_action: {
+            action: 'none'
+          },
+          double_tap_action: {
+            action: 'none'
+          }
+        }
+      };
+      // === CONFIGURATION END ===
+
+      const button = card.querySelector('.bubble-button-background');
+      if (button) {
+        if (actions.button.tap_action)
+          button.setAttribute('data-tap-action', JSON.stringify(actions.button.tap_action));
+        if (actions.button.hold_action)
+          button.setAttribute('data-hold-action', JSON.stringify(actions.button.hold_action));
+        if (actions.button.double_tap_action)
+          button.setAttribute('data-double-tap-action', JSON.stringify(actions.button.double_tap_action));
+      }
+      
+      const icon = card.querySelector('.bubble-main-icon-container');
+      if (icon) {
+        if (actions.icon.tap_action)
+          icon.setAttribute('data-tap-action', JSON.stringify(actions.icon.tap_action));
+        if (actions.icon.hold_action)
+          icon.setAttribute('data-hold-action', JSON.stringify(actions.icon.hold_action));
+        if (actions.icon.double_tap_action)
+          icon.setAttribute('data-double-tap-action', JSON.stringify(actions.icon.double_tap_action));
+      }
+    })()}
+  link: https://github.com/Clooos/Bubble-Card/discussions/1714
+  is_global: false

@@ -1,0 +1,234 @@
+type: custom:stack-in-card
+card_mod:
+  style: |
+    ha-card {
+      background-color: rgba(96, 125, 139, 0.25) !important;
+      background: linear-gradient(135deg, rgba(96, 125, 139, 0.2) 0%, rgba(69, 90, 100, 0.3) 100%);
+      padding: 3px !important;
+    }
+cards:
+  # MINIMAL VIEW - Button card (always visible)
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    name: Office
+    entity: binary_sensor.office_multi_sensor_home_security_motion_detection
+    icon: mdi:chair-rolling
+    show_attribute: true
+    show_state: true
+    show_name: true
+    show_icon: true
+    scrolling_effect: false
+    use_accent_color: false
+    show_last_changed: false
+    tap_action:
+      action: navigate
+      navigation_path: "#office"
+    double_tap_action:
+      action: call-service
+      service: input_boolean.toggle
+      target:
+        entity_id: input_boolean.office_view_expanded
+    hold_action:
+      action: none
+    button_action:
+      tap_action:
+        action: navigate
+        navigation_path: "#office"
+      double_tap_action:
+        action: call-service
+        service: input_boolean.toggle
+        target:
+          entity_id: input_boolean.office_view_expanded
+      hold_action:
+        action: none
+    sub_button:
+      main: 
+        - entity: sensor.office_temperature_sensor_temperature
+          show_state: true
+          show_icon: false
+          show_background: false
+          icon: ""
+        - entity: binary_sensor.office_window
+        - entity: input_boolean.office_view_expanded
+          icon: mdi:chevron-up
+          tap_action:
+            action: call-service
+            service: input_boolean.toggle
+            target:
+              entity_id: input_boolean.office_view_expanded
+          show_name: false
+          show_state: false
+          show_background: false
+          visibility:
+            - condition: state
+              entity: input_boolean.office_view_expanded
+              state: 'on'
+        - entity: input_boolean.office_view_expanded
+          icon: mdi:chevron-down
+          tap_action:
+            action: call-service
+            service: input_boolean.toggle
+            target:
+              entity_id: input_boolean.office_view_expanded
+          show_name: false
+          show_state: false
+          show_background: false
+          visibility:
+            - condition: state
+              entity: input_boolean.office_view_expanded
+              state: 'off'
+      bottom_layout: rows
+    styles: ""
+    modules:
+      - bubble_badges
+      - sub_button_coloring
+    bubble_badges:
+      badges:
+        - animation: glow
+          name: Temp high
+          target: sub_button
+          color: orange
+          icon: mdi:fire
+          sub_button_index: 1
+          condition:
+            - condition: numeric_state
+              entity_id: sensor.office_temperature_sensor_temperature
+              above: 72
+        - animation: glow
+          name: Temp low
+          target: sub_button
+          color: cyan
+          icon: mdi:snowflake-alert
+          sub_button_index: 1
+          condition:
+            - condition: numeric_state
+              entity_id: sensor.office_temperature_sensor_temperature
+              below: 69
+        - color: deep-orange
+          name: occupied
+          target: main_icon
+          icon: mdi:motion-sensor
+          condition:
+            - condition: state
+              entity_id: binary_sensor.office_multi_sensor_home_security_motion_detection
+              state:
+                - "on"
+        - color: red
+          name: Lighting Auto
+          target: main_icon
+          icon: mdi:lightbulb-auto-outline
+          condition:
+            - condition: state
+              entity_id: input_boolean.lighting_automation_blocker_office_room
+              state:
+                - "on"
+          animation: fade
+    force_icon: false
+    rows: 1.01
+    sub_button_coloring:
+      button_2:
+        condition:
+          - condition: state
+            entity_id: binary_sensor.office_window
+            state:
+              - "on"
+        icon_color: "#9f0000"
+
+  # BOTTOM SUB-BUTTONS - Hide when expanded
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: input_boolean.office_view_expanded
+        state: 'off'
+    card:
+      type: custom:bubble-card
+      card_type: sub-buttons
+      sub_button:
+        main: []
+        bottom:
+        bottom:
+          - entity: light.office_wall_switch
+            icon: mdi:ceiling-light
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+            show_name: false
+          - entity: light.desk_lights_group
+            icon: mdi:desk-lamp-on
+            content_info: none
+            tap_action:
+              action: more-info
+            hold_action:
+              action: more-info
+            show_name: false
+          - entity: light.wled_candles
+            icon: phu:desk-sit-alt
+            content_info: none
+            tap_action:
+              action: more-info
+            hold_action:
+              action: more-info
+            show_name: false
+          - entity: input_boolean.lighting_automation_blocker_office_room
+            icon: mdi:lightbulb-auto
+            tap_action:
+              service: ""
+              action: toggle
+            hold_action:
+              action: more-info
+            show_state: false
+            state_background: true
+            show_background: true
+            show_name: false
+
+  # MORE VIEW - Expanded inline view (toggleable)
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: input_boolean.office_view_expanded
+        state: 'on'
+    card:
+      type: grid
+      columns: 2
+      square: false
+      cards:
+        - entity: light.office_wall_switch
+          type: custom:bubble-card
+          card_type: button
+          button_type: slider
+          name: Wall Switch
+          show_name: true
+          show_last_updated: true
+          sub_button:
+            - name: Toggle button
+              icon: mdi:power
+              tap_action:
+                action: toggle
+        - entity: light.desk_lights_group
+          type: custom:bubble-card
+          card_type: button
+          button_type: slider
+          name: Desk Lights
+          show_name: true
+          show_last_updated: true
+          sub_button:
+            - name: Toggle button
+              icon: mdi:power
+              tap_action:
+                action: toggle
+        - entity: light.wled_candles
+          type: custom:bubble-card
+          card_type: button
+          button_type: slider
+          name: Candles
+          show_name: true
+          show_last_updated: true
+          sub_button:
+            - name: Toggle button
+              icon: mdi:power
+              tap_action:
+                action: toggle
+
+    

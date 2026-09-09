@@ -1,0 +1,12 @@
+persons:
+  name: People
+  entities:
+    - person.drake
+    - person.shawna
+    - person.named_guest
+
+
+garmin:
+  name: Garmin
+  entities:
+    - cover.garage_door

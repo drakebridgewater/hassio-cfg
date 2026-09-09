@@ -1,0 +1,38 @@
+
+grid-gap: var(--custom-layout-card-padding)
+grid-template-columns: repeat(4, 1fr)
+grid-template-rows: min-content min-content min-content min-content min-content
+grid-template-areas: |
+  "banner    banner    banner    banner   "
+  "clocks    top       top       top      "
+  "calendar  now       later     bonuses  "
+  "rewards   rewards   rewards   penalties"
+  "footer    footer    footer    footer   "
+mediaquery:
+  #phone
+  "(max-width: 1200px)":
+    grid-gap: calc(var(--custom-layout-card-padding) * 1.7)
+    grid-template-columns: 100%
+    grid-template-areas: |
+      "banner   "
+      "clocks   "
+      "top      "
+      "now      "
+      "later    "
+      "bonuses  "
+      "calendar "
+      "rewards  "
+      "penalties"
+      "footer   "
+  # Large tablet / small desktop
+  "(max-width: 1600px)":
+    grid-gap: var(--custom-layout-card-padding)
+    grid-template-columns: repeat(2, 1fr)
+    grid-template-areas: |
+      "banner     banner    "
+      "clocks     clocks    "
+      "top        top       "
+      "now        later     "
+      "calendar   bonuses   "
+      "rewards    penalties "
+      "footer     footer    "

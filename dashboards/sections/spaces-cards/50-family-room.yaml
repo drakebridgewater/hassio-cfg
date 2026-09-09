@@ -1,0 +1,291 @@
+type: custom:stack-in-card
+card_mod:
+  style: |
+    ha-card {
+      background-color: rgba(233, 30, 99, 0.25) !important;
+      background: linear-gradient(135deg, rgba(233, 30, 99, 0.2) 0%, rgba(244, 67, 54, 0.3) 100%);
+      padding: 3px !important;
+    }
+cards:
+  # MINIMAL VIEW - Button card (always visible)
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    name: Family Room
+    entity: binary_sensor.athom_family_room_presence_sensor_pir_sensor
+    icon: mdi:theater
+    show_attribute: true
+    show_state: true
+    show_name: true
+    show_icon: true
+    scrolling_effect: false
+    use_accent_color: false
+    show_last_changed: false
+    tap_action:
+      action: navigate
+      navigation_path: "#family"
+    double_tap_action:
+      action: call-service
+      service: input_boolean.toggle
+      target:
+        entity_id: input_boolean.family_room_view_expanded
+    hold_action:
+      action: none
+    button_action:
+      tap_action:
+        action: navigate
+        navigation_path: "#family"
+      double_tap_action:
+        action: call-service
+        service: input_boolean.toggle
+        target:
+          entity_id: input_boolean.family_room_view_expanded
+      hold_action:
+        action: none
+    sub_button:
+      main:
+        - entity: sensor.acurite_tower_family_room_temperature
+          show_state: true
+          show_icon: false
+          show_background: false
+        - entity: sensor.acurite_tower_family_room_humidity
+          show_state: true
+          show_icon: false
+          show_background: false
+          visibility:
+            - condition: screen
+              media_query: "(min-width: 768px)"
+        - entity: sensor.athom_family_room_presence_sensor_light_sensor
+          show_state: true
+          show_icon: false
+          show_background: false
+          visibility:
+            - condition: screen
+              media_query: "(min-width: 768px)"
+        - entity: binary_sensor.basement_sliding_door
+        - entity: input_boolean.family_room_view_expanded
+          icon: mdi:chevron-up
+          tap_action:
+            action: call-service
+            service: input_boolean.toggle
+            target:
+              entity_id: input_boolean.family_room_view_expanded
+          show_name: false
+          show_state: false
+          show_background: false
+          visibility:
+            - condition: state
+              entity: input_boolean.family_room_view_expanded
+              state: 'on'
+        - entity: input_boolean.family_room_view_expanded
+          icon: mdi:chevron-down
+          tap_action:
+            action: call-service
+            service: input_boolean.toggle
+            target:
+              entity_id: input_boolean.family_room_view_expanded
+          show_name: false
+          show_state: false
+          show_background: false
+          visibility:
+            - condition: state
+              entity: input_boolean.family_room_view_expanded
+              state: 'off'
+      bottom_layout: rows
+      bottom_layout: rows
+    styles: ""
+    modules:
+      - bubble_badges
+      - sub_button_coloring
+    bubble_badges:
+      badges:
+        - animation: glow
+          name: Temp high
+          target: sub_button
+          color: orange
+          icon: mdi:fire
+          sub_button_index: 1
+          condition:
+            - condition: numeric_state
+              entity_id: sensor.acurite_tower_family_room_temperature
+              above: 72
+        - animation: glow
+          name: Temp low
+          target: sub_button
+          color: blue
+          icon: mdi:snowflake-alert
+          sub_button_index: 1
+          condition:
+            - condition: numeric_state
+              entity_id: sensor.acurite_tower_family_room_temperature
+              below: 68.5
+        - color: deep-orange
+          name: occupied
+          target: main_icon
+          icon: mdi:motion-sensor
+          condition:
+            - condition: state
+              entity_id: binary_sensor.athom_family_room_presence_sensor_pir_sensor
+              state:
+                - "on"
+        - color: red
+          name: Lighting Auto
+          target: main_icon
+          icon: mdi:lightbulb-auto-outline
+          condition:
+            - condition: state
+              entity_id: input_boolean.lighting_automation_blocker_family_room
+              state:
+                - "on"
+          animation: fade
+    force_icon: false
+    rows: 1.01
+    sub_button_coloring:
+      button_4:
+        condition:
+          - condition: state
+            entity_id: binary_sensor.basement_sliding_door
+            state:
+              - "on"
+        icon_color: "#9f0000"
+
+  # BOTTOM SUB-BUTTONS - Hide when expanded
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: input_boolean.family_room_view_expanded
+        state: 'off'
+    card:
+      type: custom:bubble-card
+      card_type: sub-buttons
+      sub_button:
+        main: []
+        bottom:
+        bottom:
+          - entity: light.family_room_wall_switch
+            icon: mdi:ceiling-light-outline
+            tap_action:
+              service: ""
+              action: toggle
+            hold_action:
+              action: more-info
+            scrolling_effect: true
+            show_name: false
+            show_last_changed: false
+            hide_when_parent_unavailable: false
+            fill_width: true
+            content_layout: icon-top
+            name: Wall Switch
+          - entity: light.shelf_strip
+            icon: hue:play-bar
+            tap_action:
+              service: ""
+              action: toggle
+            hold_action:
+              action: more-info
+            show_name: false
+            show_last_changed: false
+            hide_when_parent_unavailable: false
+            fill_width: true
+            content_layout: icon-top
+            name: Door Lights
+          - entity: light.family_room_ambiance_lights_group
+            icon: mdi:lightbulb-group
+            tap_action:
+              service: ""
+              action: toggle
+            hold_action:
+              action: more-info
+            show_name: false
+            show_last_changed: false
+            hide_when_parent_unavailable: false
+            fill_width: true
+            content_layout: icon-top
+            name: Ambiance
+          - entity: light.family_room_tv_lights_group
+            icon: hue:lightstrip-tv
+            tap_action:
+              service: ""
+              action: toggle
+            hold_action:
+              action: more-info
+            show_name: false
+            show_last_changed: false
+            hide_when_parent_unavailable: false
+            fill_width: true
+            content_layout: icon-top
+            name: TV Lights
+          - entity: input_boolean.lighting_automation_blocker_family_room
+            icon: mdi:lightbulb-auto
+            name: Auto
+            tap_action:
+              service: ""
+              action: toggle
+            hold_action:
+              action: more-info
+            show_state: false
+            state_background: true
+            show_background: true
+            show_name: false
+            fill_width: true
+            content_layout: icon-top
+
+  # MORE VIEW - Expanded inline view (toggleable)
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: input_boolean.family_room_view_expanded
+        state: 'on'
+    card:
+      type: grid
+      columns: 2
+      square: false
+      cards:
+        - entity: light.family_room_wall_switch
+          type: custom:bubble-card
+          card_type: button
+          button_type: slider
+          name: Wall Switch
+          show_name: true
+          show_last_updated: true
+          sub_button:
+            - name: Toggle button
+              icon: mdi:power
+              tap_action:
+                action: toggle
+        - entity: light.shelf_strip
+          type: custom:bubble-card
+          card_type: button
+          button_type: slider
+          name: Shelf Strip
+          show_name: true
+          show_last_updated: true
+          sub_button:
+            - name: Toggle button
+              icon: mdi:power
+              tap_action:
+                action: toggle
+        - entity: light.family_room_ambiance_lights_group
+          type: custom:bubble-card
+          card_type: button
+          button_type: slider
+          name: Ambiance Lights
+          show_name: true
+          show_last_updated: true
+          sub_button:
+            - name: Toggle button
+              icon: mdi:power
+              tap_action:
+                action: toggle
+        - entity: light.family_room_tv_lights_group
+          type: custom:bubble-card
+          card_type: button
+          button_type: slider
+          name: TV Lights
+          show_name: true
+          show_last_updated: true
+          sub_button:
+            - name: Toggle button
+              icon: mdi:power
+              tap_action:
+                action: toggle

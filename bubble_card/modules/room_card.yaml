@@ -1,0 +1,95 @@
+room_card:
+  name: Room Card
+  version: v2025.09.19
+  creator: afxok
+  description: |
+    This module creates a Minimalist UI style "room card". The notable elements of this style are a large
+    colored icon in the lower left corner with a white circular background that extends off the card, a column
+    of 3-5 button on the far right vertical edge of the card, and a title in the top left corner.
+
+    To use this module, card layout styling options must be set to "Large with sub-buttons in a grid (Layout: min. 2 rows)"
+    with at least 3 rows.
+  supported:
+    - button
+  code: |2-
+          .bubble-main-icon {
+              --mdc-icon-size: ${(this.config.room_card?.room_main_icon_size || 90) + 'px'};
+          }
+          .bubble-sub-button {
+            padding: 0 6px;
+            height: 32px;
+            width: 32px;
+            min-width: 32px;
+          }
+
+          .sub-buttons-grid .bubble-sub-button-container {
+            --row-size: 4;
+            row-gap: calc(((var(--row-height,56px) - 46px ) * var(--row-size,1) + var(--row-gap, 4px) * ( var(--row-size,1) - 1 ) ) / ( var(--row-size,1) + 1 ));
+            grid-template-rows: repeat(var(--row-size,1), 1fr);
+            grid-template-columns: repeat(1, 1fr);
+          }
+          .bubble-sub-button .bubble-sub-button-icon {
+              --mdc-icon-size: 18px;
+          }
+          .bubble-background {
+            border-radius: 10px;
+          }
+
+          .large .bubble-container {
+              border-radius: 10px;
+              overflow: clip;
+          }
+
+          .large .bubble-icon-container {
+            margin: 0px;
+            // height: 65%;
+            // width: 85%;
+
+            min-width: ${(this.config.room_card?.room_main_background_size || 110) + 'px'};
+            max-width: ${(this.config.room_card?.room_main_background_size || 110) + 'px'};
+            min-height: ${(this.config.room_card?.room_main_background_size || 110) + 'px'};
+            max-height: ${(this.config.room_card?.room_main_background_size || 110) + 'px'};
+            border-radius: ${this.config.room_card?.square_icon ? '0px' : '80px'};
+            border-top-right-radius: ${this.config.room_card?.square_icon ? '12px' : '80px'};
+            transform: ${this.config.room_card?.square_icon ? 'translate(0px,37px)' : 'translate(-20px,42px)'};
+          }
+
+          .bubble-name-container {
+            position: absolute;
+            width: 100px;
+            transform:translate(10px,-75px);
+            margin: 0px;
+            overflow: visible;
+          }
+
+          .bubble-sub-button-container {
+            margin-bottom: auto;
+            margin-left: auto;
+            padding-top: min(8px,100%);
+          }
+
+          .bubble-pop-up {
+            height: auto !important;
+          }
+
+          ${(() => {
+              const card = this;
+          })()}
+  editor:
+    - name: square_icon
+      label: Square Icon
+      selector:
+        boolean: {}
+    - name: room_main_icon_size
+      label: Room Main Icon Size
+      selector:
+        number:
+          min: 50
+          max: 150
+    - name: room_main_background_size
+      label: Room Main Background Size
+      selector:
+        number:
+          min: 50
+          max: 150
+  link: https://github.com/Clooos/Bubble-Card/discussions/1700

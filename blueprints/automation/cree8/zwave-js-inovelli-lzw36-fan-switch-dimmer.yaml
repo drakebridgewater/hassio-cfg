@@ -1,10 +1,11 @@
 blueprint:
   name: Inovelli Red Series LZW36 Fan Controller (ZWave-JS)
-  description: Create automations for the Inovelli Fan/Switch combo the ZWave-JS integration.
+  description: Create automations for the Inovelli Fan/Switch combo
+    the ZWave-JS integration.
   domain: automation
   input:
     inovelli_fan_switch:
-      name: Inovelli FanController
+      name: Inovelli Fan Controller
       description: List of available Inovelli LZW36 dimmer combos.
       selector:
         device:
@@ -107,7 +108,7 @@ blueprint:
       default: []
       selector:
         action: {}
-  source_url: https://community.home-assistant.io/t/zwave-js-inovelli-lzw36-fan-switch-dimmer/277704
+  source_url: https://github.com/cree8/inovelli_switches/edit/main/blueprint_lzw36.yaml
 mode: single
 max_exceeded: silent
 variables:
@@ -120,6 +121,7 @@ action:
 - variables:
     button_id: '{{ trigger.event.data.property_key_name }}'
     press_count: '{{ trigger.event.data.value }}'
+    device_name: !input inovelli_fan_switch
 - service: logbook.log
   data:
     name: Button Id
@@ -131,7 +133,7 @@ action:
 - service: logbook.log
   data:
     name: Device
-    message: '{{ zwave_device }}'
+    message: '{{ device_name }}'
 - choose:
   - conditions: '{{ button_id == "002" and press_count == "KeyPressed" }}'
     sequence: !input 'button_a'

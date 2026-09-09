@@ -1,80 +1,235 @@
-type: vertical-stack
-cards:
-  - type: vertical-stack
-    cards: !include ../../popup/drake.yaml
-  - type: vertical-stack
-    cards: !include ../../views/kitchen.yaml
-  - type: vertical-stack
-    cards: !include ../../views/living_room/living-room.yaml
-  - type: vertical-stack
-    cards: !include ../../views/outdoor.yaml
-  - type: vertical-stack
-    cards: !include ../../views/office.yaml
-  - type: vertical-stack
-    cards: !include ../../views/ethans-room.yaml
-  - type: vertical-stack
-    cards: !include ../../views/master.yaml
-  - type: vertical-stack
-    cards: !include ../../views/family-room.yaml
-  - type: vertical-stack
-    cards: !include ../../views/holiday.yaml
-  - type: vertical-stack
-    cards: !include ../../popup/aqi_overview.yaml
-  - type: vertical-stack
-    cards: !include ../../popup/door_overview.yaml
-  - type: vertical-stack
-    cards: !include ../../popup/motion_overview.yaml
-  - type: vertical-stack
-    cards: !include ../../popup/window_overview.yaml
-  - type: vertical-stack
-    cards: !include ../../popup/people_overview.yaml
-  - type: vertical-stack
-    cards: !include ../../popup/lights_overview.yaml
-  - type: vertical-stack
-    cards: !include ../../popup/power_overview.yaml
+type: custom:bubble-card
+card_type: horizontal-buttons-stack
+width_desktop: 100%
+auto_order: true
+1_name: Living Room
+1_icon: mdi:sofa
+1_link: "#living-room"
+1_entity: light.living_room_light_group
+1_pir_sensor: binary_sensor.living_room_presence_sensor_occupancy
 
-  - type: custom:bubble-card
-    card_type: horizontal-buttons-stack
-    width_desktop: 100%
-    auto_order: true
-    1_name: Living Room
-    1_icon: mdi:sofa
-    1_link: "#living-room"
-    1_entity: light.living_room_light_group
-    1_pir_sensor: binary_sensor.living_room_presence_sensor_occupancy
+2_name: Kitchen
+2_icon: mdi:fridge
+2_link: "#kitchen"
+2_entity: light.kitchen_lights_group
+2_pir_sensor: binary_sensor.kitchen_motion_sensor_occupancy
 
-    2_name: Kitchen
-    2_icon: mdi:fridge
-    2_link: "#kitchen"
-    2_entity: light.kitchen_lights_group
-    2_pir_sensor: binary_sensor.kitchen_motion_sensor_occupancy
+3_link: "ethan"
+3_name: Ethan
+3_icon: mdi:teddy-bear
+3_entity: light.ethan_s_bedroom_wall_switch
+3_pir_sensor: binary_sensor.activity_in_the_ethan_s_bedroom
 
-    3_link: "#ethan"
-    3_name: Ethan
-    3_icon: mdi:teddy-bear
-    3_entity: light.ethan_s_lights_group
-    3_pir_sensor: binary_sensor.ethan_s_room_occupied_group
+4_link: "#family"
+4_name: Family Room
+4_icon: mdi:sofa
+4_entity: light.family_room_lights_group
+4_pir_sensor: binary_sensor.athom_family_room_presence_sensor_occupancy
 
-    4_link: "#family"
-    4_name: Family Room
-    4_icon: mdi:sofa
-    4_entity: light.family_room_lights_group
-    4_pir_sensor: binary_sensor.athom_family_room_presence_sensor_occupancy
+5_link: "#master"
+5_name: Master Bedroom
+5_icon: mdi:bed-king-outline
+5_entity: light.bedroom_lights_group
+5_pir_sensor: binary_sensor.master_bedroom_motion_sensor_occupancy
 
-    5_link: "#master"
-    5_name: Master Bedroom
-    5_icon: mdi:bed-king-outline
-    5_entity: light.bedroom_lights_group
-    5_pir_sensor: binary_sensor.master_bedroom_motion_sensor_occupancy
+6_link: "#office"
+6_name: Office
+6_icon: mdi:desk
+6_entity: light.office_lights_group
+6_pir_sensor: binary_sensor.office_multi_sensor_home_security_motion_detection
 
-    6_link: "#office"
-    6_name: Office
-    6_icon: mdi:desk
-    6_entity: light.office_lights_group
-    6_pir_sensor: binary_sensor.office_multi_sensor_home_security_motion_detection
+7_link: "#outdoors"
+7_name: Outdoor
+7_icon: hue:room-outdoors
+7_entity: light.outdoor_lights_group
+7_pir_sensor: binary_sensor.frontdoor_all_occupancy
 
-    # 7_link: "#outdoors"
-    # 7_name: Outdoor
-    # 7_icon: hue:room-outdoors
-    # 7_entity: light.outdoor_lights_group
-    # 7_pir_sensor: binary_sensor.frontdoor_all_occupancy
+  # - type: custom:navbar-card
+  #   desktop:
+  #     show_labels: true
+  #     show_popup_label_backgrounds: true
+  #   mobile:
+  #     show_labels: true
+  #     # show_labels: popup_only
+  #   layout:
+  #     auto_padding:
+  #       enabled: true
+  #       desktop_px: 150
+  #       mobile_px: 120
+  #     reflect_child_state: false
+  #   haptic:
+  #     tap_action: true
+  #     url: true
+  #     hold_action: true
+  #     double_tap_action: true
+  #   styles: |
+  #       .navbar-popup-backdrop {
+  #         background: rgba(0, 0, 0, 0.8);
+  #       }
+  #   routes:
+  #     - url: /lovelace-main/home
+  #       icon: mdi:home
+  #       label: Home
+  #     - icon: mdi:shield-lock
+  #       label: Security
+  #       url: /lovelace-main/home#main_floor_security
+  #     - icon: mdi:floor-plan
+  #       label: Rooms
+  #       tap_action:
+  #         action: open-popup
+  #       popup:
+  #         - label: Living Room
+  #           icon: mdi:sofa
+  #           url: /lovelace-main/home#living-room
+  #         - label: Kitchen
+  #           icon: mdi:fridge
+  #           url: /lovelace-main/home#kitchen
+  #         - url: /lovelace-main/home#ethan
+  #           label: Ethan
+  #           icon: mdi:teddy-bear
+  #         - url: /lovelace-main/home#family
+  #           label: Family Room
+  #           icon: mdi:sofa
+  #         - url: /lovelace-main/home#master
+  #           label: Master Bedroom
+  #           icon: mdi:bed-king-outline
+  #         - url: /lovelace-main/home#office
+  #           label: Office
+  #           icon: mdi:desk
+        
+  #     - icon: phu:stage-light
+  #       label: Scenes
+  #       url: ""
+  #       tap_action:
+  #         action: open-popup
+  #       popup:
+  #         - label: Halloween
+  #           icon: mdi:halloween
+  #           tap_action:
+  #             action: perform-action
+  #             perform_action: scene.turn_on
+  #             target:
+  #               entity_id: scene.halloween_party
+  #         - label: Goodnight
+  #           icon: mdi:lightbulb-night-outline
+  #           tap_action:
+  #             action: perform-action
+  #             perform_action: scene.turn_on
+  #             target:
+  #               entity_id: scene.goodnight
+  #     # - icon: mdi:assistant
+  #     #   label: Voice Assistants
+  #     #   tap_action:
+  #     #     action: assist
+  #     #     start_listening: true
+  #     # - icon: mdi:leak
+  #     #   label: Sensors
+  #     #   tap_action:
+  #     #     action: open-popup
+  #     #   popup:
+  #     #    - label: mosture
+  #     #      url: /lovelace-main/home#mosture
+  #     #      icon: mdi:water-percent
+  #     #    - label: occupancy
+  #     #      url: /lovelace-main/home#occupancy
+  #     #      icon: mdi:account
+  #     #    - label: sound
+  #     #      url: /lovelace-main/home#sound
+  #     #      icon: mdi:volume-high
+  #     #    - label: aqi
+  #     #      url: /lovelace-main/home#aqi
+  #     #      icon: mdi:cloud
+  #     #    - label: illuminance
+  #     #      url: /lovelace-main/home#illuminance
+  #     #      icon: mdi:brightness-6
+  #     #    - label: device_tracker
+  #     #      url: /lovelace-main/home#device_tracker
+  #     #      icon: mdi:crosshairs-gps
+  #     - icon: mdi:select-group
+  #       label: Devices
+  #       tap_action:
+  #         action: open-popup
+  #       popup:
+  #        - label: window
+  #          url: /lovelace-main/home#window
+  #          icon: mdi:window-closed
+  #        - label: door
+  #          url: /lovelace-main/home#door
+  #          icon: mdi:door
+  #        - label: cameras
+  #          url: /lovelace-main/home#cameras
+  #          icon: mdi:cctv
+  #        - label: fan
+  #          url: /lovelace-main/home#fan
+  #          icon: mdi:fan
+  #        - label: lights
+  #          url: /lovelace-main/home#lights
+  #          icon: mdi:lightbulb
+  #        - label: switch
+  #          url: /lovelace-main/home#switch
+  #          icon: mdi:toggle-switch
+  #        - label: cover
+  #          url: /lovelace-main/home#cover
+  #          icon: mdi:blinds
+  #     - icon: mdi:dots-horizontal
+  #       label: More
+  #       tap_action:
+  #         action: open-popup
+  #       popup:
+  #         - icon: mdi:speaker-message
+  #           label: Broadcast
+  #           tap_action:
+  #             entity: input_text.broadcast_message
+  #             action: more-info
+  #         - label: problem_sensors
+  #           url: /lovelace-main/home#problem_sensors
+  #           icon: mdi:alert
+  #         # - label: Living Room
+  #         #   icon: mdi:television-shimmer
+  #         #   url: /lovelace-main/home#living_room_remote
+  #         # - label: Family Room
+  #         #   icon: mdi:theater
+  #         #   url: /lovelace-main/home#family_room_remote
+            
+  #         - icon: mdi:cog-clockwise
+  #           label: Scheduling
+  #           url: /lovelace/scheduling
+  #         - url: /config/automation/dashboard
+  #           icon: mdi:creation
+  #           label: Automations
+  #         - icon: mdi:hammer
+  #           url: /developer-tools/yaml
+  #           label: Developer Tools
+  #           hidden: |
+  #             [[[ return user.name != "Drake"]]]
+  #         - url: /config/dashboard
+  #           icon: mdi:cog
+  #           label: Settings
+  #           hidden: |
+  #             [[[ return user.name != "Drake"]]]
+  #         - label: Fix wall switch lights
+  #           icon: mdi:progress-alert
+  #           hidden: |
+  #             [[[ return user.name != "Drake"]]]
+  #           tap_action:
+  #             action: call-service
+  #             service: script.1713191378784
+  #             data:
+  #               led: All
+  #               effect: Clear
+  #               target:
+  #                 device_id:
+  #                   - c8d90d418ff1048266a66863b81ddf34
+  #                   - 804e74de0544c3ddae36e336fc86c1a0
+  #                   - 5c5ec04420534c81b4a7dd52f0bcb680
+  #                   - 3e9a9933634c5a379e9d694574f55695
+  #                   - 084c427334a9198f6ddd056a1cfb7921
+  #                   - 66245c3a1952a0a634def4f846710153
+  #                   - a13be523ef31908b308b2e8bd92c0f9a
+  #                   - df873ab3b3f9c5f6a4a9072d35c0c93e
+  #                   - 4845a6a6beec4d5968ad71e5bd9ebf26
+  #                   - a9f0efec55a3d2b05cebb59f9cfa0fb8
+  #                   - fe33892f63436bdeb8c9497b8fd25fb8
+  #                   - 22feee6161d1ad9d4f0addb7cafaf9d1
+  #                   - 202edd64ebe0f8b215dec062cb4b3d04
+

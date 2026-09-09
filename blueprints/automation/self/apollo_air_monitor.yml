@@ -1,0 +1,185 @@
+blueprint:
+  name: "Apollo AIR-1 RGB LED Air Quality Indicator"
+  description: >
+    Drives the Apollo AIR-1 RGB LED based on CO2 or VOC quality readings.
+    Select your sensor mode and the corresponding sensor entity.
+    Colors: Green (good) → Yellow (moderate) → Orange (poor) → Red (hazardous).
+  domain: automation
+  input:
+    sensor_mode:
+      name: Sensor Mode
+      description: "Choose whether to monitor CO2 (ppm) or VOC Quality (index)."
+      default: CO2
+      selector:
+        select:
+          options:
+            - CO2
+            - "VOC Quality"
+
+    sensor_entity:
+      name: Air Quality Sensor
+      description: "Select your Apollo AIR-1 CO2 or VOC sensor entity."
+      selector:
+        entity:
+          domain: sensor
+
+    rgb_light:
+      name: RGB Light
+      description: "Apollo AIR-1 RGB light entity."
+      selector:
+        entity:
+          domain: light
+
+    co2_good:
+      name: "CO2 – Good threshold (ppm)"
+      description: "Below this value = Green. Default: 800"
+      default: 800
+      selector:
+        number:
+          min: 400
+          max: 1000
+          unit_of_measurement: ppm
+
+    co2_moderate:
+      name: "CO2 – Moderate threshold (ppm)"
+      description: "Above this value = Yellow. Default: 1200"
+      default: 1200
+      selector:
+        number:
+          min: 800
+          max: 1500
+          unit_of_measurement: ppm
+
+    co2_poor:
+      name: "CO2 – Poor threshold (ppm)"
+      description: "Above this value = Orange. Default: 2000"
+      default: 2000
+      selector:
+        number:
+          min: 1200
+          max: 3000
+          unit_of_measurement: ppm
+
+    voc_good:
+      name: "VOC – Good threshold (index)"
+      description: "Below this value = Green. Default: 100"
+      default: 100
+      selector:
+        number:
+          min: 0
+          max: 200
+
+    voc_moderate:
+      name: "VOC – Moderate threshold (index)"
+      description: "Above this value = Yellow. Default: 200"
+      default: 200
+      selector:
+        number:
+          min: 100
+          max: 350
+
+    voc_poor:
+      name: "VOC – Poor threshold (index)"
+      description: "Above this value = Orange. Default: 350"
+      default: 350
+      selector:
+        number:
+          min: 200
+          max: 500
+
+    brightness:
+      name: LED Brightness (%)
+      description: "Brightness of the RGB LED when active. Default: 60%"
+      default: 60
+      selector:
+        number:
+          min: 10
+          max: 100
+          unit_of_measurement: "%"
+
+    turn_off_when_good:
+      name: Turn off LED when Good
+      description: "Turn off the LED when air quality is in the Good range."
+      default: true
+      selector:
+        boolean:
+
+variables:
+  sensor_mode: !input sensor_mode
+  sensor_entity: !input sensor_entity
+  co2_good: !input co2_good
+  co2_moderate: !input co2_moderate
+  co2_poor: !input co2_poor
+  voc_good: !input voc_good
+  voc_moderate: !input voc_moderate
+  voc_poor: !input voc_poor
+  brightness: !input brightness
+  turn_off_when_good: !input turn_off_when_good
+
+  sensor_value: "{{ states(sensor_entity) | float(-1) }}"
+
+  good_threshold: "{{ co2_good if sensor_mode == 'CO2' else voc_good }}"
+  moderate_threshold: "{{ co2_moderate if sensor_mode == 'CO2' else voc_moderate }}"
+  poor_threshold: "{{ co2_poor if sensor_mode == 'CO2' else voc_poor }}"
+
+  air_level: >
+    {% if sensor_value < 0 %}
+      0
+    {% elif sensor_value >= poor_threshold %}
+      4
+    {% elif sensor_value >= moderate_threshold %}
+      3
+    {% elif sensor_value >= good_threshold %}
+      2
+    {% else %}
+      1
+    {% endif %}
+
+  led_color: >
+    {% if air_level == 4 %}
+      [255, 0, 0]
+    {% elif air_level == 3 %}
+      [255, 100, 0]
+    {% elif air_level == 2 %}
+      [255, 200, 0]
+    {% else %}
+      [0, 255, 0]
+    {% endif %}
+
+trigger:
+  - platform: time_pattern
+    minutes: "/1"
+
+  - platform: state
+    entity_id: !input sensor_entity
+
+  - platform: homeassistant
+    event: start
+
+condition:
+  - condition: template
+    value_template: "{{ sensor_value >= 0 }}"
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ air_level <= 1 and turn_off_when_good }}"
+        sequence:
+          - action: light.turn_off
+            target:
+              entity_id: !input rgb_light
+
+      - conditions:
+          - condition: template
+            value_template: "{{ air_level >= 2 or not turn_off_when_good }}"
+        sequence:
+          - action: light.turn_on
+            target:
+              entity_id: !input rgb_light
+            data:
+              rgb_color: "{{ led_color }}"
+              brightness_pct: "{{ brightness }}"
+
+mode: single
+max_exceeded: silent

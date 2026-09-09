@@ -3,18 +3,18 @@
   use_blueprint:
     path: homeassistant/confirmable_notification.yaml
     input:
-      notify_device: c81abbe819dc7801f6f7146dd4fe2a92
+      notify_device: f87e98664a5f03c90dedd2c778462731
       confirm_action:
-      - service: input_text.set_value
-        target:
+      - target:
           entity_id: input_text.broadcast_message
         data:
           value: Garage Door Opened
+        action: input_text.set_value
       dismiss_action:
-      - service: cover.close_cover
-        data: {}
+      - data: {}
         target:
           entity_id: cover.garage_door
+        action: cover.close_cover
       title: Garage Door
       message: 'Garage door has been opened '
       confirm_text: 'Announce '
@@ -395,6 +395,7 @@ ring_keypad_ding_dong:
       sound_volume: 100
       keypad:
       - d02dd3f1095ac2cdbc53485fcf6cbb2d
+      - 073e12e4d53eb6cee8d511fa4d32ad0e
   description: ''
   icon: mdi:bell-circle
 ring_keypad_police:
@@ -413,3 +414,798 @@ inovelli_blue_led_zigbee2mqtt:
   use_blueprint:
     path: zanix/inovelli_blue_led_zigbee2mqtt.yaml
   description: ''
+abode_security_alert_notifications:
+  alias: "Abode Security Alert - \U0001F514 Notifications"
+  use_blueprint:
+    path: samuelthng/notifications.yaml
+    input:
+      notify_device: 71fd4cd8570a299468fce0f07150da3f
+      confirm_enabled: true
+      interruption_level: critical
+      notification_link: /lovelace-security/main-floor-security
+      attachment_type: camera_entity
+      attachment_camera_entity: camera.camera1_fluent
+      confirm_text: Disable Alarm
+      confirm_option_mode: action
+      confirm_action:
+      - action: alarm_control_panel.alarm_disarm
+        metadata: {}
+        data: {}
+        target:
+          entity_id: alarm_control_panel.default
+      confirm_icon: security
+      confirm_authentication_required: true
+      dismiss_text: Send Warning TTS
+      dismiss_option_mode: action
+      dismiss_action:
+      - action: media_player.play_media
+        data:
+          media:
+            media_content_id: amzn_sfx_sirens_01
+            media_content_type: sound
+            metadata: {}
+        target:
+          entity_id: media_player.drake_s_echo
+      dismiss_icon: exclamationmark.bubble
+      message: 'Security Incident '
+      icon: mdi:shield-search
+  description: ''
+notification_ring_keypad_police:
+  alias: Notification Ring Keypad - Police
+  use_blueprint:
+    path: Noblewolf/ring-keypad-v2-sounds-script-zwavejs.yaml
+    input:
+      keypad:
+      - 073e12e4d53eb6cee8d511fa4d32ad0e
+      - d02dd3f1095ac2cdbc53485fcf6cbb2d
+      sound_selection: '13'
+  description: ''
+add_minutes_to_input_datetime:
+  description: Add minutes to any input_datetime entity
+  fields:
+    minutes:
+      selector:
+        number:
+          min: 1
+          max: 100
+          step: 1
+      default: 5
+      required: true
+    entity_id:
+      selector:
+        entity: {}
+  sequence:
+  - target:
+      entity_id: '{{ entity_id }}'
+    data:
+      time: '{{ (state_attr(entity_id, ''timestamp'') + 60 * minutes)  | timestamp_custom(''%H:%M:%S'',
+        false) }}'
+    action: input_datetime.set_datetime
+  alias: Add Minutes to Input Datetime
+print_shopping_list:
+  alias: Print Shopping List
+  description: Formats the todo list and sends it to the printer API
+  sequence:
+  - action: todo.get_items
+    target:
+      entity_id: todo.default
+    data:
+      status: needs_action
+    response_variable: my_list
+  - action: simple_http_client.fetch
+    data:
+      method: POST
+      timeout: 10
+      url: http://10.0.0.10:8000/api/print-shopping-list
+      headers:
+        Content-Type: application/json
+      body: "{% set todo_items = my_list['todo.default']['items'] if my_list['todo.default']
+        is defined else [] %} {% set ns = namespace(items=[]) %}\n{% for item in todo_items
+        %}\n  {% set parts = item.summary.split(' ', 1) %}\n  {% if parts|length >
+        1 and parts[0] | int(default=-1) != -1 %}\n    {% set ns.items = ns.items
+        + [{\"name\": parts[1], \"quantity\": parts[0]}] %}\n  {% else %}\n    {%
+        set ns.items = ns.items + [item.summary] %}\n  {% endif %}\n{% endfor %}\n{{
+        {\n  \"title\": \"Grocery Shopping\",\n  \"items\": ns.items\n} | to_json
+        }}"
+    response_variable: api_response
+  mode: single
+led_set:
+  alias: LED Set (Tier-aware Inovelli Wrapper)
+  description: 'Semantic wrapper around the Zanix Inovelli Blue LED script. Tier 0=mode
+    (LED 4 center), Tier 1=spatial (LED 7 top), Tier 2=global (LED 1 bottom), Tier
+    3=critical (full bar via ''All''). LED numbering: LED 1=bottom, LED 7=top.
+
+
+    NIGHT BRIGHTNESS CAP: When sun.sun is below_horizon (night) AND active_critical_notification
+    is NOT ''Triggered'', sanctuary switches (Master Bedroom, Master Closet, Master
+    Bathroom, Ethan''s Bedroom) get brightness=1 regardless of caller intent. Wrapper
+    splits entity list into sanctuary and non-sanctuary subsets, sends two Zanix calls.
+    Triggered alarm bypasses the cap (real emergency).
+
+
+    IMPORTANT LED FORMAT: Zanix accepts strings (''Led 1'') or integers (1) but they
+    map differently. Always use string format. Earlier integer-based wrapper was silently
+    writing to wrong LEDs.
+
+
+    FIRMWARE QUIRK: ''Clear Effect'' rejected by firmware when color/level/duration
+    are present. Wrapper branches: clear path = minimal params; active path = full
+    params + brightness cap logic.'
+  fields:
+    brightness:
+      description: Optional brightness override. Leave blank for tier default.
+      name: Brightness override (1-100)
+      required: false
+      selector:
+        number:
+          max: 100
+          min: 1
+          mode: box
+          step: 1
+    color:
+      default: green
+      description: Semantic color name. Optional when effect is 'off' or 'clear'.
+        magenta maps to Pink in Zanix vocabulary. Blue is reserved for firmware default
+        state.
+      name: Color
+      required: false
+      selector:
+        select:
+          options:
+          - red
+          - orange
+          - yellow
+          - green
+          - blue
+          - purple
+          - magenta
+          - teal
+          - white
+          - 'off'
+    duration_minutes:
+      default: 0
+      description: How long the effect runs. Use 0 for tier default. Use -1 for indefinite.
+      name: Duration (minutes)
+      required: false
+      selector:
+        number:
+          max: 60
+          min: -1
+          mode: box
+          step: 1
+    effect:
+      default: pulse
+      description: LED effect. 'off' shows black state. 'clear' cancels notification
+        overlay (use this when a notification ends).
+      name: Effect
+      required: false
+      selector:
+        select:
+          options:
+          - solid
+          - pulse
+          - fast_blink
+          - slow_blink
+          - 'off'
+          - clear
+    switch_entity:
+      description: One or more Inovelli light entity IDs. Accepts a single entity
+        string OR a list. Wrapper normalizes to a list for Zanix.
+      name: Switch entity
+      required: true
+      selector:
+        entity:
+          domain: light
+          integration: mqtt
+          multiple: true
+    tier:
+      default: spatial
+      description: mode | spatial | global | critical
+      name: Tier
+      required: true
+      selector:
+        select:
+          options:
+          - mode
+          - spatial
+          - global
+          - critical
+    duration_seconds:
+      name: Duration (seconds)
+      description: Optional. How long the effect runs in seconds. Takes precedence
+        over duration_minutes if both are set. Useful for short effects like broadcast
+        flashes (15-30 seconds).
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 3600
+          step: 1
+          mode: box
+  icon: mdi:led-strip-variant
+  max: 25
+  mode: parallel
+  sequence:
+  - alias: 'Branch on effect: Clear Effect uses minimal params (firmware quirk); active
+      effects use full params'
+    choose:
+    - alias: 'Clear path: omit color, level, duration (firmware silently rejects Clear
+        Effect when these are present)'
+      conditions:
+      - condition: template
+        value_template: '{{ effect | default(''pulse'') == ''clear'' }}'
+      sequence:
+      - action: script.inovelli_blue_led_zigbee2mqtt
+        data:
+          led: '{% set m = {''mode'':''Led 4'',''spatial'':''Led 7'',''global'':''Led
+            1'',''critical'':''All''} %}{{ m[tier] }}'
+          effect: Clear Effect
+          target: '{% set s = switch_entity %}{% if s is string %}{{ {''entity_id'':
+            [s]} }}{% else %}{{ {''entity_id'': s | list} }}{% endif %}'
+    default:
+    - alias: 'At night + non-triggered: send to sanctuary subset at brightness=1'
+      if:
+      - condition: template
+        value_template: '{% set is_night = is_state(''sun.sun'', ''below_horizon'')
+          %}{% set is_triggered = is_state(''sensor.active_critical_notification'',
+          ''Triggered'') %}{% set s = switch_entity %}{% set entities = [s] if s is
+          string else (s | list) %}{% set sanctuary = [''light.master_bedroom_wall_switch'',
+          ''light.master_bedroom_closet_wall_switch'', ''light.master_bathroom_wall_switch'',
+          ''light.ethan_s_bedroom_wall_switch''] %}{% set filtered = entities | select(''in'',
+          sanctuary) | list %}{{ is_night and not is_triggered and filtered | length
+          > 0 }}'
+      then:
+      - action: script.inovelli_blue_led_zigbee2mqtt
+        data:
+          color: '{% set m = {''red'':''Red'',''orange'':''Orange'',''yellow'':''Yellow'',''green'':''Green'',''blue'':''Blue'',''purple'':''Purple'',''magenta'':''Pink'',''teal'':''Teal'',''white'':''White'',''off'':''Off''}
+            %}{% set c = color | default(''green'') %}{{ m[c] }}'
+          duration: '{% set tdd = {''mode'':-1,''spatial'':5,''global'':-1,''critical'':-1}
+            %} {% set ds = duration_seconds | default(0) | int(0) %} {% set dm = duration_minutes
+            | default(0) | int(0) %} {% if ds > 0 %} {{ ds }} {% elif dm > 0 %} {{
+            dm * 60 }} {% else %} {% set m = tdd[tier] %} {{ ''Indefinitely'' if m
+            == -1 else (m * 60) }} {% endif %}'
+          effect: '{% set m = {''solid'':''Solid'',''pulse'':''Pulse'',''fast_blink'':''Fast
+            Blink'',''slow_blink'':''Slow Blink'',''off'':''Off'',''clear'':''Clear
+            Effect''} %}{{ m[effect | default(''pulse'')] }}'
+          led: '{% set m = {''mode'':''Led 4'',''spatial'':''Led 1'',''global'':''Led
+            4'',''critical'':''All''} %}{{ m[tier] }}'
+          level: 1
+          target: '{% set s = switch_entity %}{% set entities = [s] if s is string
+            else (s | list) %}{% set sanctuary = [''light.master_bedroom_wall_switch'',
+            ''light.master_bedroom_closet_wall_switch'', ''light.master_bathroom_wall_switch'',
+            ''light.ethan_s_bedroom_wall_switch''] %}{% set filtered = entities |
+            select(''in'', sanctuary) | list %}{{ {''entity_id'': filtered} }}'
+    - alias: Send to non-sanctuary entities (or all entities if not night/triggered)
+      if:
+      - condition: template
+        value_template: '{% set is_night = is_state(''sun.sun'', ''below_horizon'')
+          %}{% set is_triggered = is_state(''sensor.active_critical_notification'',
+          ''Triggered'') %}{% set should_dim = is_night and not is_triggered %}{%
+          set s = switch_entity %}{% set entities = [s] if s is string else (s | list)
+          %}{% set sanctuary = [''light.master_bedroom_wall_switch'', ''light.master_bedroom_closet_wall_switch'',
+          ''light.master_bathroom_wall_switch'', ''light.ethan_s_bedroom_wall_switch'']
+          %}{% if should_dim %}{% set filtered = entities | reject(''in'', sanctuary)
+          | list %}{% else %}{% set filtered = entities %}{% endif %}{{ filtered |
+          length > 0 }}'
+      then:
+      - action: script.inovelli_blue_led_zigbee2mqtt
+        data:
+          color: '{% set m = {''red'':''Red'',''orange'':''Orange'',''yellow'':''Yellow'',''green'':''Green'',''blue'':''Blue'',''purple'':''Purple'',''magenta'':''Pink'',''teal'':''Teal'',''white'':''White'',''off'':''Off''}
+            %}{% set c = color | default(''green'') %}{{ m[c] }}'
+          duration: '{% set tdd = {''mode'':-1,''spatial'':5,''global'':-1,''critical'':-1}
+            %} {% set ds = duration_seconds | default(0) | int(0) %} {% set dm = duration_minutes
+            | default(0) | int(0) %} {% if ds > 0 %} {{ ds }} {% elif dm > 0 %} {{
+            dm * 60 }} {% else %} {% set m = tdd[tier] %} {{ ''Indefinitely'' if m
+            == -1 else (m * 60) }} {% endif %}'
+          effect: '{% set m = {''solid'':''Solid'',''pulse'':''Pulse'',''fast_blink'':''Fast
+            Blink'',''slow_blink'':''Slow Blink'',''off'':''Off'',''clear'':''Clear
+            Effect''} %}{{ m[effect | default(''pulse'')] }}'
+          led: '{% set m = {''mode'':''Led 4'',''spatial'':''Led 1'',''global'':''Led
+            4'',''critical'':''All''} %}{{ m[tier] }}'
+          level: '{% set tdb = {''mode'':15,''spatial'':100,''global'':100,''critical'':100}
+            %}{% set b = brightness | default(none) %}{{ (b if b is not none else
+            tdb[tier]) | int }}'
+          target: '{% set is_night = is_state(''sun.sun'', ''below_horizon'') %}{%
+            set is_triggered = is_state(''sensor.active_critical_notification'', ''Triggered'')
+            %}{% set should_dim = is_night and not is_triggered %}{% set s = switch_entity
+            %}{% set entities = [s] if s is string else (s | list) %}{% set sanctuary
+            = [''light.master_bedroom_wall_switch'', ''light.master_bedroom_closet_wall_switch'',
+            ''light.master_bathroom_wall_switch'', ''light.ethan_s_bedroom_wall_switch'']
+            %}{% if should_dim %}{{ {''entity_id'': entities | reject(''in'', sanctuary)
+            | list} }}{% else %}{{ {''entity_id'': entities} }}{% endif %}'
+panic_police:
+  alias: Panic - Police
+  icon: mdi:police-badge
+  mode: single
+  description: 'Police panic button: triggers Alarmo, sounds keypad sirens, lights
+    everything up, locks doors, alerts family, broadcasts deterrent TTS.'
+  sequence:
+  - action: input_text.set_value
+    target:
+      entity_id: input_text.pre_panic_alarm_state
+    data:
+      value: '{{ states(''alarm_control_panel.default'') }}'
+  - action: input_text.set_value
+    target:
+      entity_id: input_text.last_panic_type
+    data:
+      value: police
+  - action: input_boolean.turn_on
+    target:
+      entity_id: input_boolean.panic_active
+  - action: scene.create
+    data:
+      scene_id: pre_panic_lights
+      snapshot_entities: '{{ states.light | selectattr(''state'',''eq'',''on'') |
+        map(attribute=''entity_id'') | list }}'
+    continue_on_error: true
+  - action: alarmo.arm
+    data:
+      entity_id: alarm_control_panel.default
+      mode: away
+      skip_delay: true
+      force: true
+      code: '3627'
+    continue_on_error: true
+  - delay:
+      seconds: 1
+  - action: alarm_control_panel.alarm_trigger
+    target:
+      entity_id: alarm_control_panel.default
+    continue_on_error: true
+  - parallel:
+    - action: light.turn_on
+      target:
+        floor_id:
+        - main
+        - basement
+        - outdoors
+      data:
+        brightness_pct: 100
+      continue_on_error: true
+    - action: switch.turn_on
+      target:
+        entity_id: switch.drivewaycam_dahua_siren
+      continue_on_error: true
+    - action: light.turn_on
+      target:
+        entity_id: light.drivewaycam_dahua_security_light
+      continue_on_error: true
+    - action: lock.lock
+      target:
+        entity_id: lock.og_u_bolt_pro
+      continue_on_error: true
+  - action: tts.speak
+    target:
+      entity_id: tts.home_assistant_cloud
+    data:
+      media_player_entity_id: media_player.all_echo_devices
+      message: Police have been called. Police have been called. Police have been
+        called.
+      cache: true
+    continue_on_error: true
+  - parallel:
+    - action: notify.drake
+      data:
+        title: "\U0001F6A8 POLICE PANIC TRIGGERED"
+        message: Panic button pressed at {{ now().strftime('%I:%M %p') }}. Alarm armed
+          and triggered. All lights on. Doors locked.
+        data:
+          priority: high
+          ttl: 0
+          push:
+            sound:
+              critical: 1
+              name: default
+              volume: 1.0
+            interruption-level: critical
+      continue_on_error: true
+    - action: notify.shawna
+      data:
+        title: "\U0001F6A8 POLICE PANIC TRIGGERED"
+        message: Panic button pressed at {{ now().strftime('%I:%M %p') }}. Alarm armed
+          and triggered. All lights on. Doors locked.
+        data:
+          priority: high
+          ttl: 0
+          push:
+            sound:
+              critical: 1
+              name: default
+              volume: 1.0
+            interruption-level: critical
+      continue_on_error: true
+panic_fire:
+  alias: Panic - Fire
+  description: 'Fire panic button: turns off HVAC, unlocks doors, opens garage, all
+    lights to 100%, TTS evacuate, critical push notifications.'
+  icon: mdi:fire-alert
+  mode: single
+  sequence:
+  - action: input_text.set_value
+    target:
+      entity_id: input_text.pre_panic_alarm_state
+    data:
+      value: '{{ states(''alarm_control_panel.default'') }}'
+  - action: input_text.set_value
+    target:
+      entity_id: input_text.last_panic_type
+    data:
+      value: fire
+  - action: input_boolean.turn_on
+    target:
+      entity_id: input_boolean.panic_active
+  - action: scene.create
+    data:
+      scene_id: pre_panic_lights
+      snapshot_entities: '{{ states.light | selectattr(''state'',''eq'',''on'') |
+        map(attribute=''entity_id'') | list }}'
+    continue_on_error: true
+  - parallel:
+    - action: climate.turn_off
+      continue_on_error: true
+      target:
+        entity_id: climate.thermostat
+    - action: fan.turn_off
+      continue_on_error: true
+      target:
+        floor_id:
+        - main
+        - basement
+    - action: lock.unlock
+      continue_on_error: true
+      target:
+        entity_id: lock.og_u_bolt_pro
+    - action: cover.open_cover
+      continue_on_error: true
+      target:
+        area_id: garage
+    - action: light.turn_on
+      continue_on_error: true
+      data:
+        brightness_pct: 100
+      target:
+        floor_id:
+        - main
+        - basement
+        - outdoors
+    - action: media_player.media_stop
+      continue_on_error: true
+      target:
+        floor_id:
+        - main
+        - basement
+  - action: notify.alexa_media_all_echo_devices
+    data:
+      message: Fire alarm. Evacuate the house. Fire alarm. Evacuate the house. Fire
+        alarm. Evacuate the house.
+  - parallel:
+    - action: notify.drake
+      continue_on_error: true
+      data:
+        data:
+          priority: high
+          push:
+            interruption-level: critical
+            sound:
+              critical: 1
+              name: default
+              volume: 1
+          ttl: 0
+        message: Fire panic pressed at {{ now().strftime('%I:%M %p') }}. HVAC off,
+          doors unlocked, garage open, lights on. Evacuate now.
+        title: "\U0001F525 FIRE PANIC TRIGGERED"
+    - action: notify.shawna
+      continue_on_error: true
+      data:
+        data:
+          priority: high
+          push:
+            interruption-level: critical
+            sound:
+              critical: 1
+              name: default
+              volume: 1
+          ttl: 0
+        message: Fire panic pressed at {{ now().strftime('%I:%M %p') }}. HVAC off,
+          doors unlocked, garage open, lights on. Evacuate now.
+        title: "\U0001F525 FIRE PANIC TRIGGERED"
+panic_medical:
+  alias: Panic - Medical
+  description: 'Medical panic button: alerts family with last camera snapshot, TTS
+    to in-house speakers, unlocks front door, lights up path to entry, stops media
+    for EMS arrival.'
+  icon: mdi:medical-bag
+  mode: single
+  sequence:
+  - action: input_text.set_value
+    target:
+      entity_id: input_text.pre_panic_alarm_state
+    data:
+      value: '{{ states(''alarm_control_panel.default'') }}'
+  - action: input_text.set_value
+    target:
+      entity_id: input_text.last_panic_type
+    data:
+      value: medical
+  - action: input_boolean.turn_on
+    target:
+      entity_id: input_boolean.panic_active
+  - action: scene.create
+    data:
+      scene_id: pre_panic_lights
+      snapshot_entities: '{{ states.light | selectattr(''state'',''eq'',''on'') |
+        map(attribute=''entity_id'') | list }}'
+    continue_on_error: true
+  - parallel:
+    - action: lock.unlock
+      continue_on_error: true
+      target:
+        entity_id: lock.og_u_bolt_pro
+    - action: light.turn_on
+      continue_on_error: true
+      data:
+        brightness_pct: 100
+      target:
+        area_id:
+        - entryway
+        - living_room
+        - kitchen
+        - outdoors
+    - action: light.turn_on
+      continue_on_error: true
+      target:
+        entity_id: light.drivewaycam_dahua_security_light
+    - action: media_player.media_stop
+      continue_on_error: true
+      target:
+        floor_id:
+        - main
+        - basement
+  - action: notify.alexa_media_all_echo_devices
+    data:
+      message: Medical assistance requested. Medical assistance requested. Help is
+        needed in the house.
+  - parallel:
+    - action: notify.drake
+      continue_on_error: true
+      data:
+        data:
+          priority: high
+          push:
+            interruption-level: critical
+            sound:
+              critical: 1
+              name: default
+              volume: 1
+          ttl: 0
+        message: Medical panic pressed at {{ now().strftime('%I:%M %p') }}. Front
+          door unlocked, path lights on. Check on family immediately.
+        title: "\U0001F3E5 MEDICAL PANIC TRIGGERED"
+    - action: notify.shawna
+      continue_on_error: true
+      data:
+        data:
+          priority: high
+          push:
+            interruption-level: critical
+            sound:
+              critical: 1
+              name: default
+              volume: 1
+          ttl: 0
+        message: Medical panic pressed at {{ now().strftime('%I:%M %p') }}. Front
+          door unlocked, path lights on. Check on family immediately.
+        title: "\U0001F3E5 MEDICAL PANIC TRIGGERED"
+panic_stand_down:
+  alias: Panic - Stand Down
+  description: Cleans up after a panic event. Turns off sirens/strobes, stops TTS,
+    restores lights from pre-panic scene, returns alarm to pre-panic mode, sends stand-down
+    notifications. Does NOT auto-close garage or re-lock doors — those are conscious
+    decisions after a real event.
+  icon: mdi:check-decagram
+  mode: restart
+  sequence:
+  - parallel:
+    - action: switch.turn_off
+      continue_on_error: true
+      target:
+        entity_id: switch.drivewaycam_dahua_siren
+    - action: light.turn_off
+      continue_on_error: true
+      target:
+        entity_id: light.drivewaycam_dahua_security_light
+    - action: media_player.media_stop
+      continue_on_error: true
+      target:
+        entity_id: media_player.all_echo_devices
+  - if:
+    - condition: template
+      value_template: '{{ states(''scene.pre_panic_lights'') not in [''unavailable'',
+        ''unknown''] }}'
+    then:
+    - action: scene.turn_on
+      continue_on_error: true
+      target:
+        entity_id: scene.pre_panic_lights
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_text.pre_panic_alarm_state
+        state: armed_away
+      sequence:
+      - action: alarmo.arm
+        continue_on_error: true
+        data:
+          code: '3627'
+          entity_id: alarm_control_panel.default
+          force: true
+          mode: away
+          skip_delay: true
+    - conditions:
+      - condition: state
+        entity_id: input_text.pre_panic_alarm_state
+        state: armed_home
+      sequence:
+      - action: alarmo.arm
+        continue_on_error: true
+        data:
+          code: '3627'
+          entity_id: alarm_control_panel.default
+          force: true
+          mode: home
+          skip_delay: true
+    - conditions:
+      - condition: state
+        entity_id: input_text.pre_panic_alarm_state
+        state: armed_night
+      sequence:
+      - action: alarmo.arm
+        continue_on_error: true
+        data:
+          code: '3627'
+          entity_id: alarm_control_panel.default
+          force: true
+          mode: night
+          skip_delay: true
+    default:
+    - action: alarmo.disarm
+      continue_on_error: true
+      data:
+        code: '3627'
+        entity_id: alarm_control_panel.default
+  - parallel:
+    - action: notify.drake
+      continue_on_error: true
+      data:
+        data:
+          push:
+            interruption-level: active
+        message: '{{ states(''input_text.last_panic_type'') | title }} panic stood
+          down at {{ now().strftime(''%I:%M %p'') }}. Sirens off, lights restored,
+          alarm returned to {{ states(''input_text.pre_panic_alarm_state'') }}. Garage
+          and locks left as-is — reset manually if needed.'
+        title: ✅ Stand Down
+    - action: notify.shawna
+      continue_on_error: true
+      data:
+        data:
+          push:
+            interruption-level: active
+        message: '{{ states(''input_text.last_panic_type'') | title }} panic stood
+          down at {{ now().strftime(''%I:%M %p'') }}. Sirens off, lights restored,
+          alarm returned to {{ states(''input_text.pre_panic_alarm_state'') }}. Garage
+          and locks left as-is — reset manually if needed.'
+        title: ✅ Stand Down
+  - action: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.panic_active
+  - action: input_text.set_value
+    data:
+      value: none
+    target:
+      entity_id: input_text.last_panic_type
+security_critical_alert:
+  alias: Security - Critical Alarm Alert
+  description: Critical actionable push for Alarmo. pending = Drake only; triggered
+    = Drake + Shawna. Camera + Disarm button.
+  icon: mdi:shield-alert
+  mode: restart
+  fields:
+    phase:
+      name: Phase
+      description: pending or triggered
+      selector:
+        text: {}
+  sequence:
+  - variables:
+      panel: alarm_control_panel.default
+      sensor_name: '{% set open = state_attr(''alarm_control_panel.default'',''open_sensors'')
+        or {} %}{% set sid = (open.keys()|list|first) if open else none %}{{ state_attr(sid,''friendly_name'')
+        if sid else ''an interior sensor'' }}'
+      title: "{{ '\U0001F6A8 ALARM TRIGGERED' if phase == 'triggered' else '⏳ Alarm
+        Countdown' }}"
+      body: '{% if phase == ''triggered'' %}Alarm is sounding — tripped by {{ sensor_name
+        }}.{% else %}{{ sensor_name }} tripped. {{ state_attr(''alarm_control_panel.default'',''delay'')
+        or 60 }}s to disarm.{% endif %}'
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ phase == ''triggered'' }}'
+      sequence:
+      - parallel:
+        - action: notify.mobile_app_drake_s_pixel_11_pro
+          data:
+            title: '{{ title }}'
+            message: '{{ body }}'
+            data:
+              tag: alarmo_security
+              group: security
+              url: /lovelace-security/main-floor-security
+              entity_id: camera.camera1_fluent
+              push:
+                interruption-level: critical
+                sound:
+                  name: default
+                  critical: 1
+                  volume: 1
+              actions:
+              - action: ALARMO_DISARM
+                title: Disarm Alarm
+                authenticationRequired: true
+                destructive: true
+              - action: ALARMO_VIEW
+                title: View Cameras
+        - action: notify.mobile_app_shawnas_iphone
+          data:
+            title: '{{ title }}'
+            message: '{{ body }}'
+            data:
+              tag: alarmo_security
+              group: security
+              url: /lovelace-security/main-floor-security
+              entity_id: camera.camera1_fluent
+              push:
+                interruption-level: critical
+                sound:
+                  name: default
+                  critical: 1
+                  volume: 1
+              actions:
+              - action: ALARMO_DISARM
+                title: Disarm Alarm
+                authenticationRequired: true
+                destructive: true
+              - action: ALARMO_VIEW
+                title: View Cameras
+          enabled: false
+    default:
+    - action: notify.mobile_app_drake_s_pixel_11_pro
+      data:
+        title: '{{ title }}'
+        message: '{{ body }}'
+        data:
+          tag: alarmo_security
+          group: security
+          url: /lovelace-security/main-floor-security
+          entity_id: camera.camera1_fluent
+          push:
+            interruption-level: critical
+            sound:
+              name: default
+              critical: 1
+              volume: 1
+          actions:
+          - action: ALARMO_DISARM
+            title: Disarm Alarm
+            authenticationRequired: true
+            destructive: true
+          - action: ALARMO_VIEW
+            title: View Cameras
+esc_pos_shopping_list:
+  alias: ESC/POS — Shopping List
+  use_blueprint:
+    path: cognitivegears/shopping_list.yaml
+    input:
+      printer: eeab07468a12bbd4c0b900dad7d5acb4
+      todo_entity: todo.alexa_todo_shop

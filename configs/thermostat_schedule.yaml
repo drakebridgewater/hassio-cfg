@@ -1,0 +1,147 @@
+# thermostat_schedule.yaml
+# Place this file in your Home Assistant config directory
+
+thermostat_schedule:
+  january:
+    climate.thermostat:
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "armed_home"
+        hvac_mode: "heat_cool"
+        target_temp_high: 78
+        target_temp_low: 70
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "disarmed"
+        hvac_mode: "heat_cool"
+        target_temp_high: 75
+        target_temp_low: 68
+
+  february:
+    climate.thermostat:
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "armed_home"
+        hvac_mode: "heat_cool"
+        target_temp_high: 78
+        target_temp_low: 70
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "disarmed"
+        hvac_mode: "heat_cool"
+        target_temp_high: 75
+        target_temp_low: 68
+
+  march:
+    climate.thermostat:
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "armed_home"
+        hvac_mode: "heat_cool"
+        target_temp_high: 76
+        target_temp_low: 68
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "disarmed"
+        hvac_mode: "heat_cool"
+        target_temp_high: 74
+        target_temp_low: 66
+
+  april:
+    climate.thermostat:
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "armed_home"
+        hvac_mode: "cool"
+        temperature: 74
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "disarmed"
+        hvac_mode: "cool"
+        temperature: 72
+
+  may:
+    climate.thermostat:
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "armed_home"
+        hvac_mode: "cool"
+        temperature: 76
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "disarmed"
+        hvac_mode: "cool"
+        temperature: 74
+
+  june:
+    climate.thermostat:
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "armed_home"
+        hvac_mode: "cool"
+        temperature: 78
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "disarmed"
+        hvac_mode: "cool"
+        temperature: 75
+
+  july:
+    climate.thermostat:
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "armed_home"
+        hvac_mode: "cool"
+        temperature: 78
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "disarmed"
+        hvac_mode: "cool"
+        temperature: 75
+
+  august:
+    climate.thermostat:
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "armed_home"
+        hvac_mode: "cool"
+        temperature: 78
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "disarmed"
+        hvac_mode: "cool"
+        temperature: 75
+
+  september:
+    climate.thermostat:
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "armed_home"
+        hvac_mode: "cool"
+        temperature: 76
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "disarmed"
+        hvac_mode: "cool"
+        temperature: 74
+
+  october:
+    climate.thermostat:
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "armed_home"
+        hvac_mode: "heat_cool"
+        target_temp_high: 76
+        target_temp_low: 68
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "disarmed"
+        hvac_mode: "heat_cool"
+        target_temp_high: 74
+        target_temp_low: 66
+
+  november:
+    climate.thermostat:
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "armed_home"
+        hvac_mode: "heat_cool"
+        target_temp_high: 78
+        target_temp_low: 70
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "disarmed"
+        hvac_mode: "heat_cool"
+        target_temp_high: 75
+        target_temp_low: 68
+
+  december:
+    climate.thermostat:
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "armed_home"
+        hvac_mode: "heat_cool"
+        target_temp_high: 78
+        target_temp_low: 70
+      - trigger_entity: alarm_control_panel.abode_alarm
+        trigger_state: "disarmed"
+        hvac_mode: "heat_cool"
+        target_temp_high: 75
+        target_temp_low: 68

@@ -1,0 +1,322 @@
+sub_button_coloring:
+  name: Sub-button coloring based on entity condition
+  version: '1.4'
+  creator: LastBitOfCoffee
+  description: |
+    Breaking changes: This module offers 2 main features: Lets you change the icon and background color of a sub-button based on its entity's condition and support HVAC entity with multiple actions - each color for each mode cooling/heating/idle. Two features representated in 2 dropdown menus, choose non-HVAC for general entity or HVAC entity for climate entity. All four sub-buttons share the same OFF state colors for unity which you can also modify that. 
+     
+  supported:
+    - button
+    - separator
+  code: |
+    ${(() => {
+      const config = this.config.sub_button_coloring || {};
+      const defaults = config.defaults || {};
+      
+      const applyColor = (selector, subbuttonConfig, entity) => {
+        const subbutton = card.querySelector(selector);
+        if (!subbutton) return;
+        
+        const icon = subbutton.querySelector("ha-icon");
+        
+        // Determine if HVAC-style color logic applies
+        const isHvacStyle = subbuttonConfig.cooling || subbuttonConfig.heating || subbuttonConfig.idle;
+        const isClimateEntity = entity?.entity_id?.startsWith("climate.");
+        
+        let bgColor = defaults.off_color || "";
+        let iconColor = defaults.off_icon_color || "";
+        
+        if (isHvacStyle && isClimateEntity) {
+          const hvacState = entity.attributes?.hvac_action;
+          const bgMap = {
+            cooling: subbuttonConfig.cooling,
+            heating: subbuttonConfig.heating,
+            idle: subbuttonConfig.idle,
+          };
+          const iconMap = {
+            cooling: subbuttonConfig.cooling_icon,
+            heating: subbuttonConfig.heating_icon,
+            idle: subbuttonConfig.idle_icon,
+          };
+          
+          if (hvacState && bgMap[hvacState]) {
+            bgColor = bgMap[hvacState];
+            iconColor = iconMap[hvacState] || iconColor;
+          }
+        } else {
+          // Use condition logic for general entities
+          const condition = subbuttonConfig.condition;
+          const conditionMet = !condition || checkConditionsMet(
+            Array.isArray(condition) ? condition : [condition],
+            hass
+          );
+          
+          if (conditionMet) {
+            bgColor = subbuttonConfig.color || bgColor;
+            iconColor = subbuttonConfig.icon_color || iconColor;
+          }
+        }
+        
+        // Apply styles
+        subbutton.style.backgroundColor = bgColor;
+        if (icon) icon.style.color = iconColor;
+      };
+      
+      // Process each button configuration
+      Object.entries(config).forEach(([key, cfg]) => {
+        if (key === "defaults") return;
+        
+        const match = key.match(/button_(\d+)/);
+        if (!match) return;
+        
+        const buttonNumber = match[1];
+        const entity = cfg.entity ? hass.states[cfg.entity] : null;
+        
+        applyColor(`.bubble-sub-button-${buttonNumber}`, cfg, entity);
+      });
+    })()}
+  editor:
+    - name: defaults
+      type: grid
+      schema:
+        - name: off_color
+          label: Default Background (OFF)
+          selector:
+            text: {}
+        - name: off_icon_color
+          label: Default Icon (OFF)
+          selector:
+            text: {}
+    - type: expandable
+      name: button_1
+      title: Subbutton 1
+      icon: mdi:gesture-tap-button
+      schema:
+        - type: expandable
+          title: Condition Settings (Non-HVAC)
+          icon: mdi:format-list-checks
+          schema:
+            - name: condition
+              label: All conditions here need to be met for color to apply
+              selector:
+                condition: {}
+            - type: grid
+              schema:
+                - name: color
+                  label: Background Color (condition met)
+                  selector:
+                    text: {}
+                - name: icon_color
+                  label: Icon Color (condition met)
+                  selector:
+                    text: {}
+        - type: expandable
+          title: HVAC Settings (Climate Entity)
+          icon: mdi:thermometer
+          schema:
+            - name: entity
+              label: HVAC Entity
+              selector:
+                entity:
+                  domain: climate
+            - type: grid
+              schema:
+                - name: cooling
+                  label: Cooling - Background
+                  selector:
+                    text: {}
+                - name: cooling_icon
+                  label: Cooling - Icon Color
+                  selector:
+                    text: {}
+                - name: heating
+                  label: Heating - Background
+                  selector:
+                    text: {}
+                - name: heating_icon
+                  label: Heating - Icon Color
+                  selector:
+                    text: {}
+                - name: idle
+                  label: Idle - Background
+                  selector:
+                    text: {}
+                - name: idle_icon
+                  label: Idle - Icon Color
+                  selector:
+                    text: {}
+    - type: expandable
+      name: button_2
+      title: Subbutton 2
+      icon: mdi:gesture-tap-button
+      schema:
+        - type: expandable
+          title: Condition Settings (Non-HVAC)
+          icon: mdi:format-list-checks
+          schema:
+            - name: condition
+              label: All conditions here need to be met for color to apply
+              selector:
+                condition: {}
+            - type: grid
+              schema:
+                - name: color
+                  label: Background Color (condition met)
+                  selector:
+                    text: {}
+                - name: icon_color
+                  label: Icon Color (condition met)
+                  selector:
+                    text: {}
+        - type: expandable
+          title: HVAC Settings (Climate Entity)
+          icon: mdi:thermometer
+          schema:
+            - name: entity
+              label: HVAC Entity
+              selector:
+                entity:
+                  domain: climate
+            - type: grid
+              schema:
+                - name: cooling
+                  label: Cooling - Background
+                  selector:
+                    text: {}
+                - name: cooling_icon
+                  label: Cooling - Icon Color
+                  selector:
+                    text: {}
+                - name: heating
+                  label: Heating - Background
+                  selector:
+                    text: {}
+                - name: heating_icon
+                  label: Heating - Icon Color
+                  selector:
+                    text: {}
+                - name: idle
+                  label: Idle - Background
+                  selector:
+                    text: {}
+                - name: idle_icon
+                  label: Idle - Icon Color
+                  selector:
+                    text: {}
+    - type: expandable
+      name: button_3
+      title: Subbutton 3
+      icon: mdi:gesture-tap-button
+      schema:
+        - type: expandable
+          title: Condition Settings (Non-HVAC)
+          icon: mdi:format-list-checks
+          schema:
+            - name: condition
+              label: All conditions here need to be met for color to apply
+              selector:
+                condition: {}
+            - type: grid
+              schema:
+                - name: color
+                  label: Background Color (condition met)
+                  selector:
+                    text: {}
+                - name: icon_color
+                  label: Icon Color (condition met)
+                  selector:
+                    text: {}
+        - type: expandable
+          title: HVAC Settings (Climate Entity)
+          icon: mdi:thermometer
+          schema:
+            - name: entity
+              label: HVAC Entity
+              selector:
+                entity:
+                  domain: climate
+            - type: grid
+              schema:
+                - name: cooling
+                  label: Cooling - Background
+                  selector:
+                    text: {}
+                - name: cooling_icon
+                  label: Cooling - Icon Color
+                  selector:
+                    text: {}
+                - name: heating
+                  label: Heating - Background
+                  selector:
+                    text: {}
+                - name: heating_icon
+                  label: Heating - Icon Color
+                  selector:
+                    text: {}
+                - name: idle
+                  label: Idle - Background
+                  selector:
+                    text: {}
+                - name: idle_icon
+                  label: Idle - Icon Color
+                  selector:
+                    text: {}
+    - type: expandable
+      name: button_4
+      title: Subbutton 4
+      icon: mdi:gesture-tap-button
+      schema:
+        - type: expandable
+          title: Condition Settings (Non-HVAC)
+          icon: mdi:format-list-checks
+          schema:
+            - name: condition
+              label: All conditions here need to be met for color to apply
+              selector:
+                condition: {}
+            - type: grid
+              schema:
+                - name: color
+                  label: Background Color (condition met)
+                  selector:
+                    text: {}
+                - name: icon_color
+                  label: Icon Color (condition met)
+                  selector:
+                    text: {}
+        - type: expandable
+          title: HVAC Settings (Climate Entity)
+          icon: mdi:thermometer
+          schema:
+            - name: entity
+              label: HVAC Entity
+              selector:
+                entity:
+                  domain: climate
+            - type: grid
+              schema:
+                - name: cooling
+                  label: Cooling - Background
+                  selector:
+                    text: {}
+                - name: cooling_icon
+                  label: Cooling - Icon Color
+                  selector:
+                    text: {}
+                - name: heating
+                  label: Heating - Background
+                  selector:
+                    text: {}
+                - name: heating_icon
+                  label: Heating - Icon Color
+                  selector:
+                    text: {}
+                - name: idle
+                  label: Idle - Background
+                  selector:
+                    text: {}
+                - name: idle_icon
+                  label: Idle - Icon Color
+                  selector:
+                    text: {}
+  link: https://github.com/Clooos/Bubble-Card/discussions/1661

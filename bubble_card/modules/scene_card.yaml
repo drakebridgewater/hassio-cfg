@@ -1,0 +1,64 @@
+scene_card:
+  name: Scene Card
+  version: v2025.09.30
+  creator: afxok
+  description: |
+    This module creates a Minimalist UI style "scene card". The notable elements of this style are a horizontal
+    row of buttons with the name of each scene below it.
+
+    To use this module, card layout styling options must be set to "Large with sub-buttons in a grid (Layout: min. 2 rows)"
+    with at least 2 rows. One scene button is created for each sub button configured on the bubble card. The main button for
+    the card will be hidden so it's best if this is set to the "Name/Text" button type.
+  supported:
+    - button
+  code: |-
+    .bubble-content-container {
+      display: none;
+    }
+    .bubble-sub-button-container {
+      width: 100%;
+      justify-content: space-evenly;
+      right: 0px;
+      gap: 0px;
+    }
+    .bubble-sub-button {
+      display: grid;
+      grid-template-areas: 'item1' 'item2';
+      grid-template-columns: min-content;
+      grid-template-rows: auto;
+      justify-items: center;
+      padding: 0px;
+      min-height: 62px;
+      border-radius: 0px;
+    }
+    .bubble-sub-button-name-container {
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .bubble-sub-button-icon {
+      grid-area: item1;
+    }
+
+    .large .bubble-icon-container {
+      margin: 0px;
+    }
+    .background-off, .background-on  {
+       background-color: rgba(0,0,0,0);
+    }
+    .background-on .icon-with-state {
+       background-color: var(--bubble-sub-button-light-background-color, var(--bubble-accent-color, var(--bubble-default-color)));
+    }
+    .background-off .icon-with-state {
+       background-color: var(--bubble-sub-button-background-color, var(--bubble-icon-background-color, var(--bubble-secondary-background-color, var(--card-background-color, var(--ha-card-background)))));
+    }
+    .icon-with-state {
+       margin: 0px;
+       --mdc-icon-size: 20px;
+       min-height: 42px;
+       min-width: 42px;
+       align-content: center;
+       justify-content: center;
+       flex-wrap: wrap;
+       border-radius: var(--bubble-sub-button-border-radius, var(--bubble-border-radius, 42px));
+    }
+  link: https://github.com/Clooos/Bubble-Card/discussions/1702

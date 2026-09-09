@@ -1,0 +1,456 @@
+badges:
+  name: Conditional icon badges
+  version: v1.5
+  creator: Clooos
+  description: |
+    This module allows you to add conditional badges to your Bubble Cards based on states and conditions.
+    <img class="example" src="https://github.com/Clooos/Bubble-Card/blob/main/img/badges_module.png?raw=true" />
+    Configure this module via the editor or in YAML, for example:
+    <br><br>
+    <code-block><pre>
+    badges:
+        main_icon:
+            badge_1:
+                icon: mdi:home
+                condition:
+                  - condition: state
+                    entity_id: "person.quentin"
+                    state: home
+            badge_2:
+                entity: "sensor.quentin_battery_level"
+                color: red
+                condition:
+                  - condition: numeric_state
+                    entity_id: "sensor.quentin_battery_level"
+                    below: 10
+    </pre></code-block>
+  supported:
+    - button
+    - climate
+    - cover
+    - media-player
+    - pop-up
+    - select
+  code: |
+    .badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        z-index: 1;
+        background: var(--accent-color);
+        color: var(--primary-text-color);
+        font-size: 12px;
+        height: 18px;
+        min-width: 18px;
+        border-radius: 10px;
+        --mdc-icon-size: 12px;
+        box-sizing: border-box;
+        line-height: 0;
+    }
+    .badge.text {
+        padding: 0 4px;
+        width: auto;
+    }
+    .bubble-entity-picture {
+        border-radius: var(--bubble-icon-border-radius, var(--bubble-border-radius, 50%));
+    }
+    .bubble-icon-container::after { border-radius: 100%; }
+    .bubble-icon-container { overflow: visible !important; }
+    .badge.position-1 { top: -4px; right: -4px; }
+    .badge.position-2 { bottom: -4px; right: -4px; }
+    .badge.position-3 { bottom: -4px; left: -4px; }
+    .badge.position-4 { top: -4px; left: -4px; }
+
+    ${(() => {
+        const config = this.config.badges || {};
+        const containers = {
+          main_icon: '.bubble-icon-container',
+          sub_button: (index) => `.bubble-sub-button-${index}`,
+        };
+
+        this.badgeElements ??= {};
+
+        const areBadgeConfigsEqual = (config1, config2) =>
+          JSON.stringify(config1) === JSON.stringify(config2);
+
+        const processBadges = (containerSelector, badgeConfigs) => {
+          const container = card.querySelector(containerSelector);
+          if (!container) return;
+
+          const existingBadges = this.badgeElements[containerSelector] ??= {};
+          const newBadges = {};
+          let posCounter = 1; // compteur pour les badges actifs
+
+          [1, 2, 3, 4].forEach(index => {
+            const badgeConfig = badgeConfigs[`badge_${index}`];
+            const badgeKey = `badge_${index}`;
+            
+            if (!badgeConfig?.entity && !badgeConfig?.icon) return;
+
+            if (!badgeConfig?.condition || (badgeConfig?.condition && checkConditionsMet([].concat(badgeConfig.condition), hass))) {
+              let badgeElement = existingBadges[badgeKey] ?? document.createElement("div");
+              // On assigne la position en fonction du compteur
+              badgeElement.className = `badge position-${posCounter}`;
+              posCounter++;
+
+              newBadges[badgeKey] = badgeElement;
+
+              if (!areBadgeConfigsEqual(badgeConfig, badgeElement.badgeConfig)) {
+                badgeElement.badgeConfig = { ...badgeConfig };
+                badgeElement.style.backgroundColor = badgeConfig.color
+                  ? `var(--${badgeConfig.color}-color)`
+                  : '';
+                badgeElement.innerHTML = badgeConfig.icon
+                  ? `<ha-icon icon="${badgeConfig.icon}"></ha-icon>`
+                  : '';
+                if (!container.contains(badgeElement)) {
+                  container.appendChild(badgeElement);
+                }
+              }
+
+              if (badgeConfig.entity) {
+                const stateObj = hass.states[badgeConfig.entity];
+                if (stateObj) {
+                  badgeElement.classList.add("text");
+                  let textContent = badgeConfig.value_template
+                    ? (hass.renderTemplate?.(badgeConfig.value_template, {
+                        state: stateObj.state,
+                        attributes: stateObj.attributes,
+                        entity: stateObj,
+                      }) || 'Error')
+                    : (badgeConfig.attribute
+                        ? hass.formatEntityAttributeValue?.(stateObj, badgeConfig.attribute)
+                        : hass.formatEntityState?.(stateObj));
+
+                  if (badgeElement.textContent !== textContent) {
+                    badgeElement.textContent = textContent;
+                  }
+                }
+              }
+            } else {
+              existingBadges[badgeKey]?.remove();
+            }
+          });
+
+          Object.keys(existingBadges).forEach(key => {
+            if (!newBadges[key]) existingBadges[key].remove();
+          });
+
+          this.badgeElements[containerSelector] = newBadges;
+        };
+
+        config.main_icon && processBadges(containers.main_icon, config.main_icon);
+        config.sub_button?.sub_button_index &&
+          processBadges(containers.sub_button(config.sub_button.sub_button_index), config.sub_button);
+    })()}
+  editor:
+    - name: main_icon
+      type: expandable
+      title: Main Icon Badges
+      icon: mdi:list-box-outline
+      schema:
+        - name: badge_1
+          type: expandable
+          title: Badge 1
+          icon: mdi:google-circles
+          schema:
+            - type: constant
+              label: Display either an icon or a state/attribute, not both at the same time.
+            - type: expandable
+              title: Display an Icon
+              schema:
+                - name: icon
+                  label: Icon (optional)
+                  selector:
+                    icon: {}
+            - type: expandable
+              title: Display a State/Attribute
+              schema:
+                - name: entity
+                  label: Entity (optional)
+                  selector:
+                    entity: {}
+                - name: attribute
+                  label: Attribute
+                  selector:
+                    attribute:
+                      entity_id: config.badges.main_icon.badge_1.entity
+            - name: color
+              label: Badge background color (optional)
+              selector:
+                ui_color:
+                  include_none: true
+                  default_color: accent
+            - name: condition
+              label: Badge is always visible if no condition is defined. Otherwise, it will be shown when ALL below conditions are fulfilled.
+              selector:
+                condition: {}
+        - name: badge_2
+          type: expandable
+          title: Badge 2
+          icon: mdi:google-circles
+          schema:
+            - type: constant
+              label: Display either an icon or a state/attribute, not both at the same time.
+            - type: expandable
+              title: Display an Icon
+              schema:
+                - name: icon
+                  label: Icon (optional)
+                  selector:
+                    icon: {}
+            - type: expandable
+              title: Display a State/Attribute
+              schema:
+                - name: entity
+                  label: Entity (optional)
+                  selector:
+                    entity: {}
+                - name: attribute
+                  label: Attribute
+                  selector:
+                    attribute:
+                      entity_id: config.badges.main_icon.badge_2.entity
+            - name: color
+              label: Badge background color (optional)
+              selector:
+                ui_color:
+                  include_none: true
+                  default_color: accent
+            - name: condition
+              label: Badge is always visible if no condition is defined. Otherwise, it will be shown when ALL below conditions are fulfilled.
+              selector:
+                condition: {}
+        - name: badge_3
+          type: expandable
+          title: Badge 3
+          icon: mdi:google-circles
+          schema:
+            - type: constant
+              label: Display either an icon or a state/attribute, not both at the same time.
+            - type: expandable
+              title: Display an Icon
+              schema:
+                - name: icon
+                  label: Icon (optional)
+                  selector:
+                    icon: {}
+            - type: expandable
+              title: Display a State/Attribute
+              schema:
+                - name: entity
+                  label: Entity (optional)
+                  selector:
+                    entity: {}
+                - name: attribute
+                  label: Attribute
+                  selector:
+                    attribute:
+                      entity_id: config.badges.main_icon.badge_3.entity
+            - name: color
+              label: Badge background color (optional)
+              selector:
+                ui_color:
+                  include_none: true
+                  default_color: accent
+            - name: condition
+              label: Badge is always visible if no condition is defined. Otherwise, it will be shown when ALL below conditions are fulfilled.
+              selector:
+                condition: {}
+        - name: badge_4
+          type: expandable
+          title: Badge 4
+          icon: mdi:google-circles
+          schema:
+            - type: constant
+              label: Display either an icon or a state/attribute, not both at the same time.
+            - type: expandable
+              title: Display an Icon
+              schema:
+                - name: icon
+                  label: Icon (optional)
+                  selector:
+                    icon: {}
+            - type: expandable
+              title: Display a State/Attribute
+              schema:
+                - name: entity
+                  label: Entity (optional)
+                  selector:
+                    entity: {}
+                - name: attribute
+                  label: Attribute
+                  selector:
+                    attribute:
+                      entity_id: config.badges.main_icon.badge_4.entity
+            - name: color
+              label: Badge background color (optional)
+              selector:
+                ui_color:
+                  include_none: true
+                  default_color: accent
+            - name: condition
+              label: Badge is always visible if no condition is defined. Otherwise, it will be shown when ALL below conditions are fulfilled.
+              selector:
+                condition: {}
+    - name: sub_button
+      type: expandable
+      title: Sub-Button Badges
+      icon: mdi:list-box-outline
+      schema:
+        - type: constant
+          label: Can be applied to only one sub-button.
+        - name: sub_button_index
+          label: Sub-Button Index (1 to 4)
+          selector:
+            number:
+              min: 1
+              max: 4
+              step: 1
+              mode: box
+        - name: badge_1
+          type: expandable
+          title: Badge 1
+          icon: mdi:google-circles
+          schema:
+            - type: constant
+              label: Display either an icon or a state/attribute, not both at the same time.
+            - type: expandable
+              title: Display an Icon
+              schema:
+                - name: icon
+                  label: Icon (optional)
+                  selector:
+                    icon: {}
+            - type: expandable
+              title: Display a State/Attribute
+              schema:
+                - name: entity
+                  label: Entity (optional)
+                  selector:
+                    entity: {}
+                - name: attribute
+                  label: Attribute
+                  selector:
+                    attribute:
+                      entity_id: config.badges.sub_button.badge_1.entity
+            - name: color
+              label: Badge background color (optional)
+              selector:
+                ui_color:
+                  include_none: true
+                  default_color: accent
+            - name: condition
+              label: Badge is always visible if no condition is defined. Otherwise, it will be shown when ALL below conditions are fulfilled.
+              selector:
+                condition: {}
+        - name: badge_2
+          type: expandable
+          title: Badge 2
+          icon: mdi:google-circles
+          schema:
+            - type: constant
+              label: Display either an icon or a state/attribute, not both at the same time.
+            - type: expandable
+              title: Display an Icon
+              schema:
+                - name: icon
+                  label: Icon (optional)
+                  selector:
+                    icon: {}
+            - type: expandable
+              title: Display a State/Attribute
+              schema:
+                - name: entity
+                  label: Entity (optional)
+                  selector:
+                    entity: {}
+                - name: attribute
+                  label: Attribute
+                  selector:
+                    attribute:
+                      entity_id: config.badges.sub_button.badge_2.entity
+            - name: color
+              label: Badge background color (optional)
+              selector:
+                ui_color:
+                  include_none: true
+                  default_color: accent
+            - name: condition
+              label: Badge is always visible if no condition is defined. Otherwise, it will be shown when ALL below conditions are fulfilled.
+              selector:
+                condition: {}
+        - name: badge_3
+          type: expandable
+          title: Badge 3
+          icon: mdi:google-circles
+          schema:
+            - type: constant
+              label: Display either an icon or a state/attribute, not both at the same time.
+            - type: expandable
+              title: Display an Icon
+              schema:
+                - name: icon
+                  label: Icon (optional)
+                  selector:
+                    icon: {}
+            - type: expandable
+              title: Display a State/Attribute
+              schema:
+                - name: entity
+                  label: Entity (optional)
+                  selector:
+                    entity: {}
+                - name: attribute
+                  label: Attribute
+                  selector:
+                    attribute:
+                      entity_id: config.badges.sub_button.badge_3.entity
+            - name: color
+              label: Badge background color (optional)
+              selector:
+                ui_color:
+                  include_none: true
+                  default_color: accent
+            - name: condition
+              label: Badge is always visible if no condition is defined. Otherwise, it will be shown when ALL below conditions are fulfilled.
+              selector:
+                condition: {}
+        - name: badge_4
+          type: expandable
+          title: Badge 4
+          icon: mdi:google-circles
+          schema:
+            - type: constant
+              label: Display either an icon or a state/attribute, not both at the same time.
+            - type: expandable
+              title: Display an Icon
+              schema:
+                - name: icon
+                  label: Icon (optional)
+                  selector:
+                    icon: {}
+            - type: expandable
+              title: Display a State/Attribute
+              schema:
+                - name: entity
+                  label: Entity (optional)
+                  selector:
+                    entity: {}
+                - name: attribute
+                  label: Attribute
+                  selector:
+                    attribute:
+                      entity_id: config.badges.sub_button.badge_4.entity
+            - name: color
+              label: Badge background color (optional)
+              selector:
+                ui_color:
+                  include_none: true
+                  default_color: accent
+            - name: condition
+              label: Badge is always visible if no condition is defined. Otherwise, it will be shown when ALL below conditions are fulfilled.
+              selector:
+                condition: {}
+  link: https://www.patreon.com/posts/module-with-icon-122269416?utm_medium=clipboard_copy&utm_source=copyLink&utm_campaign=postshare_creator&utm_content=join_link

@@ -1,5 +1,6 @@
 blueprint:
-  name: Turn on based on motion & presence & illuminance.
+  name: Turn on based on motion & presence & illuminance (Improved)
+  description: Robust motion-activated lighting with presence detection and illuminance control
   domain: automation
   input:
     motion_sensor:
@@ -8,156 +9,192 @@ blueprint:
       selector:
         entity:
           filter:
-          - device_class:
-            - motion
-            domain:
-            - binary_sensor
+            - device_class:
+                - motion
+              domain:
+                - binary_sensor
           multiple: true
+
     presence_sensor:
-      name: Presensor Sensor
-      description: This sensor will prevent the turning off of the target entity. This can be the same value as Motion Sensor, but this allows mmWave sensors to detect presence to prevent the entites from getting turned off. 
+      name: Presence Sensor
+      description: This sensor will prevent the turning off of the target entity. This can be the same value as Motion Sensor, but this allows mmWave sensors to detect presence to prevent the entities from getting turned off.
       selector:
         entity:
           filter:
-          - device_class:
-            - presence
-            domain:
-            - binary_sensor
+            - device_class:
+                - presence
+                - occupancy
+                - motion
+              domain:
+                - binary_sensor
           multiple: true
+
     target_entity:
-      name: Target entity.
-      description: The light, switch, scene to turn on (or script to run) when the
-        automation is triggered.
+      name: Target Entity
+      description: The light, switch, scene to turn on (or script to run) when the automation is triggered.
       selector:
         entity: {}
+
     illuminance_sensor:
-      name: Illuminance sensor
+      name: Illuminance Sensor
       description: This sensor will be used to determine the illumination.
       selector:
         entity:
           domain: sensor
           device_class: illuminance
+
     illuminance_cutoff:
-      name: Illuminance cutoff value
-      description: This input_number will be used to compare to the current illumination
-        to determine if it is low.
+      name: Illuminance Cutoff Value
+      description: This input_number will be used to compare to the current illumination to determine if it is low enough to turn on lights.
       selector:
         entity:
           domain: input_number
+
     blocker_entity:
-      name: (OPTIONAL) Blocking entity
-      description: If this entity's state is on, it will prevent the automation from
-        running. E.g. sleepmode or away mode.
-      default:
+      name: (OPTIONAL) Blocking Entity
+      description: If this entity's state is on, it will prevent the automation from running. E.g. sleepmode or away mode.
+      default: []
       selector:
         entity: {}
+
     time_limit_after:
-      name: (OPTIONAL) Only run after time.
-      description: Automation will only run when time is later than this input_datetime
-        value.
-      default:
+      name: (OPTIONAL) Only Run After Time
+      description: Automation will only run when time is later than this input_datetime value.
+      default: []
       selector:
         entity:
           domain: input_datetime
+
     time_limit_before:
-      name: (OPTIONAL) Only run before time.
-      description: Automation will only run when time is earlier than this input_datetime
-        value.
-      default:
+      name: (OPTIONAL) Only Run Before Time
+      description: Automation will only run when time is earlier than this input_datetime value.
+      default: []
       selector:
         entity:
           domain: input_datetime
+
     no_motion_wait:
-      name: (OPTIONAL) Turn off wait time (minutes)
-      description: Time in minutes to leave the target entity on after last motion
-        is detected. If not used entity will not auto turn off.
-      default:
+      name: (OPTIONAL) Turn Off Wait Time
+      description: Time in minutes to leave the target entity on after last motion is detected. If not used, entity will not auto turn off.
+      default: []
       selector:
         entity:
           domain: input_number
+
     turn_off_blocker_entity:
-      name: (OPTIONAL) Turn-off Blocking entity
-      description: If this entity's state is on, it will prevent the target entity
-        from turning off after the set delay.
-      default:
+      name: (OPTIONAL) Turn-off Blocking Entity
+      description: If this entity's state is on, it will prevent the target entity from turning off after the set delay.
+      default: []
       selector:
         entity: {}
+
     target_off_entity:
-      name: (OPTIONAL) Turn-off entity
-      description: If defined, this entity will be turned off instead of the default
-        target entity. This can be helpful when using target entities of type scene
-        or script.
-      default:
+      name: (OPTIONAL) Turn-off Entity
+      description: If defined, this entity will be turned off instead of the default target entity. This can be helpful when using target entities of type scene or script.
+      default: []
       selector:
         entity: {}
-  source_url: https://gist.github.com/freakshock88/2311759ba64f929f6affad4c0a67110b
+
 mode: restart
 max_exceeded: silent
+
 variables:
-  target_entity: !input 'target_entity'
-  illuminance_currently: !input 'illuminance_sensor'
-  illuminance_cutoff: !input 'illuminance_cutoff'
-  blocker_entity: !input 'blocker_entity'
-  time_limit_before: !input 'time_limit_before'
-  time_limit_after: !input 'time_limit_after'
-  no_motion_wait: !input 'no_motion_wait'
-  entity_domain: '{{ states[target_entity].domain }}'
-  turn_off_blocker_entity: !input 'turn_off_blocker_entity'
-  target_off_entity: !input 'target_off_entity'
+  target_entity: !input target_entity
+  illuminance_sensor: !input illuminance_sensor
+  illuminance_cutoff: !input illuminance_cutoff
+  blocker_entity: !input blocker_entity
+  time_limit_before: !input time_limit_before
+  time_limit_after: !input time_limit_after
+  no_motion_wait: !input no_motion_wait
+  turn_off_blocker_entity: !input turn_off_blocker_entity
+  target_off_entity: !input target_off_entity
+
 trigger:
   - platform: state
-    entity_id: !input 'motion_sensor'
+    entity_id: !input motion_sensor
     to: 'on'
+
 condition:
-- condition: template
-  value_template: '{{ (states[target_entity].state == ''on'') 
-                        or (states[illuminance_currently].state | int < states[illuminance_cutoff].state | int)
-    }}'
-- condition: template
-  value_template: '{{ (blocker_entity == none) or (states[blocker_entity].state == ''off'') }}'
-- condition: template
-  value_template: '{% set current_time = now().strftime("%H:%M")  %}
+  # Check if it's dark enough to turn on lights
+  - condition: template
+    value_template: >
+      {{ states(illuminance_sensor) | float(0) < states(illuminance_cutoff) | float(0) }}
 
-    {% if time_limit_before != none and time_limit_after == none 
-      %} {{ states[time_limit_before].state > current_time 
-    }} {% elif time_limit_before == none and time_limit_after != none
-      %} {{ states[time_limit_after].state < current_time 
-    }} {% elif time_limit_before != none and time_limit_after != none 
-      %} {% set before_limit_is_on_next_day = time_limit_after > time_limit_before  
-      %} {% if not before_limit_is_on_next_day 
-        %} {{ (states[time_limit_after].state < current_time) and (states[time_limit_before].state > current_time) 
-      }} {% elif before_limit_is_on_next_day 
-        %} {{ (states[time_limit_before].state > current_time) or (states[time_limit_after].state < current_time) 
-      }} {% endif 
-    %} {% else 
-      %} true
-    {% endif %}
+  # Check if blocker entity is not blocking
+  - condition: template
+    value_template: >
+      {{ blocker_entity | length == 0 or is_state(blocker_entity, 'off') }}
 
-    '
+  # Check time window
+  - condition: template
+    value_template: >
+      {% set current_time = now().strftime("%H:%M") %}
+      {% set before = time_limit_before %}
+      {% set after = time_limit_after %}
+      
+      {% if before | length == 0 and after | length == 0 %}
+        true
+      {% elif before | length == 0 and after | length > 0 %}
+        {{ states(after) < current_time }}
+      {% elif before | length > 0 and after | length == 0 %}
+        {{ states(before) > current_time }}
+      {% else %}
+        {% set before_time = states(before) %}
+        {% set after_time = states(after) %}
+        {% if after_time < before_time %}
+          {# Time window crosses midnight #}
+          {{ current_time >= after_time or current_time < before_time }}
+        {% else %}
+          {# Normal time window within same day #}
+          {{ current_time >= after_time and current_time < before_time }}
+        {% endif %}
+      {% endif %}
+
 action:
-- service: homeassistant.turn_on
-  entity_id: !input 'target_entity'
-- condition: template
-  value_template: '{{ no_motion_wait != none }}'
-- wait_for_trigger:
-  - platform: state
-    entity_id: !input 'presence_sensor'
-    from: 'on'
-    to: 'off'
-  - platform: numeric_state
-    entity_id: !input 'illuminance_sensor'
-    below: !input 'illuminance_cutoff'
-- delay:
-    minutes: '{{ states[no_motion_wait].state | int }}'
-- condition: template
-  value_template: '{{ (turn_off_blocker_entity == none) or (states[turn_off_blocker_entity].state == ''off'') }}'
-- choose:
-  - conditions:
-    - condition: template
-      value_template: '{{ (target_off_entity != none) }}'
-    sequence:
-    - service: homeassistant.turn_off
-      entity_id: !input 'target_off_entity'
-  default:
-  - service: homeassistant.turn_off
-    entity_id: !input 'target_entity'
+  # Turn on the target entity
+  - service: homeassistant.turn_on
+    target:
+      entity_id: !input target_entity
+
+  # Only proceed with turn-off logic if wait time is configured
+  - condition: template
+    value_template: '{{ no_motion_wait | length > 0 }}'
+
+  # Wait for ALL presence sensors to clear
+  - wait_for_trigger:
+      - platform: template
+        value_template: >
+          {% set sensors = presence_sensor %}
+          {{ expand(sensors) | selectattr('state', 'eq', 'on') | list | count == 0 }}
+    timeout:
+      hours: 24
+    continue_on_timeout: false
+
+  # Additional delay after presence clears
+  - delay:
+      minutes: '{{ states(no_motion_wait) | int(0) }}'
+
+  # Final checks before turning off
+  - condition: template
+    value_template: >
+      {{ turn_off_blocker_entity | length == 0 or is_state(turn_off_blocker_entity, 'off') }}
+
+  # Check if all presence sensors are still clear
+  - condition: template
+    value_template: >
+      {% set sensors = presence_sensor %}
+      {{ expand(sensors) | selectattr('state', 'eq', 'on') | list | count == 0 }}
+
+  # Turn off the appropriate entity
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: '{{ target_off_entity | length > 0 }}'
+        sequence:
+          - service: homeassistant.turn_off
+            target:
+              entity_id: !input target_off_entity
+    default:
+      - service: homeassistant.turn_off
+        target:
+          entity_id: !input target_entity

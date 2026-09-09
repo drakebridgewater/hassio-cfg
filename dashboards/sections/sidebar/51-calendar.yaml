@@ -4,67 +4,123 @@ visibility:
   - condition: screen
     media_query: "(min-width: 768px)"
 cards:
-  - type: custom:week-planner-card
-    calendars:
+  # - type: custom:week-planner-card
+  #   calendars:
+  #     - entity: calendar.bridgewater_s
+  #       name: Bridgewater's
+  #       color: purple
+  #     - entity: calendar.ridwell
+  #       name: Ridwell
+  #       color: purple
+  #     - entity: calendar.calendar
+  #       name: Calendar
+  #       color: orange
+  #     - entity: calendar.drake_s_default
+  #       name: Drake's default
+  #       color: green
+  #     - entity: calendar.home_maintenance_calendar
+  #       name: Home maintenance calendar
+  #       color: red
+  #     - entity: calendar.shawnabeckstead_gmail_com
+  #       name: Shawnabeckstead@gmail.com
+  #       color: pink
+  #     - entity: calendar.icalendar
+  #       name: Icalendar
+  #       color: blue
+  #   days: 1
+  #   dayFormat: '''<span class="number">''d''</span> <span class="month">''MMMM''</span>'''
+  #   startingDay: today
+  #   startingDayOffset: 0
+  #   hideWeekend: false
+  #   noCardBackground: false
+  #   compact: false
+  #   weather:
+  #     showCondition: true
+  #     showTemperature: true
+  #     showLowTemperature: true
+  #     useTwiceDaily: false
+  #   locale: en
+  #   eventBackground: rgba(30, 30, 30, .25)
+  #   locationLink: https://www.google.com/maps/search/
+  #   showLocation: true
+  #   hidePastEvents: true
+  #   hideDaysWithoutEvents: true
+  #   hideTodayWithoutEvents: true
+  #   combineSimilarEvents: true
+  #   showLegend: false
+  #   card_mod:
+  #     style: |
+  #       .event.past {
+  #         opacity: .3;
+  #       }
+  #       .day {
+  #         width: 100% !important;
+  #       }
+  #       # .events {
+  #       #   max-height: 150px;
+  #       #   overflow-y: scroll;
+  #       #   overflow-x: hidden;
+  #       #   scroll-behavior: smooth;
+  #       # }
+  #       # .events::-webkit-scrollbar {
+  #       #   display: none;
+  #       # }
+
+
+
+  - type: custom:calendar-card-pro
+    entities:
       - entity: calendar.bridgewater_s
-        name: Bridgewater's
-        color: purple
       - entity: calendar.ridwell
-        name: Ridwell
-        color: purple
       - entity: calendar.calendar
-        name: Calendar
-        color: orange
       - entity: calendar.drake_s_default
-        name: Drake's default
-        color: green
-      - entity: calendar.home_maintenance_calendar
-        name: Home maintenance calendar
-        color: red
       - entity: calendar.shawnabeckstead_gmail_com
-        name: Shawnabeckstead@gmail.com
-        color: pink
       - entity: calendar.icalendar
-        name: Icalendar
-        color: blue
-    days: 1
-    dayFormat: '''<span class="number">''d''</span> <span class="month">''MMMM''</span>'''
-    startingDay: today
-    startingDayOffset: 0
-    hideWeekend: false
-    noCardBackground: false
-    compact: false
-    weather:
-      showCondition: true
-      showTemperature: true
-      showLowTemperature: true
-      useTwiceDaily: false
-    locale: en
-    eventBackground: rgba(30, 30, 30, .25)
-    locationLink: https://www.google.com/maps/search/
-    showLocation: true
-    hidePastEvents: false
-    hideDaysWithoutEvents: true
-    hideTodayWithoutEvents: true
-    combineSimilarEvents: true
-    showLegend: false
-    card_mod:
-      style: |
-        .event.past {
-          opacity: .3;
-        }
-        .day {
-          width: 100% !important;
-        }
-        # .events {
-        #   max-height: 150px;
-        #   overflow-y: scroll;
-        #   overflow-x: hidden;
-        #   scroll-behavior: smooth;
-        # }
-        # .events::-webkit-scrollbar {
-        #   display: none;
-        # }
+      - entity: calendar.home_maintenance_calendar
+      - entity: calendar.home_maintenance_schedule
+    days_to_show: 1
+    max_events_to_show: 3
+    tap_action:
+      action: navigate
+      navigation_path: /calendar
+    hold_action:
+      action: url
+      url_path: https://calendar.google.com
+    language: en
+    title: 📅 Baywater's Calendar
+    title_font_size: 18px
+    title_color: "#baf1ff"
+    row_spacing: 10px
+    additional_card_spacing: 0px
+    vertical_line_width: 5px
+    horizontal_line_width: 2px
+    horizontal_line_color: "#baf1ff80"
+    week_separator_width: 1px
+    week_separator_color: "#03a9f450"
+    month_separator_width: 1.5px
+    month_separator_color: var(--secondary-text-color)
+    date_vertical_alignment: top
+    weekday_font_size: 14px
+    weekday_color: "#baf1ff"
+    day_font_size: 18px
+    day_color: "#baf1ff"
+    show_month: true
+    month_font_size: 12px
+    month_color: "#baf1ff"
+    show_past_events: false
+    event_font_size: 14px
+    event_color: "#baf1ff"
+    time_24h: false
+    show_end_time: true
+    time_font_size: 11px
+    time_color: "#baf1ff"
+    time_icon_size: 14px
+    show_location: true
+    remove_location_country: true
+    location_font_size: 10px
+    location_icon_size: 14px
+    refresh_interval: 15
+    refresh_on_navigate: false
 
 
   # - type: custom:atomic-calendar-revive

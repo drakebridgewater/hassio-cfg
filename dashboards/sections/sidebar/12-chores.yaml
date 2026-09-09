@@ -1,0 +1,112 @@
+
+
+
+type: custom:stack-in-card
+cards:
+  - square: false
+    type: grid
+    columns: 1
+    cards:
+      - type: custom:auto-entities
+        card:
+          square: false
+          type: grid
+          columns: 1
+        card_param: cards
+        filter:
+          template: >-
+            {#-- ************* Dashboard Helper Version - Pending Approvals ************* --#}
+            {#-- ************* SET KID NAME HERE - ONLY CHANGE NEEDED ************* --#}
+            {%- set kid_name = 'Ethan' -%}
+            {%- set kid_name_slug = kid_name | slugify() -%}
+            {%- set dashboard_helper = 'sensor.kc_' ~ kid_name_slug ~ '_ui_dashboard_helper' -%}
+            
+            {#-- Extract data from dashboard helper --#}
+            {%- set ui_translations = state_attr(dashboard_helper, 'ui_translations') | default({}) -%}
+            {%- set pending_approvals = state_attr(dashboard_helper, 'pending_approvals') | default({}) -%}
+            {%- set pending_chore_data = pending_approvals.chores | default([]) -%}
+            {%- set pending_reward_data = pending_approvals.rewards | default([]) -%}
+            
+            {#-- Preferences --#}
+            {%- set pref_column_count = 2 -%}
+            
+            {#-- Build approval button lists --#}
+            {%- set ns = namespace(approve_chore_buttons=[], approve_reward_buttons=[], group_cards=[]) -%}
+            
+            {%- for chore in pending_chore_data -%}
+              {%- set chore_name = chore.chore_name | default('') -%}
+              {%- if chore_name and chore_name != 'error' -%}
+                {%- set chore_name_slug = chore_name | slugify() -%}
+                {%- set ns.approve_chore_buttons = ns.approve_chore_buttons + [
+                  {'button': 'button.kc_' ~ kid_name_slug ~ '_chore_approval_' ~ chore_name_slug, 'name': chore_name, 'type': 'approve'},
+                  {'button': 'button.kc_' ~ kid_name_slug ~ '_chore_disapproval_' ~ chore_name_slug, 'name': chore_name, 'type': 'disapprove'}
+                ] -%}
+              {%- endif -%}
+            {%- endfor -%}
+            
+            {%- for reward in pending_reward_data -%}
+              {%- set reward_name = reward.reward_name | default('') -%}
+              {%- if reward_name and reward_name != 'error' -%}
+                {%- set reward_name_slug = reward_name | slugify() -%}
+                {%- set ns.approve_reward_buttons = ns.approve_reward_buttons + [
+                  {'button': 'button.kc_' ~ kid_name_slug ~ '_reward_approval_' ~ reward_name_slug, 'name': reward_name, 'type': 'approve'},
+                  {'button': 'button.kc_' ~ kid_name_slug ~ '_reward_disapproval_' ~ reward_name_slug, 'name': reward_name, 'type': 'disapprove'}
+                ] -%}
+              {%- endif -%}
+            {%- endfor -%}
+            
+            {%- set button_groups = [
+                {'name': ui_translations.chore_approvals | default('Chore Approvals'), 'buttons': ns.approve_chore_buttons, 'icon': 'mdi:thumb-up-outline'},
+                {'name': ui_translations.reward_approvals | default('Reward Approvals'), 'buttons': ns.approve_reward_buttons, 'icon': 'mdi:thumb-up-outline'},
+            ] -%}
+            
+            {%- for group in button_groups -%}
+              {%- set ns.group_cards = [] -%}
+              {%- if group.buttons | length > 0 -%}
+                {%- set heading_card =
+                  {
+                    'type': 'heading',
+                    'icon': group.icon,
+                    'heading': group.name,
+                    'heading_style': 'subtitle',
+                  }
+                -%}
+                
+                {%- for item in group.buttons -%}
+                  {%- set ok_label = ui_translations.ok | default('OK') -%}
+                  {%- set no_label = ui_translations.no | default('NO') -%}
+                  {%- set primary = (ok_label ~ ': ' ~ item.name) if item.type == 'approve' else (no_label ~ ': ' ~ item.name) -%}
+                  {%- set icon = 'mdi:thumb-up' if item.type == 'approve' else 'mdi:thumb-down' -%}
+                  {%- set icon_color = 'green' if item.type == 'approve' else 'red' -%}
+                  
+                  {%- set ns.group_cards = ns.group_cards + [{
+                        'type': 'custom:mushroom-template-card',
+                        'entity': item.button,
+                        'primary': primary,
+                        'icon': icon,
+                        'layout': '',
+                        'icon_color': icon_color,
+                        'tap_action': {
+                          'action': 'toggle'
+                        },
+                        'hold_action': {
+                          'action': 'more-info'
+                        },
+                      }]
+                  -%}
+                {%- endfor -%}
+                
+                {#-- Display the cards for this group --#}
+                {{- heading_card -}}, {{
+                  {
+                    'type': 'grid',
+                    'columns': pref_column_count,
+                    'square': false,
+                    'cards': ns.group_cards
+                  }
+                }},
+              {%- endif -%}
+            {%- endfor -%}
+            
+            {#-- Show no message if no pending approvals --#}
+            {%- endif -%}

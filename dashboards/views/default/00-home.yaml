@@ -1,0 +1,27 @@
+title: Home
+icon: mdi:home
+path: home
+# background: center / cover no-repeat fixed url('/local/tropical-background.jpg')
+type: custom:grid-layout
+layout: !include ../../layouts/grid.yaml
+
+cards:
+  - type: vertical-stack
+    view_layout:
+      grid-area: sidebar
+    cards: !include_dir_list ../../sections/sidebar
+ 
+  - type: custom:mushroom-chips-card
+    view_layout:
+      grid-area: banner
+    chips: !include ../../sections/status-bar.yaml
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: section1
+    cards: !include_dir_list ../../sections/spaces-cards
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: footer
+    cards: !include_dir_list ../../sections/footer

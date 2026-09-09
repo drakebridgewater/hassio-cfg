@@ -1,0 +1,10 @@
+tap:
+  action: call-service
+  service: input_boolean.turn_on
+  service_data:
+    entity_id: input_boolean.parents_management_mode
+
+pin:
+  code:
+    - "0210"
+  text: Enter pin to unlock

@@ -1,0 +1,16 @@
+inovelli_parameter:
+  name: Inovelli Parameter
+  options:
+    - LED Color
+    - LED Intensity
+    - LED When On
+    - LED When Off
+    - Fan Speed Control
+    - Smart Bulb Mode
+    - Dimming Speed
+    - Ramp Rate
+    - Default Level
+    - Power On State
+    - Scene Control
+  initial: LED Color
+  icon: mdi:tune

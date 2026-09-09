@@ -1,0 +1,176 @@
+max_columns: 4
+title: Planting
+path: planting
+type: custom:grid-layout
+layout: !include ../../layouts/grid_no_sidebar.yaml
+cards:
+ 
+  - type: custom:mushroom-chips-card
+    view_layout:
+      grid-area: banner
+    chips: !include ../../sections/status-bar.yaml
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: footer
+    cards: !include_dir_list ../../sections/footer
+
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: section1
+    cards: 
+      - type: heading
+        heading: Indoors
+        heading_style: title
+      - type: custom:bubble-card
+        card_type: button
+        button_type: switch
+        sub_button:
+          main:
+            - entity: switch.all_grow_lights_group
+              icon: mdi:power
+              tap_action:
+                action: toggle
+              state_background: true
+          bottom: []
+        entity: switch.all_grow_lights_group
+        rows: 1
+        show_icon: true
+        scrolling_effect: true
+        show_state: true
+        force_icon: false
+        show_name: true
+        show_last_changed: false
+        show_last_updated: false
+        modules: []
+        temperature_colouring:
+          elements:
+            state_display: false
+      - type: custom:bubble-card
+        card_type: button
+        button_type: switch
+        name: Left Greenhouse
+        sub_button:
+          bottom:
+            - name: Group 1
+              buttons_layout: inline
+              group:
+                - entity: sensor.dinning_room_greenhouse_temperature
+                  show_state: true
+                  show_background: false
+                  fill_width: false
+                - entity: sensor.dinning_room_greenhouse_humidity
+                  show_last_changed: false
+                  show_background: false
+                  show_state: true
+                  fill_width: false
+                - entity: sensor.dinning_room_greenhouse_battery
+                  show_state: true
+                  show_background: false
+                  fill_width: false
+              justify_content: end
+          main:
+            - entity: switch.dining_room_grow_light
+              icon: mdi:power
+              tap_action:
+                action: toggle
+        entity: switch.dining_room_grow_light
+        rows: 1.319
+      - type: custom:bubble-card
+        card_type: button
+        button_type: switch
+        name: Left Greenhouse
+        sub_button:
+          bottom:
+            - name: Group 1
+              buttons_layout: inline
+              group:
+                - entity: sensor.living_room_greenhouse_temperature
+                  show_state: true
+                  show_background: false
+                  fill_width: false
+                - entity: sensor.living_room_greenhouse_humidity
+                  show_last_changed: false
+                  show_background: false
+                  show_state: true
+                  fill_width: false
+                - entity: sensor.living_room_greenhouse_battery
+                  show_state: true
+                  show_background: false
+                  fill_width: false
+              justify_content: end
+          main:
+            - entity: switch.left_greenhouse_plug
+              icon: mdi:power
+              tap_action:
+                action: toggle
+        entity: switch.left_greenhouse_plug
+        rows: 1.319
+      - type: custom:bubble-card
+        card_type: button
+        button_type: switch
+        sub_button:
+          main:
+            - entity: switch.office_smart_plug
+              icon: mdi:power
+              tap_action:
+                action: toggle
+          bottom:
+            - name: Group 1
+              buttons_layout: inline
+              group:
+                - entity: sensor.office_temperature_sensor_temperature
+                  show_state: true
+                  show_background: false
+                  fill_width: false
+                - entity: sensor.office_temperature_sensor_humidity
+                  show_last_changed: false
+                  show_background: false
+                  show_state: true
+                  fill_width: false
+                - entity: sensor.office_temperature_sensor_battery
+                  show_state: true
+                  show_background: false
+                  fill_width: false
+              justify_content: end
+        entity: switch.office_smart_plug
+        button_action:
+          tap_action:
+            action: more-info
+        name: Office Grow Light
+        rows: 1.419
+      - type: custom:bubble-card
+        card_type: button
+        button_type: switch
+        name: Basement Bathroom Grow Light
+        sub_button:
+          bottom: []
+          main:
+            - entity: switch.dining_room_grow_light
+              icon: mdi:power
+              tap_action:
+                action: toggle
+        entity: switch.basement_bathroom_holiday
+        rows: 1
+
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: section2
+    cards: 
+      - type: heading
+        heading: Outdoors
+        heading_style: title
+      - type: custom:bubble-card
+        card_type: button
+        button_type: switch
+        entity: switch.unnamed_zone_zone
+        show_state: true
+        show_last_changed: true
+        show_last_updated: false
+        show_attribute: true
+        sub_button:
+          main:
+            - entity: switch.unnamed_zone_zone
+              show_attribute: true
+              attribute: sprinkler_type
+          bottom: []

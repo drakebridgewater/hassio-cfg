@@ -1,19 +1,4 @@
 notification_alerts:
-  binary_sensor:
-    - platform: template  
-      sensors:
-        # garage_door_info_alert_active:
-        #   friendly_name: Garage Door Alert Active
-        #   value_template: "{{ is_state('cover.garage_door', 'open') and is_state('input_boolean.garage_door_notify', 'on') }}"
-
-        air_quality_info_alert_active:
-          friendly_name: Air Quality Alert Active
-          value_template: "{{ states('sensor.airnow_aqi') > states('input_number.aqi_warning_threshold') }}"
-        
-        # pollen_info_alert_active:
-        #   friendly_name: Air Quality Alert Active
-        #   value_template: "{{ states('sensor.airnow_aqi') < states('input_number.aqi_warning_threshold') }}"
-
   alert: 
     # garage_door_info_alert_active:
     #   name: Garage Door Alert Active

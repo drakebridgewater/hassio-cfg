@@ -1,0 +1,334 @@
+bubble_badges:
+  name: Bubble Badges 2
+  version: v2.0.4
+  creator: Clooos
+  link: https://github.com/Clooos/Bubble-Card/discussions/1984
+  description: |
+    Add dynamic badges to your Bubble Cards that display icons, entity states, or attributes. Badges can be placed on the main icon or sub-buttons, support conditional visibility, custom colors and animations.
+    <br><br>
+    <img class="example" src="https://github.com/Clooos/Bubble-Card/blob/main/img/badges_module.png?raw=true" />
+    <br><br>
+    <code-block><pre>
+    bubble_badges:
+        badges:
+            - name: Battery Low
+              target: main_icon
+              entity: sensor.phone_battery
+              color: red
+              animation: shake
+              condition:
+                - condition: numeric_state
+                  entity_id: sensor.phone_battery
+                  below: 20
+    </pre></code-block>
+  code: |
+    .badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        z-index: 1;
+        --badge-color: var(--accent-color);
+        --badge-glow-color: var(--badge-color);
+        background: var(--badge-color);
+        color: var(--primary-text-color);
+        font-size: 12px;
+        height: 18px;
+        min-width: 18px;
+        border-radius: 10px;
+        --mdc-icon-size: 12px;
+        box-sizing: border-box;
+        line-height: 0;
+        transition: background-color 0.2s ease, opacity 0.2s ease;
+        transform: translate3d(0,0,0);
+        backface-visibility: hidden;
+        perspective: 1000px;
+        pointer-events: none;
+    }
+    .badge.text {
+        padding: 0 4px;
+        width: auto;
+        text-wrap: nowrap;
+        font-size: 10px;
+    }
+
+    /* Optimized Glow: Uses pseudo-element opacity to avoid repaints */
+    .badge.animation-glow::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        border-radius: inherit;
+        background: inherit;
+        z-index: -1;
+        box-shadow: 0 0 10px var(--badge-glow-color, var(--badge-color, var(--accent-color)));
+        opacity: 0;
+        will-change: opacity;
+        animation: badge-gpu-glow 2s ease-in-out infinite;
+    }
+
+    .bubble-entity-picture { border-radius: var(--bubble-icon-border-radius, var(--bubble-border-radius, 50%)); }
+    .bubble-icon-container::after { border-radius: 100%; }
+    .bubble-icon-container { overflow: visible !important; }
+
+    .badge.position-1 { top: -4px; right: -4px; }
+    .badge.position-2 { bottom: -4px; right: -4px; }
+    .badge.position-3 { bottom: -4px; left: -4px; }
+    .badge.position-4 { top: -4px; left: -4px; }
+
+    /* GPU optimized animations (Transform/Opacity only) */
+    @keyframes badge-gpu-pulse {
+        0%, 100% { transform: scale3d(1, 1, 1); opacity: 1; }
+        50% { transform: scale3d(1.15, 1.15, 1); opacity: 0.9; }
+    }
+    @keyframes badge-gpu-bounce {
+        0%, 100% { transform: translate3d(0, 0, 0); }
+        50% { transform: translate3d(0, -4px, 0); }
+    }
+    @keyframes badge-gpu-fade {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+    @keyframes badge-gpu-shake {
+        0%, 100% { transform: translate3d(0, 0, 0); }
+        15% { transform: translate3d(-3px, 0, 0) rotate3d(0, 0, 1, -5deg); }
+        30% { transform: translate3d(2px, 0, 0) rotate3d(0, 0, 1, 3deg); }
+        45% { transform: translate3d(-1px, 0, 0) rotate3d(0, 0, 1, -3deg); }
+        60% { transform: translate3d(1px, 0, 0) rotate3d(0, 0, 1, 2deg); }
+        75% { transform: translate3d(0, 0, 0); }
+    }
+    @keyframes badge-gpu-glow {
+        0%, 100% { opacity: 0; }
+        50% { opacity: 1; }
+    }
+
+    .badge.animation-pulse { animation: badge-gpu-pulse 2s ease-in-out infinite; will-change: transform; }
+    .badge.animation-bounce { animation: badge-gpu-bounce 2s ease-in-out infinite; will-change: transform; }
+    .badge.animation-fade { animation: badge-gpu-fade 2s ease-in-out infinite; will-change: opacity; }
+    .badge.animation-shake { animation: badge-gpu-shake 2s ease-in-out infinite; will-change: transform; }
+
+    ${(() => {
+        const config = this.config.bubble_badges || {};
+        const badgesConfig = config.badges || [];
+        
+        if (!Array.isArray(badgesConfig) || badgesConfig.length === 0) return;
+
+        // Initialize caching structure
+        this._bb_cache ??= {
+            initialized: false,
+            elements: {}, 
+            containers: {}, 
+            watchedEntities: new Set(),
+            lastStateSignature: '',
+            groups: null
+        };
+
+        // One-time setup: Sort badges and identify entities to watch
+        if (!this._bb_cache.initialized) {
+            const mainIconBadges = badgesConfig.filter(b => b.target === 'main_icon');
+            const subButtonGroups = {};
+            
+            badgesConfig.forEach(badge => {
+                if (badge.entity) this._bb_cache.watchedEntities.add(badge.entity);
+                if (badge.condition) {
+                    const str = JSON.stringify(badge.condition);
+                    const matches = str.match(/"entity_id"\s*:\s*"([^"]+)"/g);
+                    if (matches) matches.forEach(m => this._bb_cache.watchedEntities.add(m.split('"')[3]));
+                }
+                if (badge.target === 'sub_button' && badge.sub_button_index) {
+                    const idx = badge.sub_button_index;
+                    (!subButtonGroups[idx]) ? subButtonGroups[idx] = [badge] : subButtonGroups[idx].push(badge);
+                }
+            });
+            
+            this._bb_cache.groups = { main: mainIconBadges, sub: subButtonGroups };
+            this._bb_cache.initialized = true;
+        }
+
+        // Smart Check: Stop execution if relevant entities haven't changed
+        let currentSignature = '';
+        if (this._bb_cache.watchedEntities.size === 0 && this._bb_cache.lastStateSignature === 'static_done') return; 
+
+        for (const entityId of this._bb_cache.watchedEntities) {
+            const state = hass.states[entityId];
+            if (state) currentSignature += state.last_updated;
+        }
+
+        if (currentSignature === this._bb_cache.lastStateSignature && currentSignature !== '') return;
+        this._bb_cache.lastStateSignature = currentSignature || 'static_done';
+
+        // Render Logic
+        const containers = {
+          main_icon: '.bubble-icon-container',
+          sub_button: (index) => `.bubble-sub-button-${index}`,
+        };
+
+        const renderBadgeGroup = (containerSelector, badgeList) => {
+          let container = this._bb_cache.containers[containerSelector];
+          if (!container || !container.isConnected) {
+              container = card.querySelector(containerSelector);
+              this._bb_cache.containers[containerSelector] = container;
+          }
+          if (!container) return;
+
+          let posCounter = 1;
+
+          badgeList.forEach((badgeConfig, index) => {
+            if (!badgeConfig?.entity && !badgeConfig?.icon) return;
+
+            const uniqueId = `${containerSelector}_badge_${index}`;
+            const shouldShow = !badgeConfig?.condition || 
+              (badgeConfig?.condition && checkConditionsMet([].concat(badgeConfig.condition), hass));
+
+            let generatedHtml = '';
+            let hasText = false;
+            let styles = {};
+
+            if (shouldShow) {
+                if (badgeConfig.icon) generatedHtml += `<ha-icon icon="${badgeConfig.icon}"></ha-icon>`;
+                if (badgeConfig.entity) {
+                    const stateObj = hass.states[badgeConfig.entity];
+                    if (stateObj) {
+                        hasText = true;
+                        generatedHtml += badgeConfig.attribute
+                            ? hass.formatEntityAttributeValue?.(stateObj, badgeConfig.attribute)
+                            : hass.formatEntityState?.(stateObj);
+                    }
+                }
+                if (badgeConfig.color) styles.color = `var(--${badgeConfig.color}-color)`;
+            }
+
+            let badgeElement = this._bb_cache.elements[uniqueId];
+
+            if (!shouldShow) {
+                if (badgeElement) badgeElement.style.display = 'none';
+                return;
+            }
+
+            if (!badgeElement) {
+                badgeElement = document.createElement("div");
+                badgeElement.classList.add("badge");
+                this._bb_cache.elements[uniqueId] = badgeElement;
+                container.appendChild(badgeElement);
+            } else {
+                 if(badgeElement.style.display === 'none') badgeElement.style.display = 'flex';
+            }
+
+            // Update Position
+            if (badgeElement.dataset.pos !== String(posCounter)) {
+                 badgeElement.classList.remove("position-1", "position-2", "position-3", "position-4");
+                 badgeElement.classList.add(`position-${posCounter}`);
+                 badgeElement.dataset.pos = String(posCounter);
+            }
+            posCounter++;
+
+            // Update Text Class
+            if (hasText !== (badgeElement.dataset.hasText === 'true')) {
+                hasText ? badgeElement.classList.add("text") : badgeElement.classList.remove("text");
+                badgeElement.dataset.hasText = hasText ? 'true' : 'false';
+            }
+
+            // Update Animation
+            const animClass = badgeConfig.animation ? `animation-${badgeConfig.animation}` : '';
+            if (badgeElement.dataset.anim !== animClass) {
+                badgeElement.classList.remove('animation-pulse', 'animation-bounce', 'animation-fade', 'animation-shake', 'animation-glow');
+                if (animClass) badgeElement.classList.add(animClass);
+                badgeElement.dataset.anim = animClass;
+            }
+
+            // Update Content
+            if (badgeElement.innerHTML !== generatedHtml) {
+                badgeElement.innerHTML = generatedHtml;
+            }
+            
+            // Update Color
+            const colorVar = styles.color || '';
+            if (badgeElement.dataset.color !== colorVar) {
+                 if (colorVar) {
+                    badgeElement.style.backgroundColor = colorVar;
+                    badgeElement.style.setProperty('--badge-color', colorVar);
+                    badgeElement.style.setProperty('--badge-glow-color', colorVar);
+                 } else {
+                    badgeElement.style.backgroundColor = '';
+                    badgeElement.style.removeProperty('--badge-color');
+                    badgeElement.style.removeProperty('--badge-glow-color');
+                 }
+                 badgeElement.dataset.color = colorVar;
+            }
+
+            if (!container.contains(badgeElement)) container.appendChild(badgeElement);
+          });
+        };
+
+        if (this._bb_cache.groups.main.length > 0) renderBadgeGroup(containers.main_icon, this._bb_cache.groups.main);
+        Object.keys(this._bb_cache.groups.sub).forEach(index => renderBadgeGroup(containers.sub_button(parseInt(index)), this._bb_cache.groups.sub[index]));
+    })()}
+  editor:
+    - name: badges
+      label: Badges
+      selector:
+        object:
+          multiple: true
+          fields:
+            name:
+              label: Name
+              required: true
+              selector:
+                text: {}
+            target:
+              label: Target
+              selector:
+                select:
+                  options:
+                    - label: Main Icon
+                      value: main_icon
+                    - label: Sub-Button
+                      value: sub_button
+            sub_button_index:
+              label: Sub-Button Index (required if target is Sub-Button)
+              selector:
+                number:
+                  min: 1
+                  max: 4
+                  step: 1
+                  mode: box
+            icon:
+              label: Icon (optional - display icon, entity, or both)
+              selector:
+                icon: {}
+            entity:
+              label: Entity (optional - display icon, entity, or both)
+              selector:
+                entity: {}
+            attribute:
+              label: Attribute (optional - only used if entity is set)
+              selector:
+                attribute: {}
+            animation:
+              label: Animation (optional - adds CSS animation to badge)
+              selector:
+                select:
+                  options:
+                    - label: None
+                      value: ''
+                    - label: Pulse
+                      value: pulse
+                    - label: Bounce
+                      value: bounce
+                    - label: Fade
+                      value: fade
+                    - label: Shake
+                      value: shake
+                    - label: Glow
+                      value: glow
+            color:
+              label: Badge Background Color (optional)
+              selector:
+                ui_color:
+                  include_none: true
+                  default_color: accent
+            condition:
+              label: Condition (optional - badge is always visible if no condition is defined)
+              selector:
+                condition: {}
+          label_field: name
+          description_field: target

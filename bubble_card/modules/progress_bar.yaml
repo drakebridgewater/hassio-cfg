@@ -1,0 +1,75 @@
+progress_bar:
+  name: Progress Bar
+  version: 1.1.1
+  creator: inukiwi
+  description: Show a progress bar on "State" buttons, much like how sliders appear. Also supports different colors for custom conditions.
+  supported:
+    - button
+  code: |-
+    .bubble-button-background {
+      ${card.state = this.config.progress_bar?.custom_entity ? hass.states[this.config.progress_bar?.custom_entity].state : state};
+      ${card.percentage = (card.state - this.config.progress_bar?.min_value) / (this.config.progress_bar?.max_value - this.config.progress_bar?.min_value) * 100};
+      ${card.color = this.config.progress_bar?.progress_color};
+      ${card.color = this.config.progress_bar?.conditional_colors?.condition_1 && checkConditionsMet([].concat(this.config.progress_bar?.conditional_colors?.condition_1), hass) ? this.config.progress_bar?.conditional_colors?.condition_color_1 : card.color };
+      ${card.color = this.config.progress_bar?.conditional_colors?.condition_2 && checkConditionsMet([].concat(this.config.progress_bar?.conditional_colors?.condition_2), hass) ? this.config.progress_bar?.conditional_colors?.condition_color_2 : card.color };
+      opacity: 1 !important;
+      background: 
+        linear-gradient(
+          to right,
+          var(--${card.color}-color)
+          ${card.percentage}%,
+          transparent
+          ${card.percentage}%
+        );
+    }
+  editor:
+    - name: min_value
+      label: Minimum value
+      required: true
+      default: 0
+      selector:
+        number:
+          mode: box
+    - name: max_value
+      label: Maximum value
+      required: true
+      default: 100
+      selector:
+        number:
+          mode: box
+    - name: progress_color
+      label: Progress Color
+      required: true
+      default: '#00ff00'
+      selector:
+        ui_color:
+          include_state: true
+    - name: custom_entity
+      label: Custom state entity
+      selector:
+        entity: {}
+    - type: expandable
+      name: conditional_colors
+      title: Conditional colors
+      icon: mdi:tune
+      expanded: false
+      schema:
+        - name: condition_1
+          label: Condition 1 (use color below if met)
+          selector:
+            condition: {}
+        - name: condition_color_1
+          label: Condition 1 color (only used if condition 1 is defined)
+          selector:
+            ui_color:
+              include_state: true
+        - name: condition_2
+          label: Condition 2 (use color below if met)
+          selector:
+            condition: {}
+        - name: condition_color_2
+          label: Condition 2 color (only used if condition 2 is defined)
+          selector:
+            ui_color:
+              include_state: true
+  link: https://github.com/Clooos/Bubble-Card/discussions/1634

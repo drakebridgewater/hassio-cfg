@@ -1,0 +1,117 @@
+type: vertical-stack
+cards: 
+  - type: custom:bubble-card
+    card_type: pop-up
+    hash: '#main_floor_security'
+    button_type: switch
+    name: Main Floor Security
+    icon: mdi:door-closed-lock
+    entity: alarm_control_panel.abode_alarm
+    force_icon: false
+    show_state: true
+    show_last_changed: false
+    tap_action:
+      action: more-info
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    modules:
+      - default
+    entity: alarm_control_panel.abode_alarm
+    force_icon: false
+    show_last_changed: true
+    show_last_updated: false
+    show_attribute: false
+    double_tap_action:
+      action: more-info
+    card_layout: large
+  - type: custom:advanced-camera-card
+    cameras:
+      - camera_entity: camera.frontdoor
+      - camera_entity: camera.entryway
+        triggers:
+          occupancy: true
+          motion: true
+      - camera_entity: camera.driveway
+      # - camera_entity: camera.backyard
+      - camera_entity: camera.front_door_camera
+        triggers:
+          occupancy: true
+          motion: true
+    menu:
+      style: outside
+      button_size: 67
+      buttons:
+        iris:
+          enabled: false
+        cameras:
+          enabled: true
+        substreams:
+          enabled: false
+        live:
+          enabled: true
+        download:
+          enabled: false
+        display_mode:
+          enabled: false
+        media_player:
+          enabled: false
+        fullscreen:
+          enabled: false
+        recordings:
+          enabled: true
+          icon: mdi:record-rec
+          priority: 29
+    status_bar:
+      style: outside
+      position: bottom
+    media_viewer:
+      display: {}
+    media_gallery:
+      controls:
+        thumbnails:
+          size: 165
+          show_details: true
+    timeline:
+      controls:
+        thumbnails: {}
+  # badges:
+  #   - type: entity
+  #     show_name: true
+  #     show_state: true
+  #     show_icon: true
+  #     entity: binary_sensor.front_door
+  #   - type: entity
+  #     show_name: true
+  #     show_state: true
+  #     show_icon: true
+  #     entity: binary_sensor.awning_left_window
+  #     name: Awning Left
+  #   - type: entity
+  #     show_name: true
+  #     show_state: true
+  #     show_icon: true
+  #     entity: binary_sensor.awning_right_window
+  #     name: Awning RIght
+  #   - type: entity
+  #     show_name: true
+  #     show_state: true
+  #     show_icon: true
+  #     entity: binary_sensor.garage_portal
+  #     name: Garage Portal
+  #   - type: entity
+  #     show_name: true
+  #     show_state: true
+  #     show_icon: true
+  #     entity: binary_sensor.kitchen_door
+  #     name: Kitchen
+  #   - type: entity
+  #     show_name: true
+  #     show_state: true
+  #     show_icon: true
+  #     entity: cover.garage_door
+  # header:
+  #   card:
+  #     type: markdown
+  #     content: '# Main Floor Security'
+  #     text_only: true

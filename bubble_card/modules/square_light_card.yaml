@@ -1,0 +1,74 @@
+square_light_card:
+    name: "Squared Light Card"
+    version: "1.0"
+    creator: "Mellamomax"
+    link: "https://github.com/Clooos/Bubble-Card/discussions/XXXX"
+
+    supported:
+        - button
+
+    description: |
+        Makes a squared 1 / 1 card including a slider.
+        In short, a button with light name, icon and slider.
+        
+        Make sure to set tap action of icon and button to "toggle" instead of the deafult "more info"
+        tap_action:
+          action: toggle
+        button_action:
+          tap_action:
+            action: toggle
+        <br><br>
+        <code-block><pre>
+        square_light_card: 
+            # Your configuration here
+        </pre></code-block>
+
+    code: |
+        .bubble-container {
+          height: 100% !important;
+          aspect-ratio: 1 / 1 !important;
+          box-shadow: var(--ha-card-box-shadow, none);
+          background: var(--ha-card-background, var(--card-background-color, #fff));
+          box-sizing: border-box;
+          border-radius: var(--ha-card-border-radius, 12px) !important;
+          border-width: var(--ha-card-border-width, 1px);
+          border-style: solid;
+          border-color: var(--ha-card-border-color, var(--divider-color, #e0e0e0));
+          color: var(--primary-text-color);
+          backdrop-filter: var(--ha-card-backdrop-filter, none);
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: center !important;
+          }
+        .bubble-content-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          bottom: 15% !important;
+          position: absolute;
+          inset: 0 !important;
+          pointer-events: none;
+          cursor: none !important;
+        }
+        .bubble-name-container {
+          margin: 0px;
+          text-align: center;
+          top: 5%;
+        }
+        .bubble-name {
+          font-size: 100% !important;
+          font-weight: 500 !important;
+        }
+        .bubble-range-slider {
+          height: 20%;
+          top: 75%;
+          left: 5%;
+          width: 90%;
+          border-radius: 12px !important;
+          background-color: rgba(150, 150, 150, 0.15);
+        }
+        .bubble-icon {
+          margin: 0 auto !important;
+          --mdc-icon-size: 4em;
+        }

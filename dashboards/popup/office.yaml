@@ -1,0 +1,26 @@
+type: vertical-stack
+cards: 
+  - type: custom:bubble-card
+    card_type: pop-up
+    hash: '#office'
+    button_type: switch
+    name: Office
+    entity: light.office_lights_group
+    force_icon: false
+    show_state: true
+    show_last_changed: false
+    bg_opacity: '35'
+    button_action:
+      tap_action:
+        action: none
+    tap_action:
+      action: toggle
+    sub_button:
+      - entity: light.desk_lights_group
+        icon: mdi:desk
+        tap_action:
+          action: more-info
+        hold_action:
+          action: more-info
+  - type: vertical-stack
+    cards: !include ../cards/office.yaml

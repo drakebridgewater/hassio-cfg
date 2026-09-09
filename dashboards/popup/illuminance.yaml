@@ -1,0 +1,25 @@
+type: vertical-stack
+cards:
+- type: custom:bubble-card
+  card_type: pop-up
+  hash: '#illuminance'
+  button_type: name
+  name: Illuminance Sensors
+- type: custom:auto-entities
+  card_param: cards
+  card:
+    type: grid
+    columns: 1
+    square: false
+  filter:
+    include:
+      - domain: sensor
+        attributes:
+          device_class: illuminance
+        options:
+          type: custom:bubble-card
+          card_type: button
+          button_type: state
+  sort:
+    method: state
+    reverse: true

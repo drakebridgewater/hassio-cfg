@@ -73,6 +73,7 @@ blueprint:
           selector:
             entity:
               multiple: true
+              reorder: false
         trigger_on_state:
           name: Trigger - ON State *
           description: 'Choose the trigger state(s) from the dropdown menu required
@@ -195,9 +196,9 @@ blueprint:
                 value: enable_start_turn_off
               - label: Disable the start turn OFF options
                 value: disable_start_turn_off
-              multiple: false
               custom_value: false
               sort: false
+              multiple: false
         off_light_switch:
           name: Start Turn OFF - Lights - Switches
           description: 'Enter the lights and switches to turn OFF when the automation
@@ -291,6 +292,7 @@ blueprint:
               - domain:
                 - scene
                 - script
+              reorder: false
         include_light_control:
           name: Use The Light Control Options (Optional)
           description: 'Select if you would like to use brightness or transition.
@@ -374,9 +376,9 @@ blueprint:
                 value: use_rgbww_colour
               - label: Disable Colour Control
                 value: disable_colour_control
-              multiple: false
               custom_value: false
               sort: false
+              multiple: false
         light_colour_temperature:
           name: Colour Temperature
           description: 'The colour temperature setting for the lights when they are
@@ -456,9 +458,9 @@ blueprint:
                 value: intermission_enable
               - label: Disable intermission option
                 value: intermission_disable
-              multiple: false
               custom_value: false
               sort: false
+              multiple: false
         intermission_state:
           name: Intermission - Trigger State
           description: 'Choose the state that triggers intermission mode from the
@@ -523,6 +525,7 @@ blueprint:
               - domain:
                 - scene
                 - script
+              reorder: false
         intermission_include_light_control:
           name: Use The Light Control Options (Optional)
           description: 'Select if you would like to use brightness or transition.
@@ -606,9 +609,9 @@ blueprint:
                 value: use_rgbww_colour
               - label: Disable Colour Control
                 value: disable_colour_control
-              multiple: false
               custom_value: false
               sort: false
+              multiple: false
         intermission_light_colour_temperature:
           name: Colour Temperature
           description: 'The colour temperature setting for the lights when they are
@@ -694,9 +697,9 @@ blueprint:
                 value: enable_end_turn_on
               - label: Disable, end turn ON options
                 value: disable_end_turn_on
-              multiple: false
               custom_value: false
               sort: false
+              multiple: false
         end_snapshot_name:
           name: End Turn ON - Snapshot Name
           description: 'If you''ve opted to create a snapshot of your lights and switches,
@@ -727,6 +730,7 @@ blueprint:
               filter:
               - domain:
                 - input_boolean
+              reorder: false
               multiple: false
         end_light_switch:
           name: End Turn ON - Lights - Switches - Scenes - Scripts
@@ -818,9 +822,9 @@ blueprint:
                 value: use_rgbww_colour
               - label: Disable Colour Control
                 value: disable_colour_control
-              multiple: false
               custom_value: false
               sort: false
+              multiple: false
         end_light_colour_temperature:
           name: Colour Temperature
           description: 'The colour temperature setting for the lights when they are
@@ -901,9 +905,9 @@ blueprint:
                 value: enable_automation_link
               - label: Disable automation link
                 value: disable_automation_link
-              multiple: false
               custom_value: false
               sort: false
+              multiple: false
         automation_link:
           name: Automation Link - By-pass Control
           description: 'To disable other automations when this automation is ON, enter
@@ -919,6 +923,7 @@ blueprint:
               filter:
               - domain:
                 - input_boolean
+              reorder: false
         include_automation_link_time_delay:
           name: Use The Time Delay Option (Optional)
           description: 'When you stop the media player, you can use the **Lights ON
@@ -939,9 +944,9 @@ blueprint:
                 value: enable_time_delay
               - label: Disable time delay
                 value: disable_time_delay
-              multiple: false
               custom_value: false
               sort: false
+              multiple: false
         automation_link_time_delay:
           name: Time Delay
           description: 'Specify the time delay before turning off the automation link.
@@ -975,9 +980,9 @@ blueprint:
                 value: sun_enabled
               - label: Disable the sun option
                 value: sun_disabled
-              multiple: false
               custom_value: false
               sort: false
+              multiple: false
         sun_elevation:
           name: Sun Elevation Falling
           description: 'The sun elevation falling refers to the angle between the
@@ -1030,9 +1035,9 @@ blueprint:
                 value: ambient_enabled
               - label: Disable the ambient options
                 value: ambient_disabled
-              multiple: false
               custom_value: false
               sort: false
+              multiple: false
         ambient_light_sensor:
           name: Ambient Light Sensor
           description: 'Select the ambient sensor to be used.
@@ -1046,6 +1051,7 @@ blueprint:
                 - sensor
                 device_class:
                 - illuminance
+              reorder: false
               multiple: false
         ambient_light_options:
           name: Ambient Light Sensor - Site Conditions
@@ -1066,9 +1072,9 @@ blueprint:
                 value: ambient_light_option_enabled
               - label: NO - My Ambient Light Sensor is not affected by the Lights
                 value: ambient_light_option_disabled
-              multiple: false
               custom_value: false
               sort: false
+              multiple: false
         ambient_light_value:
           name: Ambient Light - Low Lux Value
           description: 'Set the Ambient Light Low Lux Value. The light will turn ON
@@ -1115,6 +1121,7 @@ blueprint:
               filter:
               - domain:
                 - input_boolean
+              reorder: false
               multiple: false
     bypass_settings:
       name: Bypass
@@ -1144,9 +1151,9 @@ blueprint:
                 value: bypass_enabled_pause_automation
               - label: Disable the By-pass option
                 value: bypass_disabled
-              multiple: false
               custom_value: false
               sort: false
+              multiple: false
         trigger_bypass:
           name: By-pass - Switch
           description: 'Select a switch that will bypass (disable) the automation.

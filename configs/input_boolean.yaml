@@ -1,0 +1,58 @@
+
+# ################ View Expansion Controls ######################
+kitchen_view_expanded:
+  name: "Kitchen View Expanded"
+  icon: mdi:countertop-outline
+living_room_view_expanded:
+  name: "Living Room View Expanded"
+  icon: mdi:sofa-outline
+family_room_view_expanded:
+  name: "Family Room View Expanded"
+  icon: mdi:theater
+master_bedroom_view_expanded:
+  name: "Master Bedroom View Expanded"
+  icon: mdi:bed-king-outline
+ethans_room_view_expanded:
+  name: "Ethan's Room View Expanded"
+  icon: mdi:teddy-bear
+office_view_expanded:
+  name: "Office View Expanded"
+  icon: mdi:chair-rolling
+outdoor_view_expanded:
+  name: "Outdoor View Expanded"
+  icon: mdi:balcony
+dining_view_expanded:
+  name: "Dining View Expanded"
+  icon: mdi:silverware-fork-knife
+holiday_view_expanded:
+  name: "Holiday View Expanded"
+  icon: mdi:string-lights
+# ################ Morning Routine ######################
+# morning_brush_teeth:
+#   name: "Brush Teeth"
+#   icon: mdi:tooth-outline
+# morning_get_dressed:
+#   name: "Get Dressed"
+#   icon: mdi:tshirt-crew-outline
+# morning_make_bed:
+#   name: "Make Bed"
+#   icon: mdi:bed
+# morning_eat_breakfast:
+#   name: "Eat Breakfast"
+#   icon: mdi:food-apple-outline
+# morning_pack_backpack:
+#   name: "Pack Backpack"
+#   icon: mdi:bag-personal-outline
+# ################ Evening Routine ######################
+# evening_toys_away:
+#   name: "Put Toys Away"
+#   icon: mdi:toy-brick-outline
+# evening_brush_teeth:
+#   name: "Brush Teeth"
+#   icon: mdi:tooth-outline
+# evening_pajamas:
+#   name: "Put on Pajamas"
+#   icon: mdi:sleep
+# evening_story_time:
+#   name: "Story Time"
+#   icon: mdi:book-open-page-variant

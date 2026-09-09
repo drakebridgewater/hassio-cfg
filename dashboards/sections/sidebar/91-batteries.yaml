@@ -1,4 +1,7 @@
 type: vertical-stack
+visibility:
+  - condition: screen
+    media_query: "(min-width: 768px)"
 cards:
   - type: custom:battery-state-card
     secondary_info: "{attributes.battery_type_and_quantity}"
@@ -10,6 +13,9 @@ cards:
       exclude:
         - name: attributes.battery_low
           value: false
+        - name: state
+          operator: "="
+          value: "Unavailable"
     bulk_rename:
       - from: Battery+
     sort:

@@ -1,0 +1,250 @@
+
+max_columns: 4
+title: Ethan
+path: ethan
+type: custom:grid-layout
+layout: !include ../../layouts/grid_no_sidebar.yaml
+
+cards:
+
+ 
+  - type: custom:mushroom-chips-card
+    view_layout:
+      grid-area: banner
+    chips: !include ../../sections/status-bar.yaml
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: footer
+    cards: !include_dir_list ../../sections/footer
+
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: section3
+    cards: 
+          - type: heading
+            heading_style: title
+            heading: Bedroom
+            icon: mdi:bed
+          - type: custom:bubble-card
+            card_type: button
+            button_type: slider
+            entity: light.ethan_s_bedroom_wall_switch
+            name: Wall Switch
+            sub_button:
+              main:
+                - entity: light.ethan_s_bedroom_wall_switch
+                  tap_action:
+                    action: toggle
+                  icon: mdi:power
+              bottom: []
+            show_state: false
+            show_last_changed: false
+            show_last_updated: true
+          - type: custom:bubble-card
+            card_type: button
+            button_type: slider
+            name: Bed Lights
+            sub_button:
+              main:
+                - entity: light.toy_chest_strip
+                  tap_action:
+                    action: toggle
+                  icon: mdi:power
+              bottom: []
+            entity: light.toy_chest_strip
+            show_state: false
+            show_last_changed: false
+            show_last_updated: true
+            show_attribute: false
+            icon: mdi:bed-empty
+          - entity: switch.ethan_s_door_switch
+            name: White Noise
+            icon: mdi:sleep
+            type: custom:bubble-card
+            card_type: button
+            button_type: switch
+            show_last_updated: true
+            tap_action:
+              action: more-info
+            sub_button:
+              - name: Toggle button
+                icon: mdi:power
+                tap_action:
+                  action: toggle
+                hold_action:
+                  action: more-info
+          - entity: fan.ethan_s_cribside
+            name: Fan
+            type: custom:bubble-card
+            card_type: button
+            button_type: switch
+            show_last_updated: true
+            sub_button:
+              - name: Toggle button
+                icon: mdi:power
+                tap_action:
+                  action: toggle
+          - entity: switch.ethan_s_door_switch
+            name: White Noise
+            icon: mdi:sleep
+            type: custom:bubble-card
+            card_type: button
+            button_type: switch
+            show_last_updated: true
+            sub_button:
+              - name: Toggle button
+                icon: mdi:power
+                tap_action:
+                  action: toggle
+                hold_action:
+                  action: more-info
+          - type: custom:bubble-card
+            card_type: sub-buttons
+            sub_button:
+              main: []
+              bottom:
+                - entity: input_boolean.lighting_automation_blocker_ethan_s_room
+                  name: Automations
+                  icon: mdi:lightbulb-auto-outline
+                  show_name: true
+                  tap_action:
+                    action: toggle
+            rows: 0.938
+            styles: |-
+              .bubble-sub-button-1 {
+                background-color: ${hass.states['input_boolean.lighting_automation_blocker_ethan_s_room'].state === 'on' ? '' : 'red'} !important;
+              }
+              .bubble-sub-button-1 > ha-icon {
+                color: blue
+              }
+
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: section4
+    cards: 
+      - type: custom:mushroom-chips-card
+        chips:
+          - type: entity
+            entity: input_boolean.input_boolean.lighting_automation_blocker_ethan_s_room
+            content_info: name
+            icon_color: red
+            icon: mdi:auto-mode
+            name: Automation
+            tap_action:
+              action: toggle
+            use_entity_picture: false
+          - type: template
+            entity: binary_sensor.activity_in_the_ethan_s_bedroom
+            icon_color: |-
+              {% if states('binary_sensor.activity_in_the_ethan_s_bedroom') == 'on' -%}
+                red
+              {%- else %}
+                grey
+              {%- endif %}
+            icon: mdi:motion-sensor
+            content: |-
+              {% if states('binary_sensor.activity_in_the_ethan_s_bedroom') == 'off' -%}
+                No Motion detected
+              {% elif states('binary_sensor.activity_in_the_ethan_s_bedroom') == 'on' -%}
+                Motion Detected
+              {%- else %}
+                Motion Error
+              {%- endif %}
+            tap_action:
+              action: more-info
+          - type: template
+            entity: binary_sensor.ethan_s_bedroom_window_sensor_contact
+            icon_color: |-
+              {% if states('binary_sensor.ethan_s_bedroom_window_sensor_contact') == 'on' -%}
+                red
+              {%- else %}
+                grey
+              {%- endif %}
+            icon: |-
+              {% if states('binary_sensor.ethan_s_bedroom_window_sensor_contact') == 'off' -%}
+                mdi:blinds-horizontal-closed
+              {% elif states('binary_sensor.ethan_s_bedroom_window_sensor_contact') == 'on' -%}
+                mdi:blinds-horizontal
+              {%- else %}
+                mdi:window-close
+              {%- endif %}
+            content: |-
+              {% if states('binary_sensor.ethan_s_bedroom_window_sensor_contact') == 'off' -%}
+                Window Closed
+              {% elif states('binary_sensor.ethan_s_bedroom_window_sensor_contact') == 'on' -%}
+                Window Open
+              {%- else %}
+                Window Error
+              {%- endif %}
+            tap_action:
+              action: more-info
+      - type: custom:bubble-card
+        card_type: sub-buttons
+        sub_button:
+          main: []
+          bottom:
+            - name: Group 1
+              buttons_layout: inline
+              group:
+                - entity: sensor.ethans_bedroom_presence_sensor_light_sensor
+                  show_state: true
+                  name: Light Level
+                  show_name: true
+                  content_layout: icon-top
+                  icon: mdi:weather-sunny
+                - entity: binary_sensor.ethan_s_bedroom_window_sensor_contact
+                  name: Window Sensor
+                  icon: mdi:window-open
+                  content_layout: icon-top
+                  show_state: true
+                  force_icon: false
+            - name: Group 2
+              buttons_layout: inline
+              group:
+                - entity: binary_sensor.ethan_bedroom_occupancy
+                  name: Occupancy
+                  icon: mdi:motion-sensor
+                  show_state: true
+                  content_layout: icon-top
+                - entity: binary_sensor.ethans_bedroom_presence_sensor_occupancy
+                  name: Occupancy
+                  icon: mdi:motion-sensor
+                  show_state: true
+                  content_layout: icon-top
+            - name: Group 3
+              buttons_layout: inline
+              group:
+                - entity: sensor.ethans_blinds_battery
+                  show_state: true
+                  show_name: true
+                  name: Blinds Battery
+                  content_layout: icon-top
+                - entity: cover.ethans_blinds
+                  show_state: true
+                  show_name: true
+                  name: Blinds
+                  content_layout: icon-top
+          bottom_layout: rows
+        rows: 2.325
+
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: section5
+    cards: 
+    - type: entities
+      title: Scheduling
+      entities:
+        - type: custom:scheduler-card
+          tags: ethan
+          title: false
+          discover_existing: false
+          sort_by:
+            - state
+            - relative-time
+          display_options:
+            primary_info: default
+            secondary_info:
+              - relative-time
+            icon: action
+          show_header_toggle: false

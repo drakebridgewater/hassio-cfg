@@ -1,33 +1,39 @@
 default_config:
 my: 
 
-# auth_providers:
-#   - type: homeassistant
-#   - type: trusted_networks
-#     trusted_networks:
-#       - 10.0.0.0/24
-#         - 127.0.0.1
-#         - ::1
-#     allow_bypass_login: true
-
-# auth_header:
-#     username_header: X-authentik-username
-
 homeassistant:
+  name: Home
+  latitude: 45.4576171
+  longitude: -122.6153831
+  elevation: 140
+  radius: 100
+  unit_system: us_customary
+  currency: USD
+  country: US
+  temperature_unit: F
+  time_zone: "America/Los_Angeles"
+  external_url: https://ha.drakebridgewater.com
+  internal_url: http://10.0.0.10:8123
   packages: !include_dir_merge_named packages/
   media_dirs:
     local: media
 
 lovelace:
-  mode: yaml
+  resource_mode: yaml
   resources: !include dashboards/lovelace_resources.yaml
   dashboards:
-    lovelace-overview: 
+    lovelace-admin: 
       mode: yaml
-      filename: dashboards/lovelace-tablet.yaml
-      title: Tablet Display
-      icon: mdi:tablet
-      show_in_sidebar: true
+      filename: dashboards/lovelace-admin.yaml
+      title: Admin
+      icon: mdi:shield-key
+      show_in_sidebar: false
+      require_admin: false
+    lovelace-main: 
+      mode: yaml
+      filename: dashboards/lovelace-main.yaml
+      title: My Home
+      show_in_sidebar: false
       require_admin: false
 
 frontend:
@@ -38,83 +44,104 @@ frontend:
 
 browser:
 powercalc:
-group: !include groups.yaml
+
+group: !include configs/groups.yaml
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
-alert: !include alert.yaml
-light: !include light_groups.yaml
-sensor: !include sensor.yaml
-# input_number: !include input_number.yaml
-input_boolean: !include input_boolean.yaml
-input_select: !include input_select.yaml
-switch: !include switches.yaml
-binary_sensor: !include binary_sensor.yaml
-template: !include templates.yaml
+alert: !include configs/alert.yaml
+sensor: !include configs/sensor.yaml
+input_boolean: !include configs/input_boolean.yaml
+input_select: !include configs/input_select.yaml
+input_number: !include configs/input_number.yaml
+input_text: !include configs/input_text.yaml
+switch: !include configs/switches.yaml
+binary_sensor: !include configs/binary_sensor.yaml
+light: !include configs/light.yaml
+template: !include configs/templates.yaml
+rest_command: !include configs/rest_command.yaml
 
-device_tracker:
-  - platform: bluetooth_le_tracker
-    track_new_devices: false
+# device_tracker:
+#   - platform: bluetooth_le_tracker
+#     track_new_devices: false
+
+logger:
+  default: info
+  # logs:
+  #   homeassistant.core: debug
+
+# platform: wirelesstag
+# monitored_conditions:
+#     - battery
+
+pyscript:
+  allow_all_imports: true
+  hass_is_global: true
 
 ###############################  iOS  ###############################
-ios: !include ios.yaml
+ios: !include configs/ios.yaml
 
 #################################  Notify  ###################################
-notify: !include notify.yaml
+notify: !include configs/notify.yaml
 
 #################################    ###################################
 wirelesstag:
   username: !secret my_email
   password: !secret wirelessTagsPassword
 
+mqtt:
+  sensor:
+    - name: "Front Door Recognition"
+      state_topic: "double-take/cameras/frontdoor"
+      value_template: "{{ value_json.name }}"
+    - name: "Front Door Recognition"
+      state_topic: "double-take/cameras/driveway"
+      value_template: "{{ value_json.name }}"
+    - name: "Front Door Recognition"
+      state_topic: "double-take/cameras/garage"
+      value_template: "{{ value_json.name }}"
+    
+    - name: "Last Recognition Match"
+      state_topic: "double-take/matches/+/state"
+      value_template: "{{ value_json.name }}"
+
 #################################  Amcrest  ###################################
 # amcrest:
-#   - name: Ethan's Camera Amcrest
-#     host: 10.0.0.16
-#     port: 80
-#     username: !secret amcrest_username
-#     password: !secret amcrest_password
-#     binary_sensors:
-#       - motion_detected
-#       - crossline_detected
-#       - online
-#     sensors:
-#       - ptz_preset
-#   - name: Living Room Amcrest
-#     host: 10.0.0.14
-#     port: 80
-#     username: !secret amcrest_username
-#     password: !secret amcrest_password
-#     binary_sensors:
-#       - motion_detected
-#       - crossline_detected
-#       - online
-#     sensors:
-#       - ptz_preset
 #   - name: Doorbell Amcrest
 #     host: 10.0.0.23
-#     port: 80
 #     username: !secret amcrest_username
 #     password: !secret amcrest_password
+#     control_light: true
+#     resolution: high
+#     stream_source: rtsp
+#     scan_interval: 15
 #     binary_sensors:
-#       - motion_detected
-#       - crossline_detected
 #       - online
+#       - motion_detected
 #   - name: Driveway Amcrest
-#     host: 10.0.0.251
-#     port: 80
+#     host: 10.0.0.11
 #     username: !secret amcrest_username
-#     password: !secret amcrest_password
+#     password: !secret amcrest02_password
+#     control_light: true
 #     binary_sensors:
 #       - motion_detected
-#       - crossline_detected
-#       - online
+#   - name: Backyard Amcrest
+#     host: 10.0.0.26
+#     username: !secret amcrest_username
+#     password: !secret amcrest02_password
+#     control_light: true
+#     binary_sensors:
+#       - motion_detected
+#   - name: Garage Amcrest
+#     host: 10.0.0.12
+#     username: !secret amcrest_username
+#     password: !secret amcrest_passwords
+#     control_light: true
+#     binary_sensors:
+#       - motion_detected
 
-
-#################################  Recorder  ###################################
-recorder:
-  # purge_keep_days: 10
-  # commit_interval: 5
+#################################  History  ###################################
+history:
   exclude:
     domains:
       - automation
@@ -128,10 +155,20 @@ recorder:
       - input_text.*
     entities:
       - sensor.date
-      - sensor.last_boot # Comes from 'systemmonitor' sensor platform
-      - sun.sun # Don't record sun data
-    event_types:
-      - call_service # Don't record service calls
+      - sensor.last_boot
+      - sun.sun
+#################################  Recorder  ###################################
+recorder:
+  db_url: sqlite:///home-assistant_v2.db?cache=shared&journal_mode=wal&timeout=30000
+  purge_keep_days: 30
+  commit_interval: 30  # Increased from 5 to reduce database writes
+  auto_purge: true
+  
+  # Use SQLite WAL mode for better performance
+  db_max_retries: 10
+  db_retry_wait: 3
+  auto_repack: true
+
 
 #################################  Logbook  ###################################
 logbook:
@@ -139,6 +176,10 @@ logbook:
     domains:
       - automation
       - update
+      - device_tracker
+      - persistent_notification
+      - scene
+      - script
     entity_globs:
       - sensor.sun*
       - weather.*
@@ -146,6 +187,8 @@ logbook:
       - sensor.*uptime
       - sensor.time*
       - input_text.*
+      - sensor.*_battery
+      - sensor.*_link_quality
     entities:
       - sensor.date
       - sensor.last_boot # Comes from 'systemmonitor' sensor platform
@@ -153,13 +196,6 @@ logbook:
 
 #################################  InfluxDB  ###################################
 influxdb:
-  api_version: 2
-  ssl: false
-  host: !secret host_ip
-  port: 8086
-  token: !secret influxdb_token
-  organization: !secret influxdb_organization
-  bucket: hassio
   max_retries: 3
   default_measurement: state
   tags_attributes:
@@ -174,6 +210,26 @@ influxdb:
       - person
       - automation
       - camera
+
+prometheus:
+  namespace: homeassistant
+  filter:
+    include_domains:
+      - sensor
+      - binary_sensor
+      - switch
+      - light
+      - climate
+      - cover
+      - device_tracker
+    exclude_entities:
+      - zone.home
+    exclude_domains:
+      - persistent_notification
+      - person
+      - automation
+      - camera
+  override_metric: homeassistant_sensor_state
 
 #################################  TraktTV  ###################################
 trakt_tv:

@@ -1,0 +1,33 @@
+icon_container_color:
+  name: 'Example: Customize the icon container color'
+  version: v1.2
+  creator: Clooos
+  supported:
+    - calendar
+    - pop-up
+    - cover
+    - button
+    - media-player
+    - climate
+    - select
+  description: |
+    A list of predefined colors to customize the icon container color.
+    Configure this module via the editor or in YAML, for example:
+    <br><br>
+    <code-block><pre>
+    icon_container_color: 
+        color: light-blue
+    </pre></code-block>
+  code: |
+    .bubble-icon-container,
+    .bubble-day-chip {
+      opacity: 1 !important;
+      --bubble-icon-background-color: var(--${this.config.icon_container_color?.color}-color) !important;
+    }
+  editor:
+    - name: color
+      label: Color
+      selector:
+        ui_color:
+          include_none: true
+  link: https://github.com/Clooos/Bubble-Card/discussions/1231

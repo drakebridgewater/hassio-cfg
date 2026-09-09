@@ -1,0 +1,94 @@
+conditional_icon:
+  name: Conditional Icon
+  version: 2.0.2
+  creator: ozumado
+  description: |
+    This module allows the use of different icons based on entity state.<br/><b>State</b> is the expected value — if the condition is met, <b>Icon True</b> is used, otherwise, <b>Icon False</b> is used.<br/>In <b>Advanced Settings</b> you may specify which entity state to check (by default it checks card entity).
+    <br><br>
+    <code-block><pre>
+    conditional_icon: 
+      target_state: YOUR_STATE
+      icon_true: YOUR_TRUE_ICON
+      icon_false: YOUR_FALSE_ICON
+      advanced_settings:
+        target_entity: YOUR_ENTITY # leave empty to use default entity
+        color_true: YOUR_TRUE_COLOR # leave empty to use default color
+        color_false: YOUR_FALSE_COLOR # leave empty to use default color
+    </pre></code-block>
+  supported:
+    - button
+    - climate
+    - cover
+    - media-player
+  code: |
+    .bubble-main-icon-container {
+      color: var(--bubble-icon-color)!important;
+    }
+
+    ${(() => {
+
+      try {
+
+        const moduleConfig = this.config.conditional_icon;
+        if (!moduleConfig || !moduleConfig.conditions) return;
+
+        // Check condition
+        const conditionValue = (moduleConfig?.conditions && checkConditionsMet([].concat(moduleConfig.conditions), hass));
+
+        // Change icon
+        const iconTrue = moduleConfig.icon_true;
+        const iconFalse = moduleConfig.icon_false;
+        if (iconTrue && iconFalse) {
+          const iconValue = conditionValue ? iconTrue : iconFalse;
+          if (iconValue !== icon.icon) icon.icon = iconValue;
+        } else {
+          icon.icon == card.querySelector('.bubble-main-icon').icon;
+        }
+
+        // Change color
+        const colorTrue = moduleConfig.advanced_settings?.color_true;
+        const colorFalse = moduleConfig.advanced_settings?.color_false;
+        if (colorTrue && colorFalse) {
+          const colorValue = conditionValue ? colorTrue : colorFalse;
+          card.style.setProperty('--bubble-icon-color', 'var(--'+colorValue+'-color)', 'important');
+        } else {
+          card.style.setProperty('--bubble-icon-color', 'initial', 'important');
+        }
+        
+      } catch (err) {
+        console.error("Error in conditional-icon module: ", err);
+      }
+      
+    })()}
+  editor:
+    - name: conditions
+      label: Conditions
+      selector:
+        condition: {}
+    - name: icon_true
+      label: Icon True
+      required: true
+      selector:
+        icon: {}
+    - name: icon_false
+      label: Icon False
+      required: true
+      selector:
+        icon: {}
+    - type: expandable
+      name: advanced_settings
+      title: Advanced Settings
+      icon: mdi:tune
+      expanded: false
+      schema:
+        - type: constant
+          label: 'Optional: Select icon colors:'
+        - name: color_true
+          label: Color True
+          selector:
+            ui_color: {}
+        - name: color_false
+          label: Color False
+          selector:
+            ui_color: {}
+  link: https://github.com/Clooos/Bubble-Card/discussions/1621

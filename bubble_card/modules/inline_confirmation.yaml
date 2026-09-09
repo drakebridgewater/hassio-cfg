@@ -1,0 +1,183 @@
+inline_confirmation:
+    name: "Inline Confirmation Overlay"
+    version: "1.0.1"
+    creator: "cerahmed"
+    link: "https://github.com/Clooos/Bubble-Card/discussions/2173"
+
+    supported:
+        - button
+
+    description: |
+        Adds a confirmation overlay inside the bubble card before executing actions. Currently works for icon and card single tap actions. Sub-buttons are not supported yet.
+        <br><br>
+        <code-block><pre>
+        inline_confirmation: 
+            icon_confirmation: YOUR_VALUE
+        </pre></code-block>
+
+    code: |
+        ${(() => {
+                  const containerElement = card.querySelector('.bubble-button-container');
+                  const iconElement = card.querySelector('.bubble-main-icon-container');
+                  const cardElement = card.querySelector('.bubble-background');
+                
+                  if (!containerElement || !iconElement || !cardElement) return;
+                
+                  // 1. Get the data-tap-action for both icon and card, then neutralize them
+                  // .. so that no action is fired on tap.
+                  const iconActions = iconElement.getAttribute('data-tap-action');
+                  const cardActions = cardElement.getAttribute('data-tap-action');
+                
+                  // 2. Check if confirmation is needed for icon and/or card
+                  const shouldConfirmIconAction = this.config.inline_confirmation?.icon_confirmation ? true : false;
+                  const shouldConfirmCardAction = this.config.inline_confirmation?.card_confirmation ? true : false;
+                
+                  // 3. Neutralize actions from original icon and card elements if confirmation is needed
+                  if (shouldConfirmIconAction) {
+                    iconElement.setAttribute('data-tap-action', '{"action":"none"}');
+                  }
+                
+                  if (shouldConfirmCardAction) {
+                    cardElement.setAttribute('data-tap-action', '{"action":"none"}');
+                  }
+                
+                  // Overlay creation function
+                  const createOverlay = () => {
+                    const overlay = document.createElement('div');
+                    overlay.className = 'confirmation-overlay';
+                    overlay.innerHTML = `
+                      <div class="confirm-btn confirm-no"><ha-icon icon="mdi:close-circle"></ha-icon></div>
+                      <div class="confirm-btn confirm-yes"><ha-icon icon="mdi:check-circle"></ha-icon></div>
+                    `;
+                    return overlay;
+                  };
+                
+                  // 4. Show confirmation overlay on icon click
+                  shouldConfirmIconAction && iconElement.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (card.querySelector('.confirmation-overlay')) return;
+                
+                    const overlay = createOverlay();
+                    containerElement.appendChild(overlay);
+                        
+                    // On click cancel
+                    overlay.querySelector('.confirm-no').onclick = (e) => {
+                      e.stopPropagation();
+                      overlay.remove();
+                    };
+                
+                    // On click confirm
+                    overlay.querySelector('.confirm-yes').onclick = (e) => {
+                      e.stopPropagation();
+                
+                      // Use the official 'hass-action' event with the backed-up action config
+                      const actionConfig = {
+                        entity: entity, 
+                        tap_action: JSON.parse(iconActions)
+                      };
+                
+                      const actionEvent = new CustomEvent("hass-action", {
+                        detail: {
+                          config: actionConfig,
+                          action: "tap",
+                        },
+                        bubbles: true,
+                        composed: true,
+                      });
+                
+                      iconElement.dispatchEvent(actionEvent);
+                      overlay.remove();
+                    };
+                  });
+                
+                  // 5. Show confirmation overlay on card click
+                  shouldConfirmCardAction && cardElement.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (card.querySelector('.confirmation-overlay')) return;
+                
+                    const overlay = createOverlay();
+                    containerElement.appendChild(overlay);
+                        
+                    // On click cancel
+                    overlay.querySelector('.confirm-no').onclick = (e) => {
+                      e.stopPropagation();
+                      overlay.remove();
+                    };
+                
+                    // On click confirm
+                    overlay.querySelector('.confirm-yes').onclick = (e) => {
+                      e.stopPropagation();
+                
+                      // Use the official 'hass-action' event with the backed-up action config
+                      const actionConfig = {
+                        entity: entity, 
+                        tap_action: JSON.parse(cardActions)
+                      };
+                
+                      const actionEvent = new CustomEvent("hass-action", {
+                        detail: {
+                          config: actionConfig,
+                          action: "tap",
+                        },
+                        bubbles: true,
+                        composed: true,
+                      });
+                
+                      cardElement.dispatchEvent(actionEvent);
+                      overlay.remove();
+                    };
+                  });
+                
+                })()}
+        
+                * {
+                  --icon-primary-color: currentcolor;
+                }
+                
+                .confirmation-overlay {
+                  position: absolute !important;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                  background: rgba(0, 0, 0, 0.85);
+                  display: flex;
+                  justify-content: space-evenly;
+                  align-items: center;
+                  z-index: 5;
+                  border-radius: inherit;
+                  backdrop-filter: blur(4px);
+                  animation: fade-in 0.2s ease-out;
+                }
+                .confirm-btn {
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  transition: transform 0.1s;
+                  background: rgba(255,255,255,0.1);
+                  border-radius: 50%;
+                  padding: 2px;
+                }
+                .confirm-btn:active { transform: scale(0.9); }
+                .confirm-yes { --mdc-icon-size: 40px; color: #4caf50 !important; }
+                .confirm-no { --mdc-icon-size: 40px; color: #f44336 !important; }
+                
+                @keyframes fade-in {
+                  from { opacity: 0; }
+                  to { opacity: 1; }
+                } 
+
+    editor:
+      - name: icon_confirmation
+        label: Icon Action Confirmation
+        required: false
+        default: false
+        selector:
+          boolean: {}
+      - name: card_confirmation
+        label: Card Action Confirmation
+        required: false
+        default: false
+        selector:
+          boolean: {}

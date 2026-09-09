@@ -1,0 +1,654 @@
+subbutton_ig_ic_colors:
+  name: Subbutton Colors with Defaults and Dual Overrides
+  version: v1.0
+  creator: Schocker360
+  description: |
+    Each subbutton has:
+    - Default colors (always applied)
+    - Primary overrides (conditional)
+    - Secondary overrides (conditional, evaluated after primary)
+
+    <br><br>
+    <code-block><pre>
+    subbutton_ig_ic_colors: 
+        subbutton1: YOUR_VALUE
+    </pre></code-block>
+  supported:
+    - button
+  code: |
+    ${(() => {
+        const config = this.config.subbutton_ig_ic_colors || {};
+        
+        const applyButtonStyles = (index) => {
+          const btn = card.querySelector(`.bubble-sub-button-${index}`);
+          const icon = btn?.querySelector('.bubble-sub-button-icon');
+          const cfg = config[`subbutton${index}`];
+          if (!btn || !cfg) return;
+
+          // Apply defaults
+          btn.style.backgroundColor = cfg.defaults?.default_bg_color 
+            ? `var(--${cfg.defaults.default_bg_color}-color)` 
+            : '';
+            
+          if (icon) {
+            icon.style.color = cfg.defaults?.default_icon_color 
+              ? `var(--${cfg.defaults.default_icon_color}-color)` 
+              : '';
+          }
+
+          // Check primary overrides
+          const primaryConditionsMet = cfg.primary_overrides?.condition 
+            ? checkConditionsMet([].concat(cfg.primary_overrides.condition), hass)
+            : false;
+
+          // Check secondary overrides
+          const secondaryConditionsMet = cfg.secondary_overrides?.condition 
+            ? checkConditionsMet([].concat(cfg.secondary_overrides.condition), hass)
+            : false;
+
+          // Apply primary overrides if conditions met
+          if (primaryConditionsMet) {
+            if (cfg.primary_overrides?.color) {
+              btn.style.backgroundColor = `var(--${cfg.primary_overrides.color}-color)`;
+            }
+            if (icon && cfg.primary_overrides?.icon_color) {
+              icon.style.color = `var(--${cfg.primary_overrides.icon_color}-color)`;
+            }
+          }
+
+          // Apply secondary overrides if conditions met (overrides primary)
+          if (secondaryConditionsMet) {
+            if (cfg.secondary_overrides?.color) {
+              btn.style.backgroundColor = `var(--${cfg.secondary_overrides.color}-color)`;
+            }
+            if (icon && cfg.secondary_overrides?.icon_color) {
+              icon.style.color = `var(--${cfg.secondary_overrides.icon_color}-color)`;
+            }
+          }
+        };
+
+        // Apply styles to all 10 subbuttons
+        for (let i = 1; i <= 10; i++) applyButtonStyles(i);
+    })()}
+  editor:
+    - type: expandable
+      name: subbutton1
+      title: Subbutton 1
+      icon: mdi:numeric-1-box-outline
+      schema:
+        - type: expandable
+          name: defaults
+          title: Defaults
+          icon: mdi:cog-outline
+          schema:
+            - name: default_bg_color
+              label: Default Background
+              selector:
+                ui_color:
+                  include_none: true
+            - name: default_icon_color
+              label: Default Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+        - type: expandable
+          name: primary_overrides
+          title: Primary Overrides
+          icon: mdi:tune-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+        - type: expandable
+          name: secondary_overrides
+          title: Secondary Overrides
+          icon: mdi:tune-vertical-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+    - type: expandable
+      name: subbutton2
+      title: Subbutton 2
+      icon: mdi:numeric-2-box-outline
+      schema:
+        - type: expandable
+          name: defaults
+          title: Defaults
+          icon: mdi:cog-outline
+          schema:
+            - name: default_bg_color
+              label: Default Background
+              selector:
+                ui_color:
+                  include_none: true
+            - name: default_icon_color
+              label: Default Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+        - type: expandable
+          name: primary_overrides
+          title: Primary Overrides
+          icon: mdi:tune-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+        - type: expandable
+          name: secondary_overrides
+          title: Secondary Overrides
+          icon: mdi:tune-vertical-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+    - type: expandable
+      name: subbutton3
+      title: Subbutton 3
+      icon: mdi:numeric-3-box-outline
+      schema:
+        - type: expandable
+          name: defaults
+          title: Defaults
+          icon: mdi:cog-outline
+          schema:
+            - name: default_bg_color
+              label: Default Background
+              selector:
+                ui_color:
+                  include_none: true
+            - name: default_icon_color
+              label: Default Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+        - type: expandable
+          name: primary_overrides
+          title: Primary Overrides
+          icon: mdi:tune-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+        - type: expandable
+          name: secondary_overrides
+          title: Secondary Overrides
+          icon: mdi:tune-vertical-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+    - type: expandable
+      name: subbutton4
+      title: Subbutton 4
+      icon: mdi:numeric-4-box-outline
+      schema:
+        - type: expandable
+          name: defaults
+          title: Defaults
+          icon: mdi:cog-outline
+          schema:
+            - name: default_bg_color
+              label: Default Background
+              selector:
+                ui_color:
+                  include_none: true
+            - name: default_icon_color
+              label: Default Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+        - type: expandable
+          name: primary_overrides
+          title: Primary Overrides
+          icon: mdi:tune-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+        - type: expandable
+          name: secondary_overrides
+          title: Secondary Overrides
+          icon: mdi:tune-vertical-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+    - type: expandable
+      name: subbutton5
+      title: Subbutton 5
+      icon: mdi:numeric-5-box-outline
+      schema:
+        - type: expandable
+          name: defaults
+          title: Defaults
+          icon: mdi:cog-outline
+          schema:
+            - name: default_bg_color
+              label: Default Background
+              selector:
+                ui_color:
+                  include_none: true
+            - name: default_icon_color
+              label: Default Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+        - type: expandable
+          name: primary_overrides
+          title: Primary Overrides
+          icon: mdi:tune-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+        - type: expandable
+          name: secondary_overrides
+          title: Secondary Overrides
+          icon: mdi:tune-vertical-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+    - type: expandable
+      name: subbutton6
+      title: Subbutton 6
+      icon: mdi:numeric-6-box-outline
+      schema:
+        - type: expandable
+          name: defaults
+          title: Defaults
+          icon: mdi:cog-outline
+          schema:
+            - name: default_bg_color
+              label: Default Background
+              selector:
+                ui_color:
+                  include_none: true
+            - name: default_icon_color
+              label: Default Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+        - type: expandable
+          name: primary_overrides
+          title: Primary Overrides
+          icon: mdi:tune-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+        - type: expandable
+          name: secondary_overrides
+          title: Secondary Overrides
+          icon: mdi:tune-vertical-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+    - type: expandable
+      name: subbutton7
+      title: Subbutton 7
+      icon: mdi:numeric-7-box-outline
+      schema:
+        - type: expandable
+          name: defaults
+          title: Defaults
+          icon: mdi:cog-outline
+          schema:
+            - name: default_bg_color
+              label: Default Background
+              selector:
+                ui_color:
+                  include_none: true
+            - name: default_icon_color
+              label: Default Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+        - type: expandable
+          name: primary_overrides
+          title: Primary Overrides
+          icon: mdi:tune-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+        - type: expandable
+          name: secondary_overrides
+          title: Secondary Overrides
+          icon: mdi:tune-vertical-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+    - type: expandable
+      name: subbutton8
+      title: Subbutton 8
+      icon: mdi:numeric-8-box-outline
+      schema:
+        - type: expandable
+          name: defaults
+          title: Defaults
+          icon: mdi:cog-outline
+          schema:
+            - name: default_bg_color
+              label: Default Background
+              selector:
+                ui_color:
+                  include_none: true
+            - name: default_icon_color
+              label: Default Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+        - type: expandable
+          name: primary_overrides
+          title: Primary Overrides
+          icon: mdi:tune-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+        - type: expandable
+          name: secondary_overrides
+          title: Secondary Overrides
+          icon: mdi:tune-vertical-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+    - type: expandable
+      name: subbutton9
+      title: Subbutton 9
+      icon: mdi:numeric-9-box-outline
+      schema:
+        - type: expandable
+          name: defaults
+          title: Defaults
+          icon: mdi:cog-outline
+          schema:
+            - name: default_bg_color
+              label: Default Background
+              selector:
+                ui_color:
+                  include_none: true
+            - name: default_icon_color
+              label: Default Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+        - type: expandable
+          name: primary_overrides
+          title: Primary Overrides
+          icon: mdi:tune-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+        - type: expandable
+          name: secondary_overrides
+          title: Secondary Overrides
+          icon: mdi:tune-vertical-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+    - type: expandable
+      name: subbutton10
+      title: Subbutton 10
+      icon: mdi:numeric-10-box-outline
+      schema:
+        - type: expandable
+          name: defaults
+          title: Defaults
+          icon: mdi:cog-outline
+          schema:
+            - name: default_bg_color
+              label: Default Background
+              selector:
+                ui_color:
+                  include_none: true
+            - name: default_icon_color
+              label: Default Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+        - type: expandable
+          name: primary_overrides
+          title: Primary Overrides
+          icon: mdi:tune-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+        - type: expandable
+          name: secondary_overrides
+          title: Secondary Overrides
+          icon: mdi:tune-vertical-variant
+          schema:
+            - name: color
+              label: Background Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: icon_color
+              label: Icon Color
+              selector:
+                ui_color:
+                  include_none: true
+            - name: condition
+              label: Apply when ALL these conditions are met
+              selector:
+                condition: {}
+  link: https://github.com/Clooos/Bubble-Card/discussions/1745

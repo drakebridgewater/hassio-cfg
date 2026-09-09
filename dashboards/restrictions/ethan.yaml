@@ -1,0 +1,48 @@
+locked: "{{ is_state('input_boolean.parents_management_mode', 'off') }}"
+duration: 30
+locked_icon: mdi:lock
+unlocked_icon: mdi:lock-open-variant
+restrictions:
+  tap:
+    action: call-service
+    service: input_boolean.turn_on
+    service_data:
+      entity_id: input_boolean.parents_management_mode
+
+css_variables:
+  "--restriction-overlay-background": >-
+    repeating-linear-gradient( -45deg, transparent 0
+    10px,var(--user-restriction-card-mask,rgba(255,0,0,0.1)) 10px 20px)
+  "--restriction-lock-opacity": 1
+  "--restriction-overlay-row-border-radius": 4px
+  "--restriction-overlay-row-outline": 1px solid rgba(255,0,0,0.1)
+  "--restriction-regular-lock-color": red
+  "--restriction-success-lock-color": green
+card_mod:
+  style: |
+    #lock {
+      background: transparent !important;
+      position: absolute !important;
+      top: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      display: flex !important;
+      align-items: flex-start !important;
+      justify-content: flex-end !important;
+      padding: 10px !important;
+      cursor: pointer;
+    }
+    #lock ha-icon {
+      background: rgba(50,50,120,0.92);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.3);
+      --mdc-icon-size: 20px;
+      flex-shrink: 0;
+    }

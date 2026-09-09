@@ -1,0 +1,21 @@
+# Define common card templates to reduce duplication
+slider_card_template: &slider_card_template
+  type: custom:bubble-card
+  card_type: button
+  button_type: slider
+  show_state: true
+  show_last_changed: true
+  show_attribute: false
+  tap_action:
+    action: more-info
+  hold_action:
+    action: more-info
+
+# Define common sub-button template
+sub_power_btn_template: &sub_power_btn_template
+  name: ""
+  icon: mdi:power
+  tap_action:
+    action: more-info
+  hold_action:
+    action: more-info

@@ -1,0 +1,22 @@
+title: Groups
+path: groups
+badges: []
+cards:
+  - type: custom:auto-entities
+    card:
+      type: vertical-stack
+    card_param: cards
+    name: Groups
+    filter:
+      include:
+        - entity_id: '*_group'
+          options:
+            type: custom:mushroom-entity-card
+
+    sort:
+      method: state
+      reverse: true
+      ignore_case: true
+      ip: false
+      numeric: true
+    show_empty: true

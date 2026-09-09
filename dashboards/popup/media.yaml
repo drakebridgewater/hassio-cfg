@@ -1,0 +1,30 @@
+type: vertical-stack
+cards: 
+  - type: custom:bubble-card
+    card_type: pop-up
+    hash: '#media'
+    button_type: state
+    entity: binary_sensor.whole_house_motion_group
+    name: Motion Throughout House
+    force_icon: false
+    show_state: true
+    show_last_changed: false
+    show_attribute: true
+    attribute: max_color_temp_kelvin
+    bg_opacity: '35'
+    button_action:
+      tap_action:
+        action: none
+    tap_action:
+      action: toggle
+  - type: custom:mini-media-player
+    entity: media_player.spotify_thedrake
+    group: false
+    volume_stateless: true
+    artwork: cover
+    source: full
+    sound_mode: icon
+    visibility:
+      - condition: state
+        entity: media_player.spotify_thedrake
+        state: "on"

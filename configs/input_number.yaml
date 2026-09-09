@@ -1,0 +1,22 @@
+inovelli_parameter_value:
+  name: Parameter Value
+  min: 0
+  max: 255
+  step: 1
+  initial: 0
+  icon: mdi:numeric
+
+# ethan_daily_stars_earned:
+#   name: "Stars Earned Today"
+#   initial: 0
+#   min: 0
+#   max: 20
+#   step: 1
+#   icon: mdi:star
+# ethan_weekly_stars:
+#   name: "Weekly Stars"
+#   initial: 0
+#   min: 0
+#   max: 140
+#   step: 1
+#   icon: mdi:star-circle

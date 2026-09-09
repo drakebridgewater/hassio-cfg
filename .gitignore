@@ -1,23 +1,27 @@
-# Directory specific files
-old-dashboards.tar.gz
-dashboards.tar.gz
-www/community/**/*.zip
-NOT_USED/
-
-# Home Assistant configuration
-.HA_VERSION
-home-assistant.log
-home-assistant_v2*
+# --- Secrets (never commit) ---
 secrets.yaml
+!secrets.yaml.example
+
+# --- Runtime state (not config-as-code) ---
+.storage/
+.cloud/
+.cache/
+.HA_VERSION
+.uuid
+known_devices.yaml
 html5_push_registrations.conf
 
-# Exclude all custom components
-custom_components/*
+# --- vscode extension settings ---
+.history/
 
-# But include manifest files for version tracking
-!custom_components/*/manifest.json
+# --- Logs ---
+*.log
+*.log.*
+home-assistant.log*
+watchman_report.txt
 
-# Database files
+# --- Databases ---
+home-assistant_v2*
 *.db
 *.db-shm
 *.db-wal
@@ -25,10 +29,11 @@ music_assistant.db
 zigbee.db*
 pyozw.sqlite
 
-# Directories
-.storage/
-.cloud/
-Abode/
+# --- Protocol-specific config files ---
+zwcfg_*.xml
+aircast.xml
+
+# --- Directories HA writes to at runtime ---
 backups/
 themes/
 tts/
@@ -36,14 +41,48 @@ image/
 nest/
 media/
 ssl/
-# custom_components/
+Abode/
 
-# Logs
-*.log
-*.log.*
-watchman_report.txt
+# --- Custom components ---
+# Ignoring code, keeping manifests: correct ONLY if every integration here
+# is HACS-managed (HACS reinstalls the code; the manifest is enough to
+# know what's installed). If you hand-write/modify any of these yourself,
+# remove this pair and track custom_components/ directly instead.
+custom_components/*
+!custom_components/*/manifest.json
 
-# Cached files
+ticker_migration_backups/
+www/alexa_tts/*
+www/community/**/bubble-card-*.json
+www/icloud3/*.png
+
+www/**/Plex*/*.jpg
+
+# --- Dashboard/frontend cruft ---
+old-dashboards.tar.gz
+dashboards.tar.gz
+*.tar.gz
+NOT_USED/
+
+# HACS-managed frontend resources
+www/community/**/*.zip
+www/community/**/*.js
+www/community/**/*.js.gz
+
+# Images under www/ - scoped to community/ only so custom dashboard
+# images you place elsewhere in www/ still get tracked.
+www/community/**/*.jpg
+www/community/**/*.jpeg
+www/community/**/*.png
+www/community/**/*.gif
+www/community/**/*.svg
+www/community/**/*.webp
+www/community/**/*.bmp
+www/community/**/*.ico
+
+www/**/plex/**/*.jpg
+
+# --- Python cache ---
 __pycache__/
 **/__pycache__/
 *.py[cod]
@@ -51,29 +90,16 @@ __pycache__/
 .pytest_cache/
 *.pickle
 
-# IDE related
+# --- IDE / editor ---
 .vscode/
-**pycharm**
 .idea/
+*.swp
+**pycharm**
 
-# Protocol-specific files
-zwcfg_*.xml
-aircast.xml
-
-# OS specific files
-*.DS_Store
+# --- OS specific ---
+.DS_Store
 Thumbs.db
+www/upcoming-media-card-images/plex/Recently_Added_Movies/p132346.jpg
 
-# Frigate card assets
-www/community/**/*.js
-www/community/**/*.js.gz
-
-# Image files in www directory
-www/**/*.jpg
-www/**/*.jpeg
-www/**/*.png
-www/**/*.gif
-www/**/*.svg
-www/**/*.webp
-www/**/*.bmp
-www/**/*.ico
+# --- Hosting ---
+www/google*.html

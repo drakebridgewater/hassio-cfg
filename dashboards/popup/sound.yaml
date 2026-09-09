@@ -1,0 +1,28 @@
+type: vertical-stack
+cards:
+- type: custom:bubble-card
+  card_type: pop-up
+  hash: '#sound'
+  button_type: name
+  name: Sound Sensors
+- type: custom:auto-entities
+  card_param: cards
+  card:
+    type: grid
+    columns: 2
+    square: false
+  filter:
+    include:
+      - domain: binary_sensor
+        attributes:
+          device_class: sound
+        options:
+          type: custom:bubble-card
+          card_type: button
+          button_type: state
+    exclude: 
+      - state: unavailable
+      - state: unknown
+  sort:
+    method: state
+    reverse: true

@@ -9,13 +9,7 @@ cards:
         icon: mdi:light-switch
         content_info: name
         name: View
-        tap_action: !include ../popup/wall_switches.yaml
-      # - type: entity
-      #   entity: switch.espresso_machine
-      #   tap_action:
-      #     action: toggle
-      #   icon: mdi:coffee-maker
-      #   icon_color: brown
+        tap_action: !include ../../popup/wall_switches.yaml
       - type: entity
         entity: fan.ceiling_fan_2
         tap_action:
@@ -30,14 +24,6 @@ cards:
     name: Kitchen
     icon: mdi:silverware-fork-knife
     type: "custom:button-card"
-    # label: |
-    #     [[[
-    #       var motion_disabled = states['input_boolean.motion_in_main_disabled'].state;
-    #       if ( motion_disabled == "off") {
-    #         return `Automations: enabled `;
-    #       }
-    #       return `Automations: disabled `;
-    #     ]]]
     tap_action:
       action: navigate
       navigation_path: kitchen
@@ -76,7 +62,7 @@ cards:
       navigation_path: living
     label: |
         [[[
-          var motion_disabled = states['input_boolean.motion_in_main_disabled'].state;
+          var motion_disabled = states['input_boolean.lighting_automation_blocker_living_room'].state;
           if ( motion_disabled == "off") {
             return `Automations: enabled `;
           }
@@ -120,7 +106,7 @@ cards:
 
     label: |
         [[[
-          var motion_disabled = states['input_boolean.master_bedroom_lighting_automation_on_disabled'].state;
+          var motion_disabled = states['input_boolean.lighting_automation_blocker_master_bedroom'].state;
           if ( motion_disabled == "off") {
             return `Automations: enabled `;
           }
@@ -186,7 +172,7 @@ cards:
     type: "custom:button-card"
     label: |
         [[[
-          var motion_disabled = states['input_boolean.family_room_lighting_automation_on_disabled'].state;
+          var motion_disabled = states['input_boolean.lighting_automation_blocker_family_room'].state;
           if ( motion_disabled == "off") {
             return `Automations: enabled `;
           }
@@ -220,7 +206,7 @@ cards:
       - light.office_lights_group
     label: |
         [[[
-          var motion_disabled = states['input_boolean.office_lighting_automation_on_disabled'].state;
+          var motion_disabled = states['input_boolean.lighting_automation_blocker_office_room'].state;
           if ( motion_disabled == "off") {
             return `Automations: enabled `;
           }
@@ -269,7 +255,7 @@ cards:
           entity: light.tv_lights_group
           type: "custom:button-card"
           template: view_power_icon_style
-  - entity: light.0x94deb8fffe4fcaf4
+  - entity: light.front_porch_wall_switch
     icon: mdi:balcony
     name: Outside
     type: "custom:button-card"
@@ -278,7 +264,7 @@ cards:
       navigation_path: outdoors
     template: 6_1__room_btn
     triggers_update:
-      - light.0x94deb8fffe4fcaf4
+      - light.front_porch_wall_switch
     custom_fields:
       s2: |
         [[[
@@ -286,6 +272,6 @@ cards:
         ]]]
       power_icon:
         card:
-          entity: light.0x94deb8fffe4fcaf4
+          entity: light.front_porch_wall_switch
           type: custom:button-card
           template: view_power_icon_style
