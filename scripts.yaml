@@ -626,11 +626,15 @@ led_set:
   max: 25
   mode: parallel
   sequence:
-  - alias: 'Branch on effect: Clear Effect uses minimal params (firmware quirk); active
-      effects use full params'
+  - alias: 'Branch on effect: a clear is sent as effect Off + duration 255 (the only
+      release the firmware honours through this blueprint); active effects use full
+      params'
     choose:
-    - alias: 'Clear path: omit color, level, duration (firmware silently rejects Clear
-        Effect when these are present)'
+    - alias: 'Clear path: release the effect with ''Off'' + duration 255. ''Clear
+        Effect'' can never work through this blueprint - its effects lookup keys on
+        ''clear'', so ''clear effect'' misses and the literal string is published -
+        and the blueprint always packs color/level/duration regardless, which the
+        firmware rejects alongside a clear.'
       conditions:
       - condition: template
         value_template: '{{ effect | default(''pulse'') == ''clear'' }}'
@@ -639,7 +643,10 @@ led_set:
         data:
           led: '{% set m = {''mode'':''Led 4'',''spatial'':''Led 7'',''global'':''Led
             1'',''critical'':''All''} %}{{ m[tier] }}'
-          effect: Clear Effect
+          effect: 'Off'
+          color: 0
+          level: 0
+          duration: 255
           target: '{% set s = switch_entity %}{% if s is string %}{{ {''entity_id'':
             [s]} }}{% else %}{{ {''entity_id'': s | list} }}{% endif %}'
     default:
@@ -667,8 +674,8 @@ led_set:
           effect: '{% set m = {''solid'':''Solid'',''pulse'':''Pulse'',''fast_blink'':''Fast
             Blink'',''slow_blink'':''Slow Blink'',''off'':''Off'',''clear'':''Clear
             Effect''} %}{{ m[effect | default(''pulse'')] }}'
-          led: '{% set m = {''mode'':''Led 4'',''spatial'':''Led 1'',''global'':''Led
-            4'',''critical'':''All''} %}{{ m[tier] }}'
+          led: '{% set m = {''mode'':''Led 4'',''spatial'':''Led 7'',''global'':''Led
+            1'',''critical'':''All''} %}{{ m[tier] }}'
           level: 1
           target: '{% set s = switch_entity %}{% set entities = [s] if s is string
             else (s | list) %}{% set sanctuary = [''light.master_bedroom_wall_switch'',
@@ -700,8 +707,8 @@ led_set:
           effect: '{% set m = {''solid'':''Solid'',''pulse'':''Pulse'',''fast_blink'':''Fast
             Blink'',''slow_blink'':''Slow Blink'',''off'':''Off'',''clear'':''Clear
             Effect''} %}{{ m[effect | default(''pulse'')] }}'
-          led: '{% set m = {''mode'':''Led 4'',''spatial'':''Led 1'',''global'':''Led
-            4'',''critical'':''All''} %}{{ m[tier] }}'
+          led: '{% set m = {''mode'':''Led 4'',''spatial'':''Led 7'',''global'':''Led
+            1'',''critical'':''All''} %}{{ m[tier] }}'
           level: '{% set tdb = {''mode'':15,''spatial'':100,''global'':100,''critical'':100}
             %}{% set b = brightness | default(none) %}{{ (b if b is not none else
             tdb[tier]) | int }}'

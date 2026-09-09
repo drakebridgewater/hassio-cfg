@@ -680,7 +680,10 @@
       - service: script.1713191378784
         data:
           led: All
-          effect: Clear
+          effect: 'Off'
+          color: 0
+          level: 0
+          duration: 255
           target:
             device_id: 4845a6a6beec4d5968ad71e5bd9ebf26
     - conditions:
@@ -979,8 +982,10 @@
       - service: script.1713191378784
         data:
           led: Led 4
-          effect: Clear
-          duration: Indefinitely
+          effect: 'Off'
+          color: 0
+          level: 0
+          duration: 255
           target:
             device_id:
             - 66245c3a1952a0a634def4f846710153
@@ -3997,7 +4002,7 @@
           tier: global
         action: script.led_set
     default:
-    - alias: No notification → clear LED 7 (bottom) on all switches
+    - alias: No notification → clear LED 1 (bottom) on all switches
       data:
         effect: clear
         switch_entity:
@@ -4020,11 +4025,17 @@
         tier: global
       action: script.led_set
       enabled: false
-    - action: script.inovelli_blue_led_zigbee2mqtt
+    - alias: No notification → release the global tier LED. The global tier paints
+        Led 1 (bottom), so the release has to target Led 1; this was aimed at Led 7
+        and so never touched the LED the notification was drawn on.
+      action: script.inovelli_blue_led_zigbee2mqtt
       metadata: {}
       data:
-        led: Led 7
-        effect: Clear
+        led: Led 1
+        effect: 'Off'
+        color: 0
+        level: 0
+        duration: 255
         target:
           entity_id:
           - light.family_room_wall_switch
