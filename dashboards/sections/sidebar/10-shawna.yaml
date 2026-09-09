@@ -1,0 +1,35 @@
+type: markdown
+content: |
+  {% set abby = states('binary_sensor.abby_at_daycare') %}
+  {% set ethan = states('binary_sensor.ethan_at_daycare') %}
+  {% set drake = is_state('person.drake', "home") %}
+  {% set everyone = abby and ethan and drake %}
+
+  {% set daycare = abby == 'on' and ethan == 'on' %}
+
+
+  {% if everyone -%}
+    {% set message = "Everyone is home" %}
+  {%- elif daycare -%}
+    {% set message = "Abby and Ethan are at daycare" %}
+  {%- else -%}
+    {% set message = "Abby is at " + ("daycare" if abby == 'on' else "home") + " and Ethan is at " + ( "Daycare" if ethan == 'on' else "Home") %}
+  {%- endif %}
+
+  <h3><ha-alert alert-type="info">{{ message }}</ha-alert></h3>
+
+text_only: true
+visibility:
+  - condition: and
+    conditions:
+      - condition: user
+        users:
+          - 39499af0dfe14dc8be352c27a4e76b53
+      - condition: and
+        conditions:
+          - condition: state
+            entity: person.shawna
+            state_not: home
+          - condition: state
+            entity: binary_sensor.workday_sensor
+            state: "on"

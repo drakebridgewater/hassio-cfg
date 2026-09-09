@@ -1,0 +1,864 @@
+sub_button_wheel:
+  name: Sub Button Wheel
+  version: v1.3.0
+  creator: lsmarsden
+  description: |-
+    <div>
+        <h2>Sub Button Wheel</h2>
+        <p>
+            Transforms sub-buttons into decluttered quick-action wheels.
+            Features multiple layout styles (circle, arc, double-ring) and customizable animations.
+            Respects original button styling and other modules.
+        </p>
+
+        <p>
+            For full documentation including configuration, examples, and more, visit the <a
+                href="https://github.com/lsmarsden/bubble-card-modules/tree/main/modules/sub_button_wheel"
+                target="_blank">GitHub repo</a>.
+        </p>
+    </div>
+  supported:
+    - button
+    - climate
+    - cover
+    - separator
+    - calendar
+    - media-player
+    - select
+  code: |-
+    ${(() => {
+    /**
+     * ======== IMPORTED HELPER FUNCTIONS =========
+     */
+
+    function toArray(object) {
+      if (Array.isArray(object)) return object;
+      if (!object || typeof object !== "object") return [];
+      const keys = Object.keys(object);
+
+      // Empty object - wrap in array
+      if (keys.length === 0) return [object];
+
+      // Check if ALL keys are numeric strings (UI editor format)
+      const allNumeric = keys.every((key) => /^\d+$/.test(key));
+
+      if (allNumeric) {
+        // Convert numbered object to array, sorted by numeric value
+        return keys
+          .map((key) => parseInt(key))
+          .sort((a, b) => a - b)
+          .map((index) => object[index.toString()]);
+      }
+      // Regular object - wrap in array
+      return [object];
+    }
+
+
+    /**
+     * ======== MAIN MODULE CODE =========
+     */
+
+
+      // this allows IDEs to parse the file normally - will be removed automatically during build.
+      const mainButtonSelector = ".bubble-icon-container";
+      const { sub_button_wheel: config } = this.config;
+
+      class WheelLayoutManager {
+        constructor(buttonSize = 36, config = {}) {
+          this.buttonSize = buttonSize;
+          this.config = config;
+        }
+
+        calculateCirclePosition(index, total, radius, startAngle = -90) {
+          const angle = (index * 360) / total + startAngle;
+          const x = Math.cos((angle * Math.PI) / 180) * radius;
+          const y = Math.sin((angle * Math.PI) / 180) * radius;
+          return { x: Math.round(x), y: Math.round(y) };
+        }
+
+        getLayoutRadius(layout) {
+          switch (layout) {
+            case "even-circle":
+            case "smart-adaptive":
+            case "fixed-position":
+              return this.buttonSize * 0.8 + 25;
+
+            case "double-ring":
+              return this.buttonSize * 0.8 + 65; // outer ring radius
+
+            case "progressive-arc":
+            case "compact-arc":
+              return 1.6 * this.buttonSize;
+            default:
+              return this.buttonSize * 0.8 + 25;
+          }
+        }
+
+        calculateGlassRingRadius(layoutRadius) {
+          // Glass ring is always layout radius + 25px (for visual separation)
+          return layoutRadius + 25;
+        }
+
+        applyLayout(layout, buttonConfigs, buttonElements) {
+          // Get the layout radius first
+          const layoutRadius = this.getLayoutRadius(layout);
+
+          // Apply layout using the calculated radius
+          switch (layout) {
+            case "even-circle":
+              this.applyEvenCircleLayout(buttonConfigs, buttonElements, layoutRadius);
+              break;
+            case "progressive-arc":
+              this.applyCircularArcLayout(buttonConfigs, buttonElements, 2.0, layoutRadius);
+              break;
+            case "compact-arc":
+              this.applyCircularArcLayout(buttonConfigs, buttonElements, 1.0, layoutRadius);
+              break;
+            case "fixed-position":
+              this.applyFixedPositionLayout(buttonConfigs, buttonElements, layoutRadius);
+              break;
+            case "double-ring":
+              this.applyDoubleRingLayout(buttonConfigs, buttonElements, layoutRadius);
+              break;
+            case "smart-adaptive":
+              this.applySmartAdaptiveLayout(buttonConfigs, buttonElements, layoutRadius);
+              break;
+            default:
+              this.applyEvenCircleLayout(buttonConfigs, buttonElements, layoutRadius);
+              break;
+          }
+
+          // Return the calculated glass ring radius
+          return this.calculateGlassRingRadius(layoutRadius);
+        }
+
+        applyEvenCircleLayout(buttonConfigs, buttonElements, radius) {
+          const buttonCount = buttonElements.length;
+
+          buttonElements.forEach((button, index) => {
+            const { x, y } = this.calculateCirclePosition(index, buttonCount, radius);
+            // For overlay buttons, we need to add the offset to the base center positioning
+            button.style.transform = `translate(${x}px, ${y}px)`;
+          });
+        }
+
+        applyCircularArcLayout(buttonConfigs, buttonElements, arcSpacingRatio, radius) {
+          // Maximum 7 buttons supported (1 at top + 3 on each side)
+          const maxButtons = 7;
+
+          buttonElements.slice(0, maxButtons).forEach((button, index) => {
+            let angle, x, y;
+
+            if (index === 0) {
+              // First button always goes at the top (-90°)
+              angle = -90;
+            } else {
+              // Calculate arc span based on button count and spacing ratio
+              // More buttons = wider arc, spacing ratio affects overall spread
+              const buttonCount = Math.min(buttonElements.length, maxButtons);
+              const maxArcSpan = 120 * arcSpacingRatio; // Maximum arc span in degrees
+              const arcSpan = Math.min(maxArcSpan, (buttonCount - 1) * 20 * arcSpacingRatio);
+
+              // Calculate angular increment between buttons (excluding the first top button)
+              const angularIncrement = arcSpan / (buttonCount - 1);
+
+              // Alternate buttons left and right of center
+              const sideIndex = Math.floor((index - 1) / 2) + 1; // 1, 2, 3...
+              const isRight = (index - 1) % 2 === 0; // Even indices go right, odd go left
+
+              angle = -90 + (isRight ? 1 : -1) * sideIndex * angularIncrement;
+            }
+
+            // Convert angle to x, y coordinates on the circle
+            x = Math.cos((angle * Math.PI) / 180) * radius;
+            y = Math.sin((angle * Math.PI) / 180) * radius;
+
+            // Apply position directly to button
+            button.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+          });
+
+          // Warn if more buttons than supported
+          if (buttonElements.length > maxButtons) {
+            console.warn(
+              `Circular arc layout supports maximum ${maxButtons} buttons, ${buttonElements.length - maxButtons} buttons will be hidden`,
+            );
+          }
+        }
+
+        applyFixedPositionLayout(buttonConfigs, buttonElements, radius) {
+          // Uses standard 8-button positions regardless of actual button count
+          const totalPositions = 8; // Fixed 8-position template
+
+          buttonElements.forEach((button, index) => {
+            // Use index directly as position in 8-button layout
+            const { x, y } = this.calculateCirclePosition(index, totalPositions, radius);
+            button.style.transform = `translate(${x}px, ${y}px)`;
+          });
+        }
+
+        applyFixedPositionToRing(buttonElements, radius) {
+          // Helper method for applying fixed-position layout to a specific ring
+          const totalPositions = 8;
+          buttonElements.forEach((button, index) => {
+            const { x, y } = this.calculateCirclePosition(index, totalPositions, radius);
+            button.style.transform = `translate(${x}px, ${y}px)`;
+          });
+        }
+
+        applyDoubleRingLayout(buttonConfigs, buttonElements, outerRadius) {
+          // Get inner button count from config, default to 4
+          const innerButtonCount = this.config?.layout_options?.double_ring_inner_count || 4;
+
+          // Calculate inner radius as outer radius minus button size (for spacing between rings)
+          const innerRadius = outerRadius - this.buttonSize;
+
+          // Split buttons into inner and outer rings
+          const innerButtons = buttonElements.slice(0, innerButtonCount);
+          const outerButtons = buttonElements.slice(innerButtonCount);
+
+          // Apply fixed-position layout to each ring
+          this.applyFixedPositionToRing(innerButtons, innerRadius);
+          this.applyFixedPositionToRing(outerButtons, outerRadius);
+        }
+
+        applySmartAdaptiveLayout(buttonConfigs, buttonElements, radius) {
+          const buttonCount = buttonElements.length;
+
+          if (buttonCount <= 3) {
+            this.applyFixedPositionLayout(buttonConfigs, buttonElements, radius);
+          } else {
+            // 4+ buttons: circle distribution - use even-circle logic
+            this.applyEvenCircleLayout(buttonConfigs, buttonElements, radius);
+          }
+        }
+      }
+
+      class WheelAnimationManager {
+        constructor(config) {
+          this.config = config;
+        }
+
+        // Get animation options from config with defaults
+        getAnimationOptions() {
+          return {
+            animation: this.config.animation_options?.wheel_animation || "staggered-scale",
+            duration: this.config.animation_options?.animation_duration ?? 0.2,
+            delay: this.config.animation_options?.animation_delay ?? 0.1,
+          };
+        }
+
+        applyAnimation(buttonConfigs, buttonElements) {
+          const animationOptions = this.getAnimationOptions();
+
+          switch (animationOptions.animation) {
+            case "staggered-scale":
+              this.applyStaggeredScaleAnimation(buttonConfigs, buttonElements, animationOptions);
+              break;
+            case "instant":
+            default:
+              this.applyInstantAnimation(buttonConfigs, buttonElements);
+          }
+        }
+
+        applyStaggeredScaleAnimation(buttonConfigs, buttonElements, animationOptions) {
+          const delayIncrement = animationOptions.duration / buttonElements.length;
+
+          buttonElements.forEach((button, index) => {
+            button.style.transition = `all ${animationOptions.duration}s cubic-bezier(0.175, 0.885, 0.32, 1.275)`;
+            button.style.transitionDelay = `${animationOptions.delay + index * delayIncrement}s`;
+          });
+        }
+
+        applyInstantAnimation(buttonConfigs, buttonElements) {
+          buttonElements.forEach((button, index) => {
+            // Clear any existing transitions
+            button.style.transition = "";
+            button.style.transitionDelay = "";
+          });
+        }
+      }
+
+      function shouldCloseOnClick(buttonConfig, wheelConfig) {
+        // Individual button setting takes precedence
+        if (buttonConfig.close_on_click !== undefined) {
+          return buttonConfig.close_on_click;
+        }
+        // Fall back to global setting, default to false
+        return wheelConfig.close_on_sub_button_click || false;
+      }
+
+      function moveButtonsToWheel(wheelOpenerButton, layout = "even-circle", wheelConfig) {
+        const wheelButtonsConfig = toArray(wheelConfig.wheel_buttons);
+        if (!wheelButtonsConfig || wheelButtonsConfig.length === 0) {
+          console.warn("No wheel buttons configured, skipping wheel setup");
+          return;
+        }
+
+        const isMainButtonOpener = isMainButton(wheelConfig.wheel_opener);
+        const wheelMenu = document.createElement("div");
+        wheelMenu.className = "wheel-menu";
+        if (isMainButtonOpener) {
+          wheelMenu.classList.add("main-opener");
+        }
+        const overlay = document.createElement("div");
+        overlay.className = "wheel-overlay";
+
+        // 1. Add glass ring first (behind everything)
+        const glassRing = document.createElement("div");
+        glassRing.className = "glass-ring";
+        wheelMenu.appendChild(glassRing);
+
+        const orderedButtonConfigs = processButtonPositions([...wheelButtonsConfig]);
+        // assume 36px as there are no variables in buttons until reported otherwise
+        // if main button it will cause 6px difference in sizing due to the main icon
+        // being 42px, but it will be centered anyway
+        const buttonSize = 36;
+        const wheelButtons = [];
+
+        orderedButtonConfigs.forEach((buttonConfig) => {
+          const button = card.querySelector(getElementSelector(buttonConfig.sub_button));
+          if (!button) {
+            console.warn(`Sub-button ${buttonConfig.sub_button} not found, skipping`);
+            return;
+          }
+
+          button.classList.add("wheel-button");
+          wheelMenu.appendChild(button);
+          wheelButtons.push(button);
+        });
+
+        wheelMenu.style.width = `${buttonSize}px`;
+        wheelMenu.style.height = `${buttonSize}px`;
+        wheelOpenerButton.replaceWith(wheelMenu);
+        wheelMenu.before(overlay);
+        wheelMenu.appendChild(wheelOpenerButton);
+
+        // remove existing default tap action from wheel opener button
+        // https://github.com/Clooos/Bubble-Card/discussions/1714
+        wheelOpenerButton.setAttribute("data-tap-action", JSON.stringify({ action: "none" }));
+
+        // Apply layout positioning directly to buttons
+        const layoutManager = new WheelLayoutManager(buttonSize, wheelConfig);
+        const glassRingRadius = layoutManager.applyLayout(layout, orderedButtonConfigs, wheelButtons);
+
+        // Set glass ring size based on calculated radius
+        const glassRingDiameter = glassRingRadius * 2;
+        glassRing.style.width = `${glassRingDiameter}px`;
+        glassRing.style.height = `${glassRingDiameter}px`;
+
+        const animationManager = new WheelAnimationManager(wheelConfig);
+        animationManager.applyAnimation(orderedButtonConfigs, wheelButtons);
+        const animationOptions = animationManager.getAnimationOptions();
+        glassRing.style.transitionDelay = `${animationOptions.delay}s`;
+        glassRing.style.transitionDuration = `${animationOptions.duration}s`;
+
+        function toggle() {
+          wheelMenu.classList.toggle("active");
+          glassRing.classList.toggle("active");
+          overlay.classList.toggle("active");
+        }
+
+        function closeWheel() {
+          if (wheelMenu.classList.contains("active")) {
+            toggle();
+          }
+        }
+
+        wheelOpenerButton.onclick = (event) => {
+          event.stopPropagation();
+          toggle();
+        };
+        overlay.onclick = (event) => {
+          event.stopPropagation();
+          closeWheel();
+        };
+
+        orderedButtonConfigs.forEach((buttonConfig, index) => {
+          if (shouldCloseOnClick(buttonConfig, wheelConfig)) {
+            const button = wheelButtons[index];
+
+            // Listen higher up in the DOM tree where the event bubbles
+            wheelMenu.addEventListener(
+              "hass-action",
+              (event) => {
+                // Check if the event came from this specific button
+                if (event.target === button || button.contains(event.target)) {
+                  closeWheel();
+                }
+              },
+              { once: false },
+            ); // Don't use once since we want to catch multiple clicks
+
+            // for buttons with no tap actions
+            const tapAction = JSON.parse(button.dataset.tapAction || '{"action":"none"}');
+            if (tapAction.action === "none") {
+              button.onclick = (event) => closeWheel();
+            }
+          }
+        });
+      }
+
+      function processButtonPositions(wheelButtonsConfig) {
+        // First, collect explicitly positioned buttons
+        const explicitPositions = new Set();
+        const explicitButtons = [];
+        const unpositionedButtons = [];
+
+        wheelButtonsConfig.forEach((buttonConfig) => {
+          if (buttonConfig.position !== undefined) {
+            explicitPositions.add(buttonConfig.position);
+            explicitButtons.push(buttonConfig);
+          } else {
+            unpositionedButtons.push(buttonConfig);
+          }
+        });
+
+        // Find available positions for unpositioned buttons
+        const totalButtons = wheelButtonsConfig.length;
+        const availablePositions = [];
+        for (let i = 1; i <= totalButtons; i++) {
+          if (!explicitPositions.has(i)) {
+            availablePositions.push(i);
+          }
+        }
+
+        // Assign positions to unpositioned buttons in config order
+        unpositionedButtons.forEach((buttonConfig, index) => {
+          if (index < availablePositions.length) {
+            buttonConfig.position = availablePositions[index];
+          }
+        });
+
+        // Combine and sort by position
+        const allButtons = [...explicitButtons, ...unpositionedButtons];
+        return allButtons.sort((a, b) => a.position - b.position);
+      }
+
+      function getElementSelector(button) {
+        if (isMainButton(button)) {
+          return mainButtonSelector;
+        } else {
+          return typeof button === "string" && button.startsWith("sub-button-")
+            ? `.bubble-${button}`
+            : `.bubble-sub-button-${button}`;
+        }
+      }
+
+      function isMainButton(button) {
+        return button === "main-button" || button === "main";
+      }
+
+      toArray(config).forEach((wheelConfig) => {
+        const wheelOpener = wheelConfig.wheel_opener;
+        if (!wheelOpener) {
+          return;
+        }
+        const wheelOpenerButton = card.querySelector(getElementSelector(wheelOpener));
+
+        if (!wheelOpenerButton || wheelOpenerButton.classList.contains("wheel-open-button")) {
+          return;
+        }
+
+        wheelOpenerButton.classList.add("wheel-open-button");
+        const layout = wheelConfig.layout_options?.wheel_layout || "even-circle";
+
+        moveButtonsToWheel(wheelOpenerButton, layout, wheelConfig);
+      });
+    })()}
+
+    .wheel-menu {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .wheel-menu.main-opener {
+        margin: 6px 9px 6px 11px;
+    }
+
+    .wheel-menu .bubble-icon-container {
+        /* When using main icon as the wheel opener, the margins interfere
+         with styling, so reset and use the wheel-menu.main-opener margins instead for alignment
+        */
+        margin: 0 !important;
+    }
+
+    .glass-ring {
+        --c-light: #fff;
+        --c-dark: #000;
+        --glass-reflex-dark: 1;
+        --glass-reflex-light: 1;
+
+        position: absolute;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(6px);
+        box-shadow: inset 0 0 0 1px color-mix(
+                in srgb,
+                var(--c-light) calc(var(--glass-reflex-light) * 10%),
+                transparent
+        ),
+        inset 1.8px 3px 0 -2px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 90%), transparent),
+        inset -2px -2px 0 -2px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 80%), transparent),
+        inset -3px -8px 1px -6px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 60%), transparent),
+        inset -0.3px -1px 4px 0 color-mix(
+                in srgb,
+                var(--c-dark) calc(var(--glass-reflex-dark) * 12%),
+                transparent
+        ),
+        inset -1.5px 2.5px 0 -2px color-mix(
+                in srgb,
+                var(--c-dark) calc(var(--glass-reflex-dark) * 20%),
+                transparent
+        ),
+        inset 0 3px 4px -2px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 20%), transparent),
+        inset 2px -6.5px 1px -4px color-mix(
+                in srgb,
+                var(--c-dark) calc(var(--glass-reflex-dark) * 10%),
+                transparent
+        ),
+        0 1px 5px 0 color-mix(
+                in srgb,
+                var(--c-dark) calc(var(--glass-reflex-dark) * 10%),
+                transparent
+        ),
+        0 6px 16px 0 color-mix(
+                in srgb,
+                var(--c-dark) calc(var(--glass-reflex-dark) * 8%),
+                transparent
+        );
+        transition: all ease-in-out;
+        transform: scale(0);
+        opacity: 0;
+        z-index: 1;
+    }
+
+    .glass-ring.active {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    .wheel-menu.active * {
+        z-index: 1;
+    }
+
+    .wheel-menu.active .wheel-button {
+        scale: 1 !important;
+        opacity: 1 !important;
+    }
+
+    .wheel-button {
+        scale: 0;
+        opacity: 0;
+        position: absolute !important;
+        z-index: 1;
+    }
+
+    .wheel-open-button {
+        cursor: pointer;
+    }
+
+    .wheel-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: -1;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    .wheel-overlay.active {
+        z-index: 1;
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .bubble-container {
+        /*
+        This is normally on scroll, but this means we can't see the buttons
+        outside the card boundaries - may cause issues with certain card types
+        */
+        overflow: inherit !important;
+    }
+  editor:
+    - type: expandable
+      label: Wheel 1 Settings
+      name: '0'
+      schema:
+        - name: wheel_opener
+          label: Button to open the wheel ('main', or '1' for 'sub-button-1' etc.)
+          selector:
+            text: null
+        - name: close_on_sub_button_click
+          label: Close wheel when any sub-button is clicked
+          default: false
+          selector:
+            boolean: null
+        - type: expandable
+          title: Layout Options
+          name: layout_options
+          icon: mdi:page-layout-body
+          schema:
+            - name: wheel_layout
+              label: Wheel layout style
+              default: even-circle
+              selector:
+                select:
+                  options:
+                    - label: Even Circle - Buttons evenly distributed in a circle
+                      value: even-circle
+                    - label: Progressive Arc - Dramatic arc with alternating left/right placement
+                      value: progressive-arc
+                    - label: Compact Arc - Tighter arc with alternating left/right placement
+                      value: compact-arc
+                    - label: Fixed Position - Uses standard 8-button template positions
+                      value: fixed-position
+                    - label: Double Ring - Two concentric rings of buttons
+                      value: double-ring
+                    - label: Smart Adaptive - Automatically chooses best layout for button count
+                      value: smart-adaptive
+            - name: double_ring_inner_count
+              label: Inner ring button count (double-ring layout only)
+              default: 4
+              selector:
+                number: null
+        - type: expandable
+          title: Animation Options
+          name: animation_options
+          icon: mdi:animation-play
+          schema:
+            - name: wheel_animation
+              label: Animation style when wheel opens
+              default: staggered-scale
+              selector:
+                select:
+                  options:
+                    - label: Staggered Scale - Buttons appear one by one with bounce effect
+                      value: staggered-scale
+                    - label: Instant - All buttons appear simultaneously
+                      value: instant
+            - name: animation_delay
+              label: Initial delay before animation starts (s)
+              default: 0.1
+              selector:
+                number:
+                  unit_of_measurement: s
+            - name: animation_duration
+              label: Total duration of animation (s)
+              default: 0.2
+              selector:
+                number:
+                  unit_of_measurement: s
+        - type: expandable
+          title: Wheel Buttons
+          name: wheel_buttons
+          icon: mdi:tire
+          schema:
+            - type: expandable
+              label: Button 1
+              name: '0'
+              schema:
+                - name: sub_button
+                  label: Sub-button number (1, 2, 3, etc.)
+                  selector:
+                    text: null
+                - name: position
+                  label: Fixed position (optional - leave empty for auto)
+                  selector:
+                    number: null
+                - name: close_on_click
+                  label: Close wheel when this button is clicked (overrides global setting)
+                  selector:
+                    boolean: null
+            - type: expandable
+              label: Button 2
+              name: '1'
+              schema:
+                - name: sub_button
+                  label: Sub-button number (1, 2, 3, etc.)
+                  selector:
+                    text: null
+                - name: position
+                  label: Fixed position (optional - leave empty for auto)
+                  selector:
+                    number: null
+                - name: close_on_click
+                  label: Close wheel when this button is clicked (overrides global setting)
+                  selector:
+                    boolean: null
+            - type: expandable
+              label: Button 3
+              name: '2'
+              schema:
+                - name: sub_button
+                  label: Sub-button number (1, 2, 3, etc.)
+                  selector:
+                    text: null
+                - name: position
+                  label: Fixed position (optional - leave empty for auto)
+                  selector:
+                    number: null
+                - name: close_on_click
+                  label: Close wheel when this button is clicked (overrides global setting)
+                  selector:
+                    boolean: null
+            - type: expandable
+              label: Button 4 (add more in YAML)
+              name: '3'
+              schema:
+                - name: sub_button
+                  label: Sub-button number (1, 2, 3, etc.)
+                  selector:
+                    text: null
+                - name: position
+                  label: Fixed position (optional - leave empty for auto)
+                  selector:
+                    number: null
+                - name: close_on_click
+                  label: Close wheel when this button is clicked (overrides global setting)
+                  selector:
+                    boolean: null
+    - type: expandable
+      label: Wheel 2 Settings (add more in YAML)
+      name: '1'
+      schema:
+        - name: wheel_opener
+          label: Button to open the wheel ('main', or '1' for 'sub-button-1' etc.)
+          selector:
+            text: null
+        - name: close_on_sub_button_click
+          label: Close wheel when any sub-button is clicked
+          default: false
+          selector:
+            boolean: null
+        - type: expandable
+          title: Layout Options
+          name: layout_options
+          icon: mdi:page-layout-body
+          schema:
+            - name: wheel_layout
+              label: Wheel layout style
+              default: even-circle
+              selector:
+                select:
+                  options:
+                    - label: Even Circle - Buttons evenly distributed in a circle
+                      value: even-circle
+                    - label: Progressive Arc - Dramatic arc with alternating left/right placement
+                      value: progressive-arc
+                    - label: Compact Arc - Tighter arc with alternating left/right placement
+                      value: compact-arc
+                    - label: Fixed Position - Uses standard 8-button template positions
+                      value: fixed-position
+                    - label: Double Ring - Two concentric rings of buttons
+                      value: double-ring
+                    - label: Smart Adaptive - Automatically chooses best layout for button count
+                      value: smart-adaptive
+            - name: double_ring_inner_count
+              label: Inner ring button count (double-ring layout only)
+              default: 4
+              selector:
+                number: null
+        - type: expandable
+          title: Animation Options
+          name: animation_options
+          icon: mdi:animation-play
+          schema:
+            - name: wheel_animation
+              label: Animation style when wheel opens
+              default: staggered-scale
+              selector:
+                select:
+                  options:
+                    - label: Staggered Scale - Buttons appear one by one with bounce effect
+                      value: staggered-scale
+                    - label: Instant - All buttons appear simultaneously
+                      value: instant
+            - name: animation_delay
+              label: Initial delay before animation starts (s)
+              default: 0.1
+              selector:
+                number:
+                  unit_of_measurement: s
+            - name: animation_duration
+              label: Total duration of animation (s)
+              default: 0.2
+              selector:
+                number:
+                  unit_of_measurement: s
+        - type: expandable
+          title: Wheel Buttons
+          name: wheel_buttons
+          icon: mdi:tire
+          schema:
+            - type: expandable
+              label: Button 1
+              name: '0'
+              schema:
+                - name: sub_button
+                  label: Sub-button number (1, 2, 3, etc.)
+                  selector:
+                    text: null
+                - name: position
+                  label: Fixed position (optional - leave empty for auto)
+                  selector:
+                    number: null
+                - name: close_on_click
+                  label: Close wheel when this button is clicked (overrides global setting)
+                  selector:
+                    boolean: null
+            - type: expandable
+              label: Button 2
+              name: '1'
+              schema:
+                - name: sub_button
+                  label: Sub-button number (1, 2, 3, etc.)
+                  selector:
+                    text: null
+                - name: position
+                  label: Fixed position (optional - leave empty for auto)
+                  selector:
+                    number: null
+                - name: close_on_click
+                  label: Close wheel when this button is clicked (overrides global setting)
+                  selector:
+                    boolean: null
+            - type: expandable
+              label: Button 3
+              name: '2'
+              schema:
+                - name: sub_button
+                  label: Sub-button number (1, 2, 3, etc.)
+                  selector:
+                    text: null
+                - name: position
+                  label: Fixed position (optional - leave empty for auto)
+                  selector:
+                    number: null
+                - name: close_on_click
+                  label: Close wheel when this button is clicked (overrides global setting)
+                  selector:
+                    boolean: null
+            - type: expandable
+              label: Button 4 (add more in YAML)
+              name: '3'
+              schema:
+                - name: sub_button
+                  label: Sub-button number (1, 2, 3, etc.)
+                  selector:
+                    text: null
+                - name: position
+                  label: Fixed position (optional - leave empty for auto)
+                  selector:
+                    number: null
+                - name: close_on_click
+                  label: Close wheel when this button is clicked (overrides global setting)
+                  selector:
+                    boolean: null
+  link: https://github.com/Clooos/Bubble-Card/discussions/1728

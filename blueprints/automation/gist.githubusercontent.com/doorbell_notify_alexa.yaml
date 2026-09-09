@@ -1,0 +1,585 @@
+blueprint:
+  name: Doorbell - Notify Alexa
+  description: "Make an announcement over Amazon Echo devices when the doorbell is pushed."
+
+  domain: automation
+  input:
+    doorbell:
+      name: Doorbell
+      description: This is the doorbell binary sensor
+      selector:
+        entity:
+          domain: binary_sensor
+    echo_device1:
+      name: First Alexa
+      description: The First Alexa device to make the announcement on. Make a comma seperated list to announce on multiple devices.
+      selector:
+        entity:
+          domain: media_player
+    echo_device2:
+      name: Second Alexa
+      description: The Second Alexa device to make the announcement on. Make a comma seperated list to announce on multiple devices.
+      selector:
+        entity:
+          domain: media_player
+      default: ""
+    echo_device3:
+      name: Third Alexa
+      description: The Third Alexa device to make the announcement on. Make a comma seperated list to announce on multiple devices.
+      selector:
+        entity:
+          domain: media_player
+      default: ""
+    echo_device4:
+      name: Fourth Alexa
+      description: The Fourth Alexa device to make the announcement on. Make a comma seperated list to announce on multiple devices.
+      selector:
+        entity:
+          domain: media_player
+      default: ""
+    echo_device5:
+      name: Fifth Alexa
+      description: The Fifth Alexa device to make the announcement on. Make a comma seperated list to announce on multiple devices.
+      selector:
+        entity:
+          domain: media_player
+      default: ""
+    announcement_volume:
+      name: Announcement Volume
+      description: The volume the Alexa devices will be changed to for the announcement. Set to zero (0) for no change.
+      default: 0.5
+      selector:
+        number:
+          min: 0
+          max: 1
+          step: 0.1
+          mode: slider
+    repeat_after:
+      name: Repeat Timer
+      description: Set a time delay to repeat the message. Set to zero (0) for no repeat.
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 1
+          mode: slider
+    sound:
+      name: Sound
+      description: 'List of available sounds here: https://developer.amazon.com/en-US/docs/alexa/custom-skills/ask-soundlibrary.html'
+      default: amzn_sfx_doorbell_01
+  source_url: https://gist.github.com/Coysh/9f40922dd62557c73788fc05025d8843
+mode: single
+
+variables:
+  echo_device1: !input echo_device1
+  echo_device2: !input echo_device2
+  echo_device3: !input echo_device3
+  echo_device4: !input echo_device4
+  echo_device5: !input echo_device5
+  inputs:
+    "{% if (echo_device1 and echo_device2 and echo_device3 and echo_device4 and echo_device5) %}
+    {{ echo_device1 }}, {{ echo_device2 }}, {{ echo_device3 }}, {{ echo_device4 }}, {{ echo_device5 }}
+    {% elif (echo_device1 and echo_device2 and echo_device3 and echo_device4) %}
+    {{ echo_device1 }}, {{ echo_device2 }}, {{ echo_device3 }}, {{ echo_device4 }}
+    {% elif (echo_device1 and echo_device2 and echo_device3) %}
+    {{ echo_device1 }}, {{ echo_device2 }}, {{ echo_device3 }}
+    {% elif (echo_device1 and echo_device2) %}
+    {{ echo_device1 }}, {{ echo_device2 }}
+    {% elif (echo_device1) %}
+    {{ echo_device1 }}
+    {% endif %}"
+  volume1: "{% if (echo_device1) %} {{ state_attr(echo_device1, 'volume_level') }} {% endif %}"
+  volume2: "{% if (echo_device2) %} {{ state_attr(echo_device2, 'volume_level') }} {% endif %}"
+  volume3: "{% if (echo_device3) %} {{ state_attr(echo_device3, 'volume_level') }} {% endif %}"
+  volume4: "{% if (echo_device4) %} {{ state_attr(echo_device4, 'volume_level') }} {% endif %}"
+  volume5: "{% if (echo_device5) %} {{ state_attr(echo_device5, 'volume_level') }} {% endif %}"
+  announcement_volume: !input announcement_volume
+  repeat_after: !input repeat_after
+
+trigger:
+  - platform: state
+    entity_id: !input "doorbell"
+    from: "off"
+    to: "on"
+action:
+  - choose:
+      - conditions:
+          - condition: and
+            conditions:
+              - condition: template
+                value_template: "{{ announcement_volume > 0 }}"
+              - condition: template
+                value_template: "{{ echo_device1 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device2 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device3 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device4 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device5 != '' }}"
+              - condition: template
+                value_template: "{{ repeat_after > 0 }}"
+        sequence:
+          - service: media_player.volume_set
+            data:
+              volume_level: !input announcement_volume
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 0.5
+          - service: media_player.play_media
+            data:
+              media_content_type: sound
+              media_content_id: !input sound
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: !input repeat_after
+          - service: media_player.play_media
+            data:
+              media_content_type: sound
+              media_content_id: !input sound
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 3
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume1 }}"
+            target:
+              entity_id: "{{ echo_device1 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume2 }}"
+            target:
+              entity_id: "{{ echo_device2 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume3 }}"
+            target:
+              entity_id: "{{ echo_device3 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume4 }}"
+            target:
+              entity_id: "{{ echo_device4 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume5 }}"
+            target:
+              entity_id: "{{ echo_device5 }}"
+      - conditions:
+          - condition: and
+            conditions:
+              - condition: template
+                value_template: "{{ announcement_volume > 0 }}"
+              - condition: template
+                value_template: "{{ echo_device1 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device2 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device3 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device4 != '' }}"
+              - condition: template
+                value_template: "{{ repeat_after > 0 }}"
+        sequence:
+          - service: media_player.volume_set
+            data:
+              volume_level: !input announcement_volume
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 0.5
+          - service: media_player.play_media
+            data:
+              media_content_type: sound
+              media_content_id: !input sound
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: !input repeat_after
+          - service: media_player.play_media
+            data:
+              media_content_type: sound
+              media_content_id: !input sound
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 3
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume1 }}"
+            target:
+              entity_id: "{{ echo_device1 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume2 }}"
+            target:
+              entity_id: "{{ echo_device2 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume3 }}"
+            target:
+              entity_id: "{{ echo_device3 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume4 }}"
+            target:
+              entity_id: "{{ echo_device4 }}"
+      - conditions:
+          - condition: and
+            conditions:
+              - condition: template
+                value_template: "{{ announcement_volume > 0 }}"
+              - condition: template
+                value_template: "{{ echo_device1 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device2 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device3 != '' }}"
+              - condition: template
+                value_template: "{{ repeat_after > 0 }}"
+        sequence:
+          - service: media_player.volume_set
+            data:
+              volume_level: !input announcement_volume
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 0.5
+          - service: media_player.play_media
+            data:
+              media_content_type: sound
+              media_content_id: !input sound
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: !input repeat_after
+          - service: media_player.play_media
+            data:
+              media_content_type: sound
+              media_content_id: !input sound
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 3
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume1 }}"
+            target:
+              entity_id: "{{ echo_device1 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume2 }}"
+            target:
+              entity_id: "{{ echo_device2 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume3 }}"
+            target:
+              entity_id: "{{ echo_device3 }}"
+      - conditions:
+          - condition: and
+            conditions:
+              - condition: template
+                value_template: "{{ announcement_volume > 0 }}"
+              - condition: template
+                value_template: "{{ (echo_device1 != '') }}"
+              - condition: template
+                value_template: "{{ (echo_device2 != '') }}"
+              - condition: template
+                value_template: "{{ repeat_after > 0 }}"
+        sequence:
+          - service: media_player.volume_set
+            data:
+              volume_level: !input announcement_volume
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 0.5
+          - service: media_player.play_media
+            data:
+              media_content_type: sound
+              media_content_id: !input sound
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: !input repeat_after
+          - service: media_player.play_media
+            data:
+              media_content_type: sound
+              media_content_id: !input sound
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 3
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume1 }}"
+            target:
+              entity_id: "{{ echo_device1 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume2 }}"
+            target:
+              entity_id: "{{ echo_device2 }}"
+      - conditions:
+          - condition: and
+            conditions:
+              - condition: template
+                value_template: "{{ announcement_volume > 0 }}"
+              - condition: template
+                value_template: "{{ echo_device1 != '' }}"
+              - condition: template
+                value_template: "{{ repeat_after > 0 }}"
+        sequence:
+          - service: media_player.volume_set
+            data:
+              volume_level: !input announcement_volume
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 0.5
+          - service: media_player.play_media
+            data:
+              media_content_type: sound
+              media_content_id: !input sound
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: !input repeat_after
+          - service: media_player.play_media
+            data:
+              media_content_type: sound
+              media_content_id: !input sound
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 3
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume1 }}"
+            target:
+              entity_id: "{{ echo_device1 }}"
+      - conditions:
+          - condition: and
+            conditions:
+              - condition: template
+                value_template: "{{ announcement_volume > 0 }}"
+              - condition: template
+                value_template: "{{ echo_device1 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device2 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device3 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device4 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device5 != '' }}"
+        sequence:
+          - service: media_player.volume_set
+            data:
+              volume_level: !input announcement_volume
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 0.5
+          - service: media_player.play_media
+            data:
+              media_content_type: sound
+              media_content_id: !input sound
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 3
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume1 }}"
+            target:
+              entity_id: "{{ echo_device1 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume2 }}"
+            target:
+              entity_id: "{{ echo_device2 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume3 }}"
+            target:
+              entity_id: "{{ echo_device3 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume4 }}"
+            target:
+              entity_id: "{{ echo_device4 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume5 }}"
+            target:
+              entity_id: "{{ echo_device5 }}"
+      - conditions:
+          - condition: and
+            conditions:
+              - condition: template
+                value_template: "{{ announcement_volume > 0 }}"
+              - condition: template
+                value_template: "{{ echo_device1 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device2 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device3 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device4 != '' }}"
+        sequence:
+          - service: media_player.volume_set
+            data:
+              volume_level: !input announcement_volume
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 0.5
+          - service: media_player.play_media
+            data:
+              media_content_type: sound
+              media_content_id: !input sound
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 3
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume1 }}"
+            target:
+              entity_id: "{{ echo_device1 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume2 }}"
+            target:
+              entity_id: "{{ echo_device2 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume3 }}"
+            target:
+              entity_id: "{{ echo_device3 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume4 }}"
+            target:
+              entity_id: "{{ echo_device4 }}"
+      - conditions:
+          - condition: and
+            conditions:
+              - condition: template
+                value_template: "{{ announcement_volume > 0 }}"
+              - condition: template
+                value_template: "{{ echo_device1 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device2 != '' }}"
+              - condition: template
+                value_template: "{{ echo_device3 != '' }}"
+        sequence:
+          - service: media_player.volume_set
+            data:
+              volume_level: !input announcement_volume
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 0.5
+          - service: media_player.play_media
+            data:
+              media_content_type: sound
+              media_content_id: !input sound
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 3
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume1 }}"
+            target:
+              entity_id: "{{ echo_device1 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume2 }}"
+            target:
+              entity_id: "{{ echo_device2 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume3 }}"
+            target:
+              entity_id: "{{ echo_device3 }}"
+      - conditions:
+          - condition: and
+            conditions:
+              - condition: template
+                value_template: "{{ announcement_volume > 0 }}"
+              - condition: template
+                value_template: "{{ (echo_device1 != '') }}"
+              - condition: template
+                value_template: "{{ (echo_device2 != '') }}"
+        sequence:
+          - service: media_player.volume_set
+            data:
+              volume_level: !input announcement_volume
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 0.5
+          - service: media_player.play_media
+            data:
+              media_content_type: sound
+              media_content_id: !input sound
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 3
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume1 }}"
+            target:
+              entity_id: "{{ echo_device1 }}"
+          - delay: 0.5
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume2 }}"
+            target:
+              entity_id: "{{ echo_device2 }}"
+      - conditions:
+          - condition: and
+            conditions:
+              - condition: template
+                value_template: "{{ announcement_volume > 0 }}"
+              - condition: template
+                value_template: "{{ echo_device1 != '' }}"
+        sequence:
+          - service: media_player.volume_set
+            data:
+              volume_level: !input announcement_volume
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 0.5
+          - service: media_player.play_media
+            data:
+              media_content_type: sound
+              media_content_id: !input sound
+            target:
+              entity_id: "{{ inputs }}"
+          - delay: 3
+          - service: media_player.volume_set
+            data:
+              volume_level: "{{ volume1 }}"
+            target:
+              entity_id: "{{ echo_device1 }}"
+    default:
+      - service: media_player.play_media
+        data:
+          target: "{{ inputs }}"
+          data:
+            media_content_type: sound
+            media_content_id: !input sound
+      - delay: !input repeat_after
+      - service: media_player.play_media
+        data:
+          target: "{{ inputs }}"
+          data:
+            media_content_type: sound
+            media_content_id: !input sound

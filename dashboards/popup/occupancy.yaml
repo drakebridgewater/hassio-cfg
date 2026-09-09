@@ -1,0 +1,28 @@
+type: vertical-stack
+cards:
+- type: custom:bubble-card
+  card_type: pop-up
+  hash: '#occupancy'
+  button_type: name
+  name: Occupancy Sensors
+- type: custom:auto-entities
+  card_param: cards
+  card:
+    type: grid
+    columns: 2
+    square: false
+  filter:
+    exclude:
+      - state: unavailable
+      - state: unknown
+    include:
+      - domain: binary_sensor
+        attributes:
+          device_class: occupancy
+        options:
+          type: custom:bubble-card
+          card_type: button
+          button_type: state
+  sort:
+    method: state
+    reverse: true

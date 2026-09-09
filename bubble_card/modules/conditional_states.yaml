@@ -1,0 +1,65 @@
+conditional_states:
+  name: Custom Conditional States
+  version: v1.3
+  creator: Drake
+  supported:
+    - pop-up
+    - cover
+    - button
+    - media-player
+    - climate
+    - select
+  description: ''
+  code: |-
+    ${(() => {
+      // Retrieve the configuration or use an empty array by default
+      let resulting_states = [];
+      const config = this.config.conditional_states || {};
+      const states = config.states || []
+
+      if (!Array.isArray(states) || states.length === 0) return;
+      const areConfigsEqual = (config1, config2) =>
+          JSON.stringify(config1) === JSON.stringify(config2);
+
+      const processStates = (stateList) => {
+        stateList.forEach((stateConfig, index) => {
+          if (!stateConfig?.entity) return;
+
+          const shouldShow = !stateConfig?.condition || 
+            (stateConfig?.condition && checkConditionsMet([].concat(stateConfig.condition), hass));
+
+          if (shouldShow) {
+            const stateKey = `state_${index}`;
+            const stateObj = hass.states[stateConfig.entity];
+            resulting_states[stateKey] = stateConfig.attribute
+              ? hass.formatEntityAttributeValue?.(stateObj, stateConfig.attribute)
+              : hass.formatEntityState?.(stateObj);
+          }
+        });
+      };
+
+      processStates(states);
+
+      card.querySelector('.bubble-state').innerText = resulting_states.join(' • ');
+    })()}
+  editor:
+    - name: states
+      label: States
+      selector:
+        object:
+          multiple: true
+          fields:
+            entity:
+              label: Entity
+              selector:
+                entity: {}
+            attribute:
+              label: Attribute (optional)
+              selector:
+                attribute: {}
+            condition:
+              label: Condition (optional - staste is always visible if no condition is defined)
+              selector:
+                condition: {}
+          label_field: name
+          description_field: target

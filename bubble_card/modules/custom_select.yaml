@@ -1,0 +1,781 @@
+custom_select:
+  name: Custom dropdown (Labels, icons, colors, actions...)
+  version: v1.2.0
+  creator: Clooos
+  description: |
+    This module lets you customize the labels, icons, and icon colors of dropdown items, and also allows you to define actions or add navigation to pop-ups or dashboard pages. It works for both the main select card and sub-buttons in supported cards.<br><br>
+
+    <img class="example" src="https://github.com/Clooos/Bubble-Card/blob/main/img/custom_dropdown_module.png?raw=true" />
+
+    <b>Example use cases</b><br><br>
+
+    <b>Quick controls:</b> Create a dropdown where each option opens a different pop-up: one for lights, one for media, one for climate...<br><br>
+
+    <b>Vacuum room selector:</b> Set up a dropdown for your robot vacuum, where each item represents a room like “Kitchen”, “Living Room”, or “Bedroom”. Selecting an option sends a service call to clean only the selected area.<br><br>
+
+    <b>Color picker:</b> Build a dropdown for a light entity, with each item showing a colored icon and label like “Warm White”, “Cool White”, or “Red”. Selecting an option sends a command to instantly change the light color.<br><br>
+
+    <p>
+    <b>YAML example:</b> Color picker from the screenshot:
+    </p>
+    <br>
+    <code-block><pre>
+    variables:
+      # For this example, create a template input_select (in Helpers) with 9 options (named 1, 2, 3...) 
+      # Replace "light.your_entity" and "input_select.your_entity" below
+      light_entity: &light_entity light.your_entity
+      select_entity: &select_entity input_select.your_entity
+    custom_select:
+      sub_button_1:
+        - position: 1
+          name: Select a color
+          icon: mdi:palette-outline
+        - position: 2
+          name: Warm White
+          icon: mdi:circle
+          color: "#FFD9B3"
+          action:
+            - action: light.turn_on
+              target:
+                entity_id: *light_entity
+              data:
+                rgb_color:
+                  - 255
+                  - 223
+                  - 191
+                brightness: 255
+            - delay:
+                seconds: 1
+            - action: input_select.select_option
+              data:
+                option: "1"
+              target:
+                entity_id: *select_entity
+        - position: 3
+          name: Cool White
+          icon: mdi:circle
+          color: "#CCE6FF"
+          action:
+            - action: light.turn_on
+              target:
+                entity_id: *light_entity
+              data:
+                rgb_color:
+                  - 204
+                  - 230
+                  - 255
+                brightness: 255
+            - delay:
+                seconds: 1
+            - action: input_select.select_option
+              data:
+                option: "1"
+              target:
+                entity_id: *select_entity
+        - position: 4
+          name: Red
+          icon: mdi:circle
+          color: "#F44336"
+          action:
+            - action: light.turn_on
+              target:
+                entity_id: *light_entity
+              data:
+                rgb_color:
+                  - 244
+                  - 67
+                  - 54
+                brightness: 255
+            - delay:
+                seconds: 1
+            - action: input_select.select_option
+              data:
+                option: "1"
+              target:
+                entity_id: *select_entity
+        - position: 5
+          name: Green
+          icon: mdi:circle
+          color: "#4CAF50"
+          action:
+            - action: light.turn_on
+              target:
+                entity_id: *light_entity
+              data:
+                rgb_color:
+                  - 76
+                  - 175
+                  - 80
+                brightness: 255
+            - delay:
+                seconds: 1
+            - action: input_select.select_option
+              data:
+                option: "1"
+              target:
+                entity_id: *select_entity
+        - position: 6
+          name: Blue
+          icon: mdi:circle
+          color: "#2196F3"
+          action:
+            - action: light.turn_on
+              target:
+                entity_id: *light_entity
+              data:
+                rgb_color:
+                  - 33
+                  - 150
+                  - 243
+                brightness: 255
+            - delay:
+                seconds: 1
+            - action: input_select.select_option
+              data:
+                option: "1"
+              target:
+                entity_id: *select_entity
+        - position: 7
+          name: Purple
+          icon: mdi:circle
+          color: "#9C27B0"
+          action:
+            - action: light.turn_on
+              target:
+                entity_id: *light_entity
+              data:
+                rgb_color:
+                  - 156
+                  - 39
+                  - 176
+                brightness: 255
+            - delay:
+                seconds: 1
+            - action: input_select.select_option
+              data:
+                option: "1"
+              target:
+                entity_id: *select_entity
+        - position: 8
+          name: Orange
+          icon: mdi:circle
+          color: "#FF9800"
+          action:
+            - action: light.turn_on
+              target:
+                entity_id: *light_entity
+              data:
+                rgb_color:
+                  - 255
+                  - 152
+                  - 0
+                brightness: 255
+            - delay:
+                seconds: 1
+            - action: input_select.select_option
+              data:
+                option: "1"
+              target:
+                entity_id: *select_entity
+        - position: 9
+          name: Cyan
+          icon: mdi:circle
+          color: "#00BCD4"
+          action:
+            - action: light.turn_on
+              target:
+                entity_id: *light_entity
+              data:
+                rgb_color:
+                  - 0
+                  - 188
+                  - 212
+                brightness: 255
+            - delay:
+                seconds: 1
+            - action: input_select.select_option
+              data:
+                option: "1"
+              target:
+                entity_id: *select_entity
+    </pre></code-block>
+  supported:
+    - button
+    - calendar
+    - climate
+    - cover
+    - media-player
+    - pop-up
+    - select
+    - separator
+  code: |-
+    ${(() => {
+      const config = this.config.custom_select;
+      if (!config) return;
+      const LIST_ITEM_SELECTOR = 'mwc-list-item, ha-dropdown-item';
+
+      // Persistent stores on the card instance
+      if (!card._customSelectInitialized) {
+        card._customSelectInitialized = true;
+        card._customSelectActions = new Map();
+        card._customSelectNavigate = new Map();
+        card._customSelectObservers = new Map();
+      }
+
+      const getDropdownItems = (dropdown) => {
+        if (!dropdown) return [];
+        return Array.from(dropdown.querySelectorAll(LIST_ITEM_SELECTOR));
+      };
+
+      const getItemValue = (item) => {
+        if (!item) return undefined;
+        return item.dataset?.bubbleValue ?? item.value ?? item.getAttribute('value');
+      };
+
+      const findItemByValue = (items, value) => {
+        if (!Array.isArray(items) || value === undefined || value === null) return null;
+        return items.find((item) => getItemValue(item) === value) || null;
+      };
+
+      const getClickedDropdownItem = (event) => {
+        const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
+        return path.find((el) => {
+          const tagName = el?.tagName?.toLowerCase?.();
+          return tagName === 'mwc-list-item' || tagName === 'ha-dropdown-item';
+        }) || null;
+      };
+
+      const applyModificationToItem = (item, mod) => {
+        const isNewDropdownItem = item.tagName === 'HA-DROPDOWN-ITEM';
+        const iconSlot = isNewDropdownItem ? 'icon' : 'graphic';
+
+        // Rebuild visual content (remove previous icon/text)
+        const childrenToRemove = Array.from(item.children).filter(child =>
+          child.tagName === 'HA-ICON' || child.slot === 'graphic' || child.slot === 'icon'
+        );
+        childrenToRemove.forEach(child => child.remove());
+
+        const textNodes = Array.from(item.childNodes).filter(node => node.nodeType === Node.TEXT_NODE);
+        textNodes.forEach(node => node.remove());
+
+        item.removeAttribute('graphic');
+        if ('graphic' in item) {
+          item.graphic = '';
+        }
+
+        if (mod.name) {
+          item.appendChild(document.createTextNode(mod.name));
+        }
+
+        if (mod.icon) {
+          const haIcon = document.createElement("ha-icon");
+          haIcon.icon = mod.icon;
+          haIcon.slot = iconSlot;
+
+          if (mod.color) {
+            haIcon.style.color = mod.color;
+          }
+
+          item.appendChild(haIcon);
+          if (!isNewDropdownItem) {
+            item.graphic = 'icon';
+            item.setAttribute('graphic', 'icon');
+          }
+        }
+
+        item.dataset.customSelectModified = 'true';
+      };
+
+      const applyModifications = (dropdown, modifications, dropdownId) => {
+        if (!dropdown || !modifications || !modifications.length) return;
+
+        const checkAndApply = () => {
+          const items = getDropdownItems(dropdown);
+          if (items.length === 0) {
+            setTimeout(checkAndApply, 50);
+            return;
+          }
+
+          modifications.forEach((mod) => {
+            if (!mod) return;
+
+            const targetIndex = mod.position ? mod.position - 1 : modifications.indexOf(mod);
+            const item = items[targetIndex];
+
+            if (item) {
+              // IMPORTANT: stable, collision-proof key per dropdown + position
+              // Do NOT rely on item.value (labels can collide across dropdowns).
+              const key = `${dropdownId}#${targetIndex}`;
+              item.dataset.customSelectKey = key;
+
+              // Store navigation/actions using the stable key
+              if (mod.navigate) {
+                card._customSelectNavigate.set(key, mod.navigate);
+              }
+              if (mod.action) {
+                const normalizedActions = Array.isArray(mod.action) ? mod.action : [mod.action];
+                card._customSelectActions.set(key, normalizedActions);
+              }
+
+              // Only touch visuals if there is something to change (name/icon/color)
+              const hasUIChanges = Boolean(mod.name || mod.icon || mod.color);
+              if (hasUIChanges) {
+                const needsModification =
+                  !item.dataset.customSelectModified ||
+                  (mod.name && !item.textContent.includes(mod.name)) ||
+                  (mod.icon && !item.querySelector(`ha-icon[icon="${mod.icon}"]`)) ||
+                  (mod.color && !item.querySelector(`ha-icon[style*="${mod.color}"]`));
+
+                if (needsModification) {
+                  applyModificationToItem(item, mod);
+                }
+              }
+            }
+          });
+        };
+
+        checkAndApply();
+      };
+
+      const observeDropdown = (dropdown, modifications, dropdownId) => {
+        if (!dropdown || !modifications || !modifications.length) return;
+
+        const observerKey = `${dropdownId}_observer`;
+
+        if (card._customSelectObservers.has(observerKey)) {
+          card._customSelectObservers.get(observerKey).disconnect();
+        }
+
+        const observer = new MutationObserver((mutations) => {
+          let shouldReapply = false;
+
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'childList') {
+              mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === Node.ELEMENT_NODE &&
+                    (node.tagName === 'MWC-LIST-ITEM' ||
+                     node.tagName === 'HA-DROPDOWN-ITEM' ||
+                     node.querySelector?.(LIST_ITEM_SELECTOR))) {
+                  shouldReapply = true;
+                }
+              });
+            }
+          });
+
+          if (shouldReapply) {
+            setTimeout(() => {
+              applyModifications(dropdown, modifications, dropdownId);
+            }, 10);
+          }
+        });
+
+        observer.observe(dropdown, {
+          childList: true,
+          subtree: true
+        });
+
+        card._customSelectObservers.set(observerKey, observer);
+      };
+
+      const executeNavigation = (path) => {
+        if (!path) return;
+
+        if (typeof history !== 'undefined' && history.pushState) {
+          history.pushState(null, null, path);
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        } else {
+          window.location.href = path;
+        }
+      };
+
+      const executeCallServiceAction = (action, hass) => {
+        if (!action || !hass) return;
+
+        const service = action.action;
+        const serviceData = action.data || {};
+        const target = action.target || {};
+
+        if (service && service.includes('.')) {
+          const [domain, serviceName] = service.split('.');
+          hass.callService(domain, serviceName, serviceData, target);
+        }
+      };
+
+      const executeCustomActions = (actions, hass) => {
+        if (!actions || !Array.isArray(actions) || !hass) return;
+
+        actions.forEach((action, index) => {
+          setTimeout(() => {
+            executeCallServiceAction(action, hass);
+          }, index * 50);
+        });
+      };
+
+      const addCustomActionListeners = (dropdown, dropdownId) => {
+        if (!dropdown) return;
+
+        if (dropdown.dataset.customSelectListeners) {
+          return;
+        }
+        dropdown.dataset.customSelectListeners = 'true';
+
+        let lastHandledKey = null;
+        let lastHandledAt = 0;
+
+        const runCustomActionForItem = (item) => {
+          const items = getDropdownItems(dropdown);
+          const idx = items.indexOf(item);
+          if (idx < 0) return;
+
+          const key = item.dataset?.customSelectKey || `${dropdownId}#${idx}`;
+          const now = Date.now();
+
+          // Prevent duplicate triggers when both click and selected fire for the same user action.
+          if (lastHandledKey === key && (now - lastHandledAt) < 200) {
+            return;
+          }
+          lastHandledKey = key;
+          lastHandledAt = now;
+
+          const customNavigation = card._customSelectNavigate.get(key);
+          const customActions = card._customSelectActions.get(key);
+
+          if (customNavigation) {
+            setTimeout(() => executeNavigation(customNavigation), 50);
+          }
+          if (customActions) {
+            setTimeout(() => executeCustomActions(customActions, this._hass), 100);
+          }
+        };
+
+        // Old HA path: run actions only on direct item click.
+        const handleItemClick = (event) => {
+          const clickedItem = getClickedDropdownItem(event);
+          if (!clickedItem) return;
+          runCustomActionForItem(clickedItem);
+        };
+
+        // New HA path: selected event on ha-select (detail.value).
+        const handleItemSelected = (event) => {
+          if (!event.isTrusted) return;
+          const selectedValue = event.detail?.value;
+          if (selectedValue === undefined || selectedValue === null) return;
+
+          const items = getDropdownItems(dropdown);
+          const selectedItem = findItemByValue(items, selectedValue);
+          if (!selectedItem) return;
+
+          runCustomActionForItem(selectedItem);
+        };
+
+        dropdown.addEventListener('click', handleItemClick);
+        dropdown.addEventListener('selected', handleItemSelected);
+      };
+
+      if (config.main_card) {
+        const allDropdowns = card.querySelectorAll('ha-select');
+        const subButtonDropdowns = card.querySelectorAll('.bubble-sub-button ha-select');
+
+        const mainDropdown = Array.from(allDropdowns).find(dropdown =>
+          !Array.from(subButtonDropdowns).includes(dropdown)
+        );
+
+        if (mainDropdown) {
+          applyModifications(mainDropdown, config.main_card, 'main_card');
+          observeDropdown(mainDropdown, config.main_card, 'main_card');
+          addCustomActionListeners(mainDropdown, 'main_card');
+        }
+      }
+
+      const subButtons = card.querySelectorAll('.bubble-sub-button');
+      for (let i = 1; i <= 4; i++) {
+        const subButtonLabels = config[`sub_button_${i}`];
+        if (subButtonLabels && subButtonLabels.length) {
+          const subButtonIndex = i - 1;
+          const targetSubButton = subButtons[subButtonIndex];
+          if (targetSubButton) {
+            const targetDropdown = targetSubButton.querySelector('ha-select');
+            if (targetDropdown) {
+              const dropdownId = `sub_button_${i}`;
+              applyModifications(targetDropdown, subButtonLabels, dropdownId);
+              observeDropdown(targetDropdown, subButtonLabels, dropdownId);
+              addCustomActionListeners(targetDropdown, dropdownId);
+
+              const updateSubButtonIcon = (selectedValue, clearMissingColor = false) => {
+                const selectedItems = getDropdownItems(targetDropdown);
+                const selectedItemElement =
+                  findItemByValue(selectedItems, selectedValue) ||
+                  selectedItems.find((item) => item.hasAttribute('selected'));
+                if (!selectedItemElement || !this.subButtonIcon?.[subButtonIndex]) return;
+
+                const selectedMod = subButtonLabels.find((mod) => {
+                  const targetIndex = mod.position ? mod.position - 1 : subButtonLabels.indexOf(mod);
+                  return selectedItems[targetIndex] === selectedItemElement;
+                });
+                if (!selectedMod) return;
+
+                if (selectedMod.icon) {
+                  this.subButtonIcon[subButtonIndex].icon = selectedMod.icon;
+                }
+                if (selectedMod.color) {
+                  this.subButtonIcon[subButtonIndex].style.color = selectedMod.color;
+                } else if (clearMissingColor) {
+                  this.subButtonIcon[subButtonIndex].style.color = '';
+                }
+              };
+
+              // Keep existing behavior: update sub-button icon/color to reflect selected item
+              const selectedItem = targetDropdown.querySelector(`${LIST_ITEM_SELECTOR}[selected]`);
+              if (selectedItem) {
+                updateSubButtonIcon(getItemValue(selectedItem), false);
+              }
+
+              // Icon/color sync on selection change (UI only), for old and new HA events.
+              if (!targetDropdown.dataset.customSelectIconSync) {
+                targetDropdown.dataset.customSelectIconSync = 'true';
+
+                targetDropdown.addEventListener('change', (event) => {
+                  updateSubButtonIcon(event.target?.value, true);
+                });
+
+                targetDropdown.addEventListener('selected', (event) => {
+                  updateSubButtonIcon(event.detail?.value, true);
+                });
+              }
+            }
+          }
+        }
+      }
+    })()}
+  editor:
+    - type: expandable
+      icon: mdi:playlist-edit
+      title: Main card dropdown
+      schema:
+        - type: constant
+          label: Customize the labels, icons and actions of the main card's dropdown menu. Each item can be modified individually by specifying its position in the list.
+        - name: main_card
+          label: Custom labels for main dropdown
+          selector:
+            object:
+              fields:
+                position:
+                  label: Position in dropdown list
+                  selector:
+                    number:
+                      min: 1
+                      max: 1000
+                      step: 1
+                      mode: box
+                name:
+                  label: Custom label text
+                  selector:
+                    text:
+                      multiline: false
+                icon:
+                  label: Custom icon
+                  selector:
+                    icon: {}
+                color:
+                  label: Icon color
+                  selector:
+                    text:
+                      type: color
+                navigate:
+                  label: Navigation path
+                  selector:
+                    text:
+                      multiline: false
+                action:
+                  label: Custom actions
+                  selector:
+                    action: {}
+              label_field: name
+              description_field: position
+              multiple: true
+    - type: expandable
+      icon: mdi:playlist-edit
+      title: Sub-buttons dropdowns
+      schema:
+        - type: constant
+          label: Customize the labels, icons and actions of sub-buttons' dropdown menus. Configure each sub-button independently using the sections below.
+        - type: expandable
+          icon: mdi:border-radius
+          title: Sub-button 1
+          schema:
+            - type: constant
+              label: Modify the dropdown items of the first sub-button. Only configured items will be changed.
+            - name: sub_button_1
+              label: Custom labels for sub-button 1
+              selector:
+                object:
+                  fields:
+                    position:
+                      label: Position in dropdown list
+                      selector:
+                        number:
+                          min: 1
+                          max: 1000
+                          step: 1
+                          mode: box
+                    name:
+                      label: Custom label text
+                      selector:
+                        text:
+                          multiline: false
+                    icon:
+                      label: Custom icon
+                      selector:
+                        icon: {}
+                    color:
+                      label: Icon color
+                      selector:
+                        text:
+                          type: color
+                    navigate:
+                      label: Navigation path
+                      selector:
+                        text:
+                          multiline: false
+                    action:
+                      label: Custom actions
+                      selector:
+                        action: {}
+                  label_field: name
+                  description_field: position
+                  multiple: true
+        - type: expandable
+          icon: mdi:border-radius
+          title: Sub-button 2
+          schema:
+            - type: constant
+              label: Modify the dropdown items of the second sub-button. Only configured items will be changed.
+            - name: sub_button_2
+              label: Custom labels for sub-button 2
+              selector:
+                object:
+                  fields:
+                    position:
+                      label: Position in dropdown list
+                      selector:
+                        number:
+                          min: 1
+                          max: 1000
+                          step: 1
+                          mode: box
+                    name:
+                      label: Custom label text
+                      selector:
+                        text:
+                          multiline: false
+                    icon:
+                      label: Custom icon
+                      selector:
+                        icon: {}
+                    color:
+                      label: Icon color
+                      selector:
+                        text:
+                          type: color
+                    navigate:
+                      label: Navigation path
+                      selector:
+                        text:
+                          multiline: false
+                    action:
+                      label: Custom actions
+                      selector:
+                        action: {}
+                  label_field: name
+                  description_field: position
+                  multiple: true
+        - type: expandable
+          icon: mdi:border-radius
+          title: Sub-button 3
+          schema:
+            - type: constant
+              label: Modify the dropdown items of the third sub-button. Only configured items will be changed.
+            - name: sub_button_3
+              label: Custom labels for sub-button 3
+              selector:
+                object:
+                  fields:
+                    position:
+                      label: Position in dropdown list
+                      selector:
+                        number:
+                          min: 1
+                          max: 1000
+                          step: 1
+                          mode: box
+                    name:
+                      label: Custom label text
+                      selector:
+                        text:
+                          multiline: false
+                    icon:
+                      label: Custom icon
+                      selector:
+                        icon: {}
+                    color:
+                      label: Icon color
+                      selector:
+                        text:
+                          type: color
+                    navigate:
+                      label: Navigation path
+                      selector:
+                        text:
+                          multiline: false
+                    action:
+                      label: Custom actions
+                      selector:
+                        action: {}
+                  label_field: name
+                  description_field: position
+                  multiple: true
+        - type: expandable
+          icon: mdi:border-radius
+          title: Sub-button 4
+          schema:
+            - type: constant
+              label: Modify the dropdown items of the fourth sub-button. Only configured items will be changed.
+            - name: sub_button_4
+              label: Custom labels for sub-button 4
+              selector:
+                object:
+                  fields:
+                    position:
+                      label: Position in dropdown list
+                      selector:
+                        number:
+                          min: 1
+                          max: 1000
+                          step: 1
+                          mode: box
+                    name:
+                      label: Custom label text
+                      selector:
+                        text:
+                          multiline: false
+                    icon:
+                      label: Custom icon
+                      selector:
+                        icon: {}
+                    color:
+                      label: Icon color
+                      selector:
+                        text:
+                          type: color
+                    navigate:
+                      label: Navigation path
+                      selector:
+                        text:
+                          multiline: false
+                    action:
+                      label: Custom actions
+                      selector:
+                        action: {}
+                  label_field: name
+                  description_field: position
+                  multiple: true

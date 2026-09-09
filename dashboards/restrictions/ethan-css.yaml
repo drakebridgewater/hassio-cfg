@@ -1,0 +1,8 @@
+"--restriction-overlay-background": >-
+  repeating-linear-gradient( -45deg, transparent 0
+  10px,var(--user-restriction-card-mask,rgba(255,0,0,0.1)) 10px 20px)
+"--restriction-lock-opacity": 1
+"--restriction-overlay-row-border-radius": 4px
+"--restriction-overlay-row-outline": 1px solid rgba(255,0,0,0.1)
+"--restriction-regular-lock-color": red
+"--restriction-success-lock-color": green

@@ -1,0 +1,26 @@
+type: vertical-stack
+cards:
+- type: custom:bubble-card
+  card_type: pop-up
+  hash: '#lights'
+  button_type: name
+  name: Lights
+- type: custom:auto-entities
+  card_param: cards
+  card:
+    type: grid
+    columns: 1
+    square: false
+  filter:
+    include:
+      - domain: light
+        options:
+          type: custom:bubble-card
+          card_type: button
+          button_type: state
+    exclude: 
+      - state: unavailable
+      - state: unknown
+  sort:
+    method: state
+    reverse: true

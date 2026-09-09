@@ -35,10 +35,8 @@ blueprint:
           step: 1.0
     exclude:
       name: Excluded Sensors
-      description: Battery sensors (e.g. smartphone) to exclude from detection. Only
-        entities are supported, devices must be expanded!
-      default:
-        entity_id: []
+      description: Battery sensors (e.g. smartphone) to exclude from detection. Only entities are supported, devices must be expanded!
+      default: {entity_id: []}
       selector:
         target:
           entity:
@@ -49,20 +47,24 @@ blueprint:
         the names of sensors being low on battery.
       selector:
         action: {}
-  source_url: https://gist.github.com/sbyx/1f6f434f0903b872b84c4302637d0890/
+  source_url: https://gist.github.com/sbyx/1f6f434f0903b872b84c4302637d0890
 variables:
   day: !input 'day'
   threshold: !input 'threshold'
   exclude: !input 'exclude'
-  sensors: "{% set result = namespace(sensors=[]) %} {% for state in states.sensor\
-    \ | selectattr('attributes.device_class', '==', 'battery') %}\n  {% if 0 <= state.state\
-    \ | int(-1) < threshold | int and not state.entity_id in exclude.entity_id %}\n\
-    \    {% set result.sensors = result.sensors + [state.name ~ ' (' ~ state.state\
-    \ ~ ' %)'] %}\n  {% endif %}\n{% endfor %} {% for state in states.binary_sensor\
-    \ | selectattr('attributes.device_class', '==', 'battery') | selectattr('state',\
-    \ '==', 'on') %}\n  {% if not state.entity_id in exclude.entity_id %}\n    {%\
-    \ set result.sensors = result.sensors + [state.name] %}\n  {% endif %}\n{% endfor\
-    \ %} {{result.sensors|join(', ')}}"
+  sensors: >-
+    {% set result = namespace(sensors=[]) %}
+    {% for state in states.sensor | selectattr('attributes.device_class', '==', 'battery') %}
+      {% if 0 <= state.state | int(-1) < threshold | int and not state.entity_id in exclude.entity_id %}
+        {% set result.sensors = result.sensors + [state.name ~ ' (' ~ state.state ~ ' %)'] %}
+      {% endif %}
+    {% endfor %}
+    {% for state in states.binary_sensor | selectattr('attributes.device_class', '==', 'battery') | selectattr('state', '==', 'on') %}
+      {% if not state.entity_id in exclude.entity_id %}
+        {% set result.sensors = result.sensors + [state.name] %}
+      {% endif %}
+    {% endfor %}
+    {{result.sensors|join(', ')}}
 trigger:
 - platform: time
   at: !input 'time'

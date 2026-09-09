@@ -1,0 +1,134 @@
+title: Misc
+path: misc
+badges: []
+cards:
+  - !include ../../cards/living_room_mmWave_sensor.yaml
+  - type: entities
+    title: Stats on Drake
+    entities:
+      - entity: sensor.quarantine_meter_drake
+      - entity: sensor.quarantine_meter_drake_times_left
+      - entity: binary_sensor.worked_enough_today_drake
+      - entity: sensor.time_at_work_on_monday_drake
+      - entity: sensor.time_at_work_on_tuesday_drake
+      - entity: sensor.time_at_work_on_wednessday_drake
+      - entity: sensor.time_at_work_on_thursday_drake
+      - entity: sensor.time_at_work_on_friday_drake
+      - entity: sensor.time_at_work_this_week_drake
+      - entity: sensor.time_at_work_today_drake
+      - entity: input_datetime.drake_s_alarm_clock
+      - entity: sensor.ten_minutes_before_alarm
+      - entity: sensor.half_hour_before_alarm
+  - type: entities
+    title: Stats on Shawna
+    entities:
+      - entity: sensor.quarantine_meter_shawna
+      - entity: sensor.quarantine_meter_shawna_times_left
+      - entity: sensor.time_at_work_on_monday_shawna
+      - entity: sensor.time_at_work_on_tuesday_shawna
+      - entity: sensor.time_at_work_on_wednessday_shawna
+      - entity: sensor.time_at_work_on_thursday_shawna
+      - entity: sensor.time_at_work_on_friday_shawna
+      - entity: sensor.time_at_work_this_week_shawna
+      - entity: sensor.time_at_work_today_shawna
+      
+  - type: entities
+    title: Stats on Ethan
+    entities:
+      - entity: sensor.time_at_daycare_on_monday_ethan
+      - entity: sensor.time_at_daycare_on_tuesday_ethan
+      - entity: sensor.time_at_daycare_on_wednesday_ethan
+      - entity: sensor.time_at_daycare_on_thursday_ethan
+      - entity: sensor.time_at_daycare_on_friday_ethan
+      - entity: sensor.time_at_daycare_this_week_ethan
+      - entity: sensor.time_at_daycare_today_ethan
+  - type: entities
+    title: Sun
+    entities:
+      - entity: sensor.sun_next_dawn
+      - entity: sensor.sun_next_dusk
+      - entity: sensor.sun_next_midnight
+      - entity: sensor.sun_next_noon
+      - entity: sensor.sun_next_rising
+      - entity: sensor.sun_next_setting
+  - type: entities
+    entities:
+      - entity: binary_sensor.dryer
+      - entity: binary_sensor.home_occupied
+      - entity: binary_sensor.house_occupied_group
+      - entity: binary_sensor.someone_in_the_house_in_last_hour
+      - entity: binary_sensor.whole_house_motion_group
+      - entity: binary_sensor.window_open_group
+      - entity: sensor.n_days_last_month
+      - entity: sensor.timestamp_start_of_today
+  - type: entities
+    title: Daycare
+    entities:
+      - entity: binary_sensor.ethan_at_daycare
+      - entity: sensor.visited_daycare_drake
+      - entity: sensor.visited_daycare_jk
+      - entity: sensor.visited_daycare_shawna
+      - entity: zone.daycare
+  - type: history-graph
+    entities:
+      - entity: sensor.livingroom_sound_level
+        name: Crate
+      - entity: sensor.ethan_s_room_camera_sound_level
+        name: Ethan's Room
+      - entity: binary_sensor.livingroom_bark_sound
+        name: Abby Barking
+      - entity: binary_sensor.ethan_s_room_camera_crying_sound
+        name: Ethan Crying
+    logarithmic_scale: false
+    title: Sound Levels
+    hours_to_show: 6
+  - type: entities
+    title: Hassio Stats
+    entities:
+      - entity: sensor.count_automations
+      - entity: sensor.count_binary_sensors
+      - entity: sensor.count_device_trackers
+      - entity: sensor.count_input_booleans
+      - entity: sensor.count_input_datetimes
+      - entity: sensor.count_input_numbers
+      - entity: sensor.count_input_selects
+      - entity: sensor.count_input_texts
+      - entity: sensor.count_scripts
+      - entity: sensor.count_sensors
+      - entity: sensor.count_switches
+      - entity: sensor.count_zones
+      
+
+  - type: custom:auto-entities
+    card:
+      type: entities
+      title: Hours
+      show_header_toggle: false
+    title: Hours
+    filter:
+      include:
+        - entity_id: 'sensor.hours_*'
+    sort:
+      method: state
+      reverse: true
+      ignore_case: true
+      ip: false
+      numeric: true
+    show_empty: true
+
+  - type: custom:auto-entities
+    card:
+      type: entities
+      title: Times
+      show_header_toggle: false
+    title: Hours
+    filter:
+      include:
+        - entity_id: 'sensor.times_*'
+    sort:
+      method: state
+      reverse: true
+      ignore_case: true
+      ip: false
+      numeric: true
+    show_empty: true

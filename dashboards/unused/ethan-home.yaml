@@ -1,0 +1,949 @@
+max_columns: 4
+title: Ethan's Home
+path: ethan-home
+type: custom:grid-layout
+layout: !include ../../layouts/ethan-home.yaml
+
+cards:
+
+  # ============================================================
+  # BANNER
+  # ============================================================
+  # - type: custom:mushroom-chips-card
+  #   view_layout:
+  #     grid-area: banner
+  #   chips: !include ../../sections/status-bar.yaml
+
+  # ============================================================
+  # FOOTER
+  # ============================================================
+  # - type: vertical-stack
+  #   view_layout:
+  #     grid-area: footer
+  #   cards: !include_dir_list ../../sections/footer
+
+  # ============================================================
+  # CLOCKS — Dual Clocks
+  # ============================================================
+
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: clocks
+    card_mod:
+      style: |
+        ha-card {
+          background: linear-gradient(135deg, rgba(15,15,45,0.92) 0%, rgba(25,25,65,0.92) 100%);
+          border: 1px solid rgba(100,100,220,0.25);
+          border-radius: 18px;
+          padding: 4px;
+        }
+    cards:
+      - type: horizontal-stack
+        cards:
+        # ── Alarm Clock (vertical: 100px clock + 30px buttons row) ──
+        - type: custom:stack-in-card
+          card_mod:
+            style: |
+              ha-card {
+                background: transparent;
+                box-shadow: none;
+              }
+          cards:
+            - type: custom:button-card
+              update_interval: 60
+              entity: input_datetime.ethan_s_alarm_clock
+              tap_action:
+                action: none
+              show_name: false
+              show_state: false
+              show_icon: false
+              color_type: card
+              styles:
+                card:
+                  - background: transparent
+                  - box-shadow: none
+                  - padding: 0
+                  - margin: 0
+                  - width: 100%
+                  - height: 108px
+                  - min-height: 108px
+                custom_fields:
+                  clock:
+                    - width: 108px
+                    - height: 108px
+                    - display: block
+              custom_fields:
+                clock: >
+                  [[[
+                    const now = new Date();
+                    const curH = now.getHours(); const curMin = now.getMinutes();
+                    const curHAngle = (curH % 12) * 30 + curMin * 0.5;
+                    const curMAngle = curMin * 6;
+                    const state = entity ? entity.state : '07:00:00';
+                    const parts = state.split(':');
+                    const almH = parseInt(parts[0]) || 7;
+                    const almM = parseInt(parts[1]) || 0;
+                    const almHAngle = (almH % 12) * 30 + almM * 0.5;
+                    const almMAngle = almM * 6;
+                    const toRad = a => a * Math.PI / 180;
+                    const hx = (len, a) => (50 + len * Math.sin(toRad(a))).toFixed(2);
+                    const hy = (len, a) => (50 - len * Math.cos(toRad(a))).toFixed(2);
+                    const markers = [...Array(12)].map((_, i) => {
+                      const a = i * 30;
+                      const r = 45; const ri = i % 3 === 0 ? 37 : 40;
+                      const sw = i % 3 === 0 ? 2.5 : 1.5;
+                      return `<line x1="${(50+ri*Math.sin(toRad(a))).toFixed(2)}" y1="${(50-ri*Math.cos(toRad(a))).toFixed(2)}" x2="${(50+r*Math.sin(toRad(a))).toFixed(2)}" y2="${(50-r*Math.cos(toRad(a))).toFixed(2)}" stroke="#666" stroke-width="${sw}"/>`;
+                    }).join('');
+                    const h12 = (curH%12)||12;
+                    const mStr = curMin.toString().padStart(2,'0');
+                    const ampm = curH>=12?'PM':'AM';
+                    const almH12 = (almH%12)||12;
+                    const almMStr = almM.toString().padStart(2,'0');
+                    const almAmpm = almH>=12?'PM':'AM';
+                    return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:108px;height:108px;display:block">
+                      <circle cx="50" cy="50" r="48" fill="#12122a" stroke="#3a3a7a" stroke-width="2.5"/>
+                      ${markers}
+                      <text x="50" y="21" text-anchor="middle" fill="white" font-size="9" font-weight="bold" font-family="sans-serif">${h12}:${mStr} ${ampm}</text>
+                      <text x="50" y="29.5" text-anchor="middle" fill="rgba(255,190,50,0.9)" font-size="6.5" font-family="sans-serif">alarm ${almH12}:${almMStr}${almAmpm}</text>
+                      <line x1="50" y1="50" x2="${hx(26,almHAngle)}" y2="${hy(26,almHAngle)}" stroke="rgba(255,180,0,0.5)" stroke-width="5" stroke-linecap="round"/>
+                      <line x1="50" y1="50" x2="${hx(38,almMAngle)}" y2="${hy(38,almMAngle)}" stroke="rgba(255,180,0,0.38)" stroke-width="3" stroke-linecap="round"/>
+                      <line x1="50" y1="50" x2="${hx(26,curHAngle)}" y2="${hy(26,curHAngle)}" stroke="white" stroke-width="5.5" stroke-linecap="round"/>
+                      <line x1="50" y1="50" x2="${hx(38,curMAngle)}" y2="${hy(38,curMAngle)}" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                      <circle cx="50" cy="50" r="3.5" fill="white"/>
+                    </svg>`;
+                  ]]]
+
+            - type: horizontal-stack
+              cards:
+                - type: custom:button-card
+                  entity: input_datetime.ethan_s_alarm_clock
+                  name: "-5"
+                  show_name: true
+                  show_icon: false
+                  show_state: false
+                  tap_action:
+                    action: perform-action
+                    perform_action: script.add_minutes_to_input_datetime
+                    target: {}
+                    data:
+                      entity_id: input_datetime.ethan_s_alarm_clock
+                      minutes: -5
+                  styles:
+                    card:
+                      - background: rgba(30,30,80,0.9)
+                      - border-radius: 50%
+                      - font-size: 1em
+                      - font-weight: bold
+                      - color: white
+                      - height: 36px
+                      - box-shadow: 0 0 0 2px rgba(100,100,220,0.5)
+                  card_mod:
+                    style: |
+                      :host {
+                        max-width: 36px;
+                        margin: 0 auto;
+                      }
+
+                - type: custom:button-card
+                  entity: input_datetime.ethan_s_alarm_clock
+                  name: "+5"
+                  show_name: true
+                  show_icon: false
+                  show_state: false
+                  tap_action:
+                    action: perform-action
+                    perform_action: script.add_minutes_to_input_datetime
+                    target: {}
+                    data:
+                      entity_id: input_datetime.ethan_s_alarm_clock
+                      minutes: 5
+                  styles:
+                    card:
+                      - background: rgba(30,30,80,0.9)
+                      - border-radius: 50%
+                      - font-size: 1em
+                      - font-weight: bold
+                      - color: white
+                      - height: 36px
+                      - box-shadow: 0 0 0 2px rgba(100,100,220,0.5)
+                  card_mod:
+                    style: |
+                      :host {
+                        max-width: 36px;
+                        margin: 0 auto;
+                      }
+
+        # ── Bedtime Clock (vertical: 108px clock + 36px buttons row) ──
+        - type: custom:stack-in-card
+          card_mod:
+            style: |
+              ha-card {
+                background: transparent;
+                box-shadow: none;
+              }
+          cards:
+            - type: custom:button-card
+              update_interval: 60
+              entity: input_datetime.ethan_s_bedtime
+              tap_action:
+                action: none
+              show_name: false
+              show_state: false
+              show_icon: false
+              color_type: card
+              styles:
+                card:
+                  - background: transparent
+                  - box-shadow: none
+                  - padding: 0
+                  - margin: 0
+                  - width: 100%
+                  - height: 108px
+                  - min-height: 108px
+                custom_fields:
+                  clock:
+                    - width: 108px
+                    - height: 108px
+                    - display: block
+              custom_fields:
+                clock: >
+                  [[[
+                    const now = new Date();
+                    const curH = now.getHours(); const curMin = now.getMinutes();
+                    const curHAngle = (curH % 12) * 30 + curMin * 0.5;
+                    const curMAngle = curMin * 6;
+                    const state = entity ? entity.state : '20:00:00';
+                    const parts = state.split(':');
+                    const bdH = parseInt(parts[0])||20; const bdM = parseInt(parts[1])||0;
+                    const bdHAngle = (bdH%12)*30 + bdM*0.5;
+                    const bdMAngle = bdM * 6;
+                    const toRad = a => a * Math.PI / 180;
+                    const hx = (len, a) => (50 + len * Math.sin(toRad(a))).toFixed(2);
+                    const hy = (len, a) => (50 - len * Math.cos(toRad(a))).toFixed(2);
+                    const markers = [...Array(12)].map((_, i) => {
+                      const a = i * 30;
+                      const r = 45; const ri = i % 3 === 0 ? 37 : 40;
+                      const sw = i % 3 === 0 ? 2.5 : 1.5;
+                      return `<line x1="${(50+ri*Math.sin(toRad(a))).toFixed(2)}" y1="${(50-ri*Math.cos(toRad(a))).toFixed(2)}" x2="${(50+r*Math.sin(toRad(a))).toFixed(2)}" y2="${(50-r*Math.cos(toRad(a))).toFixed(2)}" stroke="#666" stroke-width="${sw}"/>`;
+                    }).join('');
+                    const h12 = (curH%12)||12;
+                    const mStr = curMin.toString().padStart(2,'0');
+                    const ampm = curH>=12?'PM':'AM';
+                    const bdH12 = (bdH%12)||12;
+                    const bdMStr = bdM.toString().padStart(2,'0');
+                    const bdAmpm = bdH>=12?'PM':'AM';
+                    return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:108px;height:108px;display:block">
+                      <circle cx="50" cy="50" r="48" fill="#12122a" stroke="#3a3a7a" stroke-width="2.5"/>
+                      ${markers}
+                      <text x="50" y="21" text-anchor="middle" fill="white" font-size="9" font-weight="bold" font-family="sans-serif">${h12}:${mStr} ${ampm}</text>
+                      <text x="50" y="29.5" text-anchor="middle" fill="rgba(180,130,255,0.9)" font-size="6.5" font-family="sans-serif">bed ${bdH12}:${bdMStr}${bdAmpm}</text>
+                      <line x1="50" y1="50" x2="${hx(26,bdHAngle)}" y2="${hy(26,bdHAngle)}" stroke="rgba(160,100,255,0.5)" stroke-width="5" stroke-linecap="round"/>
+                      <line x1="50" y1="50" x2="${hx(38,bdMAngle)}" y2="${hy(38,bdMAngle)}" stroke="rgba(160,100,255,0.38)" stroke-width="3" stroke-linecap="round"/>
+                      <line x1="50" y1="50" x2="${hx(26,curHAngle)}" y2="${hy(26,curHAngle)}" stroke="white" stroke-width="5.5" stroke-linecap="round"/>
+                      <line x1="50" y1="50" x2="${hx(38,curMAngle)}" y2="${hy(38,curMAngle)}" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                      <circle cx="50" cy="50" r="3.5" fill="white"/>
+                    </svg>`;
+                  ]]]
+
+            - type: horizontal-stack
+              cards:
+                - type: custom:button-card
+                  entity: input_datetime.ethan_s_bedtime
+                  name: "-5"
+                  show_name: true
+                  show_icon: false
+                  show_state: false
+                  tap_action:
+                    action: perform-action
+                    perform_action: script.add_minutes_to_input_datetime
+                    target: {}
+                    data:
+                      entity_id: input_datetime.ethan_s_bedtime
+                      minutes: -5
+                  styles:
+                    card:
+                      - background: rgba(30,30,80,0.9)
+                      - border-radius: 50%
+                      - font-size: 1em
+                      - font-weight: bold
+                      - color: white
+                      - height: 36px
+                      - box-shadow: 0 0 0 2px rgba(100,100,220,0.5)
+                  card_mod:
+                    style: |
+                      :host {
+                        max-width: 36px;
+                        margin: 0 auto;
+                      }
+
+                - type: custom:button-card
+                  entity: input_datetime.ethan_s_bedtime
+                  name: "+5"
+                  show_name: true
+                  show_icon: false
+                  show_state: false
+                  tap_action:
+                    action: perform-action
+                    perform_action: script.add_minutes_to_input_datetime
+                    target: {}
+                    data:
+                      entity_id: input_datetime.ethan_s_bedtime
+                      minutes: 5
+                  styles:
+                    card:
+                      - background: rgba(30,30,80,0.9)
+                      - border-radius: 50%
+                      - font-size: 1em
+                      - font-weight: bold
+                      - color: white
+                      - height: 36px
+                      - box-shadow: 0 0 0 2px rgba(100,100,220,0.5)
+                  card_mod:
+                    style: |
+                      :host {
+                        max-width: 36px;
+                        margin: 0 auto;
+                      }
+
+
+  # ============================================================
+  # TOP — Room Controls
+  # ============================================================
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: top
+    card_mod:
+      style: |
+        ha-card {
+          background: linear-gradient(135deg, rgba(15,15,45,0.92) 0%, rgba(25,25,65,0.92) 100%);
+          border: 1px solid rgba(100,100,220,0.25);
+          border-radius: 18px;
+          padding: 4px;
+          overflow: hidden;
+        }
+    cards:
+      - type: horizontal-stack
+        cards:
+          - entity: light.ethan_s_bedroom_wall_switch
+            name: Wall Switch
+            icon: mdi:light-switch
+            type: custom:bubble-card
+            card_type: button
+            button_type: switch
+            sub_button:
+              main: []
+              bottom: []
+            show_state: true
+            force_icon: false
+            use_accent_color: false
+            card_layout: large
+            modules:
+              - square_light_card
+          - entity: light.toy_chest_strip
+            name: Bedlights
+            icon: mdi:led-strip
+            type: custom:bubble-card
+            card_type: button
+            button_type: switch
+            sub_button:
+              main: []
+              bottom: []
+            show_state: true
+            force_icon: false
+            use_accent_color: false
+            card_layout: large
+            modules:
+              - square_light_card
+          - entity: fan.ethan_s_cribside
+            name: Fan
+            type: custom:bubble-card
+            card_type: button
+            button_type: switch
+            sub_button:
+              main: []
+              bottom: []
+            show_state: true
+            force_icon: false
+            use_accent_color: false
+            card_layout: large
+            modules:
+              - square_light_card
+          - entity: switch.ethan_s_door_switch
+            type: custom:bubble-card
+            card_type: button
+            button_type: switch
+            sub_button:
+              main: []
+              bottom: []
+            show_state: true
+            force_icon: false
+            use_accent_color: false
+            card_layout: large
+            modules:
+              - square_light_card
+          - entity: cover.ethans_blinds
+            name: Blinds
+            type: custom:bubble-card
+            card_type: button
+            button_type: switch
+            sub_button:
+              main: []
+              bottom: []
+            show_state: true
+            force_icon: false
+            use_accent_color: false
+            card_layout: large
+            modules:
+              - square_light_card
+          - entity: switch.twinkle_lights
+            type: custom:bubble-card
+            card_type: button
+            button_type: switch
+            sub_button:
+              main: []
+              bottom: []
+            show_state: true
+            force_icon: false
+            use_accent_color: false
+            card_layout: large
+            modules:
+              - square_light_card
+
+  # ============================================================
+  # NOW — Today's Chores (overdue + morning + today PM)
+  # ============================================================
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: now
+    card_mod:
+      style: |
+        ha-card {
+          background: linear-gradient(160deg, rgba(15,70,30,0.75) 0%, rgba(20,95,40,0.75) 100%);
+          border: 2px solid rgba(50,200,80,0.35);
+          border-radius: 18px;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+        }
+    cards:
+      - type: custom:auto-entities
+        card:
+          type: grid
+          columns: 1
+          square: false
+        card_param: cards
+        filter:
+          template: >-
+            {%- set kid_name = 'Ethan' -%}
+            {%- set kid_name_slug = kid_name | slugify() -%}
+            {%- set dashboard_helper = 'sensor.kc_' ~ kid_name_slug ~ '_ui_dashboard_helper' -%}
+            {%- set ui_translations = state_attr(dashboard_helper, 'ui_translations') | default({}) -%}
+            {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') | default({}) -%}
+            {%- set chores_data = state_attr(dashboard_helper, 'chores') | default([]) -%}
+            {%- set points_eid = core_sensors.points_eid | default('sensor.kc_' ~ kid_name_slug ~ '_points') -%}
+            
+            {%- set points_label = state_attr(points_eid, 'unit_of_measurement') | default('⭐') -%}
+            {%- set pref_column_count = 2 -%}
+
+            {%- set ns = namespace(overdue_chores=[], am_chores=[], pm_chores=[]) -%}
+            {%- for chore in chores_data -%}
+              {%- set chore_eid = chore.eid -%}
+              {%- set claim_button = chore_eid | regex_replace('^sensor\\.kc_(\\w+)_chore_status_(.+)$', 'button.kc_\\1_chore_claim_\\2') -%}
+              {%- set chore_status = chore.status | default('pending') -%}
+              {%- set primary_group = chore.primary_group | default('other') -%}
+              {%- set is_today_am = chore.is_today_am -%}
+              {%- set entry = {'chore': chore, 'button': claim_button} -%}
+              {%- if chore_status == 'overdue' -%}
+                {%- set ns.overdue_chores = ns.overdue_chores + [entry] -%}
+              {%- elif primary_group == 'today' -%}
+                {%- if is_today_am == true or is_today_am == 'true' -%}
+                  {%- set ns.am_chores = ns.am_chores + [entry] -%}
+                {%- else -%}
+                  {%- set ns.pm_chores = ns.pm_chores + [entry] -%}
+                {%- endif -%}
+              {%- endif -%}
+            {%- endfor -%}
+
+            {%- set render_groups = [
+                {'name': "!!!!! " ~ (ui_translations.overdue_chores | default('Overdue Chores')) ~ " !!!!!", 'chores': ns.overdue_chores, 'icon': 'mdi:alert-octagon'},
+                {'name': ui_translations.due_this_morning | default('Due This Morning'), 'chores': ns.am_chores, 'icon': 'mdi:alarm'},
+                {'name': ui_translations.due_today | default('Due Today'), 'chores': ns.pm_chores, 'icon': 'mdi:calendar-today'}
+            ] -%}
+
+            {%- set found = namespace(count=0) -%}
+            {%- for group in render_groups -%}
+              {%- if group.chores | length > 0 -%}
+                {%- set found.count = found.count + (group.chores | length) -%}
+                {{ {'type': 'heading', 'icon': group.icon, 'heading': group.name, 'heading_style': 'title'} }},
+                {%- set gc = namespace(cards=[]) -%}
+                {%- for item in group.chores -%}
+                  {%- set chore = item.chore -%}
+                  {%- set claim_button = item.button -%}
+                  {%- set chore_eid = chore.eid -%}
+                  {%- set chore_name = chore.name | default('Chore') -%}
+                  {%- set chore_status = chore.status | default('pending') -%}
+                  {%- set due_date_str = chore.due_date -%}
+                  {%- set due_date = as_datetime(due_date_str).astimezone(now().tzinfo) if due_date_str and due_date_str != 'null' and due_date_str != none else None -%}
+                  {%- set recurring = chore.recurring_frequency | default('') -%}
+                  {%- set today = now().astimezone(now().tzinfo).date() -%}
+                  {%- set due_date_short = (ui_translations.daily | default('Daily')) if recurring == 'daily' and not due_date else (ui_translations.weekly | default('Weekly')) if recurring == 'weekly' and not due_date else (ui_translations.no_due_date | default('No Due Date')) if not due_date else (due_date.strftime('%-I:%M %p') if due_date.date() == today else as_timestamp(due_date) | timestamp_custom('%a %b %-d', true)) -%}
+                  {%- set multi_approve = chore.allow_multiple_claims_per_day | default(false) -%}
+                  {%- set points = chore.default_points | default(state_attr(chore_eid, 'default_points') | default(-1)) | string -%}
+                  {%- set streak = chore.chore_current_streak | default(state_attr(chore_eid, 'chore_current_streak') | default(-1)) | string -%}
+                  {%- set global_chore_state = chore.global_state | default('') -%}
+                  {%- set chore_icon = chore.icon | default('mdi:checkbox-marked-circle-outline') -%}
+                  {%- set shared_chore = chore.shared_chore | default(false) -%}
+                  {%- set chore_desc = chore.description | default('') -%}
+                  {%- set state_map = {'pending': ui_translations.pending | default('Pending'), 'claimed': ui_translations.claimed | default('Claimed'), 'approved': ui_translations.approved | default('Approved'), 'overdue': ui_translations.overdue | default('Overdue')} -%}
+                  {%- set chore_state_display = (state_map[chore_status] if chore_status in state_map else chore_status) ~ (' (M)' if multi_approve else '') -%}
+                  {%- set primary = chore_name ~ (' (S)' if shared_chore else '') -%}
+                  {%- set secondary = points_label ~ ': ' ~ points ~ '\n🔥 ' ~ (ui_translations.streak | default('Streak')) ~ ': ' ~ streak ~ '\n' ~ (ui_translations.status | default('Status')) ~ ': ' ~ chore_state_display ~ '\n' ~ (ui_translations.due | default('Due')) ~ ': ' ~ due_date_short ~ ('\n' ~ chore_desc if chore_desc and chore_desc not in ['None', 'unknown', 'unavailable', ''] else '') -%}
+                  {%- set icon_color = ('blue' if chore_status == 'approved' and multi_approve else 'green' if chore_status == 'approved' else 'yellow' if chore_status == 'partial' else 'orange' if chore_status == 'claimed' else 'red' if chore_status == 'overdue' else 'purple' if '_in_part' in global_chore_state else 'grey') -%}
+                  {%- set badge_color = ('blue' if chore_status == 'approved' and multi_approve else 'green' if chore_status in ['approved', 'partial', 'claimed'] else 'red' if chore_status == 'overdue' else 'purple' if '_in_part' in global_chore_state else 'grey') -%}
+                  {%- set badge_icon = ('mdi:check-bold' if chore_status in ['approved', 'partial', 'claimed'] else 'mdi:exclamation-thick' if chore_status == 'overdue' else 'mdi:account-group' if '_in_part' in global_chore_state else '') -%}
+                  {%- set gc.cards = gc.cards + [{'type': 'custom:mushroom-template-card', 'entity': claim_button, 'primary': primary, 'multiline_secondary': 'false', 'secondary': secondary, 'layout': 'horizontal', 'icon': chore_icon, 'icon_color': icon_color, 'badge_icon': badge_icon, 'badge_color': badge_color, 'tap_action': {'action': 'toggle'}, 'hold_action': {'action': 'more-info'}}] -%}
+                {%- endfor -%}
+                {{ {'type': 'grid', 'columns': pref_column_count, 'square': false, 'cards': gc.cards} }},
+              {%- endif -%}
+            {%- endfor -%}
+
+            {%- if found.count == 0 -%}
+              {{ {'type': 'markdown', 'content': '## 🎉 All done!\nNo chores for right now.'} }},
+            {%- endif -%}
+
+  # ============================================================
+  # LATER — This Week & Upcoming
+  # ============================================================
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: later
+    card_mod:
+      style: |
+        ha-card {
+          background: linear-gradient(160deg, rgba(20,45,110,0.75) 0%, rgba(25,60,150,0.75) 100%);
+          border: 2px solid rgba(80,140,255,0.3);
+          border-radius: 18px;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+        }
+    cards:
+      - type: custom:auto-entities
+        card:
+          type: grid
+          columns: 1
+          square: false
+        card_param: cards
+        filter:
+          template: >-
+            {%- set kid_name = 'Ethan' -%}
+            {%- set kid_name_slug = kid_name | slugify() -%}
+            {%- set dashboard_helper = 'sensor.kc_' ~ kid_name_slug ~ '_ui_dashboard_helper' -%}
+            {%- set ui_translations = state_attr(dashboard_helper, 'ui_translations') | default({}) -%}
+            {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') | default({}) -%}
+            {%- set chores_data = state_attr(dashboard_helper, 'chores') | default([]) -%}
+            {%- set points_eid = core_sensors.points_eid | default('sensor.kc_' ~ kid_name_slug ~ '_points') -%}
+            {%- set points_label = state_attr(points_eid, 'unit_of_measurement') | default('⭐') -%}
+            {%- set pref_column_count = 2 -%}
+
+            {%- set ns = namespace(weekly_chores=[], other_chores=[], label_groups={}) -%}
+            {%- for chore in chores_data -%}
+              {%- set chore_eid = chore.eid -%}
+              {%- set claim_button = chore_eid | regex_replace('^sensor\\.kc_(\\w+)_chore_status_(.+)$', 'button.kc_\\1_chore_claim_\\2') -%}
+              {%- set chore_status = chore.status | default('pending') -%}
+              {%- set primary_group = chore.primary_group | default('other') -%}
+              {%- set chore_labels = chore.labels | default([]) -%}
+              {%- set entry = {'chore': chore, 'button': claim_button} -%}
+              {%- if chore_status != 'overdue' and primary_group != 'today' -%}
+                {%- if primary_group == 'this_week' -%}
+                  {%- set ns.weekly_chores = ns.weekly_chores + [entry] -%}
+                {%- elif chore_labels | length > 0 -%}
+                  {%- for label in chore_labels -%}
+                    {%- set existing = ns.label_groups.get(label, []) -%}
+                    {%- set ns.label_groups = ns.label_groups | combine({label: existing + [entry]}) -%}
+                  {%- endfor -%}
+                {%- else -%}
+                  {%- set ns.other_chores = ns.other_chores + [entry] -%}
+                {%- endif -%}
+              {%- endif -%}
+            {%- endfor -%}
+
+            {%- set ns2 = namespace(label_group_list=[]) -%}
+            {%- for label, chores_list in ns.label_groups.items() -%}
+              {%- set ns2.label_group_list = ns2.label_group_list + [{'name': label, 'chores': chores_list, 'icon': 'mdi:label'}] -%}
+            {%- endfor -%}
+
+            {%- set render_groups = [
+                {'name': ui_translations.due_this_week | default('Due This Week'), 'chores': ns.weekly_chores, 'icon': 'mdi:calendar-week'}
+            ] + ns2.label_group_list + [
+                {'name': ui_translations.upcoming_bonus | default('Upcoming & Bonus'), 'chores': ns.other_chores, 'icon': 'mdi:calendar-clock'}
+            ] -%}
+
+            {%- set found = namespace(count=0) -%}
+            {%- for group in render_groups -%}
+              {%- if group.chores | length > 0 -%}
+                {%- set found.count = found.count + (group.chores | length) -%}
+                {{ {'type': 'heading', 'icon': group.icon, 'heading': group.name, 'heading_style': 'title'} }},
+                {%- set gc = namespace(cards=[]) -%}
+                {%- for item in group.chores -%}
+                  {%- set chore = item.chore -%}
+                  {%- set claim_button = item.button -%}
+                  {%- set chore_eid = chore.eid -%}
+                  {%- set chore_name = chore.name | default('Chore') -%}
+                  {%- set chore_status = chore.status | default('pending') -%}
+                  {%- set due_date_str = chore.due_date -%}
+                  {%- set due_date = as_datetime(due_date_str).astimezone(now().tzinfo) if due_date_str and due_date_str != 'null' and due_date_str != none else None -%}
+                  {%- set recurring = chore.recurring_frequency | default('') -%}
+                  {%- set today = now().astimezone(now().tzinfo).date() -%}
+                  {%- set due_date_short = (ui_translations.daily | default('Daily')) if recurring == 'daily' and not due_date else (ui_translations.weekly | default('Weekly')) if recurring == 'weekly' and not due_date else (ui_translations.no_due_date | default('No Due Date')) if not due_date else (due_date.strftime('%-I:%M %p') if due_date.date() == today else as_timestamp(due_date) | timestamp_custom('%a %b %-d', true)) -%}
+                  {%- set multi_approve = chore.allow_multiple_claims_per_day | default(false) -%}
+                  {%- set points = chore.default_points | default(state_attr(chore_eid, 'default_points') | default(-1)) | string -%}
+                  {%- set streak = chore.chore_current_streak | default(state_attr(chore_eid, 'chore_current_streak') | default(-1)) | string -%}
+                  {%- set global_chore_state = chore.global_state | default('') -%}
+                  {%- set chore_icon = chore.icon | default('mdi:checkbox-marked-circle-outline') -%}
+                  {%- set shared_chore = chore.shared_chore | default(false) -%}
+                  {%- set chore_desc = chore.description | default('') -%}
+                  {%- set state_map = {'pending': ui_translations.pending | default('Pending'), 'claimed': ui_translations.claimed | default('Claimed'), 'approved': ui_translations.approved | default('Approved'), 'overdue': ui_translations.overdue | default('Overdue')} -%}
+                  {%- set chore_state_display = (state_map[chore_status] if chore_status in state_map else chore_status) ~ (' (M)' if multi_approve else '') -%}
+                  {%- set primary = chore_name ~ (' (S)' if shared_chore else '') -%}
+                  {%- set secondary = points_label ~ ': ' ~ points ~ '\n🔥 ' ~ (ui_translations.streak | default('Streak')) ~ ': ' ~ streak ~ '\n' ~ (ui_translations.status | default('Status')) ~ ': ' ~ chore_state_display ~ '\n' ~ (ui_translations.due | default('Due')) ~ ': ' ~ due_date_short ~ ('\n' ~ chore_desc if chore_desc and chore_desc not in ['None', 'unknown', 'unavailable', ''] else '') -%}
+                  {%- set icon_color = ('blue' if chore_status == 'approved' and multi_approve else 'green' if chore_status == 'approved' else 'yellow' if chore_status == 'partial' else 'orange' if chore_status == 'claimed' else 'red' if chore_status == 'overdue' else 'purple' if '_in_part' in global_chore_state else 'grey') -%}
+                  {%- set badge_color = ('blue' if chore_status == 'approved' and multi_approve else 'green' if chore_status in ['approved', 'partial', 'claimed'] else 'red' if chore_status == 'overdue' else 'purple' if '_in_part' in global_chore_state else 'grey') -%}
+                  {%- set badge_icon = ('mdi:check-bold' if chore_status in ['approved', 'partial', 'claimed'] else 'mdi:exclamation-thick' if chore_status == 'overdue' else 'mdi:account-group' if '_in_part' in global_chore_state else '') -%}
+                  {%- set gc.cards = gc.cards + [{'type': 'custom:mushroom-template-card', 'entity': claim_button, 'primary': primary, 'multiline_secondary': 'false', 'secondary': secondary, 'layout': 'horizontal', 'icon': chore_icon, 'icon_color': icon_color, 'badge_icon': badge_icon, 'badge_color': badge_color, 'tap_action': {'action': 'toggle'}, 'hold_action': {'action': 'more-info'}}] -%}
+                {%- endfor -%}
+                {{ {'type': 'grid', 'columns': pref_column_count, 'square': false, 'cards': gc.cards} }},
+              {%- endif -%}
+            {%- endfor -%}
+
+            {%- if found.count == 0 -%}
+              {{ {'type': 'markdown', 'content': '## 🌟 All clear!\nNo upcoming chores.'} }},
+            {%- endif -%}
+
+  # ============================================================
+  # BONUSES — Bonuses & Penalties (Restriction-Locked)
+  # ============================================================
+  - type: custom:restriction-card
+    view_layout:
+      grid-area: bonuses
+    locked: "{{ is_state('input_boolean.parents_management_mode', 'off') }}"
+    duration: 30
+    locked_icon: mdi:lock
+    unlocked_icon: mdi:lock-open-variant
+    restrictions: !include ../../restrictions/ethan-tap.yaml
+    css_variables: !include ../../restrictions/ethan-css.yaml
+    card_mod: !include ../../restrictions/ethan-mod.yaml
+    card:
+      type: custom:stack-in-card
+      card_mod:
+        style: |
+          ha-card {
+            background: linear-gradient(160deg, rgba(90,55,5,0.75) 0%, rgba(120,80,10,0.75) 100%);
+            border: 2px solid rgba(250,190,30,0.3);
+            border-radius: 18px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+      cards:
+        - type: heading
+          heading: "Bonuses"
+          heading_style: subtitle
+          icon: mdi:star-plus
+
+        - type: custom:auto-entities
+          card:
+            square: false
+            type: grid
+            columns: 2
+          card_param: cards
+          filter:
+            template: >-
+              {%- set kid_name = 'Ethan' -%}
+              {%- set kid_name_slug = kid_name | slugify() -%}
+              {%- set dashboard_helper = 'sensor.kc_' ~ kid_name_slug ~ '_ui_dashboard_helper' -%}
+              {%- set ui_translations = state_attr(dashboard_helper, 'ui_translations') | default({}) -%}
+              {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') | default({}) -%}
+              {%- set bonuses_data = state_attr(dashboard_helper, 'bonuses') | default([]) -%}
+              {%- set points_eid = core_sensors.points_eid | default('sensor.kc_' ~ kid_name_slug ~ '_points') -%}
+              {%- set points_label = state_attr(points_eid, 'unit_of_measurement') | default('Points') -%}
+              {%- if bonuses_data | length > 0 -%}
+                {%- for bonus in bonuses_data -%}
+                  {%- set bonus_eid = bonus.eid -%}
+                  {%- set bonus_name = bonus.name | default('Unknown') -%}
+                  {%- set bonus_points = bonus.points | default(0) -%}
+                  {%- set bonuses_applied = bonus.applied | default(0) -%}
+                  {%- set bonus_icon = state_attr(bonus_eid, 'icon') | default('mdi:star') -%}
+                  {%- set primary = (ui_translations.bonus | default('Bonus')) ~ ": " ~ bonus_name -%}
+                  {%- set secondary =
+                    '⭐ ' ~ (ui_translations.bonus | default('Bonus')) ~ ':  ' ~ (bonus_points | string) ~ ' ' ~ points_label ~ '\n' ~
+                    '📊 ' ~ (ui_translations.applied | default('Applied')) ~ ':  ' ~ (bonuses_applied | string) ~ ' ' ~ (ui_translations.times | default('times')) -%}
+                  {%- set icon_color =
+                    '#00FF00' if bonus_points | int >= 20 else
+                    '#20C997' if bonus_points | int >= 10 else
+                    '#7FFFD4' -%}
+                  {{
+                    {
+                      'type': 'custom:mushroom-template-card',
+                      'entity': bonus_eid,
+                      'primary': primary,
+                      'secondary': secondary,
+                      'multiline_secondary': 'true',
+                      'layout': 'vertical',
+                      'icon': bonus_icon,
+                      'icon_color': icon_color,
+                      'tap_action': {'action': 'toggle'},
+                      'hold_action': {'action': 'more-info'}
+                    }
+                  }},
+                {%- endfor -%}
+              {%- else -%}
+                {{ {'type': 'markdown', 'content': (ui_translations.none | default('None'))} }},
+              {%- endif -%}
+
+        # Points adjustment buttons (red/green)
+        - type: custom:auto-entities
+          card:
+            square: false
+            type: grid
+            columns: 6
+          card_param: cards
+          filter:
+            template: >-
+              {%- set kid_name = 'Ethan' -%}
+              {%- set kid_name_slug = kid_name | slugify() -%}
+              {%- set dashboard_helper = 'sensor.kc_' ~ kid_name_slug ~ '_ui_dashboard_helper' -%}
+              {%- set points_buttons_data = state_attr(dashboard_helper, 'points_buttons') | default([]) -%}
+              {%- set pb = namespace(sorted_buttons=[]) -%}
+              {%- for button in points_buttons_data -%}
+                {%- set button_eid = button.eid -%}
+                {%- set button_name_attr = button.name | default(state_attr(button_eid, 'friendly_name') | default('')) -%}
+                {%- set numeric_matches = button_name_attr | regex_findall('([+-]?\\d+(?:\\.\\d+)?)') -%}
+                {%- if numeric_matches | length > 0 -%}
+                  {%- set pb.sorted_buttons = pb.sorted_buttons + [{'eid': button_eid, 'name': button_name_attr, 'value': numeric_matches[0] | float}] -%}
+                {%- else -%}
+                  {%- set pb.sorted_buttons = pb.sorted_buttons + [{'eid': button_eid, 'name': button_name_attr, 'value': 0}] -%}
+                {%- endif -%}
+              {%- endfor -%}
+              {%- set sorted_buttons = pb.sorted_buttons | sort(attribute='value') -%}
+              {%- for button_item in sorted_buttons -%}
+                {%- set is_positive = button_item.value > 0 -%}
+                {%- set primary = button_item.name | regex_replace('^Points ', '') -%}
+                {%- set icon = 'mdi:plus-circle' if is_positive else 'mdi:minus-circle' -%}
+                {%- set icon_color = 'green' if is_positive else 'red' -%}
+                {{
+                  {
+                    'type': 'custom:mushroom-template-card',
+                    'entity': button_item.eid,
+                    'primary': primary,
+                    'icon': icon,
+                    'icon_color': icon_color,
+                    'layout': 'vertical',
+                    'tap_action': {'action': 'toggle'},
+                    'hold_action': {'action': 'more-info'},
+                    'card_mod': {
+                      'style': 'ha-icon { color: ' ~ ('red' if not is_positive else 'green') ~ ' !important; } .icon-container { background-color: ' ~ ('rgba(255,0,0,0.2)' if not is_positive else 'rgba(0,128,0,0.2)') ~ ' !important; }'
+                    }
+                  }
+                }},
+              {%- endfor -%}
+
+  # ============================================================
+  # CALENDAR — Ethan's Schedule
+  # ============================================================
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: calendar
+    card_mod:
+      style: |
+        ha-card {
+          background: linear-gradient(160deg, rgba(8,75,75,0.75) 0%, rgba(12,105,105,0.75) 100%);
+          border: 2px solid rgba(30,210,210,0.3);
+          border-radius: 18px;
+        }
+    cards:
+      - type: heading
+        heading: "📅 What's Coming Up"
+        heading_style: subtitle
+        icon: mdi:calendar-star
+
+      - type: custom:calendar-card-pro
+        entities:
+          - entity: calendar.kc_ethan
+            color: "#4ade80"
+          - entity: calendar.ethan_fm
+            color: "#60a5fa"
+        days_to_show: 1
+        max_events_to_show: 8
+        title: false
+        show_past_events: false
+        time_24h: false
+        show_end_time: false
+        language: en
+        event_font_size: 15px
+        day_font_size: 17px
+        weekday_font_size: 13px
+        month_font_size: 11px
+        refresh_interval: 15
+
+  # ============================================================
+  # REWARDS — Progress Tiles
+  # ============================================================
+  # ============================================================
+  # PENALTIES — Penalties Applied (own section, 1/4 width)
+  # ============================================================
+  - type: custom:restriction-card
+    view_layout:
+      grid-area: penalties
+    locked: "{{ is_state('input_boolean.parents_management_mode', 'off') }}"
+    duration: 30
+    locked_icon: mdi:lock
+    unlocked_icon: mdi:lock-open-variant
+    restrictions: !include ../../restrictions/ethan-tap.yaml
+    css_variables: !include ../../restrictions/ethan-css.yaml
+    card_mod: !include ../../restrictions/ethan-mod.yaml
+    card:
+      type: custom:stack-in-card
+      card_mod:
+        style: |
+          ha-card {
+            background: linear-gradient(160deg, rgba(100,15,15,0.75) 0%, rgba(140,25,25,0.75) 100%);
+            border: 2px solid rgba(255,80,80,0.3);
+            border-radius: 18px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+      cards:
+        - type: heading
+          icon: mdi:alert-circle
+          heading: "⚠️ Penalties"
+          heading_style: subtitle
+
+        - type: custom:auto-entities
+          card:
+            square: false
+            type: grid
+            columns: 1
+          card_param: cards
+          filter:
+            template: >-
+              {%- set kid_name = 'Ethan' -%}
+              {%- set kid_name_slug = kid_name | slugify() -%}
+              {%- set dashboard_helper = 'sensor.kc_' ~ kid_name_slug ~ '_ui_dashboard_helper' -%}
+              {%- set ui_translations = state_attr(dashboard_helper, 'ui_translations') | default({}) -%}
+              {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') | default({}) -%}
+              {%- set penalties_data = state_attr(dashboard_helper, 'penalties') | default([]) -%}
+              {%- set points_eid = core_sensors.points_eid | default('sensor.kc_' ~ kid_name_slug ~ '_points') -%}
+              {%- set points_label = state_attr(points_eid, 'unit_of_measurement') | default('Points') -%}
+              {%- if penalties_data | length > 0 -%}
+                {%- for penalty in penalties_data -%}
+                  {%- set penalty_eid = penalty.eid -%}
+                  {%- set penalty_name = penalty.name | default('Unknown') -%}
+                  {%- set penalty_points = penalty.points | default(0) -%}
+                  {%- set penalties_applied = penalty.applied | default(0) -%}
+                  {%- set penalty_icon = state_attr(penalty_eid, 'icon') | default('mdi:alert-circle') -%}
+                  {%- set primary = (ui_translations.penalty | default('Penalty')) ~ ": " ~ penalty_name -%}
+                  {%- set secondary =
+                    '💥 ' ~ (penalty_points | string) ~ ' ' ~ points_label ~ '\n' ~
+                    '📊 ' ~ (penalties_applied | string) ~ ' ' ~ (ui_translations.times | default('times')) -%}
+                  {%- set icon_color =
+                    '#FF4500' if penalty_points | int >= 20 else
+                    '#FFA54F' if penalty_points | int >= 10 else
+                    '#FFD27F' -%}
+                  {{
+                    {
+                      'type': 'custom:mushroom-template-card',
+                      'entity': penalty_eid,
+                      'primary': primary,
+                      'secondary': secondary,
+                      'multiline_secondary': 'true',
+                      'layout': 'vertical',
+                      'icon': penalty_icon,
+                      'icon_color': icon_color,
+                      'tap_action': {'action': 'toggle'},
+                      'hold_action': {'action': 'more-info'}
+                    }
+                  }},
+                {%- endfor -%}
+              {%- else -%}
+                {{ {'type': 'markdown', 'content': '*None*'} }},
+              {%- endif -%}
+
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: rewards
+    card_mod:
+      style:
+        .: |
+          ha-card {
+            background: linear-gradient(160deg, rgba(65,15,105,0.75) 0%, rgba(90,25,145,0.75) 100%);
+            border: 2px solid rgba(200,100,255,0.3);
+            border-radius: 18px;
+          }
+        hui-vertical-stack-card$: |
+          #root {
+            max-height: 250px;
+            overflow-y: auto;
+          }
+    cards:
+      - type: custom:auto-entities
+        card:
+          type: grid
+          columns: 1
+          square: false
+        card_param: cards
+        filter:
+          template: >-
+            {%- set kid_name = 'Ethan' -%} 
+            {%- set kid_name_slug = kid_name | slugify() -%} 
+            {%- set dashboard_helper = 'sensor.kc_' ~ kid_name_slug ~ '_ui_dashboard_helper' -%} 
+            {%- set ui_translations = state_attr(dashboard_helper, 'ui_translations') | default({}) -%}
+            {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') | default({}) -%} 
+            {%- set rewards_data = state_attr(dashboard_helper, 'rewards') | default([]) -%} 
+            {%- set points_eid = core_sensors.points_eid | default('sensor.kc_' ~ kid_name_slug ~ '_points') -%} 
+            {%- set current_points = states(points_eid) | int(default=0) -%}
+            {%- set points_label = state_attr(points_eid, 'unit_of_measurement') | default('Points') -%} 
+            {%- set pref_column_count = 3 -%}
+
+            {%- set rns = namespace(reward_groups={'-No Label-': []}) -%} {%- for
+            reward in rewards_data -%}
+              {%- set reward_eid = reward.eid -%}
+              {%- set reward_sensor = states(reward_eid) if reward_eid else none -%}
+              {%- if reward_sensor and reward_sensor != 'unavailable' and reward_sensor != 'unknown' -%}
+                {%- set reward_name = reward.name | default(state_attr(reward_eid, 'reward_name') | default('Unknown')) -%}
+                {%- set reward_cost = reward.cost | default(state_attr(reward_eid, 'cost') | default(0)) -%}
+                {%- set reward_icon = state_attr(reward_eid, 'icon') | default('mdi:gift') -%}
+                {%- set approvals = reward.approvals | default(state_attr(reward_eid, 'reward_approvals_count') | default(0)) -%}
+                {%- set claims = reward.claims | default(state_attr(reward_eid, 'reward_claims_count') | default(0)) -%}
+                {%- set claim_button = reward_eid | regex_replace('^sensor\\.kc_(\\w+)_reward_status_(.+)$', 'button.kc_\\1_reward_claim_\\2') -%}
+                {%- set entry = {'name': reward_name, 'cost': reward_cost, 'icon': reward_icon, 'approvals': approvals, 'claims': claims, 'button': claim_button} -%}
+                {%- set existing = rns.reward_groups.get('-No Label-', []) -%}
+                {%- set rns.reward_groups = rns.reward_groups | combine({'-No Label-': existing + [entry]}) -%}
+              {%- endif -%}
+            {%- endfor -%}
+
+            {%- for group_name, rewards_list in rns.reward_groups.items() -%}
+              {%- if rewards_list | length > 0 -%}
+                {{ {'type': 'heading', 'icon': 'mdi:gift-outline', 'heading': ui_translations.rewards | default('Rewards') + " (Points: " +states("sensor.kc_ethan_points") + ")", 'heading_style': 'title'} }},
+                {%- set rg = namespace(cards=[]) -%}
+                {%- for item in rewards_list | sort(attribute='cost') -%}
+                  {%- set points_needed = item.cost - current_points if item.cost > current_points else 0 -%}
+                  {%- set can_claim = "✅ Ready!" if points_needed == 0 else "❌ Need " ~ points_needed ~ " more" -%}
+                  {%- set rg.cards = rg.cards + [{
+                    'type': 'custom:mushroom-template-card',
+                    'primary': item.name,
+                    'layout': 'vertical',
+                    'secondary': "💰 " ~ item.cost|string ~ " " ~ points_label ~ "  |  " ~ can_claim,
+                    'icon': item.icon,
+                    'icon_color': 'green' if points_needed == 0 else 'grey',
+                    'badge_icon': 'mdi:check-bold' if points_needed == 0 else '',
+                    'badge_color': 'green',
+                    'tap_action': {'action': 'call-service', 'service': 'button.press', 'target': {'entity_id': item.button}}
+                  }] -%}
+                {%- endfor -%}
+                {{ {'type': 'grid', 'columns': pref_column_count, 'square': false, 'cards': rg.cards} }},
+              {%- else -%}
+                {{ {'type': 'markdown', 'content': '*No rewards available.*'} }},
+              {%- endif -%}
+            {%- endfor -%}

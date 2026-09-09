@@ -1,0 +1,385 @@
+
+type: vertical-stack
+cards: 
+  - type: custom:bubble-card
+    card_type: pop-up
+    hash: '#kitchen'
+    button_type: switch
+    name: Kitchen
+    entity: light.kitchen_lights_group
+    force_icon: false
+    show_state: true
+    show_last_changed: false
+    show_attribute: true
+    attribute: max_color_temp_kelvin
+    bg_opacity: '35'
+    button_action:
+      tap_action:
+        action: none
+    tap_action:
+      action: toggle
+    sub_button:
+      - entity: light.kitchen_wall_switch
+        icon: mdi:lightbulb-fluorescent-tube-outline
+        show_name: false
+        show_state: false
+        tap_action:
+          action: toggle
+      - entity: fan.ceiling_fan
+        icon: mdi:ceiling-fan
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+      - entity: light.vaulted_light
+        icon: mdi:ceiling-fan-light
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+  - type: custom:bubble-card
+    card_type: separator
+  - type: custom:mushroom-chips-card
+    chips:
+      - type: entity
+        entity: input_boolean.lighting_automation_blocker_kitchen
+        content_info: name
+        icon_color: red
+        icon: mdi:auto-mode
+        name: Automation
+        tap_action:
+          action: toggle
+        use_entity_picture: false
+      - type: template
+        entity: binary_sensor.kitchen_motion_sensor_occupancy
+        icon_color: |-
+          {% if states('binary_sensor.kitchen_motion_sensor_occupancy') == 'on' -%}
+          red
+          {%- else %}
+          grey
+          {%- endif %}
+        icon: mdi:motion-sensor
+        content: |-
+          {% if states('binary_sensor.kitchen_motion_sensor_occupancy') == 'off' -%}
+          No Motion detected
+          {% elif states('binary_sensor.kitchen_motion_sensor_occupancy') == 'on' -%}
+          Motion Detected
+          {%- else %}
+          Motion Error
+          {%- endif %}
+        tap_action:
+          action: more-info
+      - type: template
+        entity: binary_sensor.kitchen_door
+        icon_color: |-
+          {% if states('binary_sensor.kitchen_door') == 'on' -%}
+          red
+          {%- else %}
+          grey
+          {%- endif %}
+        icon: mdi:door
+        content: |-
+          {% if states('binary_sensor.kitchen_door') == 'off' -%}
+          Kitchen Door Closed
+          {% elif states('binary_sensor.kitchen_door') == 'on' -%}
+          Kitchen Door Open
+          {%- else %}
+          Kitchen Door Error
+          {%- endif %}
+        tap_action:
+          action: more-info
+      - type: entity
+        entity: sensor.thermostat_temperature
+
+  - type: heading
+    heading: Lighting
+    heading_style: title
+
+  - type: custom:bubble-card
+    card_type: sub-buttons
+    sub_button:
+      main: []
+      bottom:
+        - name: Synced Lights
+          buttons_layout: inline
+          group:
+            - entity: light.kitchen_wall_switch
+              icon: hue:bulb-group-ceiling-round
+              show_name: true
+              name: Kitchen
+              tap_action:
+                service: ""
+                action: toggle
+              hold_action:
+                action: more-info
+            - entity: automation.synced_entities
+              name: Synced Lights
+              show_icon: true
+              show_name: true
+              icon: mdi:sync-alert
+            - entity: light.vaulted_light
+              show_name: true
+              name: Dining
+              tap_action:
+                service: ""
+                action: toggle
+              hold_action:
+                action: more-info
+
+  - type: custom:bubble-card
+    entity: light.kitchen_sink_lamp
+    card_type: button
+    button_type: slider
+    show_last_updated: true
+    sub_button:
+      - name: Toggle button
+        icon: mdi:power
+        tap_action:
+          action: toggle
+
+  - type: horizontal-stack
+    cards:
+      - type: custom:bubble-card
+        entity: light.pantry_left_lamp
+        name: Pantry Left
+        card_type: button
+        button_type: slider
+        show_last_updated: true
+        sub_button:
+          - name: Toggle button
+            icon: mdi:power
+            tap_action:
+              action: toggle
+      - type: custom:bubble-card
+        entity: light.pantry_right_lamp
+        name: Pantry Right
+        card_type: button
+        button_type: slider
+        show_last_updated: true
+        sub_button:
+          - name: Toggle button
+            icon: mdi:power
+            tap_action:
+              action: toggle
+
+  - type: custom:bubble-card
+    button_type: switch
+    card_type: button
+    entity: light.kitchen_cabinet_light_strip
+    icon: phu:light-strip
+    sub_button:
+      main:
+        - entity: light.kitchen_cabinet_light_strip
+          icon: mdi:power
+          tap_action:
+            action: toggle
+      bottom:
+        - entity: number.kitchen_cabinet_light_strip_intensity
+          fill_width: true
+          sub_button_type: slider
+          always_visible: true
+          show_name: true
+          show_last_changed: false
+          show_state: false
+          show_last_updated: false
+          slider_live_update: false
+          name: Intensity
+          show_icon: true
+          visibility:
+            - condition: state
+              entity_id: light.kitchen_cabinet_light_strip
+              state: "on"
+        - entity: number.kitchen_cabinet_light_strip_speed
+          fill_width: true
+          sub_button_type: slider
+          always_visible: true
+          show_name: true
+          show_last_changed: false
+          show_state: false
+          show_last_updated: false
+          slider_live_update: false
+          name: Speed
+          show_icon: true
+          visibility:
+            - condition: state
+              entity_id: light.kitchen_cabinet_light_strip
+              state: "on"
+        - entity: select.kitchen_cabinet_light_strip_color_palette
+          name: Colors
+          icon: mdi:palette
+          show_icon: false
+          show_name: true
+          sub_button_type: select
+          fill_width: false
+        - entity: select.kitchen_cabinet_light_strip_preset
+          icon: hue:scene-concentrate
+          name: Presets
+          show_name: true
+          show_icon: false
+          show_attribute: false
+          sub_button_type: select
+          fill_width: false
+    rows: 1.719
+    button_action:
+      tap_action:
+        action: more-info
+    use_accent_color: false
+    force_icon: false
+    show_state: false
+    show_last_updated: true
+    show_attribute: true
+    attribute: effect
+
+  - type: heading
+    heading: Media
+    heading_style: title
+
+  - type: custom:bubble-card
+    card_type: media-player
+    name: Google Home
+    entity: media_player.kitchen_google
+    show_state: true
+    show_last_updated: true
+    show_attribute: true
+    attribute: assumed_state
+    card_layout: large
+    scrolling_effect: false
+    show_icon: true
+    force_icon: true
+    show_name: true
+    show_last_changed: true
+    columns: 2
+    rows: 1
+    tap_action:
+      action: more-info
+    hide:
+      play_pause_button: true
+      volume_button: true
+      previous_button: true
+      next_button: true
+      power_button: true
+    sub_button:
+      - entity: media_player.kitchen_google
+        icon: mdi:volume-high
+        name: Volume level
+        tap_action:
+          action: more-info
+        show_name: false
+        show_state: false
+        show_last_updated: false
+        show_attribute: true
+        show_background: false
+        attribute: volume_level
+
+  - type: heading
+    heading: Refrigerator
+    heading_style: title
+
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    card_layout: large-2-rows
+    name: Refrigerator
+    entity: sensor.hz526153_current_temperature_fridge
+    icon: mdi:fridge
+    show_state: false
+    sub_button:
+      - entity: sensor.hz526153_current_temperature_fridge
+        icon: mdi:fridge-top
+        show_background: false
+        show_state: true
+        tap_action:
+          action: more-info
+      - entity: sensor.hz526153_current_temperature_freezer
+        icon: mdi:fridge-bottom
+        show_state: true
+        show_background: false
+      - entity: binary_sensor.hz526153_door_status_any_open
+        icon: mdi:fridge-alert
+        show_background: true
+        show_state: true
+        show_attribute: false
+        show_name: false
+      - entity: sensor.hz526153_water_filter_status
+        show_state: true
+        show_background: false
+        icon: mdi:water
+      - entity: sensor.hz526153_ice_maker_bucket_status_state_full_fridge
+        icon: mdi:delete-variant
+        show_background: false
+        show_state: true
+        tap_action:
+          action: more-info
+
+  - type: custom:bubble-card
+    card_type: button
+    name: Fridge
+    button_type: state
+    entity: water_heater.hz526153_fridge
+    sub_button:
+      - entity: water_heater.hz526153_fridge
+        name: Normal
+        icon: mdi:air-filter
+        tap_action:
+          action: call-service
+          service: water_heater.set_operation_mode
+          data:
+            operation_mode: Normal
+          target:
+            entity_id: water_heater.hz526153_fridge
+        show_name: true
+      - entity: water_heater.hz526153_fridge
+        name: TURBO
+        icon: mdi:car-turbocharger
+        tap_action:
+          action: call-service
+          service: water_heater.set_operation_mode
+          data:
+            operation_mode: Turbo Cool
+          target:
+            entity_id: water_heater.hz526153_fridge
+        show_name: true
+
+  - type: custom:bubble-card
+    card_type: button
+    name: Freezer
+    button_type: state
+    entity: water_heater.hz526153_freezer
+    sub_button:
+      - entity: water_heater.hz526153_freezer
+        name: Normal
+        icon: mdi:air-filter
+        tap_action:
+          action: call-service
+          service: water_heater.set_operation_mode
+          data:
+            operation_mode: Normal
+          target:
+            entity_id: water_heater.hz526153_freezer
+        show_name: true
+      - entity: water_heater.hz526153_freezer
+        name: TURBO
+        icon: mdi:car-turbocharger
+        tap_action:
+          action: call-service
+          service: water_heater.set_operation_mode
+          data:
+            operation_mode: Turbo Freeze
+          target:
+            entity_id: water_heater.hz526153_freezer
+        show_name: true
+
+  - type: heading
+    heading: Kitchen Sink
+    heading_style: title
+
+  - type: custom:mushroom-chips-card
+    chips:
+      - type: entity
+        entity: sensor.flo_under_kitchen_sink_temperature
+      - type: entity
+        entity: sensor.flo_under_kitchen_sink_humidity
+      - type: entity
+        entity: sensor.flo_under_kitchen_sink_battery
+      - type: entity
+        entity: binary_sensor.flo_under_kitchen_sink_water_detected

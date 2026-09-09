@@ -1,0 +1,31 @@
+yeesite_turn_on:
+  url: "http://10.0.0.10:5003/api/lamps/yeesite-bar/turn_on"
+  method: POST
+  content_type: "application/json"
+  payload: '{"brightness": {{ brightness | default(255) }}}'
+
+yeesite_turn_off:
+  url: "http://10.0.0.10:5003/api/lamps/yeesite-bar/turn_off"
+  method: POST
+
+yeesite_set_color:
+  url: "http://10.0.0.10:5003/api/lamps/yeesite-bar/color"
+  method: POST
+  content_type: "application/json"
+  payload: '{"r": {{ r }}, "g": {{ g }}, "b": {{ b }}, "w": {{ w | default(0) }}}'
+
+yeesite_set_effect:
+  url: "http://10.0.0.10:5003/api/lamps/yeesite-bar/effect"
+  method: POST
+  content_type: "application/json"
+  payload: '{"name": "{{ effect }}", "speed": {{ speed | default(1.0) }}}'
+
+yeesite_set_brightness:
+  url: "http://10.0.0.10:5003/api/lamps/yeesite-bar/brightness"
+  method: POST
+  content_type: "application/json"
+  payload: '{"value": {{ value }}}'
+
+yeesite_stop:
+  url: "http://10.0.0.10:5003/api/lamps/yeesite-bar/stop"
+  method: POST

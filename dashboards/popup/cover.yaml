@@ -1,0 +1,23 @@
+type: vertical-stack
+cards:
+- type: custom:bubble-card
+  card_type: pop-up
+  hash: '#cover'
+  button_type: name
+  name: Covers
+- type: custom:auto-entities
+  card_param: cards
+  card:
+    type: grid
+    columns: 2
+    square: false
+  filter:
+    include:
+      - domain: cover
+        options:
+          type: custom:bubble-card
+          card_type: button
+          button_type: state
+  sort:
+    method: state
+    reverse: true

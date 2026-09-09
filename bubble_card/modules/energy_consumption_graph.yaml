@@ -1,0 +1,2007 @@
+energy_consumption_graph:
+  name: Energy Consumption Graph
+  version: 2016.3.4
+  creator: skycrox
+  supported:
+    - button
+    - custom-button
+  description: |
+    Graph overlay module for Bubble Card.
+    Plots the value history in the card background for the currently selected energy period or a fallback hour range.
+    Supports Statistics or History data source and auto-detects entity from Bubble Card config.
+  code: |
+    ${(async () => {
+      const moduleName = "Bubble Energy Consumption Graph";
+      const DEFAULTS = Object.freeze({
+        dataSource: "statistics",
+        statisticsPeriod: "auto",
+        statisticsPeriods: ["auto", "auto_detailed", "5minute", "hour", "day", "week", "month"],
+        lineColor: "rgba(255, 255, 255, 0.9)",
+        fillColor: "rgba(255, 255, 255, 0.20)",
+        transparentColor: "rgba(0, 0, 0, 0)",
+        fadeOpaqueColor: "rgba(255, 255, 255, 1)",
+        fadeTransparentColor: "rgba(255, 255, 255, 0)",
+        lineWidth: 2,
+        minStrokeWidth: 1,
+        graphOpacity: 0.55,
+        opacityMin: 0.05,
+        opacityMax: 1,
+        maxPoints: 240,
+        maxPointsMin: 20,
+        maxPointsMax: 600,
+        fallbackHours: 24,
+        fallbackHoursMin: 0,
+        fallbackHoursMax: 168,
+        startMissingValueMode: "zero",
+        endMissingValueMode: "zero",
+        futureMissingValueMode: "empty",
+        missingValueStartModes: ["zero", "first", "empty"],
+        missingValueEndModes: ["zero", "last", "empty"],
+        fullWidth: true,
+        fullHeight: false,
+        invertGraph: false,
+        fillFromZero: false,
+        clipToCard: true,
+        minUpdateIntervalSeconds: 15,
+        minUpdateIntervalSecondsMin: 0,
+        collectionKey: "_energy",
+        requestDebounceMs: 150,
+      });
+      const moduleConfig = this.config.energy_consumption_graph || {};
+      const dataConfig = moduleConfig.data_settings || {};
+      const missingValueConfig = dataConfig.missing_value_settings || {};
+      const appearanceConfig = moduleConfig.appearance_settings || {};
+      const scaleConfig = moduleConfig.scale_settings || {};
+      const colorConfig = appearanceConfig.color_settings || {};
+      const entityId = moduleConfig.entity || this.config.entity;
+
+      if (!entityId) {
+        cleanupModuleState(card._energyGraphRuntime?.moduleState || null);
+        removeGraphLayer(card._energyGraphRuntime?.moduleState || null);
+        return;
+      }
+
+      const dataSource = dataConfig.data_source ?? DEFAULTS.dataSource;
+      const statisticsPeriod = normalizeStatisticsPeriod(dataConfig.statistics_period);
+      const lineColor = getConfiguredColor("line", DEFAULTS.lineColor);
+      const fillColor = getConfiguredColor("fill", DEFAULTS.fillColor);
+      const showLine = appearanceConfig.show_line !== false;
+      const showFill = appearanceConfig.show_fill !== false;
+      const lineWidth = Number(appearanceConfig.line_width ?? DEFAULTS.lineWidth);
+      const legacyGraphOpacity = Math.max(
+        DEFAULTS.opacityMin,
+        Math.min(DEFAULTS.opacityMax, Number(appearanceConfig.graph_opacity ?? DEFAULTS.graphOpacity)),
+      );
+      const lineOpacity = Math.max(
+        DEFAULTS.opacityMin,
+        Math.min(DEFAULTS.opacityMax, Number(appearanceConfig.line_opacity ?? legacyGraphOpacity)),
+      );
+      const fillOpacity = Math.max(
+        DEFAULTS.opacityMin,
+        Math.min(DEFAULTS.opacityMax, Number(appearanceConfig.fill_opacity ?? legacyGraphOpacity)),
+      );
+      const smoothCurve = appearanceConfig.smooth_curve !== false;
+      const pointCountLimit = Math.max(
+        DEFAULTS.maxPointsMin,
+        Math.min(DEFAULTS.maxPointsMax, Number(scaleConfig.max_points ?? DEFAULTS.maxPoints)),
+      );
+      const fallbackHours = Math.max(
+        DEFAULTS.fallbackHoursMin,
+        Math.min(DEFAULTS.fallbackHoursMax, Number(dataConfig.fallback_hours ?? DEFAULTS.fallbackHours)),
+      );
+      const ignoreDateSelector = dataConfig.ignore_date_selector === true;
+      const extendFallbackStartToDayBoundary = dataConfig.extend_fallback_start_to_day_boundary === true;
+      const startMissingValueMode = DEFAULTS.missingValueStartModes.includes(missingValueConfig.start_mode)
+        ? missingValueConfig.start_mode
+        : DEFAULTS.startMissingValueMode;
+      const endMissingValueMode = DEFAULTS.missingValueEndModes.includes(missingValueConfig.end_mode)
+        ? missingValueConfig.end_mode
+        : DEFAULTS.endMissingValueMode;
+      const futureMissingValueMode = DEFAULTS.missingValueEndModes.includes(missingValueConfig.future_mode)
+        ? missingValueConfig.future_mode
+        : DEFAULTS.futureMissingValueMode;
+      const fullWidth = appearanceConfig.full_width !== false ? DEFAULTS.fullWidth : false;
+      const fullHeight = appearanceConfig.full_height === true ? true : DEFAULTS.fullHeight;
+      const invertGraph = appearanceConfig.invert_graph === true ? true : DEFAULTS.invertGraph;
+      const fillFromZero = appearanceConfig.fill_from_zero === true ? true : DEFAULTS.fillFromZero;
+      const clipToCard = appearanceConfig.clip_to_card !== false ? DEFAULTS.clipToCard : false;
+      const graphMin = parseOptionalNumber(scaleConfig.graph_min);
+      const graphMax = parseOptionalNumber(scaleConfig.graph_max);
+      const minUpdateIntervalSeconds = Math.max(
+        DEFAULTS.minUpdateIntervalSecondsMin,
+        Number(scaleConfig.min_update_interval_seconds ?? DEFAULTS.minUpdateIntervalSeconds),
+      );
+      const actualCollectionKey = normalizeCollectionKey(dataConfig.collection_key);
+      const requestCacheTtlMs = Math.round(minUpdateIntervalSeconds * 1000);
+      const runtime = ensureRuntimeState();
+      let moduleState = runtime.moduleState;
+
+      if (hasContextChanged()) {
+        cleanupModuleState(moduleState);
+        removeGraphLayer(moduleState);
+        moduleState = createModuleState();
+        moduleState.entityId = entityId;
+        moduleState.collectionKey = actualCollectionKey;
+        moduleState.ignoreDateSelector = ignoreDateSelector;
+        moduleState.extendFallbackStartToDayBoundary = extendFallbackStartToDayBoundary;
+        runtime.moduleState = moduleState;
+      }
+
+      requestConfiguredRange();
+      drawGraph();
+
+      function createModuleState() {
+        return {
+          entityId: null,
+          collectionKey: null,
+          ignoreDateSelector: null,
+          extendFallbackStartToDayBoundary: null,
+          energyUnsubscribe: null,
+          pendingTimer: null,
+          pendingRange: null,
+          lastFetchAtMs: 0,
+          rangeKey: null,
+          fetchRangeKey: null,
+          isFetching: false,
+          points: [],
+          rangeStartMs: null,
+          rangeEndMs: null,
+          canvas: null,
+          canvasHost: null,
+          resizeObserver: null,
+          observedHost: null,
+          cachedDataRange: { startMs: null, endMs: null, points: [] },
+          pendingIncrementalFetches: [],
+        };
+      }
+
+      function ensureRuntimeState() {
+        if (!card._energyGraphRuntime) {
+          card._energyGraphRuntime = {
+            entityRequestCache: new Map(),
+            moduleState: createModuleState(),
+          };
+        }
+
+        return card._energyGraphRuntime;
+      }
+
+      function hasContextChanged() {
+        return moduleState.entityId !== entityId ||
+          moduleState.collectionKey !== actualCollectionKey ||
+          moduleState.ignoreDateSelector !== ignoreDateSelector ||
+          moduleState.extendFallbackStartToDayBoundary !== extendFallbackStartToDayBoundary;
+      }
+
+      function normalizeCollectionKey(collectionKey) {
+        if (!collectionKey) {
+          return DEFAULTS.collectionKey;
+        }
+
+        return collectionKey.startsWith("_") ? collectionKey : `_${collectionKey}`;
+      }
+
+      function normalizeStatisticsPeriod(periodValue) {
+        const normalizedValue = typeof periodValue === "string"
+          ? periodValue.trim().toLowerCase()
+          : "";
+
+        return DEFAULTS.statisticsPeriods.includes(normalizedValue)
+          ? normalizedValue
+          : DEFAULTS.statisticsPeriod;
+      }
+
+      function parseOptionalNumber(value) {
+        if (value === undefined || value === null || `${value}` === "") {
+          return null;
+        }
+
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue) ? numericValue : null;
+      }
+
+      function logWarning(message, error) {
+        if (error) {
+          console.warn(`[${moduleName}] ${message}`, error);
+          return;
+        }
+
+        console.warn(`[${moduleName}] ${message}`);
+      }
+
+      function cleanupModuleState(state) {
+        if (!state) {
+          return;
+        }
+
+        if (state.pendingTimer) {
+          clearTimeout(state.pendingTimer);
+          state.pendingTimer = null;
+        }
+
+        if (typeof state.energyUnsubscribe === "function") {
+          try {
+            state.energyUnsubscribe();
+          } catch (error) {
+            logWarning("Failed to unsubscribe from the energy collection.", error);
+          }
+          state.energyUnsubscribe = null;
+        }
+
+        if (state.resizeObserver) {
+          try {
+            state.resizeObserver.disconnect();
+          } catch (error) {
+            logWarning("Failed to disconnect the resize observer.", error);
+          }
+          state.resizeObserver = null;
+          state.observedHost = null;
+        }
+
+        if (state.cachedDataRange) {
+          state.cachedDataRange = { startMs: null, endMs: null, points: [] };
+        }
+      }
+
+      function removeGraphLayer(state) {
+        if (!state?.canvas) {
+          return;
+        }
+
+        state.canvas.remove();
+        state.canvas = null;
+        state.canvasHost = null;
+      }
+
+      function evaluateTemplateString(templateString) {
+        if (typeof templateString !== "string" || !templateString.trim()) {
+          return null;
+        }
+
+        const entity = hass.states?.[entityId] || null;
+
+        try {
+          const templateFunction = new Function("hass", "entity", "config", `return \`${templateString}\`;`);
+          const result = templateFunction(hass, entity, this.config);
+          return typeof result === "string" && result.trim() ? result : null;
+        } catch (error) {
+          logWarning("Failed to evaluate the configured color template.", error);
+          return null;
+        }
+      }
+
+      function getConfiguredColor(groupName, fallbackColor) {
+        const group = colorConfig?.[groupName] || {};
+
+        if (group.color_mode === "preset" && group.color_preset) {
+          return `var(--${group.color_preset}-color)`;
+        }
+
+        if (group.color_mode === "wheel" && group.color_wheel) {
+          return group.color_wheel;
+        }
+
+        if (group.color_mode === "custom" && group.color_custom) {
+          return group.color_custom;
+        }
+
+        if (group.color_mode === "template" && group.color_template) {
+          return evaluateTemplateString(group.color_template) || fallbackColor;
+        }
+
+        return fallbackColor;
+      }
+
+      function parseThresholdNumber(value) {
+        if (value === undefined || value === null || `${value}`.trim() === "") {
+          return null;
+        }
+
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue) ? numericValue : null;
+      }
+
+      function getThresholdColorValue(threshold) {
+        if (!threshold || typeof threshold !== "object") {
+          return null;
+        }
+
+        if (threshold.color_mode === "preset" && threshold.color_preset) {
+          return `var(--${threshold.color_preset}-color)`;
+        }
+
+        if (threshold.color_mode === "wheel" && threshold.color_wheel) {
+          return threshold.color_wheel;
+        }
+
+        if (threshold.color_mode === "custom" && threshold.color_custom) {
+          return threshold.color_custom;
+        }
+
+        return null;
+      }
+
+      function resolveThresholdGradient(groupName, fallbackColor, host) {
+        const group = colorConfig?.[groupName] || {};
+        if (group.color_mode !== "threshold_gradient") {
+          return null;
+        }
+
+        const thresholds = Array.isArray(group.thresholds) ? group.thresholds : [];
+        const normalized = [];
+
+        for (const threshold of thresholds) {
+          const value = parseThresholdNumber(threshold?.value);
+          const configuredColor = getThresholdColorValue(threshold);
+          if (!Number.isFinite(value) || !configuredColor) {
+            continue;
+          }
+
+          normalized.push({
+            value,
+            color: resolveCanvasColor(configuredColor, fallbackColor, host),
+          });
+        }
+
+        normalized.sort((left, right) => left.value - right.value);
+
+        if (!normalized.length) {
+          return null;
+        }
+
+        const deduped = [];
+        for (const entry of normalized) {
+          const previous = deduped[deduped.length - 1];
+          if (previous && previous.value === entry.value) {
+            deduped[deduped.length - 1] = entry;
+            continue;
+          }
+
+          deduped.push(entry);
+        }
+
+        return deduped;
+      }
+
+      function resolveThresholdDirection(groupName) {
+        const group = colorConfig?.[groupName] || {};
+        return group.threshold_direction === "horizontal" ? "horizontal" : "vertical";
+      }
+
+      function getEntityCache(entityKey) {
+        let entityCache = runtime.entityRequestCache.get(entityKey);
+        if (!entityCache) {
+          entityCache = new Map();
+          runtime.entityRequestCache.set(entityKey, entityCache);
+        }
+
+        return entityCache;
+      }
+
+      function pruneEntityRequestCache(entityKey) {
+        const entityCache = runtime.entityRequestCache.get(entityKey);
+        if (!entityCache) {
+          return;
+        }
+
+        const nowMs = Date.now();
+        for (const [cacheKey, entry] of entityCache.entries()) {
+          const resolvedAt = Number(entry?.resolvedAt || 0);
+          const isExpired = !entry?.promise && resolvedAt && nowMs - resolvedAt > requestCacheTtlMs;
+          if (isExpired) {
+            entityCache.delete(cacheKey);
+          }
+        }
+
+        if (!entityCache.size) {
+          runtime.entityRequestCache.delete(entityKey);
+        }
+      }
+
+      async function loadSeries(startTime, endTime) {
+        if (dataSource === "history") {
+          return loadHistorySeries(startTime, endTime);
+        }
+
+        return loadStatisticsSeries(startTime, endTime);
+      }
+
+      async function loadHistorySeries(startTime, endTime) {
+        const startIso = startTime.toISOString();
+        const endIso = endTime.toISOString();
+        const historyPath =
+          `history/period/${encodeURIComponent(startIso)}` +
+          `?filter_entity_id=${encodeURIComponent(entityId)}` +
+          `&end_time=${encodeURIComponent(endIso)}` +
+          `&minimal_response&no_attributes`;
+        const historyResponse = await hass.callApi("GET", historyPath);
+
+        if (!Array.isArray(historyResponse) || !Array.isArray(historyResponse[0])) {
+          return [];
+        }
+
+        return historyResponse[0].map((entry) => ({
+          value: entry.state,
+          timestamp: entry.last_changed || entry.last_updated,
+        }));
+      }
+
+      async function loadStatisticsSeries(startTime, endTime) {
+        const resolvedStatisticsPeriod = resolveStatisticsPeriod(startTime, endTime);
+        const statisticsData = await hass.callWS({
+          type: "recorder/statistics_during_period",
+          start_time: startTime.toISOString(),
+          end_time: endTime.toISOString(),
+          statistic_ids: [entityId],
+          period: resolvedStatisticsPeriod,
+        });
+        const entityStatistics = statisticsData?.[entityId];
+
+        if (!Array.isArray(entityStatistics)) {
+          return [];
+        }
+
+        return entityStatistics.map((entry) => ({
+          value: resolveStatisticValue(entry),
+          timestamp: entry.start || entry.end,
+        }));
+      }
+
+      function resolveStatisticsPeriod(startTime, endTime) {
+        if (statisticsPeriod !== "auto" && statisticsPeriod !== "auto_detailed") {
+          return statisticsPeriod;
+        }
+
+        const startMs = startTime.getTime();
+        const endMs = endTime.getTime();
+        const rangeMs = Math.max(0, endMs - startMs);
+        const minuteMs = 60 * 1000;
+        const hourMs = 60 * minuteMs;
+        const dayMs = 24 * hourMs;
+
+        if (statisticsPeriod === "auto_detailed") {
+          if (rangeMs <= 24 * hourMs) {
+            return "5minute";
+          }
+
+          if (rangeMs <= 10 * dayMs) {
+            return "hour";
+          }
+
+          if (rangeMs <= 60 * dayMs) {
+            return "day";
+          }
+
+          if (rangeMs <= 365 * dayMs) {
+            return "week";
+          }
+
+          return "month";
+        }
+
+        if (rangeMs <= 6 * hourMs) {
+          return "5minute";
+        }
+
+        if (rangeMs <= 3 * dayMs) {
+          return "hour";
+        }
+
+        if (rangeMs <= 21 * dayMs) {
+          return "day";
+        }
+
+        if (rangeMs <= 120 * dayMs) {
+          return "week";
+        }
+
+        return "month";
+      }
+
+      function resolveStatisticValue(entry) {
+        if (entry.sum !== undefined && entry.sum !== null) {
+          return entry.sum;
+        }
+
+        if (entry.state !== undefined && entry.state !== null) {
+          return entry.state;
+        }
+
+        if (entry.mean !== undefined && entry.mean !== null) {
+          return entry.mean;
+        }
+
+        return null;
+      }
+
+      async function loadCachedSeries(startTime, endTime, forceRefresh = false) {
+        const startIso = startTime.toISOString();
+        const endIso = endTime.toISOString();
+        const entityCache = getEntityCache(entityId);
+        const requestCacheKey = `${dataSource}|${startIso}|${endIso}`;
+        const cachedEntry = entityCache.get(requestCacheKey);
+        const nowMs = Date.now();
+
+        if (forceRefresh) {
+          entityCache.delete(requestCacheKey);
+        }
+
+        if (!forceRefresh && cachedEntry?.promise) {
+          return cachedEntry.promise;
+        }
+
+        if (!forceRefresh && cachedEntry?.series && nowMs - Number(cachedEntry.resolvedAt || 0) <= requestCacheTtlMs) {
+          return cachedEntry.series;
+        }
+
+        const requestPromise = loadSeries(startTime, endTime);
+        entityCache.set(requestCacheKey, {
+          promise: requestPromise,
+          resolvedAt: 0,
+          series: null,
+        });
+
+        try {
+          const series = await requestPromise;
+          entityCache.set(requestCacheKey, {
+            promise: null,
+            resolvedAt: Date.now(),
+            series,
+          });
+          pruneEntityRequestCache(entityId);
+          return series;
+        } catch (error) {
+          entityCache.delete(requestCacheKey);
+          throw error;
+        }
+      }
+
+      function calculateIncrementalRanges(requestedStartMs, requestedEndMs) {
+        const cached = moduleState.cachedDataRange;
+        const hasCache = cached.startMs !== null && cached.endMs !== null;
+
+        if (!hasCache) {
+          return [{ startMs: requestedStartMs, endMs: requestedEndMs, action: "fetch" }];
+        }
+
+        const ranges = [];
+        const overlapThresholdMs = 5 * 60 * 1000;
+
+        if (requestedStartMs < cached.startMs - overlapThresholdMs || requestedEndMs > cached.endMs + overlapThresholdMs) {
+          return [{ startMs: requestedStartMs, endMs: requestedEndMs, action: "fetch_full" }];
+        }
+
+        if (requestedStartMs < cached.startMs) {
+          ranges.push({ startMs: requestedStartMs, endMs: cached.startMs, action: "prepend" });
+        }
+
+        if (requestedEndMs > cached.endMs) {
+          ranges.push({ startMs: cached.endMs, endMs: requestedEndMs, action: "append" });
+        }
+
+        return ranges.length ? ranges : [{ startMs: requestedStartMs, endMs: requestedEndMs, action: "cache_hit" }];
+      }
+
+      function mergeSeriesData(existingPoints, newPoints, action, requestedStartMs, requestedEndMs) {
+        if (action === "fetch_full" || action === "fetch" || !existingPoints.length) {
+          return newPoints;
+        }
+
+        const merged = [...existingPoints];
+        const dedupeSet = new Set(existingPoints.map((p) => p.timestamp));
+
+        for (const point of newPoints) {
+          if (!dedupeSet.has(point.timestamp)) {
+            merged.push(point);
+            dedupeSet.add(point.timestamp);
+          }
+        }
+
+        merged.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        return merged.filter((p) => {
+          const t = new Date(p.timestamp).getTime();
+          return t >= requestedStartMs && t <= requestedEndMs;
+        });
+      }
+
+      function resolveCanvasHost() {
+        if (card.matches?.(".bubble-background")) {
+          return card;
+        }
+
+        const backgroundInCard = card.querySelector(".bubble-background");
+        if (backgroundInCard) {
+          return backgroundInCard;
+        }
+
+        const parentBackground = card.parentElement?.querySelector?.(".bubble-background");
+        if (parentBackground) {
+          return parentBackground;
+        }
+
+        return card;
+      }
+
+      function ensureGraphLayer() {
+        const host = resolveCanvasHost();
+        moduleState.canvasHost = host;
+        prepareCanvasHost(host);
+        ensureResizeObserver(host);
+
+        if (moduleState.canvas && host.contains(moduleState.canvas)) {
+          applyCanvasStyle(moduleState.canvas);
+          return moduleState.canvas;
+        }
+
+        const existingCanvas = host.querySelector(".bubble-energy-graph-canvas");
+        if (existingCanvas) {
+          moduleState.canvas = existingCanvas;
+          applyCanvasStyle(existingCanvas);
+          return existingCanvas;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.className = "bubble-energy-graph-canvas";
+        applyCanvasStyle(canvas);
+        host.prepend(canvas);
+        moduleState.canvas = canvas;
+        return canvas;
+      }
+
+      function prepareCanvasHost(host) {
+        const hostStyle = window.getComputedStyle(host);
+        if (hostStyle.position === "static") {
+          host.style.position = "relative";
+        }
+
+        if (clipToCard) {
+          host.style.overflow = "hidden";
+          return;
+        }
+
+        host.style.removeProperty("overflow");
+      }
+
+      function applyCanvasStyle(canvas) {
+        canvas.style.position = "absolute";
+        canvas.style.inset = "0";
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        canvas.style.pointerEvents = "none";
+        canvas.style.borderRadius = "inherit";
+        canvas.style.opacity = "1";
+        canvas.style.zIndex = "0";
+      }
+
+      function ensureResizeObserver(host) {
+        if (!moduleState.resizeObserver) {
+          moduleState.resizeObserver = new ResizeObserver(() => {
+            drawGraph();
+          });
+          moduleState.resizeObserver.observe(card);
+        }
+
+        if (moduleState.observedHost === host || host === card) {
+          return;
+        }
+
+        if (moduleState.observedHost && moduleState.observedHost !== card) {
+          try {
+            moduleState.resizeObserver.unobserve(moduleState.observedHost);
+          } catch (error) {
+            logWarning("Failed to unobserve the previous graph host.", error);
+          }
+        }
+
+        moduleState.resizeObserver.observe(host);
+        moduleState.observedHost = host;
+      }
+
+      function resolveCanvasColor(colorValue, fallbackColor, host) {
+        if (typeof colorValue !== "string") {
+          return fallbackColor;
+        }
+
+        const value = colorValue.trim();
+        if (!value) {
+          return fallbackColor;
+        }
+
+        const probe = document.createElement("span");
+        probe.style.color = fallbackColor;
+        probe.style.color = value;
+        probe.style.display = "none";
+
+        (host || card).appendChild(probe);
+        const resolved = window.getComputedStyle(probe).color;
+        probe.remove();
+        return resolved || fallbackColor;
+      }
+
+      function toTransparentColor(colorValue) {
+        if (typeof colorValue !== "string") {
+          return DEFAULTS.transparentColor;
+        }
+
+        const rgbaMatch = colorValue.trim().match(/^rgba?\(([^)]+)\)$/i);
+        if (!rgbaMatch) {
+          return DEFAULTS.transparentColor;
+        }
+
+        const parts = rgbaMatch[1].split(",").map((part) => part.trim());
+        if (parts.length < 3) {
+          return DEFAULTS.transparentColor;
+        }
+
+        return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, 0)`;
+      }
+
+      function parseRgbColor(colorValue) {
+        if (typeof colorValue !== "string") {
+          return null;
+        }
+
+        const rgbaMatch = colorValue.trim().match(/^rgba?\(([^)]+)\)$/i);
+        if (!rgbaMatch) {
+          return null;
+        }
+
+        const parts = rgbaMatch[1].split(",").map((part) => part.trim());
+        if (parts.length < 3) {
+          return null;
+        }
+
+        const red = Number(parts[0]);
+        const green = Number(parts[1]);
+        const blue = Number(parts[2]);
+        const alpha = parts.length >= 4 ? Number(parts[3]) : 1;
+        if (![red, green, blue, alpha].every((part) => Number.isFinite(part))) {
+          return null;
+        }
+
+        return {
+          r: Math.max(0, Math.min(255, red)),
+          g: Math.max(0, Math.min(255, green)),
+          b: Math.max(0, Math.min(255, blue)),
+          a: Math.max(0, Math.min(1, alpha)),
+        };
+      }
+
+      function mixColors(startColor, endColor, ratio) {
+        const t = Math.max(0, Math.min(1, ratio));
+        const r = Math.round(startColor.r + (endColor.r - startColor.r) * t);
+        const g = Math.round(startColor.g + (endColor.g - startColor.g) * t);
+        const b = Math.round(startColor.b + (endColor.b - startColor.b) * t);
+        const a = startColor.a + (endColor.a - startColor.a) * t;
+        return `rgba(${r}, ${g}, ${b}, ${a})`;
+      }
+
+      function getGradientColorForValue(value, thresholds, fallbackColor) {
+        if (!Array.isArray(thresholds) || !thresholds.length || !Number.isFinite(value)) {
+          return fallbackColor;
+        }
+
+        if (value <= thresholds[0].value) {
+          return thresholds[0].color;
+        }
+
+        for (let index = 1; index < thresholds.length; index += 1) {
+          const previous = thresholds[index - 1];
+          const current = thresholds[index];
+
+          if (value > current.value) {
+            continue;
+          }
+
+          const span = current.value - previous.value;
+          if (!Number.isFinite(span) || span <= 0) {
+            return current.color;
+          }
+
+          const ratio = (value - previous.value) / span;
+          const startColor = parseRgbColor(previous.color);
+          const endColor = parseRgbColor(current.color);
+          if (!startColor || !endColor) {
+            return current.color;
+          }
+
+          return mixColors(startColor, endColor, ratio);
+        }
+
+        return thresholds[thresholds.length - 1].color;
+      }
+
+      function createHorizontalValueGradient(context, canvasPoints, timedPoints, thresholds, fallbackColor) {
+        if (!Array.isArray(canvasPoints) || canvasPoints.length < 2 || !Array.isArray(timedPoints)) {
+          return fallbackColor;
+        }
+
+        const startX = canvasPoints[0].x;
+        const endX = canvasPoints[canvasPoints.length - 1].x;
+        const spanX = Math.max(1, endX - startX);
+        const gradient = context.createLinearGradient(startX, 0, endX, 0);
+        let previousOffset = -1;
+
+        for (let index = 0; index < canvasPoints.length; index += 1) {
+          const point = canvasPoints[index];
+          const timedPoint = timedPoints[index];
+          const rawOffset = (point.x - startX) / spanX;
+          const offset = Math.max(0, Math.min(1, rawOffset));
+          const clampedOffset = offset < previousOffset ? previousOffset : offset;
+          const color = getGradientColorForValue(timedPoint?.v, thresholds, fallbackColor);
+          gradient.addColorStop(clampedOffset, color);
+          previousOffset = clampedOffset;
+        }
+
+        return gradient;
+      }
+
+      function createVerticalValueGradient(context, padY, plotHeight, thresholds, fallbackColor, min, span, invertDirection) {
+        if (!Array.isArray(thresholds) || !thresholds.length || !Number.isFinite(min) || !Number.isFinite(span)) {
+          return fallbackColor;
+        }
+
+        const gradient = context.createLinearGradient(0, padY, 0, padY + plotHeight);
+        const normalizedStops = thresholds.map((threshold) => {
+          const ratio = (threshold.value - min) / span;
+          const offset = Math.max(0, Math.min(1, invertDirection ? ratio : 1 - ratio));
+          return {
+            offset,
+            color: threshold.color,
+          };
+        }).sort((left, right) => left.offset - right.offset);
+
+        if (!normalizedStops.length) {
+          return fallbackColor;
+        }
+
+        const dedupedStops = [];
+        for (const stop of normalizedStops) {
+          const previous = dedupedStops[dedupedStops.length - 1];
+          if (previous && previous.offset === stop.offset) {
+            dedupedStops[dedupedStops.length - 1] = stop;
+            continue;
+          }
+
+          dedupedStops.push(stop);
+        }
+
+        for (const stop of dedupedStops) {
+          gradient.addColorStop(stop.offset, stop.color);
+        }
+
+        return gradient;
+      }
+
+      function simplifyPoints(points, limit) {
+        if (points.length <= limit) {
+          return points;
+        }
+
+        const reduced = [];
+        const step = points.length / limit;
+        for (let index = 0; index < limit; index += 1) {
+          reduced.push(points[Math.floor(index * step)]);
+        }
+
+        if (reduced[reduced.length - 1] !== points[points.length - 1]) {
+          reduced[reduced.length - 1] = points[points.length - 1];
+        }
+
+        return reduced;
+      }
+
+      function toTimedPoint(value, timestamp) {
+        const numericValue = Number(value);
+        const timeMs = new Date(timestamp).getTime();
+        if (!Number.isFinite(numericValue) || !Number.isFinite(timeMs)) {
+          return null;
+        }
+
+        return { t: timeMs, v: numericValue };
+      }
+
+      function trimLeadingFlatPoints(points) {
+        if (points.length < 2) {
+          return points;
+        }
+
+        let firstChangeIndex = 1;
+        while (firstChangeIndex < points.length && points[firstChangeIndex].v === points[0].v) {
+          firstChangeIndex += 1;
+        }
+
+        if (firstChangeIndex >= points.length) {
+          return [points[points.length - 1]];
+        }
+
+        return points.slice(firstChangeIndex);
+      }
+
+      function trimTrailingFlatPoints(points) {
+        if (points.length < 2) {
+          return points;
+        }
+
+        let lastChangeIndex = points.length - 2;
+        while (lastChangeIndex >= 0 && points[lastChangeIndex].v === points[points.length - 1].v) {
+          lastChangeIndex -= 1;
+        }
+
+        if (lastChangeIndex < 0) {
+          return [points[0]];
+        }
+
+        return points.slice(0, lastChangeIndex + 1);
+      }
+
+      function getInRangeSortedPoints(points, startMs, endMs) {
+        return points
+          .filter((point) => point && Number.isFinite(point.t) && Number.isFinite(point.v))
+          .filter((point) => point.t >= startMs && point.t <= endMs)
+          .sort((left, right) => left.t - right.t);
+      }
+
+      function dedupeTimedPoints(points) {
+        const deduped = [];
+        for (const point of points) {
+          const previousPoint = deduped[deduped.length - 1];
+          if (previousPoint && previousPoint.t === point.t) {
+            deduped[deduped.length - 1] = point;
+            continue;
+          }
+
+          deduped.push(point);
+        }
+
+        return deduped;
+      }
+
+      function addBoundaryPoints(points, startMs, endMs) {
+        if (!points.length) {
+          return points;
+        }
+
+        if (points[0].t > startMs) {
+          if (startMissingValueMode === "zero") {
+            points.unshift({ t: startMs, v: 0, syntheticBoundary: "start" });
+          }
+
+          if (startMissingValueMode === "first") {
+            points.unshift({ t: startMs, v: points[0].v, syntheticBoundary: "start" });
+          }
+        }
+
+        const nowMs = Date.now();
+        const effectiveEndMode = endMs > nowMs ? futureMissingValueMode : endMissingValueMode;
+        if (points[points.length - 1].t < endMs) {
+          if (effectiveEndMode === "zero") {
+            points.push({ t: endMs, v: 0, syntheticBoundary: "end" });
+          }
+
+          if (effectiveEndMode === "last") {
+            points.push({ t: endMs, v: points[points.length - 1].v, syntheticBoundary: "end" });
+          }
+        }
+
+        return points;
+      }
+
+      function applyEmptyBoundaryModes(points, endMs) {
+        let normalizedPoints = points;
+        if (startMissingValueMode === "empty") {
+          normalizedPoints = trimLeadingFlatPoints(normalizedPoints);
+        }
+
+        const effectiveEndMode = endMs > Date.now() ? futureMissingValueMode : endMissingValueMode;
+        if (effectiveEndMode === "empty") {
+          normalizedPoints = trimTrailingFlatPoints(normalizedPoints);
+        }
+
+        return normalizedPoints;
+      }
+
+      function normalizeTimedSeries(points, startTime, endTime) {
+        const startMs = startTime.getTime();
+        const endMs = endTime.getTime();
+        if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
+          return { points: [], rangeStartMs: null, rangeEndMs: null };
+        }
+
+        const inRangeSorted = getInRangeSortedPoints(points, startMs, endMs);
+        if (!inRangeSorted.length) {
+          return { points: [], rangeStartMs: startMs, rangeEndMs: endMs };
+        }
+
+        const dedupedPoints = dedupeTimedPoints(inRangeSorted);
+        const boundedPoints = addBoundaryPoints(dedupedPoints, startMs, endMs);
+        const normalizedPoints = applyEmptyBoundaryModes(boundedPoints, endMs);
+
+        if (!normalizedPoints.length) {
+          return { points: [], rangeStartMs: startMs, rangeEndMs: endMs };
+        }
+
+        return { points: normalizedPoints, rangeStartMs: startMs, rangeEndMs: endMs };
+      }
+
+      function drawCurve(context, points) {
+        if (!points.length) {
+          return;
+        }
+
+        context.beginPath();
+        context.moveTo(points[0].x, points[0].y);
+
+        if (!smoothCurve || points.length <= 2) {
+          for (let index = 1; index < points.length; index += 1) {
+            context.lineTo(points[index].x, points[index].y);
+          }
+          return;
+        }
+
+        for (let index = 0; index < points.length - 1; index += 1) {
+          const p0 = points[index === 0 ? index : index - 1];
+          const p1 = points[index];
+          const p2 = points[index + 1];
+          const p3 = points[index + 2 < points.length ? index + 2 : index + 1];
+
+          if (p1.syntheticBoundary === "start" || p2.syntheticBoundary === "end") {
+            context.lineTo(p2.x, p2.y);
+            continue;
+          }
+
+          const controlPoints = resolveCurveControlPoints(p0, p1, p2, p3);
+          context.bezierCurveTo(
+            controlPoints.cp1x,
+            controlPoints.cp1y,
+            controlPoints.cp2x,
+            controlPoints.cp2y,
+            p2.x,
+            p2.y,
+          );
+        }
+      }
+
+      function resolveCurveControlPoints(p0, p1, p2, p3) {
+        let cp1x = p1.x + (p2.x - p0.x) / 6;
+        let cp1y = p1.y + (p2.y - p0.y) / 6;
+        let cp2x = p2.x - (p3.x - p1.x) / 6;
+        let cp2y = p2.y - (p3.y - p1.y) / 6;
+        const minX = Math.min(p1.x, p2.x);
+        const maxX = Math.max(p1.x, p2.x);
+
+        cp1x = Math.max(minX, Math.min(maxX, cp1x));
+        cp2x = Math.max(minX, Math.min(maxX, cp2x));
+
+        if (p0.syntheticBoundary === "start") {
+          cp1x = p1.x + (p2.x - p1.x) / 3;
+          cp1y = p1.y + (p2.y - p1.y) / 3;
+        }
+
+        if (p3.syntheticBoundary === "end") {
+          cp2x = p2.x - (p2.x - p1.x) / 3;
+          cp2y = p2.y - (p2.y - p1.y) / 3;
+        }
+
+        return { cp1x, cp1y, cp2x, cp2y };
+      }
+
+      function resolveGraphBounds(host) {
+        const rect = host.getBoundingClientRect();
+        return {
+          width: Math.max(1, Math.floor(rect.width)),
+          height: Math.max(1, Math.floor(rect.height)),
+        };
+      }
+
+      function resizeCanvas(canvas, width, height) {
+        if (canvas.width === width && canvas.height === height) {
+          return;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+      }
+
+      function resolveGraphScale(points) {
+        const values = points.map((point) => point.v);
+        const dataMin = Math.min(...values);
+        const dataMax = Math.max(...values);
+        const hasFixedMin = Number.isFinite(graphMin);
+        const hasFixedMax = Number.isFinite(graphMax);
+        let min = Number.isFinite(graphMin) ? graphMin : dataMin;
+        let max = Number.isFinite(graphMax) ? graphMax : dataMax;
+
+        if (fillFromZero) {
+          if (!hasFixedMin) {
+            min = Math.min(min, 0);
+          }
+
+          if (!hasFixedMax) {
+            max = Math.max(max, 0);
+          }
+        }
+
+        if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) {
+          min = dataMin;
+          max = dataMax;
+        }
+
+        return {
+          min,
+          span: Math.max(0.000001, max - min),
+        };
+      }
+
+      function mapTimedPointsToCanvas(points, width, height) {
+        const { min, span } = resolveGraphScale(points);
+        const padX = fullWidth ? 0 : Math.max(10, width * 0.03);
+        const padY = fullHeight ? 0 : Math.max(8, height * 0.15);
+        const plotWidth = Math.max(1, width - padX * 2);
+        const plotHeight = Math.max(1, height - padY * 2);
+        const rangeStartMs = Number.isFinite(moduleState.rangeStartMs) ? moduleState.rangeStartMs : points[0].t;
+        const rangeEndMs = Number.isFinite(moduleState.rangeEndMs) ? moduleState.rangeEndMs : points[points.length - 1].t;
+        const rangeSpan = Math.max(1, rangeEndMs - rangeStartMs);
+
+        return {
+          padY,
+          plotHeight,
+          min,
+          span,
+          canvasPoints: points.map((point) => ({
+            x: padX + ((point.t - rangeStartMs) / rangeSpan) * plotWidth,
+            y: padY + ((invertGraph ? (point.v - min) / span : 1 - (point.v - min) / span) * plotHeight),
+            syntheticBoundary: point.syntheticBoundary || null,
+          })),
+        };
+      }
+
+      function mapValueToCanvasY(value, padY, plotHeight, min, span) {
+        const normalized = (value - min) / span;
+        const ratio = invertGraph ? normalized : 1 - normalized;
+        return padY + ratio * plotHeight;
+      }
+
+      function resolveZeroBaselineY(padY, plotHeight, min, span) {
+        const rawY = mapValueToCanvasY(0, padY, plotHeight, min, span);
+        const lowerBound = padY;
+        const upperBound = padY + plotHeight;
+        return Math.max(lowerBound, Math.min(upperBound, rawY));
+      }
+
+      function appendAreaToBaselinePath(context, firstPoint, secondPoint, baselineY) {
+        context.moveTo(firstPoint.x, baselineY);
+        context.lineTo(firstPoint.x, firstPoint.y);
+        context.lineTo(secondPoint.x, secondPoint.y);
+        context.lineTo(secondPoint.x, baselineY);
+        context.closePath();
+      }
+
+      function buildZeroBaselineFillPath(context, canvasPoints, timedPoints, baselineY) {
+        for (let index = 0; index < canvasPoints.length - 1; index += 1) {
+          const firstPoint = canvasPoints[index];
+          const secondPoint = canvasPoints[index + 1];
+          const firstValue = timedPoints[index]?.v;
+          const secondValue = timedPoints[index + 1]?.v;
+
+          if (!Number.isFinite(firstValue) || !Number.isFinite(secondValue)) {
+            continue;
+          }
+
+          if (firstValue === 0 && secondValue === 0) {
+            continue;
+          }
+
+          const bothPositive = firstValue >= 0 && secondValue >= 0 && (firstValue > 0 || secondValue > 0);
+          const bothNegative = firstValue <= 0 && secondValue <= 0 && (firstValue < 0 || secondValue < 0);
+          if (bothPositive || bothNegative) {
+            appendAreaToBaselinePath(context, firstPoint, secondPoint, baselineY);
+            continue;
+          }
+
+          const spanValue = secondValue - firstValue;
+          if (!Number.isFinite(spanValue) || spanValue === 0) {
+            continue;
+          }
+
+          const transition = Math.max(0, Math.min(1, (0 - firstValue) / spanValue));
+          const crossPoint = {
+            x: firstPoint.x + (secondPoint.x - firstPoint.x) * transition,
+            y: firstPoint.y + (secondPoint.y - firstPoint.y) * transition,
+          };
+
+          if (firstValue > 0 || firstValue < 0) {
+            appendAreaToBaselinePath(context, firstPoint, crossPoint, baselineY);
+          }
+
+          if (secondValue > 0 || secondValue < 0) {
+            appendAreaToBaselinePath(context, crossPoint, secondPoint, baselineY);
+          }
+        }
+      }
+
+      function drawGraph() {
+        const canvas = ensureGraphLayer();
+        if (!canvas) {
+          return;
+        }
+
+        const host = moduleState.canvasHost || card;
+        const { width, height } = resolveGraphBounds(host);
+        resizeCanvas(canvas, width, height);
+
+        const context = canvas.getContext("2d");
+        if (!context) {
+          return;
+        }
+
+        context.clearRect(0, 0, width, height);
+        if (!moduleState.points || moduleState.points.length < 2) {
+          return;
+        }
+
+        const strokeColor = resolveCanvasColor(lineColor, DEFAULTS.lineColor, host);
+        const areaColor = resolveCanvasColor(fillColor, DEFAULTS.fillColor, host);
+        const timedPoints = simplifyPoints(moduleState.points, pointCountLimit);
+        const { padY, plotHeight, min, span, canvasPoints } = mapTimedPointsToCanvas(timedPoints, width, height);
+        if (!showLine && !showFill) {
+          return;
+        }
+
+        let lineThresholds = null;
+        let fillThresholds = null;
+        let lineStyle = strokeColor;
+        let fillStyle = areaColor;
+
+        if (showLine) {
+          lineThresholds = resolveThresholdGradient("line", strokeColor, host);
+          const lineThresholdDirection = resolveThresholdDirection("line");
+          if (lineThresholds) {
+            lineStyle = lineThresholdDirection === "horizontal"
+              ? createHorizontalValueGradient(context, canvasPoints, timedPoints, lineThresholds, strokeColor)
+              : createVerticalValueGradient(context, padY, plotHeight, lineThresholds, strokeColor, min, span, invertGraph);
+          }
+        }
+
+        if (showFill) {
+          fillThresholds = resolveThresholdGradient("fill", areaColor, host);
+          const fillThresholdDirection = resolveThresholdDirection("fill");
+          if (fillThresholds) {
+            fillStyle = fillThresholdDirection === "horizontal"
+              ? createHorizontalValueGradient(context, canvasPoints, timedPoints, fillThresholds, areaColor)
+              : createVerticalValueGradient(context, padY, plotHeight, fillThresholds, areaColor, min, span, invertGraph);
+          }
+
+          const verticalFadeGradient = context.createLinearGradient(0, padY, 0, height - padY);
+          verticalFadeGradient.addColorStop(
+            0,
+            invertGraph ? DEFAULTS.fadeTransparentColor : DEFAULTS.fadeOpaqueColor,
+          );
+          verticalFadeGradient.addColorStop(
+            1,
+            invertGraph ? DEFAULTS.fadeOpaqueColor : DEFAULTS.fadeTransparentColor,
+          );
+
+          const fillBaseY = invertGraph ? padY : height - padY;
+          const zeroBaselineY = resolveZeroBaselineY(padY, plotHeight, min, span);
+
+          context.save();
+          if (fillFromZero) {
+            context.beginPath();
+            buildZeroBaselineFillPath(context, canvasPoints, timedPoints, zeroBaselineY);
+          } else {
+            drawCurve(context, canvasPoints);
+            context.lineTo(canvasPoints[canvasPoints.length - 1].x, fillBaseY);
+            context.lineTo(canvasPoints[0].x, fillBaseY);
+            context.closePath();
+          }
+
+          context.fillStyle = fillStyle;
+          context.globalAlpha = fillOpacity;
+          context.fill();
+
+          if (!fillThresholds) {
+            context.globalCompositeOperation = "destination-in";
+            context.fillStyle = verticalFadeGradient;
+            context.fill();
+          }
+          context.restore();
+        }
+
+        if (showLine) {
+          drawCurve(context, canvasPoints);
+          context.lineWidth = Math.max(DEFAULTS.minStrokeWidth, lineWidth);
+          context.strokeStyle = lineStyle;
+          context.globalAlpha = lineOpacity;
+          context.stroke();
+        }
+      }
+
+      function updateSeriesState(rawSeries, startTime, endTime) {
+        const timedSeries = rawSeries
+          .map((entry) => toTimedPoint(entry.value, entry.timestamp))
+          .filter((point) => point !== null);
+        const normalized = normalizeTimedSeries(timedSeries, startTime, endTime);
+
+        moduleState.points = normalized.points;
+        moduleState.rangeStartMs = normalized.rangeStartMs;
+        moduleState.rangeEndMs = normalized.rangeEndMs;
+      }
+
+      function clearSeriesState(startTime, endTime) {
+        moduleState.points = [];
+        moduleState.rangeStartMs = startTime.getTime();
+        moduleState.rangeEndMs = endTime.getTime();
+      }
+
+      async function fetchSeries(startTime, endTime, rangeKey, forceRefresh = false) {
+        if (moduleState.isFetching && moduleState.fetchRangeKey === rangeKey) {
+          return;
+        }
+
+        moduleState.isFetching = true;
+        moduleState.lastFetchAtMs = Date.now();
+        moduleState.fetchRangeKey = rangeKey;
+
+        try {
+          const requestedStartMs = startTime.getTime();
+          const requestedEndMs = endTime.getTime();
+          const incremental = !forceRefresh
+            ? calculateIncrementalRanges(requestedStartMs, requestedEndMs)
+            : [{ startMs: requestedStartMs, endMs: requestedEndMs, action: "fetch_full" }];
+
+          let mergedSeries = moduleState.cachedDataRange.points || [];
+
+          for (const range of incremental) {
+            if (range.action === "cache_hit") {
+              continue;
+            }
+
+            const rangeStartTime = new Date(range.startMs);
+            const rangeEndTime = new Date(range.endMs);
+            const rawSeries = await loadCachedSeries(rangeStartTime, rangeEndTime, false);
+            mergedSeries = mergeSeriesData(mergedSeries, rawSeries, range.action, requestedStartMs, requestedEndMs);
+          }
+
+          moduleState.cachedDataRange = {
+            startMs: requestedStartMs,
+            endMs: requestedEndMs,
+            points: mergedSeries,
+          };
+
+          updateSeriesState(mergedSeries, startTime, endTime);
+        } catch (error) {
+          clearSeriesState(startTime, endTime);
+          logWarning(`Failed to fetch graph data for ${entityId}.`, error);
+        } finally {
+          moduleState.isFetching = false;
+          if (moduleState.fetchRangeKey === rangeKey) {
+            moduleState.fetchRangeKey = null;
+          }
+          drawGraph();
+        }
+      }
+
+      function requestFetchForRange(startTime, endTime, options = {}) {
+        const forceRefresh = options.forceRefresh === true;
+        const rangeKey = `${startTime.toISOString()}|${endTime.toISOString()}`;
+        moduleState.rangeKey = rangeKey;
+        moduleState.pendingRange = { startTime, endTime, rangeKey, forceRefresh };
+
+        const nowMs = Date.now();
+        const elapsedSinceLastFetchMs = nowMs - Number(moduleState.lastFetchAtMs || 0);
+        const remainingThrottleMs = !forceRefresh && requestCacheTtlMs > 0
+          ? Math.max(0, requestCacheTtlMs - elapsedSinceLastFetchMs)
+          : 0;
+        const baseDebounceMs = !forceRefresh && requestCacheTtlMs > 0 ? DEFAULTS.requestDebounceMs : 0;
+        const delayMs = Math.max(baseDebounceMs, remainingThrottleMs);
+
+        if (moduleState.pendingTimer) {
+          clearTimeout(moduleState.pendingTimer);
+        }
+
+        moduleState.pendingTimer = setTimeout(() => {
+          const pendingRange = moduleState.pendingRange;
+          moduleState.pendingTimer = null;
+          if (!pendingRange) {
+            return;
+          }
+
+          moduleState.pendingRange = null;
+          fetchSeries(
+            pendingRange.startTime,
+            pendingRange.endTime,
+            pendingRange.rangeKey,
+            pendingRange.forceRefresh === true,
+          );
+        }, delayMs);
+      }
+
+      function getFallbackRange() {
+        const endTime = new Date();
+        const startTime = new Date(endTime.getTime() - fallbackHours * 60 * 60 * 1000);
+        if (extendFallbackStartToDayBoundary) {
+          startTime.setHours(0, 0, 0, 0);
+        }
+
+        return { startTime, endTime };
+      }
+
+      function subscribeToEnergyCollection(energyCollection) {
+        if (moduleState.energyUnsubscribe) {
+          return;
+        }
+
+        moduleState.energyUnsubscribe = energyCollection.subscribe((collection) => {
+          if (!collection?.start || !collection?.end) {
+            return;
+          }
+
+          requestFetchForRange(new Date(collection.start), new Date(collection.end), { forceRefresh: true });
+        });
+      }
+
+      function requestConfiguredRange() {
+        const energyCollection = hass.connection?.[actualCollectionKey];
+        if (ignoreDateSelector || !energyCollection) {
+          const { startTime, endTime } = getFallbackRange();
+          requestFetchForRange(startTime, endTime);
+          return;
+        }
+
+        subscribeToEnergyCollection(energyCollection);
+
+        const currentCollection = energyCollection.state;
+        if (currentCollection?.start && currentCollection?.end) {
+          requestFetchForRange(new Date(currentCollection.start), new Date(currentCollection.end), { forceRefresh: true });
+          return;
+        }
+
+        const { startTime, endTime } = getFallbackRange();
+        requestFetchForRange(startTime, endTime);
+      }
+    })()}
+  anchors:
+    - schema:
+        - name: color_mode
+          label: Color mode
+          selector:
+            select:
+              multiple: false
+              custom_value: false
+              mode: dropdown
+              options:
+                - value: preset
+                  label: Preset color
+                - value: wheel
+                  label: Color wheel
+                - value: custom
+                  label: Custom value
+                - value: template
+                  label: JS template
+                - value: threshold_gradient
+                  label: Threshold gradient
+        - name: color_preset
+          label: Preset color
+          selector:
+            ui_color:
+              include_none: true
+              include_state: true
+        - name: color_wheel
+          label: Color wheel
+          selector:
+            text:
+              type: color
+        - name: color_custom
+          label: Custom value
+          selector:
+            text:
+              multiline: false
+              type: text
+        - name: color_template
+          label: JS template
+          selector:
+            text:
+              multiline: false
+              type: text
+        - name: thresholds
+          label: Gradient thresholds
+          selector:
+            object:
+              label_field: value
+              description_field: color_mode
+              multiple: true
+              fields:
+                value:
+                  label: From value
+                  selector:
+                    number:
+                      mode: box
+                color_mode:
+                  label: Color source
+                  selector:
+                    select:
+                      multiple: false
+                      custom_value: false
+                      mode: dropdown
+                      options:
+                        - value: preset
+                          label: Preset color
+                        - value: wheel
+                          label: Color wheel
+                        - value: custom
+                          label: Custom value
+                color_preset:
+                  label: Preset color
+                  selector:
+                    ui_color:
+                      include_none: true
+                      include_state: true
+                color_wheel:
+                  label: Color wheel
+                  selector:
+                    text:
+                      type: color
+                color_custom:
+                  label: Custom value
+                  selector:
+                    text:
+                      multiline: false
+                      type: text
+        - name: threshold_direction
+          label: Threshold direction
+          selector:
+            select:
+              multiple: false
+              custom_value: false
+              mode: dropdown
+              options:
+                - value: vertical
+                  label: Vertical (top to bottom)
+                - value: horizontal
+                  label: Horizontal (left to right)
+          default: vertical
+  editor:
+    - label: Entity ID (optional, auto-detected)
+      name: entity
+      selector:
+        entity:
+          filter:
+            domain: sensor
+    - name: data_settings
+      type: expandable
+      title: Data & range
+      icon: mdi:database
+      expanded: false
+      schema:
+        - label: Data Source
+          name: data_source
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Statistics (Recorder, long-term)
+                  value: statistics
+                - label: History (All sensors, short-term)
+                  value: history
+          default: statistics
+        - label: Statistics Period (Statistics source only; ignored for History)
+          name: statistics_period
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Auto
+                  value: auto
+                - label: Auto Detailed
+                  value: auto_detailed
+                - label: 5 Minutes
+                  value: 5minute
+                - label: Hour
+                  value: hour
+                - label: Day
+                  value: day
+                - label: Week
+                  value: week
+                - label: Month
+                  value: month
+          default: auto
+        - label: Collection Key (e.g., energy_test, energy_custom_yearly)
+          name: collection_key
+          selector:
+            text: {}
+          default: energy
+        - label: Fallback Hours (if no energy period is active)
+          name: fallback_hours
+          selector:
+            number:
+              min: 0
+              max: 168
+              step: 1
+          default: 24
+        - label: Ignore Energy Date Selector
+          name: ignore_date_selector
+          selector:
+            boolean: {}
+          default: false
+        - label: Extend Fallback to start of the day
+          name: extend_fallback_start_to_day_boundary
+          selector:
+            boolean: {}
+          default: false
+        - name: missing_value_settings
+          type: expandable
+          title: Missing values
+          icon: mdi:chart-line-variant
+          expanded: false
+          schema:
+            - label: Start
+              name: start_mode
+              selector:
+                select:
+                  mode: dropdown
+                  options:
+                    - label: Zero
+                      value: zero
+                    - label: First Value
+                      value: first
+                    - label: Empty (no line)
+                      value: empty
+              default: zero
+            - label: End
+              name: end_mode
+              selector:
+                select:
+                  mode: dropdown
+                  options:
+                    - label: Zero
+                      value: zero
+                    - label: Last Value
+                      value: last
+                    - label: Empty (no line)
+                      value: empty
+              default: zero
+            - label: Future
+              name: future_mode
+              selector:
+                select:
+                  mode: dropdown
+                  options:
+                    - label: Zero
+                      value: zero
+                    - label: Last Value
+                      value: last
+                    - label: Empty (no line)
+                      value: empty
+              default: empty
+    - name: appearance_settings
+      type: expandable
+      title: Appearance
+      icon: mdi:palette
+      expanded: false
+      schema:
+        - label: Show Line
+          name: show_line
+          selector:
+            boolean: {}
+          default: true
+        - label: Show Fill
+          name: show_fill
+          selector:
+            boolean: {}
+          default: true
+        - name: color_settings
+          type: expandable
+          title: Colors
+          icon: mdi:eyedropper
+          expanded: false
+          schema:
+            - name: line
+              type: expandable
+              title: Line color
+              icon: mdi:chart-line
+              expanded: false
+              schema:
+                - name: color_mode
+                  label: Color mode
+                  selector:
+                    select:
+                      multiple: false
+                      custom_value: false
+                      mode: dropdown
+                      options:
+                        - value: preset
+                          label: Preset color
+                        - value: wheel
+                          label: Color wheel
+                        - value: custom
+                          label: Custom value
+                        - value: template
+                          label: JS template
+                        - value: threshold_gradient
+                          label: Threshold gradient
+                - name: color_preset
+                  label: Preset color
+                  selector:
+                    ui_color:
+                      include_none: true
+                      include_state: true
+                - name: color_wheel
+                  label: Color wheel
+                  selector:
+                    text:
+                      type: color
+                - name: color_custom
+                  label: Custom value
+                  selector:
+                    text:
+                      multiline: false
+                      type: text
+                - name: color_template
+                  label: JS template
+                  selector:
+                    text:
+                      multiline: false
+                      type: text
+                - name: thresholds
+                  label: Gradient thresholds
+                  selector:
+                    object:
+                      label_field: value
+                      description_field: color_mode
+                      multiple: true
+                      fields:
+                        value:
+                          label: From value
+                          selector:
+                            number:
+                              mode: box
+                        color_mode:
+                          label: Color source
+                          selector:
+                            select:
+                              multiple: false
+                              custom_value: false
+                              mode: dropdown
+                              options:
+                                - value: preset
+                                  label: Preset color
+                                - value: wheel
+                                  label: Color wheel
+                                - value: custom
+                                  label: Custom value
+                        color_preset:
+                          label: Preset color
+                          selector:
+                            ui_color:
+                              include_none: true
+                              include_state: true
+                        color_wheel:
+                          label: Color wheel
+                          selector:
+                            text:
+                              type: color
+                        color_custom:
+                          label: Custom value
+                          selector:
+                            text:
+                              multiline: false
+                              type: text
+                - name: threshold_direction
+                  label: Threshold direction
+                  selector:
+                    select:
+                      multiple: false
+                      custom_value: false
+                      mode: dropdown
+                      options:
+                        - value: vertical
+                          label: Vertical (top to bottom)
+                        - value: horizontal
+                          label: Horizontal (left to right)
+                  default: vertical
+              default:
+                color_mode: custom
+                color_custom: rgba(255, 255, 255, 0.9)
+            - name: fill
+              type: expandable
+              title: Fill color
+              icon: mdi:chart-areaspline
+              expanded: false
+              schema:
+                - name: color_mode
+                  label: Color mode
+                  selector:
+                    select:
+                      multiple: false
+                      custom_value: false
+                      mode: dropdown
+                      options:
+                        - value: preset
+                          label: Preset color
+                        - value: wheel
+                          label: Color wheel
+                        - value: custom
+                          label: Custom value
+                        - value: template
+                          label: JS template
+                        - value: threshold_gradient
+                          label: Threshold gradient
+                - name: color_preset
+                  label: Preset color
+                  selector:
+                    ui_color:
+                      include_none: true
+                      include_state: true
+                - name: color_wheel
+                  label: Color wheel
+                  selector:
+                    text:
+                      type: color
+                - name: color_custom
+                  label: Custom value
+                  selector:
+                    text:
+                      multiline: false
+                      type: text
+                - name: color_template
+                  label: JS template
+                  selector:
+                    text:
+                      multiline: false
+                      type: text
+                - name: thresholds
+                  label: Gradient thresholds
+                  selector:
+                    object:
+                      label_field: value
+                      description_field: color_mode
+                      multiple: true
+                      fields:
+                        value:
+                          label: From value
+                          selector:
+                            number:
+                              mode: box
+                        color_mode:
+                          label: Color source
+                          selector:
+                            select:
+                              multiple: false
+                              custom_value: false
+                              mode: dropdown
+                              options:
+                                - value: preset
+                                  label: Preset color
+                                - value: wheel
+                                  label: Color wheel
+                                - value: custom
+                                  label: Custom value
+                        color_preset:
+                          label: Preset color
+                          selector:
+                            ui_color:
+                              include_none: true
+                              include_state: true
+                        color_wheel:
+                          label: Color wheel
+                          selector:
+                            text:
+                              type: color
+                        color_custom:
+                          label: Custom value
+                          selector:
+                            text:
+                              multiline: false
+                              type: text
+                - name: threshold_direction
+                  label: Threshold direction
+                  selector:
+                    select:
+                      multiple: false
+                      custom_value: false
+                      mode: dropdown
+                      options:
+                        - value: vertical
+                          label: Vertical (top to bottom)
+                        - value: horizontal
+                          label: Horizontal (left to right)
+                  default: vertical
+              default:
+                color_mode: custom
+                color_custom: rgba(255, 255, 255, 0.20)
+        - label: Line Width
+          name: line_width
+          selector:
+            number:
+              min: 1
+              max: 8
+              step: 1
+          default: 2
+        - label: Line Opacity
+          name: line_opacity
+          selector:
+            number:
+              min: 0.05
+              max: 1
+              step: 0.05
+          default: 0.55
+        - label: Fill Opacity
+          name: fill_opacity
+          selector:
+            number:
+              min: 0.05
+              max: 1
+              step: 0.05
+          default: 0.55
+        - label: Graph Opacity (Legacy Fallback)
+          name: graph_opacity
+          selector:
+            number:
+              min: 0.05
+              max: 1
+              step: 0.05
+          default: 0.55
+        - label: Smooth Curve
+          name: smooth_curve
+          selector:
+            boolean: {}
+          default: true
+        - label: Invert Graph (Min top, Max bottom)
+          name: invert_graph
+          selector:
+            boolean: {}
+          default: false
+        - label: Fill From Zero Baseline
+          name: fill_from_zero
+          selector:
+            boolean: {}
+          default: false
+        - label: Full Width (edge-to-edge graph)
+          name: full_width
+          selector:
+            boolean: {}
+          default: true
+        - label: Full Height (edge-to-edge graph)
+          name: full_height
+          selector:
+            boolean: {}
+          default: false
+        - label: Clip Graph To Card Bounds
+          name: clip_to_card
+          selector:
+            boolean: {}
+          default: true
+    - name: scale_settings
+      type: expandable
+      title: Scale & performance
+      icon: mdi:chart-bell-curve
+      expanded: false
+      schema:
+        - label: Graph Min (optional fixed lower bound)
+          name: graph_min
+          selector:
+            number: {}
+          default: ''
+        - label: Graph Max (optional fixed upper bound)
+          name: graph_max
+          selector:
+            number: {}
+          default: ''
+        - label: Max Points
+          name: max_points
+          selector:
+            number:
+              min: 20
+              max: 600
+              step: 10
+          default: 240
+        - label: Minimum Update Interval
+          name: min_update_interval_seconds
+          selector:
+            number:
+              min: 0
+              step: 0.5
+              unit_of_measurement: s
+          default: 15
+  link: https://github.com/Clooos/Bubble-Card/discussions/2274

@@ -1,0 +1,3 @@
+# Binary sensor platform configurations
+# (All platform-based binary sensors have been moved to configs/templates.yaml under the template: integration)
+[]

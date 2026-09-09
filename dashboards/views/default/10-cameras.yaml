@@ -1,0 +1,356 @@
+title: Cameras
+path: cameras
+type: custom:grid-layout
+layout: !include ../../layouts/grid_no_sidebar.yaml
+cards:
+
+  ######################### Status Bar ############################################
+  - type: custom:mushroom-chips-card
+    view_layout:
+      grid-area: banner
+    chips: !include ../../sections/status-bar.yaml
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: footer
+    cards: !include_dir_list ../../sections/footer
+  
+      
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: section1
+    cards: 
+
+      - type: custom:bubble-card
+        card_type: sub-buttons
+        button_type: state
+        sub_button:
+          main: []
+          bottom:
+            - entity: binary_sensor.garage_door_motion_sensor_occupancy
+              show_name: false
+              show_state: true
+              show_last_changed: false
+              scrolling_effect: false
+            - entity: binary_sensor.garage_entry_motion_sensor_occupancy
+              show_name: false
+              show_state: true
+              scrolling_effect: false
+              show_last_changed: false
+            - entity: binary_sensor.garage_portal
+              show_state: true
+            - entity: cover.garage_door
+              show_state: true
+              show_background: true
+              scrolling_effect: false
+              fill_width: true
+              show_attribute: true
+              attribute: current_position
+        show_last_changed: true
+        show_attribute: false
+        1_pir_sensor: binary_sensor.garage_motion_battery_plus_low
+        rows: 0.938
+        hide_main_background: true
+      - type: custom:bubble-card
+        card_type: button
+        button_type: state
+        sub_button:
+          main:
+            - entity: switch.drivewaycam_dahua_siren
+              show_name: true
+              name: Siren
+            - entity: light.drivewaycam_dahua_security_light
+              name: Strobe
+              show_name: true
+              show_state: false
+              show_attribute: false
+              attribute: color_mode
+          bottom: []
+        entity: camera.drivewaycam_dahua_sub
+        rows: 1
+      - type: custom:advanced-camera-card
+        cameras:
+          - camera_entity: camera.driveway
+        menu:
+          style: outside
+          button_size: 67
+          buttons:
+            iris:
+              enabled: false
+            cameras:
+              enabled: true
+            substreams:
+              enabled: false
+            live:
+              enabled: true
+            download:
+              enabled: false
+            display_mode:
+              enabled: false
+            media_player:
+              enabled: false
+            fullscreen:
+              enabled: false
+            recordings:
+              enabled: true
+              icon: mdi:record-rec
+              priority: 29
+        status_bar:
+          style: outside
+          position: bottom
+        media_viewer:
+          display: {}
+        media_gallery:
+          controls:
+            thumbnails:
+              size: 140
+              show_details: true
+        timeline:
+          controls:
+            thumbnails: {}
+
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: section2
+    cards: 
+      - type: custom:bubble-card
+        card_type: sub-buttons
+        button_type: state
+        sub_button:
+          main: []
+          bottom:
+            - entity: binary_sensor.front_door
+              show_name: false
+              show_state: true
+              show_last_changed: true
+        show_last_changed: true
+        show_attribute: false
+        1_pir_sensor: binary_sensor.garage_motion_battery_plus_low
+        rows: 0.938
+        hide_main_background: true
+      - type: custom:advanced-camera-card
+        cameras:
+          - camera_entity: camera.frontdoor
+        menu:
+          style: outside
+          button_size: 67
+          buttons:
+            iris:
+              enabled: false
+            cameras:
+              enabled: true
+            substreams:
+              enabled: false
+            live:
+              enabled: true
+            download:
+              enabled: false
+            display_mode:
+              enabled: false
+            media_player:
+              enabled: false
+            fullscreen:
+              enabled: false
+            recordings:
+              enabled: true
+              icon: mdi:record-rec
+              priority: 29
+        status_bar:
+          style: outside
+          position: bottom
+        media_viewer:
+          display: {}
+        media_gallery:
+          controls:
+            thumbnails:
+              size: 140
+              show_details: true
+        timeline:
+          controls:
+            thumbnails: {}
+
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: section3
+    cards: 
+      - type: custom:advanced-camera-card
+        cameras:
+          - camera_entity: camera.garage
+        menu:
+          style: outside
+          button_size: 67
+          buttons:
+            iris:
+              enabled: false
+            cameras:
+              enabled: true
+            substreams:
+              enabled: false
+            live:
+              enabled: true
+            download:
+              enabled: false
+            display_mode:
+              enabled: false
+            media_player:
+              enabled: false
+            fullscreen:
+              enabled: false
+            recordings:
+              enabled: true
+              icon: mdi:record-rec
+              priority: 29
+        status_bar:
+          style: outside
+          position: bottom
+        media_viewer:
+          display: {}
+        media_gallery:
+          controls:
+            thumbnails:
+              size: 140
+              show_details: true
+        timeline:
+          controls:
+            thumbnails: {}
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: section4
+    cards: 
+      - type: custom:advanced-camera-card
+        cameras:
+          - camera_entity: camera.front_door_camera
+            triggers:
+              occupancy: true
+              motion: true
+        menu:
+          style: outside
+          button_size: 67
+          buttons:
+            iris:
+              enabled: false
+            cameras:
+              enabled: true
+            substreams:
+              enabled: false
+            live:
+              enabled: true
+            download:
+              enabled: false
+            display_mode:
+              enabled: false
+            media_player:
+              enabled: false
+            fullscreen:
+              enabled: false
+            recordings:
+              enabled: true
+              icon: mdi:record-rec
+              priority: 29
+        status_bar:
+          style: outside
+          position: bottom
+        media_viewer:
+          display: {}
+        media_gallery:
+          controls:
+            thumbnails:
+              size: 140
+              show_details: true
+        timeline:
+          controls:
+            thumbnails: {}
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: section5
+    cards: 
+      - type: custom:advanced-camera-card
+        cameras:
+          - camera_entity: camera.entryway
+            triggers:
+              occupancy: true
+              motion: true
+        menu:
+          style: outside
+          button_size: 67
+          buttons:
+            iris:
+              enabled: false
+            cameras:
+              enabled: true
+            substreams:
+              enabled: false
+            live:
+              enabled: true
+            download:
+              enabled: false
+            display_mode:
+              enabled: false
+            media_player:
+              enabled: false
+            fullscreen:
+              enabled: false
+            recordings:
+              enabled: true
+              icon: mdi:record-rec
+              priority: 29
+        status_bar:
+          style: outside
+          position: bottom
+        media_viewer:
+          display: {}
+        media_gallery:
+          controls:
+            thumbnails:
+              size: 140
+              show_details: true
+        timeline:
+          controls:
+            thumbnails: {}
+  - type: custom:stack-in-card
+    view_layout:
+      grid-area: section6
+    cards: 
+      - type: custom:advanced-camera-card
+        cameras:
+          - camera_entity: camera.dining
+            triggers:
+              occupancy: true
+              motion: true
+        menu:
+          style: outside
+          button_size: 67
+          buttons:
+            iris:
+              enabled: false
+            cameras:
+              enabled: true
+            substreams:
+              enabled: false
+            live:
+              enabled: true
+            download:
+              enabled: false
+            display_mode:
+              enabled: false
+            media_player:
+              enabled: false
+            fullscreen:
+              enabled: false
+            recordings:
+              enabled: true
+              icon: mdi:record-rec
+              priority: 29
+        status_bar:
+          style: outside
+          position: bottom
+        media_viewer:
+          display: {}
+        media_gallery:
+          controls:
+            thumbnails:
+              size: 140
+              show_details: true
+        timeline:
+          controls:
+            thumbnails: {}

@@ -1,0 +1,61 @@
+type: custom:stack-in-card
+card_mod:
+  style: |
+    ha-card {
+      background-color: rgba(255, 87, 34, 0.25) !important;
+      background: linear-gradient(135deg, rgba(255, 87, 34, 0.2) 0%, rgba(244, 67, 54, 0.3) 100%);
+      padding: 3px !important;
+    }
+cards:
+  # MINIMAL VIEW - Button card (always visible)
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    name: Holiday Lights
+    entity: light.holiday_lights
+    icon: mdi:string-lights
+    show_attribute: true
+    show_state: true
+    show_name: true
+    show_icon: true
+    scrolling_effect: false
+    use_accent_color: false
+    show_last_changed: false
+    tap_action:
+      action: more-info
+    double_tap_action:
+      action: toggle
+    hold_action:
+      action: none
+    button_action:
+      tap_action:
+        action: more-info
+      double_tap_action:
+        action: toggle
+      hold_action:
+        action: none
+    sub_button:
+      main:
+        - entity: sensor.next_holiday
+          show_name: false
+          show_state: false
+          show_attribute: true
+          show_last_changed: false
+          attribute: days_until_next_holiday
+          show_icon: true
+          icon: mdi:calendar-arrow-right
+          tap_action:
+            action: more-info
+        - entity: light.holiday_lights
+          show_name: false
+          show_state: false
+          show_attribute: false
+          show_last_changed: false
+          show_icon: true
+          icon: mdi:power
+          tap_action:
+            action: toggle
+      bottom_layout: rows
+    styles: ""
+    force_icon: false
+    rows: 1.01

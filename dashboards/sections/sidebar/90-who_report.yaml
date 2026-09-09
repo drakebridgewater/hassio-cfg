@@ -2,18 +2,244 @@ type: custom:stack-in-card
 visibility:
   - condition: screen
     media_query: "(min-width: 768px)"
-
-  - condition: or
-    conditions: 
-    - entity: person.drake_bridgewater
-      state_not: "home"
-    - entity: person.shawna
-      state_not: "home"
-    - entity: binary_sensor.ethan_at_daycare
-      state: "on"
-    - entity: binary_sensor.abby_at_daycare
-      state: "on"
 cards:
+  - type: vertical-stack
+    cards:
+      - type: custom:bubble-card
+        card_type: separator
+        button_type: state
+        name: "Who's away "
+        icon: mdi:home-export-outline
+        sub_button:
+          - entity: input_boolean.guest_mode
+            icon: mdi:plus
+            tap_action:
+              action: navigate
+              navigation_path: "#people_overview"
+        modules:
+          - default
+      - square: false
+        type: grid
+        columns: 2
+        cards:
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            modules:
+              - default
+            entity: person.drake
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            modules:
+              - default
+            entity: person.shawna
+            force_icon: false
+            show_last_changed: false
+            show_last_updated: false
+            show_attribute: false
+            attribute: editable
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            modules:
+              - default
+            entity: binary_sensor.ethan_at_daycare
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            modules:
+              - default
+            entity: binary_sensor.abby_at_daycare
+            force_icon: false
+            show_last_changed: false
+            show_last_updated: false
+            show_attribute: false
+      - type: custom:bubble-card
+        card_type: button
+        button_type: switch
+        modules:
+          - default
+        entity: input_boolean.guest_mode
+        name: ""
+        icon: mdi:account-multiple-plus
+        show_state: true
+        show_last_changed: false
+        show_attribute: false
+        attribute: editable
+        tap_action:
+          action: toggle
+
+#   - type: custom:bubble-card
+#     card_type: button
+#     modules:
+#       - default
+#     button_type: state
+#     tap_action:
+#       action: navigate
+#       navigation_path: "#people_overview"
+#     force_icon: false
+#     show_name: false
+#     show_last_changed: false
+#     show_last_updated: false
+#     show_attribute: false
+#     name: ""
+#     show_state: false
+#     card_layout: large-2-rows
+#     sub_button:
+#       - entity: person.shawna
+#         show_icon: true
+#         state_background: true
+#         show_background: true
+#         show_last_updated: false
+#         show_last_changed: false
+#         show_state: true
+#         show_name: true
+#         name: Shawna
+#       - entity: person.drake
+#         show_icon: true
+#         state_background: true
+#         show_background: true
+#         show_last_updated: false
+#         show_last_changed: false
+#         show_state: true
+#         show_name: true
+#         name: Drake
+#       - entity: binary_sensor.ethan_at_daycare
+#         show_icon: true
+#         state_background: true
+#         show_background: true
+#         show_last_updated: false
+#         show_last_changed: false
+#         show_state: true
+#         show_name: true
+#         name: Daycare
+#         show_attribute: false
+#         attribute: friendly_name
+#       - entity: binary_sensor.abby_at_daycare
+#         show_icon: true
+#         state_background: true
+#         show_background: true
+#         show_last_updated: false
+#         show_last_changed: false
+#         show_state: true
+#         show_name: true
+#         name: Daycare
+#       - entity: input_boolean.guest_mode
+#         name: Guest Mode
+#         show_name: true
+#         show_icon: true
+#         state_background: true
+#         show_background: true
+#         show_state: true
+#         show_last_changed: false
+#         tap_action:
+#           action: toggle
+#         icon: mdi:account-multiple
+#     styles: ""
+#     entity: binary_sensor.home_occupied
+#     scrolling_effect: true
+#     show_icon: true
+
+
+# type: custom:stack-in-card
+# visibility:
+#   - condition: screen
+#     media_query: "(min-width: 768px)"
+
+# cards:
+#   - type: custom:bubble-card
+#     card_type: button
+#     modules:
+#       - default
+#     button_type: state
+#     entity: binary_sensor.home_occupied
+#     tap_action:
+#       action: navigate
+#       navigation_path: "#people_overview"
+#     force_icon: false
+#     show_name: true
+#     show_last_changed: true
+#     show_last_updated: false
+#     show_attribute: false
+#     name: Who's Home
+#     show_state: false
+#     card_layout: large
+#     sub_button:
+#       - entity: person.shawna
+#         show_icon: true
+#         state_background: true
+#         show_background: true
+#         show_last_updated: false
+#         show_last_changed: false
+#         show_state: false
+#         show_name: false
+#       - entity: person.drake
+#         show_icon: true
+#         state_background: true
+#         show_background: true
+#         show_last_updated: false
+#         show_last_changed: false
+#         show_state: false
+#         show_name: false
+#       - entity: binary_sensor.ethan_at_daycare
+#         show_icon: true
+#         state_background: true
+#         show_background: true
+#         background-color: white
+#         show_last_updated: false
+#         show_last_changed: false
+#         show_state: false
+#         show_name: false
+#       - entity: binary_sensor.abby_at_daycare
+#         show_icon: true
+#         state_background: true
+#         show_background: true
+#         show_last_updated: false
+#         show_last_changed: false
+#         show_state: false
+#         show_name: false
+#       - entity: input_boolean.guest_mode
+#         name: Guest Mode
+#         show_name: true
+#         show_icon: true
+#         state_background: true
+#         show_background: true
+#         show_state: false
+#         show_last_changed: false
+#         tap_action:
+#           action: toggle
+#         icon: mdi:account-multiple
+#     styles: |-
+#           ${subButtonIcon[0].setAttribute("icon", '')}
+#           .bubble-sub-button-1 {
+#             background-image: url(${hass.states['person.shawna'].attributes.entity_picture});
+#             opacity: ${hass.states['person.shawna'].state === 'home' ?  '1.0' : '0.2'};
+#             background-size: cover;
+#           }
+#           ${subButtonIcon[1].setAttribute("icon", '')}
+#           .bubble-sub-button-2 {
+#             background-image: url(${hass.states['person.drake'].attributes.entity_picture});
+#             opacity: ${hass.states['person.drake'].state === 'home' ?  '1.0' : '0.2'};
+#             border: 3px;
+#             border-color: blue;
+#             background-size: cover;
+#           }
+#           ${subButtonIcon[2].setAttribute("icon", '')}
+#           .bubble-sub-button-3 {
+#             background-image: URL("/local/media/kindercare.png");
+#             opacity: ${hass.states['binary_sensor.ethan_at_daycare'] ?  '1.0' : '0.5'};
+#             background-color: ${hass.states['binary_sensor.ethan_at_daycare']  ?  'green' : 'red'};
+#             background-size: cover;
+#           }
+#           ${subButtonIcon[3].setAttribute("icon", '')}
+#           .bubble-sub-button-4 {
+#             background-image: URL("/local/media/safeJourney.png");
+#             opacity: ${hass.states['binary_sensor.abby_at_daycare'] ?  '1.0' : '.3'};
+#             background-size: cover;
+#           }
+
+
   # - type: custom:bubble-card
   #   card_type: button
   #   button_type: state
@@ -25,7 +251,7 @@ cards:
   #     action: navigate
   #     navigation_path: "#people_overview"
   #   sub_button:
-  #     - entity: person.drake_bridgewater
+  #     - entity: person.drake
   #       show_state: false
   #       show_name: true
   #       show_attribute: true
@@ -37,7 +263,7 @@ cards:
   #       name: Ethan at Daycare
   #     - entity: binary_sensor.abby_at_daycare
   #       show_name: true
-    # card_layout: large-2-rows
+  #  card_layout: large-2-rows
 # type: vertical-stack
 # cards:
 #   -  type: horizontal-stack
@@ -45,7 +271,7 @@ cards:
 #       - type: custom:bubble-card
 #         card_type: button
 #         button_type: state
-#         entity: person.drake_bridgewater
+#         entity: person.drake
 #       - type: custom:bubble-card
 #         card_type: button
 #         button_type: state
@@ -60,109 +286,109 @@ cards:
 #         card_type: button
 #         button_type: state
 #         entity: binary_sensor.abby_at_daycare
-- type: vertical-stack
-  cards:
-  - type: custom:bubble-card
-    card_type: separator
-    button_type: state
-    name: "Who's away "
-    icon: mdi:home-export-outline
-    sub_button:
-      - entity: input_boolean.guest_mode
-        icon: mdi:plus
-        tap_action:
-          action: navigate
-          navigation_path: "#people_overview"
-  - type: custom:mod-card
-    style: |
-      ha-card {
-        margin: 1.5em;
-        padding: 0.5em var(--custom-layout-card-padding) 0 var(--custom-layout-card-padding);
-        align: center
-      }
-    card:
-      type: horizontal-stack
-      cards:
-        - type: conditional
-          conditions:
-            - entity: person.drake_bridgewater
-              state_not: "home"
-          card:
-              type: picture
-              image: /local/media/drake.jpg
-              tap_action:
-                action: navigate
-                navigation_path: "#people_overview"
-              card_mod:
-                style: |
-                  ha-card {
-                    max-height: 50px;
-                    aspect-ratio: 1;
-                    transition: none;
-                    border-radius: 50%;
-                    border: none;
-                  }
+  # type: vertical-stack
+  # cards:
+  # - type: custom:bubble-card
+  #   card_type: separator
+  #   button_type: state
+  #   name: "Who's away "
+  #   icon: mdi:home-export-outline
+  #   sub_button:
+  #     - entity: input_boolean.guest_mode
+  #       icon: mdi:plus
+  #       tap_action:
+  #         action: navigate
+  #         navigation_path: "#people_overview"
+  # - type: custom:mod-card
+  #   style: |
+  #     ha-card {
+  #       margin: 1.5em;
+  #       padding: 0.5em var(--custom-layout-card-padding) 0 var(--custom-layout-card-padding);
+  #       align: center
+  #     }
+  #   card:
+  #     type: horizontal-stack
+  #     cards:
+  #       - type: conditional
+  #         conditions:
+  #           - entity: person.drake
+  #             state_not: "home"
+  #         card:
+  #             type: picture
+  #             image: /local/media/drake.jpg
+  #             tap_action:
+  #               action: navigate
+  #               navigation_path: "#people_overview"
+  #             card_mod:
+  #               style: |
+  #                 ha-card {
+  #                   max-height: 50px;
+  #                   aspect-ratio: 1;
+  #                   transition: none;
+  #                   border-radius: 50%;
+  #                   border: none;
+  #                 }
 
-        - type: conditional
-          conditions:
-            - entity: person.shawna
-              state_not: "home"
-          card:
-            type: picture
-            image: /local/media/shawna.jpg
-            tap_action:
-              action: navigate
-              navigation_path: "#people_overview"
-            card_mod:
-              style: |
-                ha-card {
-                  transition: none;
-                  border-radius: 50%;
-                  max-height: 50px;
-                  aspect-ratio: 1;
-                  border: none;
-                  background: white;
-                }
+  #       - type: conditional
+  #         conditions:
+  #           - entity: person.shawna
+  #             state_not: "home"
+  #         card:
+  #           type: picture
+  #           image: /local/media/shawna.jpg
+  #           tap_action:
+  #             action: navigate
+  #             navigation_path: "#people_overview"
+  #           card_mod:
+  #             style: |
+  #               ha-card {
+  #                 transition: none;
+  #                 border-radius: 50%;
+  #                 max-height: 50px;
+  #                 aspect-ratio: 1;
+  #                 border: none;
+  #                 background: white;
+  #               }
 
-        - type: conditional
-          conditions:
-            - entity: binary_sensor.ethan_at_daycare
-              state: "on"
-          card:
-            type: picture
-            image: /local/media/kindercare.png
-            tap_action:
-              action: navigate
-              navigation_path: "#people_overview"
-            card_mod:
-              style: |
-                ha-card {
-                  transition: none;
-                  max-height: 50px;
-                  aspect-ratio: 1;
-                  border-radius: 50%;
-                  border: none;
-                }
-                img {
-                  background: white;
-                }
+  #       - type: conditional
+  #         conditions:
+  #           - entity: binary_sensor.ethan_at_daycare
+  #             state: "on"
+  #         card:
+  #           type: picture
+  #           image: /local/media/kindercare.png
+  #           tap_action:
+  #             action: navigate
+  #             navigation_path: "#people_overview"
+  #           card_mod:
+  #             style: |
+  #               ha-card {
+  #                 transition: none;
+  #                 max-height: 50px;
+  #                 aspect-ratio: 1;
+  #                 border-radius: 50%;
+  #                 border: none;
+  #               }
+  #               img {
+  #                 background: white;
+  #               }
 
-        - type: conditional
-          conditions:
-            - entity: binary_sensor.abby_at_daycare
-              state: "on"
-          card:
-            type: picture
-            image: /local/media/safeJourney.png
-            tap_action:
-              action: navigate
-              navigation_path: "#people_overview"
-            card_mod:
-              style: |
-                ha-card {
-                  max-height: 50px;
-                  aspect-ratio: 1;
-                  transition: none;
-                  border-radius: 50%;
-                  border: none;
-                }
+  #       - type: conditional
+  #         conditions:
+  #           - entity: binary_sensor.abby_at_daycare
+  #             state: "on"
+  #         card:
+  #           type: picture
+  #           image: /local/media/safeJourney.png
+  #           tap_action:
+  #             action: navigate
+  #             navigation_path: "#people_overview"
+  #           card_mod:
+  #             style: |
+  #               ha-card {
+  #                 max-height: 50px;
+  #                 aspect-ratio: 1;
+  #                 transition: none;
+  #                 border-radius: 50%;
+  #                 border: none;
+  #               }

@@ -1,0 +1,507 @@
+#  _____                    _       _
+# |_   _|__ _ __ ___  _ __ | | __ _| |_ ___    ___  ___ _ __  ___  ___  _ __ ___
+#   | |/ _ \ '_ ` _ \| '_ \| |/ _` | __/ _ \  / __|/ _ \ '_ \/ __|/ _ \| '__/ __|
+#   | |  __/ | | | | | |_) | | (_| | ||  __/  \__ \  __/ | | \__ \ (_) | |  \__ \
+#   |_|\___|_| |_| |_| .__/|_|\__,_|\__\___|  |___/\___|_| |_|___/\___/|_|  |___/
+#                    |_|
+
+###########################################
+# rest integration
+###########################################
+- platform: rest
+  name: YeeSite Bar State
+  resource: "http://10.0.0.10:5003/api/lamps/yeesite-bar"
+  value_template: "{{ value_json.state }}"
+  json_attributes:
+    - brightness
+    - color
+    - white
+    - effect
+    - effect_list
+    - effect_speed
+    - rgb_dimmer
+    - white_dimmer
+    - color_strobe_rate
+    - white_strobe_rate
+  scan_interval: 5
+
+###########################################
+# Next Holiday integration
+###########################################
+- platform: next_holiday
+  min_future_holidays: 3
+  custom_holidays:
+    "1-4": "Ethan's Birthday"
+    "2-7": "Drake's Birthday"
+    "2-14": "Valentines Day"
+    "10-13": "Shawna's Birthday"
+    "10-31": "Halloween"
+  sources:
+    - country: "USA"
+      state: "OR"
+      exclude:
+        - "washington's birthday"
+        - "veterans day"
+
+###########################################
+# Power usage
+###########################################
+- platform: min_max
+  name: Current Power Hog
+  entity_ids:
+    - sensor.always_on_usage
+    - sensor.dryer_usage
+    - sensor.fridge_usage
+    - sensor.oven_usage
+    - sensor.stove_usage
+
+###########################################
+# Indoor Temperatures
+###########################################
+- platform: min_max
+  name: Max Temperature Indoors
+  type: max
+  round_digits: 1
+  entity_ids:
+    - sensor.acurite_tower_family_room_temperature
+    - sensor.thermostat_temperature
+    - sensor.outdoor_sensor_display_in_office_temperature
+    - sensor.living_room_temperature_sensor_temperature
+    - sensor.wirelesstag_main_freezer_temperature
+    - sensor.master_bedroom_temperature_temperature
+    - sensor.ethans_bedroom_temperature_sensor_temperature
+    - sensor.family_room_smartsensor_temperature
+
+- platform: min_max
+  name: Min Temperature Indoors
+  type: min
+  round_digits: 1
+  entity_ids:
+    - sensor.acurite_tower_family_room_temperature
+    - sensor.thermostat_temperature
+    - sensor.outdoor_sensor_display_in_office_temperature
+    - sensor.living_room_temperature_sensor_temperature
+    - sensor.wirelesstag_main_freezer_temperature
+    - sensor.master_bedroom_temperature_temperature
+    - sensor.ethans_bedroom_temperature_sensor_temperature
+    - sensor.family_room_smartsensor_temperature
+
+###########################################
+# Date time display options
+###########################################
+- platform: time_date
+  display_options:
+    - "time"
+    - "date"
+    - "date_time"
+    - "date_time_utc"
+    - "date_time_iso"
+    - "time_date"
+    - "time_utc"
+
+- platform: wirelesstag
+  monitored_conditions:
+    - temperature
+    - humidity
+
+#  _____ _                  _                  _
+# |_   _(_)_ __ ___   ___  | |_ _ __ __ _  ___| | _____ _ __ ___
+#   | | | | '_ ` _ \ / _ \ | __| '__/ _` |/ __| |/ / _ \ '__/ __|
+#   | | | | | | | | |  __/ | |_| | | (_| | (__|   <  __/ |  \__ \
+#   |_| |_|_| |_| |_|\___|  \__|_|  \__,_|\___|_|\_\___|_|  |___/
+#
+
+# Quarantine meters
+- platform: history_stats
+  name: Quarantine meter Drake
+  entity_id: person.drake
+  state: "home"
+  type: ratio
+  duration:
+    days: 14
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Quarantine meter Shawna
+  entity_id: person.shawna
+  state: "home"
+  type: ratio
+  duration:
+    days: 14
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Quarantine meter Drake times left
+  entity_id: person.drake
+  state: "home"
+  type: count
+  duration:
+    days: 14
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Quarantine meter Shawna times left
+  entity_id: person.shawna
+  state: "home"
+  type: count
+  duration:
+    days: 14
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Hours Ethan's light has been on last 7 days
+  entity_id: light.ethan_s_bedroom_wall_switch
+  state: "on"
+  type: time
+  duration:
+    days: 7
+  end: "{{ now() }}"
+
+# __        __         _      _   _                  _                  _
+# \ \      / /__  _ __| | __ | |_(_)_ __ ___   ___  | |_ _ __ __ _  ___| | _____ _ __
+#  \ \ /\ / / _ \| '__| |/ / | __| | '_ ` _ \ / _ \ | __| '__/ _` |/ __| |/ / _ \ '__|
+#   \ V  V / (_) | |  |   <  | |_| | | | | | |  __/ | |_| | | (_| | (__|   <  __/ |
+#    \_/\_/ \___/|_|  |_|\_\  \__|_|_| |_| |_|\___|  \__|_|  \__,_|\___|_|\_\___|_|
+#
+
+# Drake work time tracking
+- platform: history_stats
+  name: Time at work this week (Drake)
+  entity_id: person.drake
+  state: Work
+  type: time
+  start: "{{ today_at() - timedelta(days=now().weekday()) }}"
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Time at work today (Drake)
+  entity_id: person.drake
+  state: Work
+  type: time
+  start: "{{ today_at() }}"
+  duration:
+    hours: 24
+
+- platform: history_stats
+  name: Time at work on Monday (Drake)
+  entity_id: person.drake
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 0 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ today_at() - timedelta(days=day) }}
+
+- platform: history_stats
+  name: Time at work on Tuesday (Drake)
+  entity_id: person.drake
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 1 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ today_at() - timedelta(days=day) }}
+
+- platform: history_stats
+  name: Time at work on Wednesday (Drake)
+  entity_id: person.drake
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 2 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ today_at() - timedelta(days=day) }}
+
+- platform: history_stats
+  name: Time at work on Thursday (Drake)
+  entity_id: person.drake
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 3 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ today_at() - timedelta(days=day) }}
+
+- platform: history_stats
+  name: Time at work on Friday (Drake)
+  entity_id: person.drake
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 4 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ today_at() - timedelta(days=day) }}
+
+# Shawna work time tracking
+- platform: history_stats
+  name: Time at work this week (Shawna)
+  entity_id: person.shawna
+  state: Work
+  type: time
+  start: "{{ today_at() - timedelta(days=now().weekday()) }}"
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Time at work today (Shawna)
+  entity_id: person.shawna
+  state: Work
+  type: time
+  start: "{{ today_at() }}"
+  duration:
+    hours: 24
+
+- platform: history_stats
+  name: Time at work on Monday (Shawna)
+  entity_id: person.shawna
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 0 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ today_at() - timedelta(days=day) }}
+
+- platform: history_stats
+  name: Time at work on Tuesday (Shawna)
+  entity_id: person.shawna
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 1 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ today_at() - timedelta(days=day) }}
+
+- platform: history_stats
+  name: Time at work on Wednesday (Shawna)
+  entity_id: person.shawna
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 2 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ today_at() - timedelta(days=day) }}
+
+- platform: history_stats
+  name: Time at work on Thursday (Shawna)
+  entity_id: person.shawna
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 3 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ today_at() - timedelta(days=day) }}
+
+- platform: history_stats
+  name: Time at work on Friday (Shawna)
+  entity_id: person.shawna
+  state: Work
+  type: time
+  duration:
+    hours: 24
+  start: >
+    {% set day = now().weekday() - 4 %}
+    {% if day < 0 %}{% set day = day + 7 %}{% endif %}
+    {{ today_at() - timedelta(days=day) }}
+
+# Dog Daycare tracking
+- platform: history_stats
+  name: Visited Dog Daycare Drake
+  entity_id: person.drake
+  state: Dog Daycare
+  type: count
+  start: "{{ today_at() }}"
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Visited Dog Daycare Shawna
+  entity_id: person.shawna
+  state: Dog Daycare
+  type: count
+  start: "{{ today_at() }}"
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: "Abby Daycare Visits Counter"
+  entity_id: binary_sensor.abby_at_daycare
+  state: "on"
+  type: count
+  start: "{{ now().replace(month=1, day=1, hour=0, minute=0, second=0) }}"
+  end: "{{ now() }}"
+
+# Ethan's Daycare tracking
+- platform: history_stats
+  name: Visited Daycare Drake
+  entity_id: person.drake
+  state: Daycare
+  type: count
+  start: "{{ today_at() }}"
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Visited Daycare Shawna
+  entity_id: person.shawna
+  state: Daycare
+  type: count
+  start: "{{ today_at() }}"
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Visited Daycare JK
+  entity_id: person.john_byles
+  state: Daycare
+  type: count
+  start: "{{ today_at() }}"
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: "Ethan Daycare Visits Counter"
+  entity_id: binary_sensor.ethan_at_daycare
+  state: "on"
+  type: count
+  start: "{{ now().replace(month=1, day=1, hour=0, minute=0, second=0) }}"
+  end: "{{ now() }}"
+
+# Ethan daycare time tracking by day
+- platform: history_stats
+  name: Time at daycare on Monday (Ethan)
+  entity_id: binary_sensor.ethan_at_daycare
+  state: "on"
+  type: time
+  start: >
+    {% set today = now().weekday() %}
+    {% set days_to_subtract = (today - 0) if today >= 0 else (today + 7 - 0) %}
+    {{ today_at() - timedelta(days=days_to_subtract) }}
+  end: >
+    {% set today = now().weekday() %}
+    {% set days_to_subtract = (today - 0) if today >= 0 else (today + 7 - 0) %}
+    {{ today_at() - timedelta(days=days_to_subtract) + timedelta(days=1) }}
+
+- platform: history_stats
+  name: Time at daycare on Tuesday (Ethan)
+  entity_id: binary_sensor.ethan_at_daycare
+  state: "on"
+  type: time
+  start: >
+    {% set today = now().weekday() %}
+    {% set days_to_subtract = (today - 1) if today >= 1 else (today + 7 - 1) %}
+    {{ today_at() - timedelta(days=days_to_subtract) }}
+  end: >
+    {% set today = now().weekday() %}
+    {% set days_to_subtract = (today - 1) if today >= 1 else (today + 7 - 1) %}
+    {{ today_at() - timedelta(days=days_to_subtract) + timedelta(days=1) }}
+
+- platform: history_stats
+  name: Time at daycare on Wednesday (Ethan)
+  entity_id: binary_sensor.ethan_at_daycare
+  state: "on"
+  type: time
+  start: >
+    {% set today = now().weekday() %}
+    {% set days_to_subtract = (today - 2) if today >= 2 else (today + 7 - 2) %}
+    {{ today_at() - timedelta(days=days_to_subtract) }}
+  end: >
+    {% set today = now().weekday() %}
+    {% set days_to_subtract = (today - 2) if today >= 2 else (today + 7 - 2) %}
+    {{ today_at() - timedelta(days=days_to_subtract) + timedelta(days=1) }}
+
+- platform: history_stats
+  name: Time at daycare on Thursday (Ethan)
+  entity_id: binary_sensor.ethan_at_daycare
+  state: "on"
+  type: time
+  start: >
+    {% set today = now().weekday() %}
+    {% set days_to_subtract = (today - 3) if today >= 3 else (today + 7 - 3) %}
+    {{ today_at() - timedelta(days=days_to_subtract) }}
+  end: >
+    {% set today = now().weekday() %}
+    {% set days_to_subtract = (today - 3) if today >= 3 else (today + 7 - 3) %}
+    {{ today_at() - timedelta(days=days_to_subtract) + timedelta(days=1) }}
+
+- platform: history_stats
+  name: Time at daycare on Friday (Ethan)
+  entity_id: binary_sensor.ethan_at_daycare
+  state: "on"
+  type: time
+  start: >
+    {% set today = now().weekday() %}
+    {% set days_to_subtract = (today - 4) if today >= 4 else (today + 7 - 4) %}
+    {{ today_at() - timedelta(days=days_to_subtract) }}
+  end: >
+    {% set today = now().weekday() %}
+    {% set days_to_subtract = (today - 4) if today >= 4 else (today + 7 - 4) %}
+    {{ today_at() - timedelta(days=days_to_subtract) + timedelta(days=1) }}
+
+# Ethan daycare weekly and daily totals
+- platform: history_stats
+  name: Time at daycare this week (Ethan)
+  entity_id: binary_sensor.ethan_at_daycare
+  state: "on"
+  type: time
+  start: "{{ today_at() - timedelta(days=now().weekday()) }}"
+  end: "{{ now() }}"
+
+- platform: history_stats
+  name: Time at daycare today (Ethan)
+  entity_id: binary_sensor.ethan_at_daycare
+  state: "on"
+  type: time
+  start: "{{ today_at() }}"
+  end: "{{ now() }}"
+
+##############################################################################
+# 🏠 Home Life Patterns
+##############################################################################
+
+# How many times the fridge was opened today
+- platform: history_stats
+  name: "Fridge Opens Today"
+  entity_id: binary_sensor.fridge_door
+  state: "on"
+  type: count
+  start: "{{ today_at() }}"
+  end: "{{ now() }}"
+
+# Total time spent in the bathroom (if you have motion sensors)
+- platform: history_stats
+  name: "Bathroom Time This Week"
+  entity_id: binary_sensor.bathroom_motion
+  state: "on"
+  type: time
+  start: "{{ today_at() - timedelta(days=now().weekday()) }}"
+  end: "{{ now() }}"
+
+# How long the TV has been on today
+- platform: history_stats
+  name: "TV Time Today"
+  entity_id: media_player.living_room_tv
+  state: "playing"
+  type: time
+  start: "{{ today_at() }}"
+  end: "{{ now() }}"
+
+# How many times someone checked the front door camera
+- platform: history_stats
+  name: "Front Door Camera Views Today"
+  entity_id: camera.front_door
+  state: "streaming"
+  type: count
+  start: "{{ today_at() }}"
+  end: "{{ now() }}"

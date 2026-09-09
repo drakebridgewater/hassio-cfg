@@ -9,21 +9,40 @@ blueprint:
       description: The button to configure.
       selector:
         device:
-          manufacturer: eWeLink
-          model: WB01
+          filter:
+          - manufacturer: eWeLink
+            model: WB01
+          - manufacturer: eWeLink
+            model: SNZB-01P
+          multiple: false
+    mode:
+      name: Automation mode
+      description: The automation’s mode configuration option controls what happens when the automation is triggered while the actions
+        are still running from a previous trigger (see [Automation modes](https://www.home-assistant.io/docs/automation/modes/)).
+      default: single
+      selector:
+        select:
+          options:
+            - single
+            - restart
+            - queued
+            - parallel
     press_action:
       name: Press Action
       description: Action to perform on Press.
+      default: []
       selector:
         action: {}
     double_press_action:
       name: Double Press Action
       description: Action to perform on Double Press.
+      default: []
       selector:
         action: {}
     hold_action:
       name: Hold Action
       description: Action to perform on Hold.
+      default: []
       selector:
         action: {}
   source_url: https://github.com/apollo1220/blueprints/blob/main/sonoff_zigbee_button.yaml
@@ -32,11 +51,25 @@ variables:
   press_action: !input 'press_action'
   double_press_action: !input 'double_press_action'
   hold_action: !input 'hold_action'
+  mode: !input 'mode'
+mode: !input 'mode'
+max_exceeded: silent
 trigger:
 - platform: event
   event_type: zha_event
   event_data:
     device_id: !input 'button_id'
+    command: "toggle"
+- platform: event
+  event_type: zha_event
+  event_data:
+    device_id: !input 'button_id'
+    command: "on"
+- platform: event
+  event_type: zha_event
+  event_data:
+    device_id: !input 'button_id'
+    command: "off"
 action:
 - choose:
   - conditions:

@@ -1,0 +1,193 @@
+type: custom:stack-in-card
+card_mod:
+  style: |
+    ha-card {
+      background-color: rgba(76, 175, 80, 0.25) !important;
+      background: linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(56, 142, 60, 0.3) 100%);
+      padding: 3px !important;
+    }
+cards:
+  # MINIMAL VIEW - Button card (always visible)
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    name: Outdoor
+    entity: binary_sensor.athom_family_room_presence_sensor_occupancy
+    icon: mdi:balcony
+    show_attribute: true
+    show_state: true
+    show_name: true
+    show_icon: true
+    scrolling_effect: false
+    use_accent_color: false
+    show_last_changed: false
+    tap_action:
+      action: navigate
+      navigation_path: "#outdoors"
+    # double_tap_action:
+    #   action: call-service
+    #   service: input_boolean.toggle
+    #   target:
+    #     entity_id: input_boolean.outdoor_view_expanded
+    hold_action:
+      action: none
+    button_action:
+      tap_action:
+        action: navigate
+        navigation_path: "#outdoors"
+      # double_tap_action:
+      #   action: call-service
+      #   service: input_boolean.toggle
+      #   target:
+      #     entity_id: input_boolean.outdoor_view_expanded
+      hold_action:
+        action: none
+    sub_button:
+      main:
+        # - entity: sensor.wirelesstag_outdoor_temperature
+        #   show_state: true
+        #   show_icon: false
+        #   show_background: false
+        # - entity: sensor.wirelesstag_outdoor_humidity
+        #   show_state: true
+        #   show_icon: false
+        #   show_background: false
+        #   visibility:
+        #     - condition: screen
+        #       media_query: "(min-width: 768px)"
+        - entity: weather.pirateweather
+          show_state: true
+          show_icon: false
+          show_background: false
+          visibility:
+            - condition: screen
+              media_query: "(min-width: 768px)"
+        - entity: sensor.airnow_aqi
+          name: AQI
+          show_state: true
+          show_attribute: false
+          show_name: true
+          show_icon: false
+          show_last_changed: false
+          show_background: false
+          tap_action:
+            action: navigate
+            navigation_path: "#aqi-overview"
+            
+        - entity: light.front_porch_wall_switch
+          icon: mdi:ceiling-light
+          tap_action:
+            action: toggle
+          hold_action:
+            action: more-info
+          show_name: false
+        # - entity: input_boolean.outdoor_view_expanded
+        #   icon: mdi:chevron-up
+        #   tap_action:
+        #     action: call-service
+        #     service: input_boolean.toggle
+        #     target:
+        #       entity_id: input_boolean.outdoor_view_expanded
+        #   show_name: false
+        #   show_state: false
+        #   show_background: false
+        #   visibility:
+        #     - condition: state
+        #       entity: input_boolean.outdoor_view_expanded
+        #       state: 'on'
+        # - entity: input_boolean.outdoor_view_expanded
+        #   icon: mdi:chevron-down
+        #   tap_action:
+        #     action: call-service
+        #     service: input_boolean.toggle
+        #     target:
+        #       entity_id: input_boolean.outdoor_view_expanded
+        #   show_name: false
+        #   show_state: false
+        #   show_background: false
+        #   visibility:
+        #     - condition: state
+        #       entity: input_boolean.outdoor_view_expanded
+        #       state: 'off'
+      bottom_layout: rows
+    styles: |-
+      .bubble-sub-button-4 > ha-icon {
+        color: ${hass.states['sensor.airnow_aqi'].state > 50 ? 'red' : 'rgb(100, 255, 100)'} !important;
+      }
+      ${card.querySelector('.bubble-state').innerText = 
+        hass.formatEntityState(hass.states['sensor.wirelesstag_outdoor_temperature']) + " | " + 
+        hass.formatEntityState(hass.states['sensor.wirelesstag_outdoor_humidity']) }
+      
+      ${subButtonIcon[3].setAttribute("icon", hass.states['sensor.airnow_aqi'].state > 100 ? 'mdi:weather-dust' : 'mdi:leaf')}
+    modules:
+      - bubble_badges
+      - sub_button_coloring
+    bubble_badges:
+      badges:
+        - animation: glow
+          name: Temp high
+          target: sub_button
+          color: orange
+          icon: mdi:fire
+          sub_button_index: 1
+          condition:
+            - condition: numeric_state
+              entity_id: sensor.wirelesstag_outdoor_temperature
+              above: 80
+        - animation: glow
+          name: Temp low
+          target: sub_button
+          color: cyan
+          icon: mdi:snowflake-alert
+          sub_button_index: 1
+          condition:
+            - condition: numeric_state
+              entity_id: sensor.wirelesstag_outdoor_temperature
+              below: 40
+    force_icon: false
+    rows: 1.01
+
+  # BOTTOM SUB-BUTTONS - Hide when expanded
+  # - type: conditional
+  #   conditions:
+  #     - condition: state
+  #       entity: input_boolean.outdoor_view_expanded
+  #       state: 'off'
+  #   card:
+  #     type: custom:bubble-card
+  #     card_type: sub-buttons
+  #     sub_button:
+  #       main: []
+  #       bottom:
+  #         - entity: light.front_porch_wall_switch
+  #           icon: mdi:ceiling-light
+  #           tap_action:
+  #             action: toggle
+  #           hold_action:
+  #             action: more-info
+  #           show_name: false
+
+  # MORE VIEW - Expanded inline view (toggleable)
+  # - type: conditional
+  #   conditions:
+  #     - condition: state
+  #       entity: input_boolean.outdoor_view_expanded
+  #       state: 'on'
+  #   card:
+  #     type: grid
+  #     columns: 2
+  #     square: false
+  #     cards:
+  #       - entity: light.front_porch_wall_switch
+  #         type: custom:bubble-card
+  #         card_type: button
+  #         button_type: slider
+  #         name: Front Porch Light
+  #         show_name: true
+  #         show_last_updated: true
+  #         sub_button:
+  #           - name: Toggle button
+  #             icon: mdi:power
+  #             tap_action:
+  #               action: toggle
+

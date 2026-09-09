@@ -1,0 +1,124 @@
+blueprint:
+  name: Turn Off Devices When Area Unoccupied
+  description: Automatically turn off lights, switches, and media devices when an area has been unoccupied for a specified time
+  domain: automation
+  input:
+    area_id:
+      name: Area
+      description: Select the area to monitor
+      selector:
+        area:
+    
+    occupancy_sensors:
+      name: Occupancy Sensors
+      description: Select one or more occupancy/motion sensors for this area. All must report unoccupied before devices turn off.
+      selector:
+        entity:
+          domain: binary_sensor
+          device_class: occupancy
+          multiple: true
+
+    wait_time:
+      name: Wait Time
+      description: How long to wait after the area becomes unoccupied before turning off devices
+      default: 5
+      selector:
+        number:
+          min: 0
+          max: 60
+          unit_of_measurement: minutes
+          mode: slider
+
+    turn_off_lights:
+      name: Turn Off Lights
+      description: Enable to turn off all lights in the area
+      default: true
+      selector:
+        boolean:
+
+    turn_off_switches:
+      name: Turn Off Switches
+      description: Enable to turn off all switches in the area
+      default: false
+      selector:
+        boolean:
+
+    turn_off_media:
+      name: Turn Off Media Players
+      description: Enable to turn off all media players in the area
+      default: false
+      selector:
+        boolean:
+
+    disable_switches:
+      name: Disable Switches (Optional)
+      description: Select one or more input booleans. If ANY are turned on, this automation will be disabled.
+      default: []
+      selector:
+        entity:
+          domain: input_boolean
+          multiple: true
+
+    additional_actions:
+      name: Additional Actions (Optional)
+      description: Run additional actions after turning off devices
+      default: []
+      selector:
+        action:
+
+trigger:
+  - platform: state
+    entity_id: !input occupancy_sensors
+    to: 'off'
+    for:
+      minutes: !input wait_time
+
+condition:
+  - condition: template
+    value_template: >
+      {% set sensors = occupancy_sensors %}
+      {{ sensors | select('is_state', 'off') | list | count == sensors | count }}
+  - condition: template
+    value_template: >
+      {% set switches = disable_switches %}
+      {{ switches | length == 0 or switches | select('is_state', 'on') | list | count == 0 }}
+
+action:
+  - if:
+      - condition: template
+        value_template: "{{ turn_off_lights }}"
+    then:
+      - service: light.turn_off
+        target:
+          area_id: !input area_id
+        data:
+          transition: 2
+
+  - if:
+      - condition: template
+        value_template: "{{ turn_off_switches }}"
+    then:
+      - service: switch.turn_off
+        target:
+          area_id: !input area_id
+
+  - if:
+      - condition: template
+        value_template: "{{ turn_off_media }}"
+    then:
+      - service: media_player.turn_off
+        target:
+          area_id: !input area_id
+
+  - choose: []
+    default: !input additional_actions
+
+mode: restart
+max_exceeded: silent
+
+variables:
+  turn_off_lights: !input turn_off_lights
+  turn_off_switches: !input turn_off_switches
+  turn_off_media: !input turn_off_media
+  disable_switches: !input disable_switches
+  occupancy_sensors: !input occupancy_sensors

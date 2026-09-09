@@ -1,6 +1,6 @@
 blueprint:
   name: door open, climate off after a defined time
-  description: An automation that turns off a running your climate device for exmple
+  description: An automation that turns off a running your climate device for example
     a heater or an air conditioning if a door sensor is open for a specific time.
     It waits until the door is closed again in order to turn the climate entity
     on again.
@@ -14,7 +14,7 @@ blueprint:
           domain: binary_sensor
           device_class: door
     minimum_open_time:
-      name: Miniumum time the door is open
+      name: Minimum time the door is open
       description: Time in minutes to wait until the automation is triggered
       default: 5
       selector:
@@ -26,28 +26,34 @@ blueprint:
           step: 1.0
     climate_target:
       name: Climate Device
-      description: The climate entity that is controlled by the window sensor.
+      description: The climate entity that is controlled by the door sensor.
       selector:
         entity:
           domain: climate
+
 trigger:
-- platform: state
-  entity_id: !input 'door_entity'
-  to: 'on'
-  for: !input 'minimum_open_time'
-condition:
-- condition: not
-  conditions:
-  - condition: state
-    entity_id: !input 'climate_target'
-    state: 'off'
-action:
-- service: climate.turn_off
-  entity_id: !input 'climate_target'
-- wait_for_trigger:
   - platform: state
     entity_id: !input 'door_entity'
-    to: 'off'
-  continue_on_timeout: false
-- service: climate.turn_on
-  entity_id: !input 'climate_target'
+    to: 'on'
+    for:
+      minutes: !input 'minimum_open_time'
+
+condition:
+  - condition: not
+    conditions:
+      - condition: state
+        entity_id: !input 'climate_target'
+        state: 'off'
+
+action:
+  - action: climate.turn_off
+    target:
+      entity_id: !input 'climate_target'
+  - wait_for_trigger:
+      - platform: state
+        entity_id: !input 'door_entity'
+        to: 'off'
+    continue_on_timeout: false
+  - action: climate.turn_on
+    target:
+      entity_id: !input 'climate_target'

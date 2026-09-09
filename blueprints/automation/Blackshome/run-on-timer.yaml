@@ -1,137 +1,439 @@
 blueprint:
+  source_url: https://gist.github.com/Blackshome/99ac675f3189a64b11daae5ff7eafaa7
   name: Entity - Run ON Timer
-  description: "# ENTITY - RUN ON TIMER\nVersion: 1.3\n\nThe most common automation
-    used for a Entity Run on Timer. Select a entity so when you turn it ON the pre-set
-    time period will turn it OFF automatically.\n\nLet us know what you think of this
-    blueprint and for community support including updates: [Click Here](https://community.home-assistant.io/t/entity-run-on-timer/499217)\n\nThe
-    Automation Process:\n  - When the entity is turned ON it will then be turned OFF
-    automatically in a pre-set time period. You can have as many entities as you like.\n
-    \ - If you have multiple entities, then all the entities will turn ON automatically
-    and then turned OFF in the pre-set time period. If you turn one entity OFF the
-    other entities will remain ON until the pre-set time period turns it OFF or you
-    manually turn it OFF.\n  - If HA restarts and the entities are already ON, all
-    the entities will still turn OFF automatically starting from the restart point
-    to the end of the pre-set time period.\n\nNeed help? See our FAQ: [Click Here](https://community.home-assistant.io/t/entity-run-on-timer/499217)\n\n
-    **If you like my blueprints, and would like to show your support or just say thank
-    you?** [Click Here](https://community.home-assistant.io/u/blacky/summary) \U0001F642\n"
+  description: >
+    # ⏳ Entity - Run ON Timer
+    
+    **Version: 1.6**
+    
+    
+    Let us know what you think of this blueprint and for community support including updates: [Click Here](https://community.home-assistant.io/t/entity-run-on-timer/499217)
+    
+    
+    **The Automation Process:**
+      - If selecting "Trigger entity state ON", when the entity is turned ON, it will be automatically turned OFF after the pre-set time period.
+      - If selecting "Trigger entity state OFF", when the entity is turned OFF, it will be automatically turned ON after the pre-set time period.
+      - You have a "Trigger Entity Sync" option. When using multiple entities and one entity changes state i.e. manually turned ON or OFF, then all the entities will be turned ON or OFF automatically in sync together.
+      - You have the option to use a timer helper. This is useful if you would like to display the remaining time in a dashboard and the timer will survive a HA restart.
+      - HA Restart - If you use a timer helper it will resume as nothing happened (recommended). If you don't use a timer helper, then when HA restarts, the automation will try and reset back to the start.
+    
+    
+    Required = *
+    
+    
+    Need help? See our FAQ: [Click Here](https://community.home-assistant.io/t/entity-run-on-timer/499217)
+    
+    
+    **If you like my blueprints, and would like to show your support or just say thank you?** [Click Here](https://www.paypal.com/donate/?hosted_button_id=WAZS3QSDTPGA8) 🙂
   domain: automation
   input:
+    trigger_entity_state:
+      name: The Trigger Entity State
+      description: Select what state the trigger entity will be in to run the automation.
+        If "ON" is selected, when the entity is turned ON it will be turned OFF in the below pre-set time period.
+        If "OFF" is selected, when the entity is turned OFF it will be turned ON in the below pre-set time period.
+      default: trigger_state_on
+      selector:
+        select:
+          options:
+            - label: Trigger entity state ON
+              value: "trigger_state_on"
+            - label: Trigger entity state OFF
+              value: "trigger_state_off"
     trigger_input:
-      name: Entities
-      description: Select the entities that will be turned OFF by the below pre-set
-        time period. IF more than one entity is selected then they will turn ON &
-        OFF together automatically. You can select a switch, light, sensor, binary
-        sensor or a input boolean.
+      name: Trigger - Entities *
+      description: Select the entities that will be turned ON or OFF in the below pre-set time period.
+        
+        
+        **Note** - All entities must have an ON and OFF state.
       selector:
         entity:
-          domain:
-          - switch
-          - light
-          - sensor
-          - binary_sensor
-          - input_boolean
           multiple: true
+    include_trigger_sync:
+      name: The Trigger Entity Sync Option (Optional)
+      description: Select this option if you would like all the entities to be turned ON or OFF in sync together.
+        Example - If more than one entity is selected then they will turn ON & OFF in sync together automatically.
+      default: disable_trigger_sync
+      selector:
+        select:
+          options:
+            - label: Enable the trigger entity sync
+              value: "enable_trigger_sync"
+            - label: Disable the trigger entity sync
+              value: "disable_trigger_sync"
+    include_timer_helper:
+      name: Use The Timer Helper Option (Optional)
+      description: Select enable if you would like to use a timer helper.
+        
+        
+        **Note** - When creating your timer helper, make sure you tick the box "Restore" so it will survive a HA restart. 
+        Don't set any time in the timer helper duration, use the time settings below.
+      default: disable_timer_helper
+      selector:
+        select:
+          options:
+            - label: Use a timer helper
+              value: "enable_timer_helper"
+            - label: Dont use a timer helper
+              value: "disable_timer_helper"
+    timer_helper:
+      name: Timer Helper
+      description: Select the timer helper to be used if you have chosen to use a timer helper above.
+      default: []
+      selector:
+        entity:
+          filter:
+            domain:
+              - timer
     time_seconds:
       name: Seconds
       description: Set the delay time in seconds.
       default: 0
       selector:
         number:
-          min: 0.0
-          max: 60.0
-          step: 1.0
+          min: 0
+          max: 60
+          step: 1
           unit_of_measurement: seconds
-          mode: slider
     time_minutes:
       name: Minutes
       description: Set the delay time in minutes.
       default: 0
       selector:
         number:
-          min: 0.0
-          max: 60.0
-          step: 1.0
+          min: 0
+          max: 60
+          step: 1
           unit_of_measurement: minutes
-          mode: slider
     time_hours:
       name: Hours
       description: Set the delay time in hours.
       default: 0
       selector:
         number:
-          min: 0.0
-          max: 24.0
-          step: 1.0
+          min: 0
+          max: 24
+          step: 1
           unit_of_measurement: hours
-          mode: slider
-  source_url: https://gist.github.com/Blackshome/99ac675f3189a64b11daae5ff7eafaa7
+
 mode: restart
 max_exceeded: silent
+
 variables:
+  trigger_entity_state: !input trigger_entity_state
   trigger_input: !input trigger_input
+  include_trigger_sync: !input include_trigger_sync
+  include_timer_helper: !input include_timer_helper
+  timer_helper: !input timer_helper
   time_seconds: !input time_seconds
   time_minutes: !input time_minutes
   time_hours: !input time_hours
+
 trigger:
-- platform: state
-  id: t1
-  entity_id: !input trigger_input
-  from: 'off'
-  to: 'on'
-- platform: homeassistant
-  id: t2
-  event: start
+  - platform: state
+    id: "t1_start"
+    entity_id: !input trigger_input
+    from: 'off'
+    to: 'on'
+  - platform: state
+    id: "t1_end"
+    entity_id: !input trigger_input
+    from: 'on'
+    to: 'off'
+  - platform: state
+    id: "t1_synced"
+    entity_id: !input trigger_input
+    from: 'on'
+    to: 'off'
+  - platform: state
+    id: "t2_start"
+    entity_id: !input trigger_input
+    from: 'on'
+    to: 'off'
+  - platform: state
+    id: "t2_end"
+    entity_id: !input trigger_input
+    from: 'off'
+    to: 'on'
+  - platform: state
+    id: "t2_synced"
+    entity_id: !input trigger_input
+    from: 'off'
+    to: 'on'
+  - platform: state
+    entity_id: !input timer_helper
+    to: "idle"
+    id: 't3'
+  - platform: homeassistant
+    id: "t4"
+    event: start
+
+# All Conditions
 condition:
-- condition: or
-  conditions:
-  - condition: and
+#Trigger conditions
+  - condition: or
     conditions:
-    - condition: state
-      entity_id: !input trigger_input
-      match: any
-      state: 'on'
-    - condition: trigger
-      id: t1
-  - condition: and
-    conditions:
-    - condition: state
-      entity_id: !input trigger_input
-      state: 'on'
-      match: any
-    - condition: trigger
-      id: t2
+      - condition: and # trigger from off to on
+        conditions:
+          - condition: trigger
+            id: 't1_start'
+          - "{{ trigger_entity_state == 'trigger_state_on' }}"
+          - condition: state
+            entity_id: !input trigger_input
+            match: any
+            state: 'on'
+      - condition: and # trigger from on to off
+        conditions:
+          - condition: trigger
+            id: 't1_end'
+          - "{{ trigger_entity_state == 'trigger_state_on' }}"
+          - condition: state
+            entity_id: !input trigger_input
+            match: all
+            state: 'off'
+          - condition: state
+            entity_id: !input timer_helper
+            state: 'active'
+      - condition: and # trigger sync from on to off
+        conditions:
+          - condition: trigger
+            id: 't1_synced'
+          - "{{ trigger_entity_state == 'trigger_state_on' }}"
+          - "{{include_trigger_sync == 'enable_trigger_sync'}}"
+      - condition: and # trigger from on to off
+        conditions:
+          - condition: trigger
+            id: 't2_start'
+          - "{{ trigger_entity_state == 'trigger_state_off' }}"
+          - condition: state
+            entity_id: !input trigger_input
+            match: any
+            state: 'off'
+      - condition: and # trigger from off to on
+        conditions:
+          - condition: trigger
+            id: 't2_end'
+          - "{{ trigger_entity_state == 'trigger_state_off' }}"
+          - condition: state
+            entity_id: !input trigger_input
+            match: all
+            state: 'on'
+          - condition: state
+            entity_id: !input timer_helper
+            state: 'active'
+      - condition: and # trigger sync from off to on
+        conditions:
+          - condition: trigger
+            id: 't2_synced'
+          - "{{ trigger_entity_state == 'trigger_state_off' }}"
+          - "{{include_trigger_sync == 'enable_trigger_sync'}}"
+      - condition: and # trigger for end timer helper
+        conditions:
+          - condition: trigger
+            id: 't3'
+          - "{{include_timer_helper == 'enable_timer_helper'}}"
+          - "{{ ((trigger_entity_state == 'trigger_state_on') and (expand(trigger_input) | selectattr('state', '==', 'on') | list | count > 0)) or ((trigger_entity_state == 'trigger_state_off') and (expand(trigger_input) | selectattr('state', '==', 'off') | list | count > 0)) }}"
+      - condition: and # trigger by HA Restart, check if the timer helper is disabled & check if any triggers are on
+        conditions:
+          - condition: trigger
+            id: 't4'
+          - "{{include_timer_helper == 'disable_timer_helper'}}"
+          - "{{ ((trigger_entity_state == 'trigger_state_on') and (expand(trigger_input) | selectattr('state', '==', 'on') | list | count > 0)) or ((trigger_entity_state == 'trigger_state_off') and (expand(trigger_input) | selectattr('state', '==', 'off') | list | count > 0)) }}"
+
 action:
-- choose:
-  - conditions:
-    - condition: trigger
-      id: t2
-    sequence:
-    - alias: Wait the number of hours that has been set
-      delay:
-        hours: !input time_hours
-    - alias: Wait the number of minutes that has been set
-      delay:
-        minutes: !input time_minutes
-    - alias: Wait the number of seconds that has been set
-      delay:
-        seconds: !input time_seconds
-    - alias: Turn OFF the entities
-      service: homeassistant.turn_off
-      entity_id: !input trigger_input
-    - stop: Stop the automation
-  default:
-  - alias: Turn ON the entities
-    service: homeassistant.turn_on
-    entity_id: !input trigger_input
-  - alias: Wait the number of hours that has been set
-    delay:
-      hours: !input time_hours
-  - alias: Wait the number of minutes that has been set
-    delay:
-      minutes: !input time_minutes
-  - alias: Wait the number of seconds that has been set
-    delay:
-      seconds: !input time_seconds
-  - alias: Turn OFF the entities
-    service: homeassistant.turn_off
-    entity_id: !input trigger_input
+  - choose:
+      - alias: "Check if the time helper is enabled"
+        conditions:
+          - "{{include_timer_helper == 'enable_timer_helper'}}"
+          - condition: trigger
+            id:
+              - 't1_start'
+        sequence:
+          - choose:
+            - alias: "If trigger sync is selected"
+              conditions:
+                - condition: template
+                  value_template: "{{include_trigger_sync == 'enable_trigger_sync'}}"
+              sequence:
+                - alias: "Turn ON the entities"
+                  service: homeassistant.turn_on
+                  entity_id: !input trigger_input
+          - alias: "Turn ON the timer helper"
+            service: timer.start
+            entity_id: !input timer_helper
+            data:
+              duration:
+                hours: !input time_hours
+                minutes: !input time_minutes
+                seconds: !input time_seconds
+      - alias: "Check if the time helper is disabled"
+        conditions:
+          - "{{include_timer_helper == 'disable_timer_helper'}}"
+          - condition: trigger
+            id:
+              - 't1_start'
+        sequence:
+          - choose:
+            - alias: "If trigger sync is selected"
+              conditions:
+                - condition: template
+                  value_template: "{{include_trigger_sync == 'enable_trigger_sync'}}"
+              sequence:
+                - alias: "Turn ON the entities"
+                  service: homeassistant.turn_on
+                  entity_id: !input trigger_input
+          - alias: "Wait for the time that has been set"
+            delay: 
+              hours: !input time_hours
+              minutes: !input time_minutes 
+              seconds: !input time_seconds
+          - alias: "Turn OFF the entities"
+            service: homeassistant.turn_off
+            entity_id: !input trigger_input
+      - alias: "Check if the time helper is enabled"
+        conditions:
+          - "{{include_timer_helper == 'enable_timer_helper'}}"
+          - condition: trigger
+            id:
+              - 't2_start'
+        sequence:
+          - choose:
+            - alias: "If trigger sync is selected"
+              conditions:
+                - condition: template
+                  value_template: "{{include_trigger_sync == 'enable_trigger_sync'}}"
+              sequence:
+                - alias: "Turn OFF the entities"
+                  service: homeassistant.turn_off
+                  entity_id: !input trigger_input
+          - alias: "Turn ON the timer helper"
+            service: timer.start
+            entity_id: !input timer_helper
+            data:
+              duration:
+                hours: !input time_hours
+                minutes: !input time_minutes
+                seconds: !input time_seconds
+      - alias: "Check if the time helper is disabled"
+        conditions:
+          - "{{include_timer_helper == 'disable_timer_helper'}}"
+          - condition: trigger
+            id:
+              - 't2_start'
+        sequence:
+          - choose:
+            - alias: "If trigger sync is selected"
+              conditions:
+                - condition: template
+                  value_template: "{{include_trigger_sync == 'enable_trigger_sync'}}"
+              sequence:
+                - alias: "Turn OFF the entities"
+                  service: homeassistant.turn_off
+                  entity_id: !input trigger_input
+          - alias: "Wait for the time that has been set"
+            delay: 
+              hours: !input time_hours
+              minutes: !input time_minutes 
+              seconds: !input time_seconds
+          - alias: "Turn ON the entities"
+            service: homeassistant.turn_on
+            entity_id: !input trigger_input
+  - choose:
+      - alias: "Check if the time helper is enabled and cancel it"
+        conditions:
+          - "{{include_timer_helper == 'enable_timer_helper'}}"
+          - condition: trigger
+            id:
+              - 't1_end'
+              - 't2_end'
+        sequence:
+          - alias: "Cancel the timer helper"
+            service: timer.cancel
+            entity_id: !input timer_helper
+      - alias: "Check if the trigger entity sync is enabled and trigger state is on"
+        conditions:
+          - condition: trigger
+            id:
+              - 't1_synced'
+              - 't2_synced'
+          - "{{ trigger_entity_state == 'trigger_state_on' }}"
+        sequence:
+          - alias: "Turn OFF the entities"
+            service: homeassistant.turn_off
+            entity_id: !input trigger_input
+          - choose:
+              - alias: "Check if the time helper is enabled"
+                conditions:
+                  - "{{include_timer_helper == 'enable_timer_helper'}}"
+                sequence:
+                  - alias: "Cancel the timer helper"
+                    service: timer.cancel
+                    entity_id: !input timer_helper
+      - alias: "Check if the trigger entity sync is enabled and trigger state is off"
+        conditions:
+          - condition: trigger
+            id:
+              - 't1_synced'
+              - 't2_synced'
+          - "{{ trigger_entity_state == 'trigger_state_off' }}"
+        sequence:
+          - alias: "Turn ON the entities"
+            service: homeassistant.turn_on
+            entity_id: !input trigger_input
+          - choose:
+              - alias: "Check if the time helper is enabled"
+                conditions:
+                  - "{{include_timer_helper == 'enable_timer_helper'}}"
+                sequence:
+                  - alias: "Cancel the timer helper"
+                    service: timer.cancel
+                    entity_id: !input timer_helper
+      - alias: "Turn OFF entities after the timer helper is finished"
+        conditions:
+          - condition: trigger
+            id:
+              - 't3'
+          - "{{ trigger_entity_state == 'trigger_state_on' }}"
+        sequence:
+          - alias: "Turn OFF the entities"
+            service: homeassistant.turn_off
+            entity_id: !input trigger_input
+      - alias: "Turn ON entities after the timer helper is finished"
+        conditions:
+          - condition: trigger
+            id:
+              - 't3'
+          - "{{ trigger_entity_state == 'trigger_state_off' }}"
+        sequence:
+          - alias: "Turn ON the entities"
+            service: homeassistant.turn_on
+            entity_id: !input trigger_input
+  - choose:
+      - alias: "HA Restart"
+        conditions:
+          - condition: trigger
+            id: "t4"
+          - "{{ trigger_entity_state == 'trigger_state_on' }}"
+        sequence:
+          - alias: "Wait for the time that has been set"
+            delay:
+              hours: !input time_hours
+              minutes: !input time_minutes
+              seconds: !input time_seconds
+          - alias: "Turn OFF the entities"
+            service: homeassistant.turn_off
+            entity_id: !input trigger_input
+      - alias: "HA Restart"
+        conditions:
+          - condition: trigger
+            id: "t4"
+          - "{{ trigger_entity_state == 'trigger_state_off' }}"
+        sequence:
+          - alias: "Wait for the time that has been set"
+            delay:
+              hours: !input time_hours
+              minutes: !input time_minutes
+              seconds: !input time_seconds
+          - alias: "Turn OFF the entities"
+            service: homeassistant.turn_on
+            entity_id: !input trigger_input

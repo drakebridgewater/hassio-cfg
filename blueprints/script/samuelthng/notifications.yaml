@@ -74,20 +74,26 @@ blueprint:
       description: "The title of the notification.  \n\n`Optional`\n"
       default: ''
       selector:
-        text: {}
+        text:
+          multiple: false
+          multiline: false
     subtitle:
       name: "\U0001F3F7️ Subtitle"
       description: "The subtitle of the notification.  \n\n`Optional`\n"
       default: ''
       selector:
-        text: {}
+        text:
+          multiple: false
+          multiline: false
     message:
       name: "\U0001F4AC Message"
       description: "The message body to display on the notification.  \n\n`\U0001F916
         Android`: You may add [HTML formatting](https://companion.home-assistant.io/docs/notifications/notifications-basic?_highlight=tag#notification-message-html-formatting)
         to customise the look of the message."
       selector:
-        text: {}
+        text:
+          multiple: false
+          multiline: false
     icon:
       name: "\U0001F642 Icon"
       description: "Custom icon for this notification.  \n\n`\U0001F916 Android Only`,
@@ -123,7 +129,9 @@ blueprint:
       description: Title to show on the first option.
       default: Option 1
       selector:
-        text: {}
+        text:
+          multiple: false
+          multiline: false
     confirm_option_mode:
       name: 1️⃣ Option 1 - Mode
       description: "Action mode for this option.<br /><br /> If you need this option
@@ -149,8 +157,8 @@ blueprint:
           - label: "Link (\U0001F916 Android Only)"
             value: uri
           multiple: false
-          custom_value: false
           sort: false
+          custom_value: false
     confirm_action:
       name: 1️⃣ Option 1 - Action(s)
       description: 'Action(s) to run when this option is selected.
@@ -233,7 +241,9 @@ blueprint:
       description: Title to show on the first option.
       default: Option 2
       selector:
-        text: {}
+        text:
+          multiple: false
+          multiline: false
     dismiss_option_mode:
       name: 2️⃣ Option 2 - Mode
       description: "Action mode for this option.<br /><br /> If you need this option
@@ -259,8 +269,8 @@ blueprint:
           - label: "Link (\U0001F916 Android Only)"
             value: uri
           multiple: false
-          custom_value: false
           sort: false
+          custom_value: false
     dismiss_action:
       name: 2️⃣ Option 2 - Action(s)
       description: 'Action(s) to run when this option is selected.
@@ -343,7 +353,9 @@ blueprint:
       description: Title to show on the first option.
       default: Option 3
       selector:
-        text: {}
+        text:
+          multiple: false
+          multiline: false
     option_three_option_mode:
       name: 3️⃣ Option 3 - Mode
       description: "Action mode for this option.<br /><br /> If you need this option
@@ -369,8 +381,8 @@ blueprint:
           - label: "Link (\U0001F916 Android Only)"
             value: uri
           multiple: false
-          custom_value: false
           sort: false
+          custom_value: false
     option_three_action:
       name: 3️⃣ Option 3 - Action(s)
       description: 'Action(s) to run when this option is selected.
@@ -462,6 +474,7 @@ blueprint:
       selector:
         duration:
           enable_day: false
+          enable_second: true
     run_timeout_actions:
       name: ⌛️ Enable Timeout Action(s)
       description: "Run timeout actions upon a timeout event.<br><br>\U0001F44D\U0001F3FB Recommended
@@ -511,7 +524,9 @@ blueprint:
         for more information and options.  \n\n`Optional`"
       default: ''
       selector:
-        text: {}
+        text:
+          multiple: false
+          multiline: false
     attachment_type:
       name: "\U0001F4F8 Attachment Type"
       description: 'Choose to send an attachment along with the notification.<br>
@@ -528,8 +543,8 @@ blueprint:
           - label: Camera
             value: camera_entity
           multiple: false
-          custom_value: false
           sort: false
+          custom_value: false
     attachment_camera_entity:
       name: "\U0001F4F8 Attachment: Camera Entity"
       description: "Camera Entity to display snapshots of on the notification.<br>\nPlease
@@ -546,6 +561,7 @@ blueprint:
           - domain:
             - camera
           multiple: false
+          reorder: false
     car_ui:
       name: "\U0001F698 Show on Android Auto"
       description: "Display notification on Android Auto interface.  \n\n`\U0001F916
@@ -561,7 +577,9 @@ blueprint:
         to leave empty\n\n`Optional`"
       default: ''
       selector:
-        text: {}
+        text:
+          multiple: false
+          multiline: false
     group:
       name: "\U0001F4E3 Notification Group ID"
       description: "Used for grouping different notifications together visually.  \n\n⚠️ iOS
@@ -569,14 +587,18 @@ blueprint:
         for more information.  \n\n`Optional`"
       default: ''
       selector:
-        text: {}
+        text:
+          multiple: false
+          multiline: false
     channel:
       name: "\U0001F4E3 Notification Channel"
       description: "Defines the channel, to be used with Importance.  \nRelates to
         the importance of the notification.  \n\n`\U0001F916 Android Only`, `Optional`"
       default: General
       selector:
-        text: {}
+        text:
+          multiple: false
+          multiline: false
     importance:
       name: ❕ Notification Channel Importance
       description: "See [documentation](https://companion.home-assistant.io/docs/notifications/notifications-basic/#notification-channel-importance)
@@ -594,8 +616,8 @@ blueprint:
           - label: Low (Makes no sound, doesn't appear in status bar)
             value: min
           multiple: false
-          custom_value: false
           sort: false
+          custom_value: false
     android_high_priority:
       name: ❕ High Priority Mode
       description: "Workaround to ensure notifications are delivered in timely fashion.
@@ -621,8 +643,8 @@ blueprint:
           - label: Critical (Overrides Focus and Mute, restricted features)
             value: critical
           multiple: false
-          custom_value: false
           sort: false
+          custom_value: false
     visibility:
       name: "\U0001F50F Notification Lockscreen Visibility"
       description: "Show or hide notification content on the lockscreen.  \nSee [documentation](https://companion.home-assistant.io/docs/notifications/notifications-basic?_highlight=tag#notification-sensitivity--lock-screen-visibility)
@@ -638,8 +660,8 @@ blueprint:
           - label: 'Secret: Always hide content on the lockscreen.'
             value: secret
           multiple: false
-          custom_value: false
           sort: false
+          custom_value: false
 fields:
   field_notify_device:
     name: "\U0001F4F2 Device to notify"

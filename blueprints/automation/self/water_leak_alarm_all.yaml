@@ -1,0 +1,193 @@
+blueprint:
+  name: Water Leak Alarm (Multi-sensor)
+  description: >
+    Sends mobile push and/or HA UI persistent notifications for multiple leak sensors with minimal controls. No siren/switch options.
+  domain: automation
+
+  input:
+    leak_sensors:
+      name: Leak sensor entities
+      description: "Select your leak sensor entities (binary_sensor or sensor)."
+      selector:
+        entity:
+          multiple: true
+          filter:
+            - domain: binary_sensor
+
+    notify_service:
+      name: Notify service
+      description: "e.g., notify.notify or notify.mobile_app_<your_phone>"
+      default: notify.notify
+      selector:
+        text:
+
+    # Choose notification types
+    enable_mobile:
+      name: Enable mobile push notifications
+      description: "Send push notifications via the selected notify service."
+      default: true
+      selector:
+        boolean: {}
+
+    enable_persistent:
+      name: Enable HA UI notifications
+      description: "Create persistent notifications (bell icon in Home Assistant)."
+      default: true
+      selector:
+        boolean: {}
+
+    # Titles / messages
+    wet_title:
+      name: Leak detected – title
+      default: "🚨 Water leak detected"
+      selector:
+        text:
+
+    wet_message:
+      name: Leak detected – message
+      default: >
+        Leak detected by {{ state_attr(leak_entity, 'friendly_name') or leak_entity }}
+        at {{ now().strftime('%Y-%m-%d %H:%M:%S') }}.
+      selector:
+        text:
+          multiline: true
+
+    clear_title:
+      name: Leak cleared – title
+      default: "✅ Water leak cleared"
+      selector:
+        text:
+
+    clear_message:
+      name: Leak cleared – message
+      default: >
+        Leak cleared for {{ state_attr(leak_entity, 'friendly_name') or leak_entity }}
+        at {{ now().strftime('%Y-%m-%d %H:%M:%S') }}.
+      selector:
+        text:
+          multiline: true
+
+mode: restart
+max_exceeded: silent
+
+trigger:
+  - platform: state
+    entity_id: !input leak_sensors
+
+variables:
+  # Bind inputs (never put !input inside Jinja)
+  leak_entity: "{{ trigger.entity_id }}"
+  ns: !input notify_service
+
+  # Current state normalized
+  v_state: >-
+    {% if trigger and trigger.to_state %}
+      {{ trigger.to_state.state | lower }}
+    {% else %}
+      {{ states(leak_entity) | lower }}
+    {% endif %}
+
+  # Classify states
+  v_is_wet: >-
+    {% set wet_values = ['on','wet','leak','leaking','detected','alarm','true','1'] %}
+    {{ v_state in wet_values }}
+
+  v_is_clear: >-
+    {% set clear_values = ['off','dry','clear','ok','idle','false','0'] %}
+    {{ v_state in clear_values }}
+
+  # Previous state normalized
+  v_prev_state: >-
+    {% if trigger and trigger.from_state %}
+      {{ trigger.from_state.state | lower }}
+    {% else %}
+      unknown
+    {% endif %}
+
+  # Classify previous state
+  v_prev_is_wet: >-
+    {% set wet_values = ['on','wet','leak','leaking','detected','alarm','true','1'] %}
+    {{ v_prev_state in wet_values }}
+
+  v_prev_is_clear: >-
+    {% set clear_values = ['off','dry','clear','ok','idle','false','0'] %}
+    {{ v_prev_state in clear_values }}
+
+  # Inputs
+  v_enable_mobile: !input enable_mobile
+  v_enable_persistent: !input enable_persistent
+
+  v_wet_title: !input wet_title
+  v_wet_message: !input wet_message
+  v_clear_title: !input clear_title
+  v_clear_message: !input clear_message
+
+  # Auto-generate stable, per-sensor IDs so wet/clear never overwrite each other
+  v_pn_id_wet: >-
+    {{ ('leak_ui_' ~ leak_entity ~ '_wet') | replace('.', '_') | replace(' ', '_') }}
+  v_pn_id_clear: >-
+    {{ ('leak_ui_' ~ leak_entity ~ '_clear') | replace('.', '_') | replace(' ', '_') }}
+
+action:
+  - choose:
+      # ================
+      # Leak detected
+      # ================
+      - conditions:
+          - condition: template
+            value_template: "{{ v_is_wet }}"
+          # STRICTLY only alert if transitioning from a known clear/off state to wet
+          - condition: template
+            value_template: "{{ v_prev_is_clear }}"
+        sequence:
+          # Mobile push (if enabled)
+          - if:
+              - condition: template
+                value_template: "{{ v_enable_mobile | bool }}"
+            then:
+              - service: "{{ ns }}"
+                data:
+                  title: "{{ v_wet_title }}"
+                  message: "{{ v_wet_message }}"
+
+          # HA UI persistent (if enabled)
+          - if:
+              - condition: template
+                value_template: "{{ v_enable_persistent | bool }}"
+            then:
+              - service: persistent_notification.create
+                data:
+                  title: "{{ v_wet_title }}"
+                  message: "{{ v_wet_message }}"
+                  notification_id: "{{ v_pn_id_wet }}"
+
+      # ================
+      # Leak cleared
+      # ================
+      - conditions:
+          - condition: template
+            value_template: "{{ v_is_clear }}"
+          # STRICTLY only alert if transitioning from a known wet/on state to clear
+          - condition: template
+            value_template: "{{ v_prev_is_wet }}"
+        sequence:
+          # Mobile push (if enabled)
+          - if:
+              - condition: template
+                value_template: "{{ v_enable_mobile | bool }}"
+            then:
+              - service: "{{ ns }}"
+                data:
+                  title: "{{ v_clear_title }}"
+                  message: "{{ v_clear_message }}"
+
+          # HA UI persistent (if enabled) – keeps wet & clear as separate cards
+          - if:
+              - condition: template
+                value_template: "{{ v_enable_persistent | bool }}"
+            then:
+              - service: persistent_notification.create
+                data:
+                  title: "{{ v_clear_title }}"
+                  message: "{{ v_clear_message }}"
+                  notification_id: "{{ v_pn_id_clear }}"

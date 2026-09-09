@@ -1,0 +1,410 @@
+type: custom:stack-in-card
+card_mod:
+  style: |
+    ha-card {
+      background-color: rgba(156, 39, 176, 0.25) !important;
+      background: linear-gradient(135deg, rgba(156, 39, 176, 0.2) 0%, rgba(103, 58, 183, 0.3) 100%);
+      padding: 3px !important;
+    }
+cards:
+  # MINIMAL VIEW - Button card (always visible)
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    name: Master Bedroom
+    entity: binary_sensor.master_bedroom_motion_sensor_occupancy
+    icon: mdi:bed-king-outline
+    show_attribute: true
+    show_state: true
+    show_name: true
+    show_icon: true
+    scrolling_effect: false
+    use_accent_color: false
+    show_last_changed: false
+    tap_action:
+      action: navigate
+      navigation_path: "#master"
+    double_tap_action:
+      action: call-service
+      service: input_boolean.toggle
+      target:
+        entity_id: input_boolean.master_bedroom_view_expanded
+    hold_action:
+      action: none
+    button_action:
+      tap_action:
+        action: navigate
+        navigation_path: "#master"
+      double_tap_action:
+        action: call-service
+        service: input_boolean.toggle
+        target:
+          entity_id: input_boolean.master_bedroom_view_expanded
+      hold_action:
+        action: none
+    sub_button:
+      main:
+        - entity: sensor.master_bedroom_temperature
+          show_state: true
+          show_icon: false
+          show_background: false
+        - entity: sensor.apollo_air_1_f8b340_voc_quality
+          show_state: true
+          show_icon: false
+          show_background: false
+          visibility:
+            - condition: screen
+              media_query: "(min-width: 768px)"
+        - entity: binary_sensor.master_bedroom_window
+        - entity: input_boolean.master_bedroom_view_expanded
+          icon: mdi:chevron-up
+          tap_action:
+            action: call-service
+            service: input_boolean.toggle
+            target:
+              entity_id: input_boolean.master_bedroom_view_expanded
+          show_name: false
+          show_state: false
+          show_background: false
+          visibility:
+            - condition: state
+              entity: input_boolean.master_bedroom_view_expanded
+              state: 'on'
+        - entity: input_boolean.master_bedroom_view_expanded
+          icon: mdi:chevron-down
+          tap_action:
+            action: call-service
+            service: input_boolean.toggle
+            target:
+              entity_id: input_boolean.master_bedroom_view_expanded
+          show_name: false
+          show_state: false
+          show_background: false
+          visibility:
+            - condition: state
+              entity: input_boolean.master_bedroom_view_expanded
+              state: 'off'
+      bottom_layout: rows
+    styles: ""
+    modules:
+      - bubble_badges
+      - sub_button_coloring
+    bubble_badges:
+      badges:
+        - animation: glow
+          name: Temp high
+          target: sub_button
+          color: orange
+          icon: mdi:fire
+          sub_button_index: 1
+          condition:
+            - condition: numeric_state
+              entity_id: sensor.master_bedroom_temperature
+              above: 72
+        - animation: glow
+          name: Temp low
+          target: sub_button
+          color: cyan
+          icon: mdi:snowflake-alert
+          sub_button_index: 1
+          condition:
+            - condition: numeric_state
+              entity_id: sensor.master_bedroom_temperature
+              below: 69
+        - color: deep-orange
+          name: occupied
+          target: main_icon
+          icon: mdi:motion-sensor
+          condition:
+            - condition: state
+              entity_id: binary_sensor.master_bedroom_motion_sensor_occupancy
+              state:
+                - "on"
+        - color: red
+          name: Lighting Auto
+          target: main_icon
+          icon: mdi:lightbulb-auto-outline
+          condition:
+            - condition: state
+              entity_id: input_boolean.lighting_automation_blocker_master_bedroom
+              state:
+                - "on"
+          animation: fade
+    force_icon: false
+    rows: 1.01
+    sub_button_coloring:
+      button_3:
+        condition:
+          - condition: state
+            entity_id: binary_sensor.master_bedroom_window
+            state:
+              - "on"
+        icon_color: "#9f0000"
+
+  # BOTTOM SUB-BUTTONS - Hide when expanded
+
+  # BOTTOM SUB-BUTTONS - Hide when expanded
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: input_boolean.master_bedroom_view_expanded
+        state: 'off'
+    card:
+      type: custom:bubble-card
+      card_type: sub-buttons
+      sub_button:
+        main: []
+        bottom:
+          - name: Group 1
+            buttons_layout: inline
+            group:
+              - entity: light.master_bedroom_wall_switch
+                icon: mdi:light-switch
+                name: Wall Switch
+                show_name: true
+                content_layout: icon-top
+                tap_action:
+                  service: ""
+                  action: toggle
+                hold_action:
+                  action: more-info
+                scrolling_effect: true
+              - entity: light.drake_s_bedside_lamp
+                icon: mdi:human-male
+                name: Drake
+                show_name: true
+                content_layout: icon-top
+                tap_action:
+                  service: ""
+                  action: toggle
+                hold_action:
+                  action: more-info
+                scrolling_effect: true
+              - entity: light.shawna_s_bedside_lamp
+                icon: mdi:human-female
+                name: Shawna
+                show_name: true
+                content_layout: icon-top
+                tap_action:
+                  service: ""
+                  action: toggle
+                hold_action:
+                  action: more-info
+                scrolling_effect: true
+              - entity: light.master_bedroom_dresser_lamp
+                icon: mdi:dresser
+                name: Dresser
+                show_name: true
+                content_layout: icon-top
+                tap_action:
+                  service: ""
+                  action: toggle
+                hold_action:
+                  action: more-info
+                scrolling_effect: true
+              - entity: light.master_bedroom_closet_wall_switch
+                icon: mdi:tshirt-v
+                name: Closet
+                show_state: false
+                show_name: true
+                content_layout: icon-top
+                tap_action:
+                  service: ""
+                  action: toggle
+                hold_action:
+                  action: more-info
+                scrolling_effect: true
+          - name: Group 2
+            buttons_layout: inline
+            group:
+              - entity: fan.master_bedroom_fan
+                icon: phu:small-fan
+                show_name: true
+                tap_action:
+                  service: ""
+                  action: toggle
+                hold_action:
+                  action: more-info
+                name: Fan
+              - entity: switch.master_bedroom_grow_lamp
+                name: Grow Light
+                icon: mdi:flower
+                tap_action:
+                  service: ""
+                  action: toggle
+                hold_action:
+                  action: more-info
+                show_name: true
+              - entity: input_boolean.lighting_automation_blocker_master_bedroom
+                icon: mdi:lightbulb-auto
+                name: Disable Auto 
+                show_name: true
+                tap_action:
+                  service: ""
+                  action: toggle
+                hold_action:
+                  action: more-info
+                show_state: false
+                state_background: true
+                show_background: true
+        bottom_layout: rows
+      rows: 1.625
+  # MORE VIEW - Expanded inline view (toggleable)
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: input_boolean.master_bedroom_view_expanded
+        state: 'on'
+    card:
+      type: grid
+      columns: 2
+      square: false
+      cards:
+        - entity: light.master_bedroom_wall_switch
+          type: custom:bubble-card
+          card_type: button
+          button_type: slider
+          name: Wall Switch
+          show_name: true
+          show_last_updated: true
+          sub_button:
+            - name: Toggle button
+              icon: mdi:power
+              tap_action:
+                action: toggle
+        - entity: light.drake_s_bedside_lamp
+          type: custom:bubble-card
+          card_type: button
+          button_type: slider
+          name: Drake's Lamp
+          show_name: true
+          show_last_updated: true
+          sub_button:
+            - name: Toggle button
+              icon: mdi:power
+              tap_action:
+                action: toggle
+        - entity: light.shawna_s_bedside_lamp
+          type: custom:bubble-card
+          card_type: button
+          button_type: slider
+          name: Shawna's Lamp
+          show_name: true
+          show_last_updated: true
+          sub_button:
+            - name: Toggle button
+              icon: mdi:power
+              tap_action:
+                action: toggle
+        - entity: light.master_bedroom_dresser_lamp
+          type: custom:bubble-card
+          card_type: button
+          button_type: slider
+          name: Dresser Lamp
+          show_name: true
+          show_last_updated: true
+          sub_button:
+            - name: Toggle button
+              icon: mdi:power
+              tap_action:
+                action: toggle
+        # - entity: light.master_bedroom_closet_wall_switch
+        #   type: custom:bubble-card
+        #   card_type: button
+        #   button_type: slider
+        #   name: Closet Light
+        #   show_name: true
+        #   show_last_updated: true
+        #   sub_button:
+        #     - name: Toggle button
+        #       icon: mdi:power
+        #       tap_action:
+        #         action: toggle
+        - entity: fan.master_bedroom_fan
+          type: custom:bubble-card
+          card_type: button
+          button_type: switch
+          name: Fan
+          show_name: true
+          show_last_updated: true
+          sub_button:
+            - name: Toggle button
+              icon: mdi:power
+              tap_action:
+                action: toggle
+
+              show_background: true
+              show_name: false
+              
+        - entity: switch.master_bedroom_grow_lamp
+          name: Grow Light
+          icon: mdi:flower
+          type: custom:bubble-card
+          card_type: button
+          button_type: switch
+          show_name: true
+          show_last_updated: true
+          sub_button:
+            - name: Toggle button
+              icon: mdi:power
+              tap_action:
+                action: toggle
+
+              show_background: true
+              show_name: false
+      bottom_layout: rows
+    styles: ""
+    modules:
+      - bubble_badges
+      - sub_button_coloring
+    bubble_badges:
+      badges:
+        - animation: glow
+          name: Temp high
+          target: sub_button
+          color: orange
+          icon: mdi:fire
+          sub_button_index: 1
+          condition:
+            - condition: numeric_state
+              entity_id: sensor.master_bedroom_temperature
+              above: 72
+        - animation: glow
+          name: Temp low
+          target: sub_button
+          color: blue
+          icon: mdi:snowflake-alert
+          sub_button_index: 1
+          condition:
+            - condition: numeric_state
+              entity_id: sensor.master_bedroom_temperature
+              below: 69
+        - color: deep-orange
+          name: occupied
+          target: main_icon
+          icon: mdi:motion-sensor
+          condition:
+            - condition: state
+              entity_id: binary_sensor.master_bedroom_motion_sensor_occupancy
+              state:
+                - "on"
+        - color: red
+          name: Disable Auto
+          target: main_icon
+          icon: mdi:lightbulb-auto-outline
+          condition:
+            - condition: state
+              entity_id: input_boolean.lighting_automation_blocker_master_bedroom
+              state:
+                - "on"
+          animation: fade
+    force_icon: false
+    rows: 2.406
+    sub_button_coloring:
+      button_4:
+        condition:
+          - condition: state
+            entity_id: binary_sensor.master_bedroom_window
+            state:
+              - "on"
+        icon_color: "#9f0000"

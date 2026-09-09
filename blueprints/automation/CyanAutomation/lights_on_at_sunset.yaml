@@ -1,55 +1,74 @@
 blueprint:
+  source_url: https://gist.github.com/CyanAutomation/1b8bafd033f73e3c24e42e8f381ff906
   name: Lights On At Sunset
   description: Turn on the following lights at sunset
   domain: automation
   input:
+    # Create a variable for identifying the light to act upon
     target_light:
       name: Lights
       description: This is the light (or lights) that will be activated at sunset
+      # Use a selector, to pick the light(s)
       selector:
         target:
           entity:
             domain: light
+    # Create a variable for capturing the desired brightness of the activated lights
     target_brightness:
       name: Brightness
       description: Brightness of the light(s) when they're activated
       default: 50
+      # Use a selector, to set the brightness
       selector:
         number:
-          min: 5.0
-          max: 100.0
+          min: 5
+          max: 100
           mode: slider
-          step: 5.0
-          unit_of_measurement: '%'
+          step: 5
+          unit_of_measurement: "%"
+    # Create a variable for capturing the desired offset for shifting the trigger
     elevation_shift:
       name: Elevation Shift
-      description: Using an elevation offset (height of sun relative to the horizon)
-        to shift the sunset trigger, either earlier or later. Positive values bring
-        the automation start time forward, whilst negative values delay the start
-        time. To approximate Golden Hour - set the Elevation Offset to 1.
+      description: Using an elevation offset (height of sun relative to the horizon) to shift the sunset trigger, either earlier or later. Positive values bring the automation start time forward, whilst negative values delay the start time. To approximate Golden Hour - set the Elevation Offset to 1.
       default: 0.0
+      # Use a selector, to set the time shift or offset
       selector:
         number:
           min: -3.0
           max: 3.0
           mode: slider
           step: 1.0
-  source_url: https://gist.github.com/CyanAutomation/1b8bafd033f73e3c24e42e8f381ff906
+
+# Prevent the automation from running concurrently
 mode: single
+
+# Define the variables used in the action section
 variables:
-  target_brightness: !input 'target_brightness'
-  target_light: !input 'target_light'
+  target_brightness: !input target_brightness
+  target_light: !input target_light
+
+# Define the trigger for the automation
 trigger:
+  # Using the state of the sun to act as the trigger
   platform: numeric_state
   entity_id: sun.sun
   attribute: elevation
-  below: !input 'elevation_shift'
+  # Can be a positive or negative number
+  below: !input elevation_shift
+  
+# Add a condition to ensure that this only triggers near sunset, in the evening
 condition:
+  # Check that it is after sunrise
   condition: sun
   after: sunrise
-  after_offset: 01:00:00
+  # Add a buffer to be sure
+  after_offset: "01:00:00"  
+
+# This section will take action on the lights, and turn them on
 action:
-- service: light.turn_on
-  target: !input 'target_light'
-  data_template:
-    brightness_pct: '{{ target_brightness | int }}'
+  # A very simple structure of turning on the selected light(s)
+  - service: light.turn_on
+    target: !input target_light
+    # Set and pass the desired brightness
+    data_template:
+      brightness_pct: "{{ target_brightness | int }}"

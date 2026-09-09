@@ -1,6 +1,6 @@
 blueprint:
   name: State Notifications & Actions
-  description: "# \U0001F4CD State Notifications & Actions\n**Version: 1.6**\n\nState
+  description: "# \U0001F4CD State Notifications & Actions\n**Version: 1.8**\n\nState
     Your Trigger: Turn State Changes Into Notifications and Actions! \U0001F680\n\n**If
     you like my blueprints, and would like to show your support or just say thank
     you?** [Click Here](https://www.paypal.com/donate/?hosted_button_id=WAZS3QSDTPGA8)
@@ -106,6 +106,7 @@ blueprint:
           selector:
             entity:
               multiple: true
+              reorder: false
         start_trigger_numeric_entity:
           name: Numeric State Entities
           description: '**Used in options 8, 9 or 10**. Enter the entities that will
@@ -116,6 +117,7 @@ blueprint:
           selector:
             entity:
               multiple: true
+              reorder: false
         start_above_state:
           name: Numeric State Above Option
           description: '**Used in options 8, or 10**. Set the above value. The numeric
@@ -157,7 +159,8 @@ blueprint:
             minutes: 0
             seconds: 0
           selector:
-            duration: {}
+            duration:
+              enable_second: true
     start_notify_settings:
       name: Start Notify
       icon: mdi:bell-check-outline
@@ -176,8 +179,8 @@ blueprint:
               - label: Disable Start Notify Options
                 value: disable_start_notify_options
               multiple: false
-              custom_value: false
               sort: false
+              custom_value: false
         start_notify_device:
           name: Devices To Notify
           description: 'Select the devices to receive notifications when the entity
@@ -198,7 +201,9 @@ blueprint:
             '
           default: None
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         start_message:
           name: Message
           description: 'Specify the notification message for when the entity changes
@@ -211,7 +216,33 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
+        start_notify_tag:
+          name: Notification Tag
+          description: 'Use a tag to keep your notifications organized. When a new
+            notification with the same tag is sent, it replaces the old one, so you
+            won''t get cluttered with multiple notifications for the same appliance.
+
+
+            You can use the same tag across start and end notifications to ensure
+            only one active notification remains throughout the automation.
+
+
+            If this input is left blank, no tag will be applied and each notification
+            will be treated as separate.
+
+
+            For best results, use short, unique tags for each automation - for example:
+            `water-leak`, `garage-door`, `back-door-motion`, etc.
+
+            '
+          default: []
+          selector:
+            text:
+              multiple: false
+              multiline: false
         start_notify_interruption_level:
           name: Interruption Level - iOS Only
           description: 'On devices running iOS 15 and later, you can configure the
@@ -239,8 +270,8 @@ blueprint:
               - label: Quiet Notifications Without Waking Screen
                 value: passive
               multiple: false
-              custom_value: false
               sort: false
+              custom_value: false
         start_notify_sound:
           name: Notification Sound - iOS Only
           description: 'The Home Assistant app for iOS includes built-in notification
@@ -255,7 +286,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         start_notify_data:
           name: Android Only Options (Optional)
           description: '**High Priority** notifications ensure that you receive important
@@ -274,6 +307,12 @@ blueprint:
             features. If you choose this option, please enter your desired channel
             name below.
 
+
+            **Icon** allows you to replace the default Home Assistant icon with one
+            of your choice. If selected, choose your preferred icon using the **Icon
+            - Android Only** option below, and set the icon colour using **Icon Colour
+            - Android Only**.
+
             '
           default: []
           selector:
@@ -286,8 +325,10 @@ blueprint:
                 value: sticky
               - label: Notification Channel
                 value: channel
-              custom_value: false
+              - label: Icon
+                value: icon
               sort: false
+              custom_value: false
         start_notify_channel:
           name: Notification Channel - Android Only
           description: 'If you have chosen to use a notification channel, simply enter
@@ -304,7 +345,32 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
+        start_notify_icon:
+          name: Icon - Android Only
+          description: 'Select a custom icon to replace the default Home Assistant
+            icon in the notification. This setting applies only if the **Icon** option
+            is selected in **Android Only Options** above.
+
+            '
+          default: mdi:emoticon-happy-outline
+          selector:
+            icon: {}
+        start_notify_icon_colour:
+          name: Icon Colour - Android Only
+          description: 'Choose a colour for your custom notification icon. This setting
+            applies only if the **Icon** option is selected in **Android Only Options**
+            above.
+
+            '
+          default:
+          - 41
+          - 121
+          - 255
+          selector:
+            color_rgb: {}
     start_action_settings:
       name: Start Actions Buttons
       icon: mdi:gesture-tap
@@ -340,8 +406,8 @@ blueprint:
               - label: Enable action button 3
                 value: enable_start_action_button_3
               multiple: true
-              custom_value: false
               sort: false
+              custom_value: false
         start_action_button_1:
           name: Action Button 1
           description: 'Enter the button name to be displayed in the notification.
@@ -351,7 +417,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         start_action_button_2:
           name: Action Button 2
           description: 'Enter the button name to be displayed in the notification.
@@ -361,7 +429,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         start_action_button_3:
           name: Action Button 3
           description: 'Enter the button name to be displayed in the notification.
@@ -371,7 +441,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         start_action_button_stop:
           name: Cancel Action Button
           description: 'Enter the Cancel button name to be displayed in the notification.
@@ -382,7 +454,9 @@ blueprint:
             '
           default: Cancel
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         start_time_delay:
           name: Time Delay
           description: 'Specify the time delay after which the automation will resume
@@ -394,7 +468,8 @@ blueprint:
             minutes: 30
             seconds: 0
           selector:
-            duration: {}
+            duration:
+              enable_second: true
         include_start_action_button_confirmation:
           name: Action Button Confirmation Option (Optional)
           description: 'Select **Enable** if you would like to notify all devices
@@ -418,8 +493,8 @@ blueprint:
               - label: Disable Action Button Confirmation
                 value: disable_start_action_button_confirmation
               multiple: false
-              custom_value: false
               sort: false
+              custom_value: false
         start_action_button_confirmation_title:
           name: Action Button Confirmation Title
           description: 'Specify the notification title when an action button is pressed
@@ -428,7 +503,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         start_action_button_confirmation_message:
           name: Action Button 1 Confirmation Message
           description: 'Specify the notification message when action button 1 is pressed.
@@ -436,7 +513,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         start_action_button_2_confirmation_message:
           name: Action Button 2 Confirmation Message
           description: 'Specify the notification message when action button 2 is pressed.
@@ -444,7 +523,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         start_action_button_3_confirmation_message:
           name: Action Button 3 Confirmation Message
           description: 'Specify the notification message when action button 3 is pressed.
@@ -452,7 +533,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         start_action_button_stop_confirmation_message:
           name: Action Button Cancel Confirmation Message
           description: 'Specify the notification message when the cancel button is
@@ -461,7 +544,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         start_time_delay_confirmation_message:
           name: Time Delay Confirmation Message
           description: 'Specify the notification message when the time delay has passed.
@@ -469,7 +554,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
     start_auto_action_settings:
       name: Start Actions
       icon: mdi:code-tags
@@ -499,8 +586,8 @@ blueprint:
               - label: Enable start auto action 3
                 value: enable_start_action_3
               multiple: true
-              custom_value: false
               sort: false
+              custom_value: false
         start_action_1:
           name: Action 1
           description: 'Enter the actions you want to run when the entity changes
@@ -621,6 +708,7 @@ blueprint:
           selector:
             entity:
               multiple: true
+              reorder: false
         end_trigger_numeric_entity:
           name: Numeric State Entities
           description: '**Used in options 8, 9 or 10**. Enter the entities that will
@@ -631,6 +719,7 @@ blueprint:
           selector:
             entity:
               multiple: true
+              reorder: false
         end_above_state:
           name: Numeric State Above Option
           description: '**Used in options 8, or 10**. Set the above value. The numeric
@@ -672,7 +761,8 @@ blueprint:
             minutes: 0
             seconds: 0
           selector:
-            duration: {}
+            duration:
+              enable_second: true
     end_notify_settings:
       name: End Notify
       icon: mdi:bell-ring-outline
@@ -691,8 +781,8 @@ blueprint:
               - label: Disable End Notify Options
                 value: disable_end_notify_options
               multiple: false
-              custom_value: false
               sort: false
+              custom_value: false
         end_notify_device:
           name: Devices To Notify
           description: 'Select the devices to receive notifications when the entity
@@ -713,7 +803,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         end_message:
           name: Message
           description: 'Specify the notification message for when the entity changes
@@ -726,7 +818,33 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
+        end_notify_tag:
+          name: Notification Tag
+          description: 'Use a tag to keep your notifications organized. When a new
+            notification with the same tag is sent, it replaces the old one, so you
+            won''t get cluttered with multiple notifications for the same appliance.
+
+
+            You can use the same tag across start and end notifications to ensure
+            only one active notification remains throughout the automation.
+
+
+            If this input is left blank, no tag will be applied and each notification
+            will be treated as separate.
+
+
+            For best results, use short, unique tags for each automation - for example:
+            `water-leak`, `garage-door`, `back-door-motion`, etc.
+
+            '
+          default: []
+          selector:
+            text:
+              multiple: false
+              multiline: false
         end_notify_interruption_level:
           name: Interruption Level - iOS Only
           description: 'On devices running iOS 15 and later, you can configure the
@@ -754,8 +872,8 @@ blueprint:
               - label: Quiet Notifications Without Waking Screen
                 value: passive
               multiple: false
-              custom_value: false
               sort: false
+              custom_value: false
         end_notify_sound:
           name: Notification Sound - iOS Only
           description: 'The Home Assistant app for iOS includes built-in notification
@@ -770,7 +888,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         end_notify_data:
           name: Android Only Options (Optional)
           description: '**High Priority** notifications ensure that you receive important
@@ -789,6 +909,12 @@ blueprint:
             features. If you choose this option, please enter your desired channel
             name below.
 
+
+            **Icon** allows you to replace the default Home Assistant icon with one
+            of your choice. If selected, choose your preferred icon using the **Icon
+            - Android Only** option below, and set the icon colour using **Icon Colour
+            - Android Only**.
+
             '
           default: []
           selector:
@@ -801,8 +927,10 @@ blueprint:
                 value: sticky
               - label: Notification Channel
                 value: channel
-              custom_value: false
+              - label: Icon
+                value: icon
               sort: false
+              custom_value: false
         end_notify_channel:
           name: Notification Channel - Android Only
           description: 'If you have chosen to use a notification channel, simply enter
@@ -819,7 +947,32 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
+        end_notify_icon:
+          name: Icon - Android Only
+          description: 'Select a custom icon to replace the default Home Assistant
+            icon in the notification. This setting applies only if the **Icon** option
+            is selected in **Android Only Options** above.
+
+            '
+          default: mdi:emoticon-happy-outline
+          selector:
+            icon: {}
+        end_notify_icon_colour:
+          name: Icon Colour - Android Only
+          description: 'Choose a colour for your custom notification icon. This setting
+            applies only if the **Icon** option is selected in **Android Only Options**
+            above.
+
+            '
+          default:
+          - 0
+          - 200
+          - 83
+          selector:
+            color_rgb: {}
     end_action_settings:
       name: End Actions Buttons
       icon: mdi:gesture-double-tap
@@ -855,8 +1008,8 @@ blueprint:
               - label: Enable action button 3
                 value: enable_end_action_button_3
               multiple: true
-              custom_value: false
               sort: false
+              custom_value: false
         end_action_button_1:
           name: Action Button 1
           description: 'Enter the button name to be displayed in the notification.
@@ -866,7 +1019,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         end_action_button_2:
           name: Action Button 2
           description: 'Enter the button name to be displayed in the notification.
@@ -876,7 +1031,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         end_action_button_3:
           name: Action Button 3
           description: 'Enter the button name to be displayed in the notification.
@@ -886,7 +1043,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         end_action_button_stop:
           name: Cancel Action Button
           description: 'Enter the Cancel button name to be displayed in the notification.
@@ -897,7 +1056,9 @@ blueprint:
             '
           default: Cancel
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         end_time_delay:
           name: Time Delay
           description: 'Specify the time delay after which the automation will resume
@@ -909,7 +1070,8 @@ blueprint:
             minutes: 30
             seconds: 0
           selector:
-            duration: {}
+            duration:
+              enable_second: true
         include_end_action_button_confirmation:
           name: Action Button Confirmation Option (Optional)
           description: 'Select **Enable** if you would like to notify all devices
@@ -933,8 +1095,8 @@ blueprint:
               - label: Disable Action Button Confirmation
                 value: disable_end_action_button_confirmation
               multiple: false
-              custom_value: false
               sort: false
+              custom_value: false
         end_action_button_confirmation_title:
           name: Action Button Confirmation Title
           description: 'Specify the notification title when an action button is pressed
@@ -943,7 +1105,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         end_action_button_confirmation_message:
           name: Action Button 1 Confirmation Message
           description: 'Specify the notification message when action button 1 is pressed.
@@ -951,7 +1115,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         end_action_button_2_confirmation_message:
           name: Action Button 2 Confirmation Message
           description: 'Specify the notification message when action button 2 is pressed.
@@ -959,7 +1125,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         end_action_button_3_confirmation_message:
           name: Action Button 3 Confirmation Message
           description: 'Specify the notification message when action button 3 is pressed.
@@ -967,7 +1135,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         end_action_button_stop_confirmation_message:
           name: Action Button Cancel Confirmation Message
           description: 'Specify the notification message when the cancel button is
@@ -976,7 +1146,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
         end_time_delay_confirmation_message:
           name: Time Delay Confirmation Message
           description: 'Specify the notification message when the time delay has passed.
@@ -984,7 +1156,9 @@ blueprint:
             '
           default: []
           selector:
-            text: {}
+            text:
+              multiple: false
+              multiline: false
     end_auto_action_settings:
       name: End Actions
       icon: mdi:code-tags
@@ -1014,8 +1188,8 @@ blueprint:
               - label: Enable auto end action 3 option
                 value: enable_end_action_3
               multiple: true
-              custom_value: false
               sort: false
+              custom_value: false
         end_action_1:
           name: Action 1
           description: 'Enter the actions you want to run when the entity changes
@@ -1070,8 +1244,11 @@ blueprint:
           selector:
             condition: {}
   source_url: https://gist.github.com/Blackshome/06f6f28e76299267b813dac48608f549
-mode: restart
+mode: parallel
+max: 10
 max_exceeded: silent
+trace:
+  stored_traces: 10
 variables:
   start_trigger_state: !input start_trigger_state
   start_trigger_state_entity: !input start_trigger_state_entity
@@ -1083,10 +1260,13 @@ variables:
   start_notify_device: !input start_notify_device
   start_title: !input start_title
   start_message: !input start_message
+  start_notify_tag: !input start_notify_tag
   start_notify_interruption_level: !input start_notify_interruption_level
   start_notify_sound: !input start_notify_sound
   start_notify_data: !input start_notify_data
   start_notify_channel: !input start_notify_channel
+  start_notify_icon: !input start_notify_icon
+  start_notify_icon_colour: !input start_notify_icon_colour
   include_start_action_buttons: !input include_start_action_buttons
   start_action_button_1: !input start_action_button_1
   start_action_button_2: !input start_action_button_2
@@ -1114,10 +1294,13 @@ variables:
   end_notify_device: !input end_notify_device
   end_title: !input end_title
   end_message: !input end_message
+  end_notify_tag: !input end_notify_tag
   end_notify_interruption_level: !input end_notify_interruption_level
   end_notify_sound: !input end_notify_sound
   end_notify_data: !input end_notify_data
   end_notify_channel: !input end_notify_channel
+  end_notify_icon: !input end_notify_icon
+  end_notify_icon_colour: !input end_notify_icon_colour
   include_end_action_buttons: !input include_end_action_buttons
   end_action_button_1: !input end_action_button_1
   end_action_button_2: !input end_action_button_2
@@ -1264,7 +1447,14 @@ action:
               message.data = dict(message.data, **{ 'channel': start_notify_channel
               }) %}\n{% endif %} {% if 'sticky' in start_notify_data %}\n  {% set
               message.data = dict(message.data, **{ 'sticky': \"true\" }) %}\n{% endif
-              %} {{ message.data }}"
+              %} {% if 'icon' in start_notify_data %}\n  {% set message.data = dict(message.data,
+              **{ 'notification_icon': start_notify_icon }) %}\n  {% if start_notify_icon_colour
+              | length == 3 %}\n    {% set icon_colour = '#%02x%02x%02x' | format(start_notify_icon_colour[0],
+              start_notify_icon_colour[1], start_notify_icon_colour[2]) %}\n    {%
+              set message.data = dict(message.data, **{ 'color': icon_colour }) %}\n
+              \ {% endif %}\n{% endif %} {% if start_notify_tag != [] %}\n  {% set
+              message.data = dict(message.data, **{ 'tag': start_notify_tag }) %}\n{%
+              endif %} {{ message.data }}"
             start_message_data_action_button: "{% set message = namespace(data={})
               %} {% set push = namespace(data={}) %} {% set actions = [] %} {% if
               start_notify_interruption_level in ['active', 'critical', 'time-sensitive',
@@ -1278,7 +1468,14 @@ action:
               \ {% set message.data = dict(message.data, **{ 'channel': start_notify_channel
               }) %}\n{% endif %} {% if 'sticky' in start_notify_data %}\n  {% set
               message.data = dict(message.data, **{ 'sticky': \"true\" }) %}\n{% endif
-              %} {% if 'enable_start_action_button_1' in include_start_action_buttons
+              %} {% if 'icon' in start_notify_data %}\n  {% set message.data = dict(message.data,
+              **{ 'notification_icon': start_notify_icon }) %}\n  {% if start_notify_icon_colour
+              | length == 3 %}\n    {% set icon_colour = '#%02x%02x%02x' | format(start_notify_icon_colour[0],
+              start_notify_icon_colour[1], start_notify_icon_colour[2]) %}\n    {%
+              set message.data = dict(message.data, **{ 'color': icon_colour }) %}\n
+              \ {% endif %}\n{% endif %} {% if start_notify_tag != [] %}\n  {% set
+              message.data = dict(message.data, **{ 'tag': start_notify_tag }) %}\n{%
+              endif %} {% if 'enable_start_action_button_1' in include_start_action_buttons
               %}\n  {% set actions = actions + [{ 'action': action_button_1, 'title':
               start_action_button_1 }] %}\n{% endif %} {% if 'enable_start_action_button_2'
               in include_start_action_buttons %}\n  {% set actions = actions + [{
@@ -1516,7 +1713,14 @@ action:
                 \ {% set message.data = dict(message.data, **{ 'channel': end_notify_channel
                 }) %}\n{% endif %} {% if 'sticky' in end_notify_data %}\n  {% set
                 message.data = dict(message.data, **{ 'sticky': \"true\" }) %}\n{%
-                endif %} {{ message.data }}"
+                endif %} {% if 'icon' in end_notify_data %}\n  {% set message.data
+                = dict(message.data, **{ 'notification_icon': end_notify_icon }) %}\n
+                \ {% if end_notify_icon_colour | length == 3 %}\n    {% set icon_colour
+                = '#%02x%02x%02x' | format(end_notify_icon_colour[0], end_notify_icon_colour[1],
+                end_notify_icon_colour[2]) %}\n    {% set message.data = dict(message.data,
+                **{ 'color': icon_colour }) %}\n  {% endif %}\n{% endif %} {% if end_notify_tag
+                != [] %}\n  {% set message.data = dict(message.data, **{ 'tag': end_notify_tag
+                }) %}\n{% endif %} {{ message.data }}"
               end_message_data_action_button: "{% set message = namespace(data={})
                 %} {% set push = namespace(data={}) %} {% set actions = [] %} {% if
                 end_notify_interruption_level in ['active', 'critical', 'time-sensitive',
@@ -1530,21 +1734,28 @@ action:
                 end_notify_data %}\n  {% set message.data = dict(message.data, **{
                 'channel': end_notify_channel }) %}\n{% endif %} {% if 'sticky' in
                 end_notify_data %}\n  {% set message.data = dict(message.data, **{
-                'sticky': \"true\" }) %}\n{% endif %} {% if 'enable_end_action_button_1'
+                'sticky': \"true\" }) %}\n{% endif %} {% if 'icon' in end_notify_data
+                %}\n  {% set message.data = dict(message.data, **{ 'notification_icon':
+                end_notify_icon }) %}\n  {% if end_notify_icon_colour | length ==
+                3 %}\n    {% set icon_colour = '#%02x%02x%02x' | format(end_notify_icon_colour[0],
+                end_notify_icon_colour[1], end_notify_icon_colour[2]) %}\n    {% set
+                message.data = dict(message.data, **{ 'color': icon_colour }) %}\n
+                \ {% endif %}\n{% endif %} {% if end_notify_tag != [] %}\n  {% set
+                message.data = dict(message.data, **{ 'tag': end_notify_tag }) %}\n{%
+                endif %} {% if 'enable_end_action_button_1' in include_end_action_buttons
+                %}\n  {% set actions = actions + [{ 'action': action_button_1, 'title':
+                end_action_button_1 }] %}\n{% endif %} {% if 'enable_end_action_button_2'
                 in include_end_action_buttons %}\n  {% set actions = actions + [{
-                'action': action_button_1, 'title': end_action_button_1 }] %}\n{%
-                endif %} {% if 'enable_end_action_button_2' in include_end_action_buttons
-                %}\n  {% set actions = actions + [{ 'action': action_button_2, 'title':
-                end_action_button_2 }] %}\n{% endif %} {% if 'enable_end_action_button_3'
-                in include_end_action_buttons %}\n  {% set actions = actions + [{
-                'action': action_button_3, 'title': end_action_button_3 }] %}\n{%
-                endif %} {% if ('enable_end_action_button_1' in include_end_action_buttons)
-                or \n      ('enable_end_action_button_2' in include_end_action_buttons)
-                or \n      ('enable_end_action_button_3' in include_end_action_buttons)
-                %}\n  {% set actions = actions + [{ 'action': action_button_stop,
-                'title': end_action_button_stop }] %}\n{% endif %} {% if actions |
-                length > 0 %}\n  {% set message.data = dict(message.data, **{ 'actions':
-                actions }) %}\n{% endif %} {{ message.data }}"
+                'action': action_button_2, 'title': end_action_button_2 }] %}\n{%
+                endif %} {% if 'enable_end_action_button_3' in include_end_action_buttons
+                %}\n  {% set actions = actions + [{ 'action': action_button_3, 'title':
+                end_action_button_3 }] %}\n{% endif %} {% if ('enable_end_action_button_1'
+                in include_end_action_buttons) or \n      ('enable_end_action_button_2'
+                in include_end_action_buttons) or \n      ('enable_end_action_button_3'
+                in include_end_action_buttons) %}\n  {% set actions = actions + [{
+                'action': action_button_stop, 'title': end_action_button_stop }] %}\n{%
+                endif %} {% if actions | length > 0 %}\n  {% set message.data = dict(message.data,
+                **{ 'actions': actions }) %}\n{% endif %} {{ message.data }}"
           - alias: Send a notification to each device
             repeat:
               for_each: !input end_notify_device

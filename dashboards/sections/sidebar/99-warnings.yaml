@@ -1,5 +1,23 @@
 type: vertical-stack
 cards:
+  - type: markdown
+    content: |
+      <h4><ha-alert alert-type="warning">
+      Attic is at risk of mold growth </ha-alert></h3>
+    text_only: true
+    visibility:
+      - condition: numeric_state
+        entity: sensor.attic_mold_risk_index_risk_index
+        above: 0
+  - type: markdown
+    content: |
+      <h4><ha-alert alert-type="warning">
+      The crawl space is at risk of mold growth </ha-alert></h3>
+    text_only: true
+    visibility:
+      - condition: numeric_state
+        entity: sensor.crawl_space_mold_risk_risk_index
+        above: 0
   - type: custom:auto-entities
     show_empty: false
     card:

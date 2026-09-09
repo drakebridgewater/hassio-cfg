@@ -1,0 +1,129 @@
+toggle_switch:
+    name: "Toggle switch"
+    version: "1.0"
+    creator: "TimGw"
+    link: "https://github.com/Clooos/Bubble-Card/discussions/XXXX"
+
+    supported:
+        - button
+
+    description: |
+        Add a default Home Assistant toggle to your Bubble button switch card 
+        <br><br>
+        <code-block><pre>
+        toggle_switch: 
+            # Your configuration here
+        </pre></code-block>
+
+    code: |
+        .bubble-background {
+          background-color: var(--bubble-button-background-color, var(--bubble-main-background-color, var(--secondary-background-color))) !important;
+        }
+        .is-on .bubble-background,
+        .is-light .bubble-background,
+        .is-off .bubble-background {
+          background-color: inherit !important;
+        }
+        
+        .bubble-wrapper { position: relative !important; }
+        
+        ${(() => {
+          try {
+            let entityId =
+              this.config?.entity ||
+              card.querySelector('.bubble-background')?.dataset?.entity ||
+              null;
+            if (!entityId) return '';
+        
+            const stateObj = hass.states[entityId];
+            if (!stateObj) return '';
+        
+            const host = card.querySelector('.bubble-wrapper');
+            if (!host) return '';
+        
+            let slot = host.querySelector('.real-toggle-slot');
+            if (!slot) {
+              slot = document.createElement('div');
+              slot.className = 'real-toggle-slot';
+              slot.style.position = 'absolute';
+              slot.style.top = '50%';
+              slot.style.right = '16px';
+              slot.style.transform = 'translateY(-50%)';
+              slot.style.transformOrigin = 'center right';
+              slot.style.pointerEvents = 'auto';
+              slot.style.display = 'flex';
+              slot.style.alignItems = 'center';
+              slot.style.justifyContent = 'center';
+              const stop = (e) => e.stopPropagation();
+              slot.addEventListener('pointerdown', stop);
+              slot.addEventListener('pointerup', stop);
+              slot.addEventListener('click', stop);
+              slot.addEventListener('touchstart', stop, { passive: true });
+              host.appendChild(slot);
+            }
+        
+            const hasEntityToggle = !!customElements.get('ha-entity-toggle');
+            let toggleElement = slot.querySelector(hasEntityToggle ? 'ha-entity-toggle' : 'ha-switch');
+            if (!toggleElement) {
+              toggleElement = document.createElement(hasEntityToggle ? 'ha-entity-toggle' : 'ha-switch');
+              toggleElement.className = 'real-entity-toggle';
+              toggleElement.style.pointerEvents = 'auto';
+              slot.appendChild(toggleElement);
+            }
+        
+            if (hasEntityToggle) {
+              toggleElement.hass = hass;
+              toggleElement.stateObj = stateObj;
+              toggleElement.setAttribute('aria-label', entityId);
+            } else {
+              const isOn = stateObj.state === 'on';
+              const isDisabled = stateObj.state === 'unavailable' || stateObj.state === 'unknown';
+              toggleElement.checked = isOn;
+              toggleElement.disabled = isDisabled;
+              toggleElement.setAttribute('aria-label', entityId);
+              if (!toggleElement.__changeBound) {
+                toggleElement.addEventListener('change', (ev) => {
+                  const turningOn = ev.currentTarget.checked;
+                  const domain = (entityId.split('.')[0] || 'homeassistant');
+                  const service = turningOn ? 'turn_on' : 'turn_off';
+                  if (hass.services[domain]?.[service]) {
+                    hass.callService(domain, service, { entity_id: entityId });
+                  } else {
+                    hass.callService('homeassistant', turningOn ? 'turn_on' : 'turn_off', { entity_id: entityId });
+                  }
+                });
+                toggleElement.__changeBound = true;
+              }
+            }
+        
+            function placeSubButtonsLeftOfToggle() {
+              const sub = card.querySelector('.bubble-sub-button-container');
+              if (!sub) return;
+              const toggleWidth = slot.getBoundingClientRect().width || 48;
+              const gap = 20;
+              sub.style.right = (toggleWidth + gap) + 'px';
+            }
+        
+            placeSubButtonsLeftOfToggle();
+        
+            if (!slot.__resizeObserver) {
+              if (window.ResizeObserver) {
+                slot.__resizeObserver = new ResizeObserver(placeSubButtonsLeftOfToggle);
+                slot.__resizeObserver.observe(slot);
+              } else {
+                window.addEventListener('resize', placeSubButtonsLeftOfToggle, { passive: true });
+              }
+            }
+        
+            if (!card.__subButtonsObserver) {
+              const mo = new MutationObserver(placeSubButtonsLeftOfToggle);
+              mo.observe(card, { childList: true, subtree: true });
+              card.__subButtonsObserver = mo;
+            }
+        
+            slot.style.display = 'flex';
+          } catch (error) {
+            console.error('bubble toggle module error:', error);
+          }
+          return '';
+        })()}

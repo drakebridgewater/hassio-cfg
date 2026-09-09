@@ -1,0 +1,411 @@
+blueprint:
+  name: Advanced Open Concept Living Space Lighting Management
+  description: Manages lights with presence detection, illuminance sensing, and special handling for TV/media areas
+  domain: automation
+  input:
+    motion_sensors:
+      name: Motion Sensors
+      description: Select motion sensors for the main area
+      selector:
+        entity:
+          domain: binary_sensor
+          multiple: true
+          filter:
+            device_class: motion
+    presence_couch_sensor:
+      name: Couch/Seating Presence Sensor
+      description: The sensor that detects if someone is sitting on the couch/seating area
+      selector:
+        entity:
+          domain: binary_sensor
+          filter:
+            device_class: occupancy
+    illuminance_sensor:
+      name: Illuminance Sensor
+      description: Sensor that measures current light levels
+      selector:
+        entity:
+          domain: sensor
+          filter:
+            device_class: illuminance
+    illuminance_cutoff:
+      name: Illuminance Cutoff Value
+      description: The illuminance threshold value (lux)
+      selector:
+        number:
+          min: 1
+          max: 1000
+          step: 1
+          unit_of_measurement: lux
+          mode: slider
+      default: 10
+    main_lights:
+      name: Main Living Space Lights
+      description: Select primary lights for the open concept area
+      selector:
+        entity:
+          domain: light
+          multiple: true
+    tv_lights:
+      name: TV/Media Area Lights
+      description: Select lights specifically for the TV/media viewing area
+      selector:
+        entity:
+          domain: light
+          multiple: true
+    accent_lights:
+      name: Accent/Decorative Lights
+      description: Select accent lights that need dimming when TV/media is on
+      selector:
+        entity:
+          domain: light
+          multiple: true
+    couch_buffer_time:
+      name: Seating Buffer Time
+      description: Time in seconds to wait after no presence on seating before changing lights
+      selector:
+        number:
+          min: 5
+          max: 300
+          step: 5
+          unit_of_measurement: seconds
+          mode: slider
+      default: 60
+    blocker_entity:
+      name: Motion Blocker Boolean
+      description: Optional entity to block motion activation
+      selector:
+        entity:
+          domain: input_boolean
+          multiple: false
+      default: null
+    turn_off_blocker_entity:
+      name: Turn Off Blocker Entity
+      description: Optional entity to block turning lights off
+      selector:
+        entity:
+          domain: input_boolean
+          multiple: false
+      default: null
+    no_motion_wait:
+      name: No Motion Wait
+      description: Minutes to wait after no motion before turning off lights
+      selector:
+        number:
+          min: 1
+          max: 30
+          step: 1
+          unit_of_measurement: minutes
+          mode: slider
+    additional_turnoff_action:
+      name: Additional Turn Off Action
+      description: Action to execute when no motion is detected
+      selector:
+        action:
+      default: []
+    additional_turnoff_wait:
+      name: Additional Turn Off Wait
+      description: Minutes to wait before turning off additional entities (can be different from no_motion_wait)
+      selector:
+        number:
+          min: 1
+          max: 60
+          step: 1
+          unit_of_measurement: minutes
+          mode: slider
+      default: 15
+    media_players:
+      name: Media Players
+      description: Media players to monitor (Apple TV, TV, receivers, etc.)
+      selector:
+        entity:
+          domain: media_player
+          multiple: true
+    time_restrictions_enabled:
+      name: Enable Time Restrictions
+      description: Enable time-based restrictions for the automation
+      selector:
+        boolean:
+      default: false
+    start_time:
+      name: Start Time
+      description: Time when automation should start working (optional)
+      selector:
+        time:
+      default: "00:00:00"
+    end_time:
+      name: End Time
+      description: Time when automation should stop working (optional)
+      selector:
+        time:
+      default: "23:59:59"
+
+mode: restart
+max_exceeded: silent
+
+variables:
+  blocker_entity: !input blocker_entity
+  turn_off_blocker_entity: !input turn_off_blocker_entity
+  time_restrictions_enabled: !input time_restrictions_enabled
+  no_motion_wait: !input no_motion_wait
+  additional_turnoff_wait: !input additional_turnoff_wait
+  additional_turnoff_action: !input additional_turnoff_action
+  media_players: !input media_players
+
+trigger:
+  # Motion triggers
+  - platform: state
+    entity_id: !input motion_sensors
+    to: "on"
+  # Presence triggers
+  - platform: state
+    entity_id: !input presence_couch_sensor
+    to: "on"
+  - platform: state
+    entity_id: !input presence_couch_sensor
+    to: "off"
+    for:
+      seconds: !input couch_buffer_time
+  # Media player triggers
+  - platform: state
+    entity_id: !input media_players
+    to: "off"
+    id: "MEDIA_OFF"
+  - platform: state
+    entity_id: !input media_players
+    to: "on"
+    id: "MEDIA_ON"
+  - platform: state
+    entity_id: !input media_players
+    to: "playing"
+    id: "MEDIA_ON"
+  - platform: state
+    entity_id: !input media_players
+    to: "paused"
+    id: "MEDIA_OFF"
+  - platform: state
+    entity_id: !input media_players
+    to: "idle"
+    id: "MEDIA_OFF"
+  - platform: state
+    entity_id: !input media_players
+    to: "standby"
+    id: "MEDIA_OFF"
+
+condition:
+  # Check if illuminance is below threshold or lights are already on
+  - condition: or
+    conditions:
+      - condition: numeric_state
+        entity_id: !input illuminance_sensor
+        below: !input illuminance_cutoff
+      - condition: state
+        entity_id: !input main_lights
+        state: "on"
+  # Check if the blocker entity is off (if defined)
+  - condition: or
+    conditions:
+      - condition: template
+        value_template: "{{ blocker_entity == null }}"
+      - condition: state
+        entity_id: !input blocker_entity
+        state: "off"
+  # Time restrictions (if enabled)
+  - condition: or
+    conditions:
+      - condition: template
+        value_template: "{{ not time_restrictions_enabled }}"
+      - condition: time
+        after: !input start_time
+        before: !input end_time
+
+action:
+  - choose:
+      # Media was turned on
+      - conditions:
+          - condition: trigger
+            id: "MEDIA_ON"
+        sequence:
+          # Store current states before media mode
+          - service: scene.create
+            data:
+              scene_id: previous_accent_lights
+              snapshot_entities: !input accent_lights
+          # Turn on TV area lights
+          - service: light.turn_on
+            target:
+              entity_id: !input tv_lights
+          # Dim accent lights if they're on
+          - if:
+              - condition: state
+                entity_id: !input accent_lights
+                state: "on"
+            then:
+              - service: light.turn_on
+                target:
+                  entity_id: !input accent_lights
+                data:
+                  brightness_step_pct: -50
+                  transition: 2
+
+      # Media was turned off
+      - conditions:
+          - condition: trigger
+            id: "MEDIA_OFF"
+          - condition: template
+            value_template: >
+              {% set is_active = false %}
+              {% for player in media_players %}
+                {% if is_state(player, 'on') or is_state(player, 'playing') %}
+                  {% set is_active = true %}
+                {% endif %}
+              {% endfor %}
+              {{ not is_active }}
+        sequence:
+          - service: light.turn_off
+            target:
+              entity_id: !input tv_lights
+            data:
+              transition: 2
+          # Restore accent lights to previous state
+          - service: scene.turn_on
+            data:
+              entity_id: scene.previous_accent_lights
+              transition: 2
+
+      # Someone sat on the couch
+      - conditions:
+          - condition: state
+            entity_id: !input presence_couch_sensor
+            state: "on"
+        sequence:
+          # Store current states before couch mode
+          - service: scene.create
+            data:
+              scene_id: previous_accent_lights
+              snapshot_entities: !input accent_lights
+          # Turn on TV lights dimmed for viewing
+          - service: light.turn_on
+            target:
+              entity_id: !input tv_lights
+            data:
+              brightness_pct: 30
+              transition: 2
+          # Dim accent lights
+          - service: light.turn_on
+            target:
+              entity_id: !input accent_lights
+            data:
+              brightness_pct: 20
+              transition: 2
+
+      # Motion detected (default case)
+      - conditions:
+          - condition: state
+            entity_id: !input motion_sensors
+            state: "on"
+        sequence:
+          - service: light.turn_on
+            target:
+              entity_id: !input main_lights
+
+      # Left the couch after sitting (with buffer time already applied in trigger)
+      - conditions:
+          - condition: state
+            entity_id: !input presence_couch_sensor
+            state: "off"
+          - condition: template
+            value_template: >
+              {% set is_active = false %}
+              {% for player in media_players %}
+                {% if is_state(player, 'on') or is_state(player, 'playing') %}
+                  {% set is_active = true %}
+                {% endif %}
+              {% endfor %}
+              {{ not is_active }}
+        sequence:
+          # Restore previous light states
+          - service: scene.turn_on
+            data:
+              entity_id: scene.previous_accent_lights
+              transition: 2
+          - service: light.turn_off
+            target:
+              entity_id: !input tv_lights
+            data:
+              transition: 2
+
+  # No motion handling for main lights
+  - if:
+      - condition: template
+        value_template: "{{ no_motion_wait != null }}"
+    then:
+      - wait_for_trigger:
+          - platform: state
+            entity_id: !input motion_sensors
+            to: "off"
+            for:
+              seconds: 30
+      - delay:
+          minutes: "{{ no_motion_wait | int }}"
+      - if:
+          - condition: or
+            conditions:
+              - condition: template
+                value_template: "{{ turn_off_blocker_entity == null }}"
+              - condition: state
+                entity_id: !input turn_off_blocker_entity
+                state: "off"
+          - condition: state
+            entity_id: !input presence_couch_sensor
+            state: "off"
+          - condition: state
+            entity_id: !input motion_sensors
+            state: "off"
+        then:
+          - service: light.turn_off
+            target:
+              entity_id: !input main_lights
+            data:
+              transition: 2
+
+  # Additional turn off action handling
+  - if:
+      - condition: template
+        value_template: "{{ additional_turnoff_action != null and additional_turnoff_action|length > 0 }}"
+    then:
+      - wait_for_trigger:
+          - platform: state
+            entity_id: !input motion_sensors
+            to: "off"
+            for:
+              seconds: 30
+      - delay:
+          minutes: "{{ additional_turnoff_wait | int }}"
+      - if:
+          - condition: or
+            conditions:
+              - condition: template
+                value_template: "{{ turn_off_blocker_entity == null }}"
+              - condition: state
+                entity_id: !input turn_off_blocker_entity
+                state: "off"
+          - condition: state
+            entity_id: !input presence_couch_sensor
+            state: "off"
+          - condition: state
+            entity_id: !input motion_sensors
+            state: "off"
+          - condition: template
+            value_template: >
+              {% set is_active = false %}
+              {% for player in media_players %}
+                {% if is_state(player, 'on') or is_state(player, 'playing') %}
+                  {% set is_active = true %}
+                {% endif %}
+              {% endfor %}
+              {{ not is_active }}
+        then:
+          # Execute the additional turn off action
+          - choose: []
+            default: !input additional_turnoff_action

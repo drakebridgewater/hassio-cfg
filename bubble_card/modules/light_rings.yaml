@@ -1,0 +1,247 @@
+light_rings:
+  name: Light Rings
+  version: v1.1.0
+  creator: Airblader
+  supported:
+    - button
+  description: |
+    <p>Adds a colored ring around the card's icon representing the light colors.</p>
+    <ol>
+      <li>Automatically expands the colors of all lights in light groups.</li>
+      <li>Include brightness or change the ring width (outside and inside the icon).</li>
+      <li>Deduplicate colors based on configurable color similarity.</li>
+      <li>And more!</li>
+    </ol>
+    <p>This module can be easily configured through the UI, and should work fine with defaults for most use cases.</p>
+  editor:
+    - name: entity
+      label: Entity (defaults to card entity)
+      required: false
+      selector:
+        entity:
+          filter:
+            domain: light
+            multiple: false
+    - name: ignore_labels
+      label: Ignore entities
+      required: false
+      selector:
+        label:
+          multiple: true
+    - name: colors
+      label: Color settings
+      type: expandable
+      expanded: false
+      schema:
+        - name: show_brightness
+          label: Show brightness
+          default: false
+          required: false
+          selector:
+            boolean: {}
+        - name: static
+          type: grid
+          schema:
+            - name: use
+              label: Static color
+              required: false
+              default: false
+              selector:
+                boolean: {}
+            - name: color
+              required: false
+              selector:
+                color_rgb: {}
+        - name: min_unique
+          label: Minimum number of unique colors
+          default: 1
+          required: false
+          selector:
+            number:
+              min: 0
+              step: 1
+              mode: box
+        - name: threshold
+          label: Threshold for unique colors
+          default: 0
+          required: false
+          selector:
+            number:
+              min: 0
+              step: 1
+              mode: box
+    - name: appearance
+      label: Appearance
+      type: expandable
+      expanded: false
+      schema:
+        - name: width
+          type: grid
+          schema:
+            - name: outer_width
+              label: Outer width (px)
+              required: false
+              default: 1
+              selector:
+                number:
+                  min: 0
+                  step: 1
+                  mode: box
+            - name: inner_width
+              label: Inner width (px)
+              required: false
+              default: 1
+              selector:
+                number:
+                  min: 0
+                  step: 1
+                  mode: box
+        - name: animate
+          label: Animate
+          required: false
+          default: false
+          selector:
+            boolean: {}
+  code: |-
+    ${(() => {
+      const config = this.config?.light_rings;
+
+      const entityId = config?.entity ?? entity;
+      if (!entityId) return;
+
+      const ignoreLabels = config?.ignore_labels ?? [];
+      const outerWidth = config?.appearance?.width?.outer_width ?? 1;
+      const innerWidth = config?.appearance?.width?.inner_width ?? 1;
+      const animate = config?.appearance?.animate ?? false;
+      const minColors = config?.colors?.min_unique ?? (config?.colors?.min_colors ?? 1);
+      const colorThreshold = config?.colors?.threshold ?? (config?.colors?.color_threshold ?? 0);
+      const showBrightness = config?.colors?.show_brightness ?? false;
+      const staticColor = (() => {
+        if (!config?.colors?.static?.use) {
+          return;
+        }
+
+        const color = config?.colors?.static?.color ?? [0, 0, 0];
+        return [...color, 255];
+      })();
+
+      function getColors(id) {
+        const state = hass.states[id];
+        if (!state) return [];
+
+        const labels = hass.entities[id]?.labels ?? [];
+        if (labels.some(l => [...ignoreLabels, "light_rings_ignore"].includes(l))) {
+          return [];
+        }
+
+        const members = state.attributes.entity_id;
+        if (Array.isArray(members) && !staticColor) {
+          return members.flatMap(getColors);
+        }
+
+        if (state.state === 'on') {
+          if (staticColor) {
+            return [staticColor];
+          } else {
+            const rgb = state.attributes.rgb_color ?? [255, 255, 255];
+            const brightness = state.attributes.brightness ?? 255;
+            return [[...rgb, brightness]];
+          }
+        }
+
+        return [];
+      }
+
+      function getBackground(colors) {
+        const uniqueColors = deduplicateColors(colors, getRedmeanDistance, colorThreshold);
+
+        if (uniqueColors.length < minColors) {
+          return null;
+        }
+
+        const cssColors = uniqueColors.map(rgb => {
+          const [r, g, b, brightness] = rgb;
+          if (showBrightness) {
+            return `rgb(${r} ${g} ${b} / ${brightness / 255})`;
+          } else {
+            return `rgb(${r} ${g} ${b})`;
+          }
+        });
+
+        switch (uniqueColors.length) {
+          case 0:
+            return null;
+          case 1:
+            return cssColors[0];
+          default:
+            return `conic-gradient(${cssColors.join(', ')}, ${cssColors[0]})`;
+        }
+      }
+
+      function getRedmeanDistance(c1, c2) {
+        const rMean = (c1[0] + c2[0]) / 2;
+        const r = c1[0] - c2[0];
+        const g = c1[1] - c2[1];
+        const b = c1[2] - c2[2];
+        const a = c1[3] - c2[3];
+
+        const weightR = 2 + rMean / 256;
+        const weightG = 4.0;
+        const weightB = 2 + (255 - rMean) / 256;
+        const weightA = 4.0;
+
+        return (weightR * r * r) + (weightG * g * g) + (weightB * b * b) + (weightA * a * a);
+      };
+
+      function deduplicateColors(colors, getDistance, threshold) {
+        if (threshold === 0) {
+          return [...new Set(colors)];
+        }
+
+        const out = [];
+        for (const color of colors) {
+          if (out.every(x => getDistance(x, color) > threshold * threshold)) {
+            out.push(color);
+          }
+        }
+
+        return out;
+      }
+
+      const colors = getColors(entityId);
+      const background = getBackground(colors);
+      if (!background) return;
+
+      return `
+        .bubble-icon-container {
+          position: relative !important;
+          overflow: visible !important;
+        }
+
+        .bubble-icon-container::before {
+          position: absolute;
+          content: '';
+          
+          top: -${outerWidth}px;
+          bottom: -${outerWidth}px;
+          left: -${outerWidth}px;
+          right: -${outerWidth}px;
+          padding: ${outerWidth + innerWidth}px;
+
+          background: ${background} !important;
+          border-radius: 50%; 
+          mask: 
+            linear-gradient(#fff 0 0) content-box, 
+            linear-gradient(#fff 0 0);
+          mask-composite: exclude;
+
+          ${animate ? 'animation: rotate-ring 4s linear infinite;' : ''}
+        }
+
+        @keyframes rotate-ring {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `;
+    })()}
+  link: https://github.com/Clooos/Bubble-Card/discussions/2054

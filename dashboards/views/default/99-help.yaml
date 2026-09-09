@@ -1,0 +1,143 @@
+title: Help
+path: help
+type: custom:grid-layout
+layout: !include ../../layouts/grid_no_sidebar.yaml
+cards:
+
+  - type: custom:mushroom-chips-card
+    view_layout:
+      grid-area: banner
+    chips: !include ../../sections/status-bar.yaml
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: footer
+    cards: !include_dir_list ../../sections/footer
+  
+  - type: vertical-stack
+    view_layout:
+      grid-area: section1
+    cards:
+      - type: custom:bubble-card
+        card_type: button
+        button_type: switch
+        sub_button:
+          main:
+            - entity: sensor.adguard_home_average_processing_speed
+              show_state: true
+              show_icon: false
+              name: Speed
+              show_name: true
+              fill_width: false
+              content_layout: icon-top
+              show_background: false
+            - entity: switch.adguard_home_protection
+              name: ""
+              icon: mdi:power
+              tap_action:
+                action: toggle
+          bottom:
+            - entity: sensor.adguard_home_dns_queries_blocked_ratio
+              show_state: true
+              show_icon: false
+              name: Blocked %
+              show_name: true
+              fill_width: false
+              content_layout: icon-top
+              show_background: false
+            - entity: sensor.adguard_home_dns_queries
+              show_state: true
+              show_icon: false
+              name: Total DNS Queries
+              show_name: true
+              fill_width: false
+              content_layout: icon-top
+              show_background: false
+        entity: switch.adguard_home_protection
+        rows: 1.719
+        show_attribute: true
+        attribute: friendly_name
+        button_action:
+          tap_action:
+            action: none
+        icon: mdi:web
+        modules: []
+        rmn_conditional_state_coloring:
+          default_configuration:
+            card_background:
+              color_preset: deep-orange
+              color_mode: preset
+          conditional_colors_1:
+            card_background:
+              color_preset: red
+              color_mode: preset
+              opacity: 30
+            card_text:
+              color_preset: deep-orange
+              color_mode: preset
+              opacity: 100
+            conditions:
+              - condition: state
+                entity_id: switch.adguard_home_protection
+                state:
+                  - "off"
+        name: Internet Protection
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: section2
+    cards:
+
+      - type: custom:unavailable-entity-card
+        title: Critical sensors
+        expanded: false
+        entities:
+          - sensor.living_room_temperature_sensor_temperature
+          - entity: cover.garage_door
+            name: Garage Door
+            icon: mdi:garage
+          - entity: sensor.flo_basement_bathroom_water_sensor_temperature
+          - entity: sensor.flo_under_kitchen_sink_temperature
+          - entity: sensor.acurite_tower_attic_sensor_temperature
+          - entity: sensor.crawl_space_temperature_sensor_temperature
+          - entity: sensor.flo_laundry_temperature
+
+        unavailable_states:
+          - state: offline
+            background: "#f0f4c3"
+            color: "[#827717](https://github.com/vineetchoudhary/lovelace-unavailable-entity-card/issues/827717)"
+          - state: error
+          - state: unavailable
+            background: "rgba(255, 0, 0, 0.18)"
+            color: "#b71c1c"
+          - state: unknown
+            value: "#fff59d"
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: section3
+    cards:
+      - type: tile
+        entity: input_text.broadcast_message
+        name: Broadcast Message - Click to edit
+        show_entity_picture: false
+        vertical: false
+        features_position: bottom
+      - type: custom:bubble-card
+        card_type: button
+        button_type: state
+        tap_action:
+          action: navigate
+          navigation_path: /todo?entity_id=todo.default
+        sub_button:
+          main:
+            - entity: script.print_shopping_list
+              tap_action:
+                action: toggle
+              icon: mdi:printer-pos
+              name: Print
+              show_name: true
+              content_layout: icon-top
+          bottom: []
+        entity: todo.default
+        icon: mdi:cart-variant

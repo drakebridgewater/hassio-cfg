@@ -1,0 +1,31 @@
+type: vertical-stack
+cards:
+- type: custom:bubble-card
+  card_type: pop-up
+  hash: '#switch'
+  button_type: name
+  name: Switches
+- type: custom:auto-entities
+  card_param: cards
+  card:
+    type: grid
+    columns: 2
+    square: false
+  filter:
+    include:
+      - domain: switch
+        options:
+          type: custom:bubble-card
+          card_type: button
+          button_type: state
+    exclude: 
+      - entity_id: switch.adaptive_lighting_*
+      - entity_id: switch.schedule_*
+      - entity_id: switch.*_power_switch
+      - entity_id: switch.camera*
+      - entity_id: switch._led
+      - state: unavailable
+      - state: unknown
+  sort:
+    method: state
+    reverse: true
