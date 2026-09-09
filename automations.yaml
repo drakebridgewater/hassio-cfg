@@ -4300,6 +4300,11 @@
   triggers:
   - entity_id: sensor.active_critical_notification
     trigger: state
+  - alias: Repaint on sunrise/sunset so a whole-bar override painted in daylight at
+      level 100 gets re-applied at the sanctuary night level after dark. The critical
+      heartbeat is gated on 'armed', so without this nothing re-applies once disarmed.
+    entity_id: sun.sun
+    trigger: state
   actions:
   - alias: Branch on active critical notification state
     choose:
@@ -4391,11 +4396,20 @@
           - light.stairs_wall_switch
           tier: critical
     default:
-    - action: script.inovelli_blue_led_zigbee2mqtt
+    - alias: Disarmed - 0) Release the whole-bar override. Uses effect 'Off' with
+        duration 255 (indefinitely) rather than 'Clear'. The Zanix blueprint always
+        packs color/level/duration into the payload with no way to omit them, and
+        the firmware rejects Clear Effect when they are present, so the override was
+        never released. Duration 0 is wrong here - the off effect would expire
+        immediately and the override would come back.
+      action: script.inovelli_blue_led_zigbee2mqtt
       metadata: {}
       data:
         led: All
-        effect: Clear
+        effect: 'Off'
+        color: 0
+        level: 0
+        duration: 255
         target:
           entity_id:
           - light.family_room_wall_switch
