@@ -626,15 +626,17 @@ led_set:
   max: 25
   mode: parallel
   sequence:
-  - alias: 'Branch on effect: a clear is sent as effect Off + duration 255 (the only
-      release the firmware honours through this blueprint); active effects use full
-      params'
+  - alias: 'Branch on effect: a clear is sent as blueprint effect ''Clear'' (which
+      the blueprint maps to the firmware''s clear_effect) with zeroed color/level/duration;
+      active effects use full params'
     choose:
-    - alias: 'Clear path: release the effect with ''Off'' + duration 255. ''Clear
-        Effect'' can never work through this blueprint - its effects lookup keys on
-        ''clear'', so ''clear effect'' misses and the literal string is published -
-        and the blueprint always packs color/level/duration regardless, which the
-        firmware rejects alongside a clear.'
+    - alias: 'Clear path: release the notification with ''Clear''. Pass the blueprint''s
+        own vocabulary word - its effects lookup keys on ''clear'' and emits clear_effect.
+        (''Clear Effect'' misses that lookup and publishes the literal string ''clear
+        effect'', which is not a valid z2m enum value and is dropped.) color/level/duration
+        are all sent as 0: the firmware ignores them for a clear, and a non-zero
+        duration on an ''Off'' effect is what previously left a whole-bar override
+        latched forever, masking every individual-LED notification.'
       conditions:
       - condition: template
         value_template: '{{ effect | default(''pulse'') == ''clear'' }}'
@@ -643,10 +645,10 @@ led_set:
         data:
           led: '{% set m = {''mode'':''Led 4'',''spatial'':''Led 7'',''global'':''Led
             1'',''critical'':''All''} %}{{ m[tier] }}'
-          effect: 'Off'
+          effect: Clear
           color: 0
           level: 0
-          duration: 255
+          duration: 0
           target: '{% set s = switch_entity %}{% if s is string %}{{ {''entity_id'':
             [s]} }}{% else %}{{ {''entity_id'': s | list} }}{% endif %}'
     default:
@@ -666,14 +668,19 @@ led_set:
         data:
           color: '{% set m = {''red'':''Red'',''orange'':''Orange'',''yellow'':''Yellow'',''green'':''Green'',''blue'':''Blue'',''purple'':''Purple'',''magenta'':''Pink'',''teal'':''Teal'',''white'':''White'',''off'':''Off''}
             %}{% set c = color | default(''green'') %}{{ m[c] }}'
-          duration: '{% set tdd = {''mode'':-1,''spatial'':5,''global'':-1,''critical'':-1}
-            %} {% set ds = duration_seconds | default(0) | int(0) %} {% set dm = duration_minutes
-            | default(0) | int(0) %} {% if ds > 0 %} {{ ds }} {% elif dm > 0 %} {{
-            dm * 60 }} {% else %} {% set m = tdd[tier] %} {{ ''Indefinitely'' if m
-            == -1 else (m * 60) }} {% endif %}'
+          duration: '{# Emit the Z2M duration BYTE, not raw seconds. Z2M encodes
+            1-60 as seconds, 61-120 as minutes (value-60), 121-254 as hours (value-120),
+            255 as indefinite. Sending raw seconds meant any duration over a minute
+            went out of range and the whole payload was dropped - e.g. the spatial
+            tier default of 5 minutes used to publish 300. #}{% set tdd = {''mode'':-1,''spatial'':5,''global'':-1,''critical'':-1}
+            %}{% set ds = duration_seconds | default(0) | int(0) %}{% set dm = duration_minutes
+            | default(0) | int(0) %}{% set td = tdd[tier] %}{% set secs = ds if ds
+            > 0 else (dm * 60 if dm > 0 else (-1 if td == -1 else td * 60)) %}{% if
+            secs < 0 %}255{% elif secs <= 60 %}{{ secs }}{% elif secs <= 3600 %}{{
+            60 + ((secs + 59) // 60) }}{% else %}{{ [254, 120 + ((secs + 3599) // 3600)]
+            | min }}{% endif %}'
           effect: '{% set m = {''solid'':''Solid'',''pulse'':''Pulse'',''fast_blink'':''Fast
-            Blink'',''slow_blink'':''Slow Blink'',''off'':''Off'',''clear'':''Clear
-            Effect''} %}{{ m[effect | default(''pulse'')] }}'
+            Blink'',''slow_blink'':''Slow Blink'',''off'':''Off'',''clear'':''Clear''} %}{{ m[effect | default(''pulse'')] }}'
           led: '{% set m = {''mode'':''Led 4'',''spatial'':''Led 7'',''global'':''Led
             1'',''critical'':''All''} %}{{ m[tier] }}'
           level: 1
@@ -699,14 +706,19 @@ led_set:
         data:
           color: '{% set m = {''red'':''Red'',''orange'':''Orange'',''yellow'':''Yellow'',''green'':''Green'',''blue'':''Blue'',''purple'':''Purple'',''magenta'':''Pink'',''teal'':''Teal'',''white'':''White'',''off'':''Off''}
             %}{% set c = color | default(''green'') %}{{ m[c] }}'
-          duration: '{% set tdd = {''mode'':-1,''spatial'':5,''global'':-1,''critical'':-1}
-            %} {% set ds = duration_seconds | default(0) | int(0) %} {% set dm = duration_minutes
-            | default(0) | int(0) %} {% if ds > 0 %} {{ ds }} {% elif dm > 0 %} {{
-            dm * 60 }} {% else %} {% set m = tdd[tier] %} {{ ''Indefinitely'' if m
-            == -1 else (m * 60) }} {% endif %}'
+          duration: '{# Emit the Z2M duration BYTE, not raw seconds. Z2M encodes
+            1-60 as seconds, 61-120 as minutes (value-60), 121-254 as hours (value-120),
+            255 as indefinite. Sending raw seconds meant any duration over a minute
+            went out of range and the whole payload was dropped - e.g. the spatial
+            tier default of 5 minutes used to publish 300. #}{% set tdd = {''mode'':-1,''spatial'':5,''global'':-1,''critical'':-1}
+            %}{% set ds = duration_seconds | default(0) | int(0) %}{% set dm = duration_minutes
+            | default(0) | int(0) %}{% set td = tdd[tier] %}{% set secs = ds if ds
+            > 0 else (dm * 60 if dm > 0 else (-1 if td == -1 else td * 60)) %}{% if
+            secs < 0 %}255{% elif secs <= 60 %}{{ secs }}{% elif secs <= 3600 %}{{
+            60 + ((secs + 59) // 60) }}{% else %}{{ [254, 120 + ((secs + 3599) // 3600)]
+            | min }}{% endif %}'
           effect: '{% set m = {''solid'':''Solid'',''pulse'':''Pulse'',''fast_blink'':''Fast
-            Blink'',''slow_blink'':''Slow Blink'',''off'':''Off'',''clear'':''Clear
-            Effect''} %}{{ m[effect | default(''pulse'')] }}'
+            Blink'',''slow_blink'':''Slow Blink'',''off'':''Off'',''clear'':''Clear''} %}{{ m[effect | default(''pulse'')] }}'
           led: '{% set m = {''mode'':''Led 4'',''spatial'':''Led 7'',''global'':''Led
             1'',''critical'':''All''} %}{{ m[tier] }}'
           level: '{% set tdb = {''mode'':15,''spatial'':100,''global'':100,''critical'':100}
