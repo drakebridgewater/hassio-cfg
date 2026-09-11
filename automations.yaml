@@ -2374,7 +2374,7 @@
     target:
       entity_id: input_text.broadcast_message
     data:
-      value: Good Morning Ethan, let's get dressed and brush our teeth. Then we can
+      value: Good morning, Ethan, let's get dressed and brush our teeth. Then we can
         enjoy some TV with breakfast
     enabled: true
     alias: Dressed, Teeth
@@ -2411,7 +2411,7 @@
         time
   - delay:
       hours: 0
-      minutes: 8
+      minutes: 5
       seconds: 0
       milliseconds: 0
   - alias: Stop when everyone leaves
@@ -2444,7 +2444,7 @@
     continue_on_error: true
   - delay:
       hours: 0
-      minutes: 2
+      minutes: 4
       seconds: 0
       milliseconds: 0
   - if:
@@ -3792,13 +3792,13 @@
     ONE COLOR PER STATE: every state the priority sensor can emit gets its own colour
     on Led 1, so the bar is readable on sight rather than by elimination. Only one
     global notification is ever displayed at a time (the sensor is a priority queue),
-    so the risk is misremembering a colour, not telling two apart side by side.
-    Orange (hue 21) and yellow (hue 42) are the one genuinely confusable pair in
-    this palette, so they are additionally separated by effect: Front Door pulses,
-    Fridge slow-blinks. Red is reserved for the alarm/critical tier and blue for
-    the switch''s own firmware default state, which leaves exactly seven usable
-    colours for seven states - there is no spare, so adding a state means picking
-    a new axis (effect or brightness), not a new colour.
+    so the risk is misremembering a colour, not telling two apart side by side. Orange
+    (hue 21) and yellow (hue 42) are the one genuinely confusable pair in this palette,
+    so they are additionally separated by effect: Front Door pulses, Fridge slow-blinks.
+    Red is reserved for the alarm/critical tier and blue for the switch''s own firmware
+    default state, which leaves exactly seven usable colours for seven states - there
+    is no spare, so adding a state means picking a new axis (effect or brightness),
+    not a new colour.
 
 
     SANCTUARY POLICY: the four sanctuary switches (Master Bedroom, Master Closet,
@@ -3817,9 +3817,9 @@
   actions:
   - alias: Branch on active notification state
     choose:
-    - alias: 'Garage Door Open (the overhead door itself, cover.garage_door) → WHITE
+    - alias: Garage Door Open (the overhead door itself, cover.garage_door) → WHITE
         pulse. Sanctuary-eligible, and the HIGHEST priority entry in the queue - an
-        open overhead door is the largest exposure in the house.'
+        open overhead door is the largest exposure in the house.
       conditions:
       - condition: state
         entity_id: sensor.active_global_notification
@@ -3895,9 +3895,9 @@
           - light.master_bedroom_closet_wall_switch
           - light.master_bathroom_wall_switch
           - light.ethan_s_bedroom_wall_switch
-    - alias: 'Garage Entry Door Open (the walk-through contact, binary_sensor.garage_portal)
+    - alias: Garage Entry Door Open (the walk-through contact, binary_sensor.garage_portal)
         → PURPLE pulse. Sanctuary-eligible. Third in the queue; split out from Front
-        Door so the two no longer share orange.'
+        Door so the two no longer share orange.
       conditions:
       - condition: state
         entity_id: sensor.active_global_notification
@@ -3986,8 +3986,8 @@
           - light.upstairs_deck_wall_switch
           - light.front_porch_wall_switch
           - light.stairs_wall_switch
-    - alias: Windows Open → GREEN pulse. NOT sanctuary-eligible. Green is the most benign
-        colour in the palette and open windows are usually deliberate.
+    - alias: Windows Open → GREEN pulse. NOT sanctuary-eligible. Green is the most
+        benign colour in the palette and open windows are usually deliberate.
       conditions:
       - condition: state
         entity_id: sensor.active_global_notification
@@ -4012,10 +4012,10 @@
           - light.upstairs_deck_wall_switch
           - light.front_porch_wall_switch
           - light.stairs_wall_switch
-    - alias: 'Fridge Open → YELLOW slow blink, brightness override since mixed colour.
+    - alias: Fridge Open → YELLOW slow blink, brightness override since mixed colour.
         NOT sanctuary-eligible. Fires from input_boolean.fridge_open_too_long via
         the fridge debounce state machine (2 minutes continuously open). The slow
-        blink also keeps it distinct from Front Door''s orange pulse.'
+        blink also keeps it distinct from Front Door's orange pulse.
       conditions:
       - condition: state
         entity_id: sensor.active_global_notification
@@ -4047,9 +4047,9 @@
         Uses 'Clear' (the blueprint word for the firmware's clear_effect), not 'Off'
         at duration 255 - the latter latches an indefinite "paint nothing" notification
         on Led 1 rather than releasing it, which permanently blanks Led 1's share
-        of the normal level bar. All sixteen are cleared even though only twelve
-        receive the low-urgency alerts, because the sanctuary four still need releasing
-        after a perimeter alert ends.
+        of the normal level bar. All sixteen are cleared even though only twelve receive
+        the low-urgency alerts, because the sanctuary four still need releasing after
+        a perimeter alert ends.
       action: script.inovelli_blue_led_zigbee2mqtt
       metadata: {}
       data:
@@ -4110,11 +4110,11 @@
 
 
     WHY DEGRADED BLINKS: orange (hue 21) and yellow (hue 42) are close on the Inovelli
-    hue wheel and at brightness 30 orange desaturates toward amber, making solid
-    manual and solid degraded indistinguishable on the bar. The blink carries the
-    distinction instead of the hue, so the "an automation is switched off" warning
-    is actually readable. Do not change degraded back to solid without also moving
-    one of the two hues.'
+    hue wheel and at brightness 30 orange desaturates toward amber, making solid manual
+    and solid degraded indistinguishable on the bar. The blink carries the distinction
+    instead of the hue, so the "an automation is switched off" warning is actually
+    readable. Do not change degraded back to solid without also moving one of the
+    two hues.'
   triggers:
   - entity_id:
     - sensor.lighting_mode_main_area
@@ -4895,8 +4895,11 @@
   description: Today's forecast high selects a band; the band supplies the HVAC mode
     and the literal alarm state picks the setpoint column within it. Bands are [low,
     high) — a high of exactly 80 uses the 80+ row. Off only when a window is open
-    2+ min or a door 10+ min. Re-applies on alarm transitions, HA start, and a daily
-    04:30 refresh — manual changes hold in between.
+    2+ min or a door 10+ min. Resumes when binary_sensor.house_sealed turns on (every
+    door and window shut 20+ min), and re-checks on alarm transitions, HA start and
+    a daily 04:30 refresh. The thermostat is only touched — and a notification only
+    sent — when the band's target actually differs from what is already set, so open/close
+    cycles and manual changes stay silent.
   triggers:
   - id: occupancy
     trigger: state
@@ -4931,17 +4934,11 @@
       hours: 0
       minutes: 10
       seconds: 0
-  - id: closed
+  - id: sealed
     trigger: state
-    entity_id:
-    - binary_sensor.window_open_group
-    - binary_sensor.any_door_open_group
-    from: 'on'
-    to: 'off'
-    for:
-      hours: 0
-      minutes: 20
-      seconds: 0
+    entity_id: binary_sensor.house_sealed
+    from: 'off'
+    to: 'on'
   - id: manual_while_open
     trigger: state
     entity_id: climate.thermostat
@@ -4949,38 +4946,20 @@
     - heat
     - cool
     - heat_cool
-  conditions:
-  - condition: and
-    conditions:
-    - condition: trigger
-      id:
-      - opened
-    - condition: not
-      conditions:
-      - condition: climate.is_hvac_mode
-        target:
-          device_id: f80a8033b99b82d21b310a3a201f77d2
-        options:
-          for: 00:00:00
-          behavior: any
-          hvac_mode:
-          - 'off'
-    alias: Opened and HVAC Active
+  conditions: []
   actions:
   - choose:
-    - conditions:
-      - condition: and
+    - alias: Open long enough while the HVAC is running — shut it down
+      conditions:
+      - condition: trigger
+        id: opened
+      - condition: template
+        value_template: '{{ is_open }}'
+      - condition: not
         conditions:
-        - condition: trigger
-          id: opened
-        - condition: template
-          value_template: '{{ is_open }}'
-        - condition: climate.is_off
-          target:
-            entity_id: climate.thermostat
-          options:
-            behavior: any
-            for: 00:00:00
+        - condition: state
+          entity_id: climate.thermostat
+          state: 'off'
       sequence:
       - action: climate.set_hvac_mode
         target:
@@ -4990,17 +4969,18 @@
       - data:
           category: HVAC Events
           title: Notification
-          message: HVAC off — door/window opened.
+          message: HVAC off — door/window opened (was {{ prev_text }}).
         action: ticker.notify
-    - conditions:
-      - condition: or
-        conditions:
-        - condition: trigger
-          id: occupancy
-        - condition: trigger
-          id: closed
+    - alias: Sealed or occupancy changed — apply the band, only if it differs
+      conditions:
+      - condition: trigger
+        id:
+        - occupancy
+        - sealed
       - condition: template
         value_template: '{{ not is_open }}'
+      - condition: template
+        value_template: '{{ needs_change }}'
       sequence:
       - action: climate.set_hvac_mode
         target:
@@ -5029,9 +5009,10 @@
           title: Notification
           message: HVAC {{ target_mode }} / {{ occupancy }} — {{ (setpoint[0] ~ '–'
             ~ setpoint[1]) if target_mode == 'heat_cool' else setpoint }}°F (band
-            {{ row.label }}, forecast high {{ high }}°F).
+            {{ row.label }}, forecast high {{ high }}°F). Was {{ prev_text }}.
         action: ticker.notify
-    - conditions:
+    - alias: Someone turned the HVAC on while the house is open
+      conditions:
       - condition: trigger
         id: manual_while_open
       - condition: template
@@ -5046,6 +5027,7 @@
   mode: single
   variables:
     alarm_entity: alarm_control_panel.default
+    climate_entity: climate.thermostat
     forecast_entity: sensor.daily_weather_forecast
     fallback_high: 65
     occupancy: '{{ states(alarm_entity) }}'
@@ -5114,3 +5096,14 @@
     setpoint: '{{ row.get(occupancy, row.disarmed) }}'
     is_open: "{{ is_state('binary_sensor.window_open_group', 'on')\n   or is_state('binary_sensor.any_door_open_group',
       'on') }}"
+    prev_mode: '{{ states(climate_entity) }}'
+    prev_set: "{{ [ state_attr(climate_entity, 'target_temp_low'),\n     state_attr(climate_entity,
+      'target_temp_high') ]\n   if prev_mode == 'heat_cool'\n   else [ state_attr(climate_entity,
+      'temperature') ] }}"
+    want_set: '{{ setpoint if target_mode == ''heat_cool'' else [setpoint] }}'
+    prev_text: "{{ prev_mode if prev_mode == 'off'\n     or prev_set | select('none')
+      | list | count > 0\n   else prev_mode ~ ' ' ~ (prev_set | map('float', 0) |
+      map('round', 0) | map('int')\n     | join('–')) ~ '°F' }}"
+    needs_change: "{{ prev_mode != target_mode\n   or (prev_set | map('float', -999)
+      | map('round', 0) | list)\n      != (want_set | map('float', -999) | map('round',
+      0) | list) }}"

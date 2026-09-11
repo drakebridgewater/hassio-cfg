@@ -169,6 +169,50 @@ recorder:
   db_retry_wait: 3
   auto_repack: true
 
+  # Exclude filter: these entities are never written to the DB at all.
+  # NOTE: this also stops long-term statistics for anything listed here,
+  # so power/energy and air-quality weight sensors are deliberately kept.
+  exclude:
+    domains:
+      - automation
+      - update
+      - script            # script.led_set + inovelli_blue_led = ~643k rows/30d
+      - calendar          # calendar.inbox alone = 44 MB of attributes
+      - persistent_notification
+    entity_globs:
+      # --- UniFi Dream Machine Pro diagnostics: ~3.2M rows/30d ---
+      - sensor.dream_machine_pro_*
+      # --- Screek mmWave per-frame target coordinates: ~2.5M rows/30d ---
+      - sensor.screek_human_sensor_*_target*
+      # --- Jellyfin now-playing: 596 MB of attributes, the single worst offender ---
+      - sensor.jellyha_now_playing_*
+      # --- Frigate diagnostics (fps / cpu / gpu load): ~1.4M rows/30d ---
+      - sensor.frigate_*
+      - sensor.*_detect_cpu_usage
+      - sensor.*_ffmpeg_cpu_usage
+      - sensor.*_capture_cpu_usage
+      - sensor.*_detection_fps
+      # --- Radio/link noise: ~800k rows/30d ---
+      - sensor.*_rssi
+      - sensor.*_signal_strength
+      - sensor.*_linkquality
+      # --- BLE proximity estimates: ~320k rows/30d ---
+      - sensor.*_estimated_distance
+      # --- Mirrors the existing history/logbook excludes ---
+      - sensor.sun*
+      - weather.*
+      - sensor.browser_*
+      - sensor.*uptime
+      - sensor.time*
+      - input_text.*
+    entities:
+      # Oversized attributes - already refused by the recorder with a warning
+      - sensor.drake_s_pixel_11_pro_active_notification_count
+      - media_player.jellyha_home_user   # 176 MB of attributes
+      - sensor.date
+      - sensor.last_boot
+      - sun.sun
+
 
 #################################  Logbook  ###################################
 logbook:

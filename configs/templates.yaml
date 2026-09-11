@@ -159,6 +159,21 @@
     state: >
       {{( (today_at(states('input_datetime.daycare_closes')) | as_timestamp - now()|as_timestamp)) <= (states('sensor.drake_iphone_idevice_travel_time_min_daycare')|float(0)*60)+5}}
 
+  # "The house has been buttoned up long enough to run the HVAC."
+  # Turns off the instant anything opens; needs 20 uninterrupted minutes with
+  # every door AND window shut before it comes back on. Used by the HVAC
+  # Schedule automation as the resume trigger.
+  - name: House Sealed
+    unique_id: house_sealed
+    icon: mdi:home-lock
+    delay_on: "00:20:00"
+    availability: >
+      {{ has_value('binary_sensor.window_open_group')
+         and has_value('binary_sensor.any_door_open_group') }}
+    state: >
+      {{ not (is_state('binary_sensor.window_open_group', 'on')
+              or is_state('binary_sensor.any_door_open_group', 'on')) }}
+
 
   # - name: "Any Light On"
   #   device_class: light
@@ -271,7 +286,7 @@
 
     # Timestamp sensors
     - name: "Timestamp Start of Today"
-      state: "{{ today_at().timestamp() }}"
+      state: "{{ today_at().isoformat() }}"
       device_class: timestamp
 
     # Work prognosis sensors
