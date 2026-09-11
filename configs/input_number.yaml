@@ -5,6 +5,13 @@ inovelli_parameter_value:
   step: 1
   initial: 0
   icon: mdi:numeric
+cube_bulb_index:
+  name: Magic Cube Bulb Index
+  min: 0
+  max: 20
+  step: 1
+  mode: box
+  icon: mdi:lightbulb-group
 
 # ethan_daily_stars_earned:
 #   name: "Stars Earned Today"

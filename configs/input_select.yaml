@@ -14,3 +14,26 @@ inovelli_parameter:
     - Scene Control
   initial: LED Color
   icon: mdi:tune
+cube_room:
+  name: Magic Cube Room
+  options:
+    - Master
+    - Ethan
+    - Office
+    - Family
+    - Main
+  icon: mdi:cube-outline
+cube_scene_preset:
+  name: Magic Cube Scene
+  options:
+    - Bright
+    - Relax
+    - Movie
+    - Night
+    - Campfire
+    - Deep Sea
+    - Aurora
+    - Disco
+    - Enchanted
+    - Sunset
+  icon: mdi:palette

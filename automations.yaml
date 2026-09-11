@@ -3559,19 +3559,321 @@
       selected_action_medical:
       - action: script.panic_medical
         data: {}
-- id: '1764876875785'
-  alias: Ethan's Magic Cube
-  description: ''
-  use_blueprint:
-    path: SirGoodenough/Zigbee2MQTT-Aqara-Magic-Cube-T1-Pro-CTP-R01-Xiaomi-Lumi.yaml
-    input:
-      topic: zigbee2mqtt/EthansMagicCube
-      action_rotate_cw_face_1:
-      - action: light.toggle
-        metadata: {}
-        data: {}
+- id: '1789160400000'
+  alias: Magic Cube - Room Controller
+  description: 'Ethan''s Magic Cube (Aqara T1 Pro, must be in scene_mode) as a modal
+    room lighting remote. The face pointing up picks the mode and rotating adjusts it:
+    1 room select, 2 bulb select (0 = All), 3 colour, 4 brightness, 5 room scenes,
+    6 motion lock. Flipping onto the room or bulb face shows the current selection.
+    Shake toggles the current target; hold re-blinks the active room. Physical faces
+    are remapped by editing the sides variable only.
+
+
+    WALL SWITCHES: the Inovelli loads are never turned on, off or dimmed. They are
+    feedback only, through script.led_set.
+
+
+    LED TIERS: the room indicator uses the spatial tier (LED 7), which nothing else
+    paints, so the mode (LED 4) and global (LED 1) tiers and their 5-minute heartbeats
+    are untouched. The motion lock flips the same blocker booleans as the config-button
+    hold on each switch, so LED 4 turning orange (manual) IS the lock indicator - there
+    is no cube-specific lock LED.
+
+
+    MAIN LOCK: sensor.lighting_mode_main_area (LED 4 on kitchen and awning) reads
+    blocker_main_area, but the kitchen, living room and dining room motion automations
+    read their own blockers. Main flips all four together so LED 4 and real behaviour
+    agree.
+
+
+    The room map below is the single source of truth: the cube scripts take entity
+    lists and know nothing about rooms.'
+  triggers:
+  - trigger: mqtt
+    topic: zigbee2mqtt/EthansMagicCube
+  conditions:
+  - alias: Only real cube gestures (plain state reports carry no action)
+    condition: template
+    value_template: '{{ trigger.payload_json is defined and trigger.payload_json.get(''action'')
+      in [''rotate_right'', ''rotate_left'', ''flip_to_side'', ''shake'', ''hold''] }}'
+  actions:
+  - variables:
+      sides:
+        1: room
+        2: bulb
+        3: color
+        4: brightness
+        5: scene
+        6: lock
+      rooms:
+        Master:
+          switches:
+          - light.master_bedroom_wall_switch
+          - light.master_bedroom_closet_wall_switch
+          bulbs:
+          - light.drake_s_bedside_lamp
+          - light.shawna_s_bedside_lamp
+          - light.master_bedroom_dresser_lamp
+          blockers:
+          - input_boolean.lighting_automation_blocker_master_bedroom
+        Ethan:
+          switches:
+          - light.ethan_s_bedroom_wall_switch
+          bulbs:
+          - light.toy_chest_strip
+          blockers:
+          - input_boolean.lighting_automation_blocker_ethan_s_room
+        Office:
+          switches:
+          - light.office_wall_switch
+          bulbs:
+          - light.office_behind_monitor_lamp
+          - light.office_desk_right_lamp
+          - light.office_wall_left
+          - light.office_wall_right
+          - light.wled_candles
+          blockers:
+          - input_boolean.lighting_automation_blocker_office_room
+        Family:
+          switches:
+          - light.family_room_wall_switch
+          bulbs:
+          - light.family_room_ceiling_lamp_01
+          - light.family_room_ceiling_lamp_02
+          - light.family_room_ceiling_lamp_03
+          - light.family_room_couch_left_lamp
+          - light.family_room_couch_right_lamp
+          - light.family_room_floor_lamp
+          - light.family_room_left_tv_lamp
+          - light.family_room_right_tv_lamp
+          - light.corner_couch_lamp
+          - light.shelf_strip
+          blockers:
+          - input_boolean.lighting_automation_blocker_family_room
+        Main:
+          switches:
+          - light.kitchen_wall_switch
+          - light.awning_wall_switch
+          - light.stairs_wall_switch
+          - light.upstairs_hallway_wall_switch
+          bulbs:
+          - light.kitchen_sink_lamp
+          - light.pantry_left_lamp
+          - light.pantry_right_lamp
+          - light.stair_ambience_01
+          - light.kitchen_cabinet_light_strip
+          - light.dining_room_ambience
+          - light.awning_left_lamp
+          - light.awning_right_lamp
+          - light.living_room_tv_left_lamp
+          - light.living_room_tv_right_lamp
+          - light.yeelight_pulley_lamp
+          - light.yeelight_theater_left
+          - light.entertainment_center_backdrop
+          blockers:
+          - input_boolean.lighting_automation_blocker_main_area
+          - input_boolean.lighting_automation_blocker_kitchen
+          - input_boolean.lighting_automation_blocker_living_room
+          - input_boolean.lighting_automation_blocker_dining_room
+      gesture: '{{ trigger.payload_json.action }}'
+      side: '{{ trigger.payload_json.side | int(0) }}'
+      face_mode: '{{ sides.get(side, ''none'') }}'
+      is_rotate: '{{ gesture in [''rotate_right'', ''rotate_left''] }}'
+      direction: '{{ 1 if gesture == ''rotate_right'' else -1 }}'
+      degrees: '{{ trigger.payload_json.action_angle | float(0) | abs }}'
+      room: '{% set r = states(''input_select.cube_room'') %}{{ r if r in rooms else
+        ''Office'' }}'
+      cfg: '{{ rooms[room] }}'
+      all_switches: '{{ rooms.values() | map(attribute=''switches'') | sum(start=[])
+        | unique | list }}'
+      bulb_index: '{{ states(''input_number.cube_bulb_index'') | int(0) }}'
+      targets: '{{ [cfg.bulbs[bulb_index - 1]] if 0 < bulb_index <= cfg.bulbs | length
+        else cfg.bulbs }}'
+      lights_on: '{{ targets | select(''is_state'', ''on'') | list }}'
+      adjust_targets: '{{ targets if targets | length == 1 or lights_on | length ==
+        0 else lights_on }}'
+  - choose:
+    - alias: Room face, rotate - step to the next/previous room and blink its switches
+      conditions:
+      - condition: template
+        value_template: '{{ face_mode == ''room'' and is_rotate }}'
+      sequence:
+      - variables:
+          new_room: '{% set names = rooms.keys() | list %}{{ names[(names.index(room)
+            + direction) % (names | length)] }}'
+      - action: input_select.select_option
         target:
-          entity_id: light.office_desk_right_lamp
+          entity_id: input_select.cube_room
+        data:
+          option: '{{ new_room }}'
+      - alias: A new room starts on All
+        action: input_number.set_value
+        target:
+          entity_id: input_number.cube_bulb_index
+        data:
+          value: 0
+      - action: script.turn_on
+        target:
+          entity_id: script.cube_room_indicator
+        data:
+          variables:
+            switches: '{{ rooms[new_room].switches }}'
+            all_switches: '{{ all_switches }}'
+    - alias: Bulb face, rotate - step through All plus each bulb and flash the selection
+      conditions:
+      - condition: template
+        value_template: '{{ face_mode == ''bulb'' and is_rotate }}'
+      sequence:
+      - variables:
+          new_index: '{{ (bulb_index + direction) % (cfg.bulbs | length + 1) }}'
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.cube_bulb_index
+        data:
+          value: '{{ new_index }}'
+      - action: script.turn_on
+        target:
+          entity_id: script.cube_flash_target
+        data:
+          variables:
+            lights: '{{ [cfg.bulbs[new_index - 1]] if new_index > 0 else cfg.bulbs }}'
+    - alias: Colour face, rotate - shift hue on colour bulbs, colour temperature on white-only
+        bulbs. With All selected only bulbs that are already on change (unless none
+        are on).
+      conditions:
+      - condition: template
+        value_template: '{{ face_mode == ''color'' and is_rotate }}'
+      sequence:
+      - repeat:
+          for_each: '{{ adjust_targets }}'
+          sequence:
+          - variables:
+              modes: '{{ state_attr(repeat.item, ''supported_color_modes'') or [] }}'
+          - choose:
+            - conditions:
+              - condition: template
+                value_template: '{{ modes | select(''in'', [''hs'', ''xy'', ''rgb'', ''rgbw'',
+                  ''rgbww'']) | list | length > 0 }}'
+              sequence:
+              - action: light.turn_on
+                target:
+                  entity_id: '{{ repeat.item }}'
+                data:
+                  hs_color: '{% set hs = state_attr(repeat.item, ''hs_color'') or [0,
+                    0] %}{{ [((hs[0] | float(0)) + direction * degrees) % 360, [hs[1]
+                    | float(0), 80] | max] }}'
+                continue_on_error: true
+            - conditions:
+              - condition: template
+                value_template: '{{ ''color_temp'' in modes }}'
+              sequence:
+              - action: light.turn_on
+                target:
+                  entity_id: '{{ repeat.item }}'
+                data:
+                  color_temp_kelvin: '{% set lo = state_attr(repeat.item, ''min_color_temp_kelvin'')
+                    | int(2000) %}{% set hi = state_attr(repeat.item, ''max_color_temp_kelvin'')
+                    | int(6500) %}{% set cur = state_attr(repeat.item, ''color_temp_kelvin'')
+                    | int((lo + hi) // 2) %}{{ [[cur + direction * degrees * 10, lo] |
+                    max, hi] | min | int }}'
+                continue_on_error: true
+    - alias: Brightness face, rotate - step brightness by about a third of the rotation
+        angle. Dimming stops at 1% and never switches a bulb off.
+      conditions:
+      - condition: template
+        value_template: '{{ face_mode == ''brightness'' and is_rotate }}'
+      sequence:
+      - variables:
+          step: '{{ (direction * ([[degrees / 3, 1] | max, 50] | min)) | round(0) |
+            int }}'
+      - repeat:
+          for_each: '{{ adjust_targets }}'
+          sequence:
+          - variables:
+              current: '{{ ((state_attr(repeat.item, ''brightness'') | int(0)) / 2.55)
+                | round(0) | int if is_state(repeat.item, ''on'') else 0 }}'
+          - if:
+            - condition: template
+              value_template: '{{ is_state(repeat.item, ''on'') or step > 0 }}'
+            then:
+            - action: light.turn_on
+              target:
+                entity_id: '{{ repeat.item }}'
+              data:
+                brightness_pct: '{{ [[current + step, 1] | max, 100] | min }}'
+              continue_on_error: true
+    - alias: Scene face, rotate - step through presets and apply to every bulb in the
+        room
+      conditions:
+      - condition: template
+        value_template: '{{ face_mode == ''scene'' and is_rotate }}'
+      sequence:
+      - variables:
+          preset_names: '{{ state_attr(''input_select.cube_scene_preset'', ''options'')
+            }}'
+          current_preset: '{{ states(''input_select.cube_scene_preset'') }}'
+          new_preset: '{% set i = preset_names.index(current_preset) if current_preset
+            in preset_names else 0 %}{{ preset_names[(i + direction) % (preset_names
+            | length)] }}'
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.cube_scene_preset
+        data:
+          option: '{{ new_preset }}'
+      - action: script.turn_on
+        target:
+          entity_id: script.cube_room_scene
+        data:
+          variables:
+            lights: '{{ cfg.bulbs }}'
+            preset: '{{ new_preset }}'
+    - alias: Lock face, rotate - right locks, left unlocks the room's motion lighting.
+        LED 4 shows the result via the existing mode tier.
+      conditions:
+      - condition: template
+        value_template: '{{ face_mode == ''lock'' and is_rotate }}'
+      sequence:
+      - action: '{{ ''input_boolean.turn_on'' if direction > 0 else ''input_boolean.turn_off''
+          }}'
+        target:
+          entity_id: '{{ cfg.blockers }}'
+    - alias: Flipped onto the room face, or hold on any face - show which room is active
+      conditions:
+      - condition: template
+        value_template: '{{ gesture in [''flip_to_side'', ''hold''] and (face_mode ==
+          ''room'' or gesture == ''hold'') }}'
+      sequence:
+      - action: script.turn_on
+        target:
+          entity_id: script.cube_room_indicator
+        data:
+          variables:
+            switches: '{{ cfg.switches }}'
+            all_switches: '{{ all_switches }}'
+    - alias: Flipped onto the bulb face - flash the current selection
+      conditions:
+      - condition: template
+        value_template: '{{ gesture == ''flip_to_side'' and face_mode == ''bulb'' }}'
+      sequence:
+      - action: script.turn_on
+        target:
+          entity_id: script.cube_flash_target
+        data:
+          variables:
+            lights: '{{ targets }}'
+    - alias: Shake (any face) - toggle the current target as a group
+      conditions:
+      - condition: template
+        value_template: '{{ gesture == ''shake'' }}'
+      sequence:
+      - action: '{{ ''light.turn_off'' if lights_on | length > 0 else ''light.turn_on''
+          }}'
+        target:
+          entity_id: '{{ targets }}'
+        continue_on_error: true
+  mode: queued
+  max: 10
+  max_exceeded: silent
 - id: '1766102803551'
   alias: Panic Buttons
   description: ''
@@ -4093,7 +4395,7 @@
     value_template: '{{ states(''sensor.active_global_notification'') not in [''Idle'',
       ''unknown'', ''unavailable''] }}'
   actions:
-  - alias: Re-trigger apply automation to refresh LED 7 (bypasses its trigger requirement)
+  - alias: Re-trigger apply automation to refresh LED 1 (bypasses its trigger requirement)
     data:
       skip_condition: true
     target:
