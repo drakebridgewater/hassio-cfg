@@ -1247,3 +1247,327 @@ esc_pos_shopping_list:
     input:
       printer: eeab07468a12bbd4c0b900dad7d5acb4
       todo_entity: todo.alexa_todo_shop
+cube_room_indicator:
+  alias: Magic Cube - Room Indicator
+  description: 'Blinks the spatial tier (LED 7) on the active cube room''s Inovelli switches
+    and clears LED 7 on every other cube room''s switches. mode: restart plus the leading
+    delay is the debounce - spinning through five rooms sends one blink, not five batches
+    of Zigbee commands.
+
+
+    Goes through led_set, so the night sanctuary brightness cap applies and only LED
+    7 is written. The mode tier (LED 4) and global tier (LED 1) and their heartbeats
+    are never touched. While the alarm is armed the critical whole-bar override outranks
+    LED 7, so the blink is hidden until disarm - that is expected, not a fault.'
+  icon: mdi:cube-scan
+  mode: restart
+  fields:
+    switches:
+      name: Room switches
+      description: Inovelli Blue light entities for the active room.
+      required: true
+      selector:
+        entity:
+          domain: light
+          integration: mqtt
+          multiple: true
+    all_switches:
+      name: All cube switches
+      description: Every switch any cube room uses. The ones not in this room get LED
+        7 cleared.
+      required: false
+      selector:
+        entity:
+          domain: light
+          integration: mqtt
+          multiple: true
+  sequence:
+  - alias: Debounce rapid room rotation
+    delay:
+      milliseconds: 1000
+  - variables:
+      others: '{{ all_switches | default([]) | reject(''in'', switches) | list }}'
+  - alias: Release LED 7 on the other rooms so only one room is ever indicated
+    if:
+    - condition: template
+      value_template: '{{ others | length > 0 }}'
+    then:
+    - action: script.led_set
+      data:
+        tier: spatial
+        effect: clear
+        switch_entity: '{{ others }}'
+  - action: script.led_set
+    data:
+      tier: spatial
+      color: white
+      effect: fast_blink
+      duration_seconds: 3
+      switch_entity: '{{ switches }}'
+cube_flash_target:
+  alias: Magic Cube - Flash Selection
+  description: 'Debounce front for cube_flash_run. mode: restart plus the short delay
+    means scrolling through bulbs only flashes the one the cube stops on. The flash
+    is handed off with script.turn_on so a restart here can never cancel a flash between
+    its snapshot and its restore.'
+  icon: mdi:lightbulb-alert
+  mode: restart
+  fields:
+    lights:
+      name: Lights
+      required: true
+      selector:
+        entity:
+          domain: light
+          multiple: true
+  sequence:
+  - delay:
+      milliseconds: 600
+  - action: script.turn_on
+    target:
+      entity_id: script.cube_flash_run
+    data:
+      variables:
+        lights: '{{ lights }}'
+cube_flash_run:
+  alias: Magic Cube - Flash Run
+  description: 'Flashes bulbs and puts them back exactly as they were: snapshot, off,
+    full on, restore. Works the same for bulbs that were off (one flash, back off)
+    and on (dip and flare, back to their colour/brightness). The Hue firmware blink
+    effect is not used because light.turn_on always sends state ON with it, which would
+    leave an off bulb lit.'
+  icon: mdi:lightbulb-on-outline
+  mode: queued
+  max: 3
+  fields:
+    lights:
+      name: Lights
+      required: true
+      selector:
+        entity:
+          domain: light
+          multiple: true
+  sequence:
+  - action: scene.create
+    data:
+      scene_id: cube_flash_snapshot
+      snapshot_entities: '{{ lights }}'
+  - action: light.turn_off
+    target:
+      entity_id: '{{ lights }}'
+    data:
+      transition: 0
+    continue_on_error: true
+  - delay:
+      milliseconds: 400
+  - action: light.turn_on
+    target:
+      entity_id: '{{ lights }}'
+    data:
+      brightness_pct: 100
+      transition: 0
+    continue_on_error: true
+  - delay:
+      milliseconds: 600
+  - action: scene.turn_on
+    target:
+      entity_id: scene.cube_flash_snapshot
+    data:
+      transition: 0
+cube_room_scene:
+  alias: Magic Cube - Room Scene
+  description: 'Applies a lighting preset to a list of bulbs, adapting per bulb. A bulb
+    runs the first native effect from the preset''s priority list that appears in its
+    own effect_list (Hue, WLED and Yeelight names share one list). Otherwise colour
+    bulbs take a static colour, cycling through the preset palette so a room gets a
+    spread; white-only bulbs take the preset colour temperature; plain dimmers take
+    brightness only.
+
+
+    Timed effects (Hue/Yeelight sunrise and sunset) are left out on purpose because
+    they end by fading the bulb off. Strobe and police effects are left out so no scene
+    can be mistaken for the alarm.
+
+
+    Movie dims the room''s TV lamps (entity ids containing _tv_) to deep blue and turns
+    the rest off. Rooms without TV lamps get the blue on every bulb.
+
+
+    mode: restart plus the leading delay debounces preset scrolling from the cube.'
+  icon: mdi:palette
+  mode: restart
+  fields:
+    lights:
+      name: Lights
+      required: true
+      selector:
+        entity:
+          domain: light
+          multiple: true
+    preset:
+      name: Preset
+      required: true
+      selector:
+        select:
+          options:
+          - Bright
+          - Relax
+          - Movie
+          - Night
+          - Campfire
+          - Deep Sea
+          - Aurora
+          - Disco
+          - Enchanted
+          - Sunset
+  sequence:
+  - alias: Debounce preset scrolling
+    delay:
+      milliseconds: 800
+  - variables:
+      presets:
+        Bright:
+          brightness: 100
+          kelvin: 4000
+        Relax:
+          brightness: 45
+          kelvin: 2700
+        Movie:
+          brightness: 10
+          kelvin: 2200
+          colors:
+          - [230, 100]
+        Night:
+          brightness: 3
+          kelvin: 2200
+          colors:
+          - [18, 100]
+        Campfire:
+          brightness: 35
+          kelvin: 2000
+          effects: [fireplace, candle, Fire 2012, Candle Flicker]
+          colors:
+          - [25, 100]
+          - [12, 100]
+          - [38, 95]
+        Deep Sea:
+          brightness: 45
+          kelvin: 6500
+          effects: [underwater, Pacifica, Lake]
+          colors:
+          - [185, 100]
+          - [215, 100]
+          - [245, 90]
+        Aurora:
+          brightness: 50
+          kelvin: 5000
+          effects: [cosmos, Aurora, Slowdown]
+          colors:
+          - [135, 90]
+          - [280, 80]
+          - [170, 85]
+        Disco:
+          brightness: 80
+          kelvin: 6500
+          effects: [colorloop, Rainbow, Fast Random Loop, sparkle]
+          colors:
+          - [300, 100]
+          - [180, 100]
+          - [60, 100]
+        Enchanted:
+          brightness: 30
+          kelvin: 3000
+          effects: [enchant, glisten, Twinklefox, Colortwinkles]
+          colors:
+          - [270, 45]
+          - [320, 40]
+        Sunset:
+          brightness: 50
+          kelvin: 2200
+          effects: [sunbeam]
+          colors:
+          - [25, 90]
+          - [340, 70]
+          - [280, 60]
+      p: '{{ presets[preset] if preset in presets else presets[''Relax''] }}'
+      tv_lamps: '{{ lights | select(''search'', ''_tv_'') | list }}'
+  - repeat:
+      for_each: '{{ lights }}'
+      sequence:
+      - variables:
+          effect_list: '{{ state_attr(repeat.item, ''effect_list'') or [] }}'
+          modes: '{{ state_attr(repeat.item, ''supported_color_modes'') or [] }}'
+          has_color: '{{ modes | select(''in'', [''hs'', ''xy'', ''rgb'', ''rgbw'', ''rgbww''])
+            | list | length > 0 }}'
+          effect: '{{ ((p.effects | default([])) | select(''in'', effect_list) | list
+            + [''''])[0] }}'
+          stop_effect: '{{ ([''stop_hue_effect'', ''Solid'', ''Stop''] | select(''in'',
+            effect_list) | list + [''''])[0] }}'
+      - choose:
+        - alias: Movie - lamps that are not TV lamps go off
+          conditions:
+          - condition: template
+            value_template: '{{ preset == ''Movie'' and tv_lamps | length > 0 and repeat.item
+              not in tv_lamps }}'
+          sequence:
+          - action: light.turn_off
+            target:
+              entity_id: '{{ repeat.item }}'
+            continue_on_error: true
+        - alias: Bulb supports one of the preset's native effects
+          conditions:
+          - condition: template
+            value_template: '{{ effect != '''' }}'
+          sequence:
+          - action: light.turn_on
+            target:
+              entity_id: '{{ repeat.item }}'
+            data:
+              brightness_pct: '{{ p.brightness }}'
+              effect: '{{ effect }}'
+            continue_on_error: true
+        default:
+        - alias: Stop any running effect before applying a static look
+          if:
+          - condition: template
+            value_template: '{{ stop_effect != '''' }}'
+          then:
+          - action: light.turn_on
+            target:
+              entity_id: '{{ repeat.item }}'
+            data:
+              effect: '{{ stop_effect }}'
+            continue_on_error: true
+        - choose:
+          - alias: Colour bulb and the preset has a palette
+            conditions:
+            - condition: template
+              value_template: '{{ has_color and p.colors is defined }}'
+            sequence:
+            - action: light.turn_on
+              target:
+                entity_id: '{{ repeat.item }}'
+              data:
+                hs_color: '{{ p.colors[(repeat.index - 1) % (p.colors | length)] }}'
+                brightness_pct: '{{ p.brightness }}'
+              continue_on_error: true
+          - alias: White bulb, or colour bulb on a white preset (HA converts kelvin for
+              RGB-only bulbs and clamps to each bulb's range)
+            conditions:
+            - condition: template
+              value_template: '{{ has_color or ''color_temp'' in modes }}'
+            sequence:
+            - action: light.turn_on
+              target:
+                entity_id: '{{ repeat.item }}'
+              data:
+                color_temp_kelvin: '{{ p.kelvin }}'
+                brightness_pct: '{{ p.brightness }}'
+              continue_on_error: true
+          default:
+          - action: light.turn_on
+            target:
+              entity_id: '{{ repeat.item }}'
+            data:
+              brightness_pct: '{{ p.brightness }}'
+            continue_on_error: true
