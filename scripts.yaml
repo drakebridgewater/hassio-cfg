@@ -428,11 +428,29 @@ abode_security_alert_notifications:
       confirm_text: Disable Alarm
       confirm_option_mode: action
       confirm_action:
-      - action: alarm_control_panel.alarm_disarm
-        metadata: {}
-        data: {}
-        target:
-          entity_id: alarm_control_panel.default
+      - variables:
+          tapper_code: >-
+            {% set map = {
+                 '9edc32828f114914baabce7b9ae21eb3': 'input_text.alarmo_code_drake',
+                 '79f6891d0d1b40a798e2407ca48889aa': 'input_text.alarmo_code_shawna'
+               } %}
+            {% set helper = map.get(wait.trigger.event.context.user_id) %}
+            {{ states(helper) if helper else '' }}
+      - if:
+        - condition: template
+          value_template: '{{ tapper_code | string is match(''^[0-9]{4,32}$'') }}'
+        then:
+        - action: alarmo.disarm
+          data:
+            entity_id: alarm_control_panel.default
+            code: '{{ tapper_code }}'
+        else:
+        - action: system_log.write
+          data:
+            level: warning
+            logger: script.abode_security_alert_notifications
+            message: 'Disable Alarm tap ignored: user_id {{ wait.trigger.event.context.user_id
+              }} has no valid Alarmo code mapped.'
       confirm_icon: security
       confirm_authentication_required: true
       dismiss_text: Send Warning TTS
@@ -764,7 +782,7 @@ panic_police:
       mode: away
       skip_delay: true
       force: true
-      code: '3627'
+      code: '{{ states(''input_text.alarmo_code_system'') }}'
     continue_on_error: true
   - delay:
       seconds: 1
@@ -1056,7 +1074,7 @@ panic_stand_down:
       - action: alarmo.arm
         continue_on_error: true
         data:
-          code: '3627'
+          code: '{{ states(''input_text.alarmo_code_system'') }}'
           entity_id: alarm_control_panel.default
           force: true
           mode: away
@@ -1069,7 +1087,7 @@ panic_stand_down:
       - action: alarmo.arm
         continue_on_error: true
         data:
-          code: '3627'
+          code: '{{ states(''input_text.alarmo_code_system'') }}'
           entity_id: alarm_control_panel.default
           force: true
           mode: home
@@ -1082,7 +1100,7 @@ panic_stand_down:
       - action: alarmo.arm
         continue_on_error: true
         data:
-          code: '3627'
+          code: '{{ states(''input_text.alarmo_code_system'') }}'
           entity_id: alarm_control_panel.default
           force: true
           mode: night
@@ -1091,7 +1109,7 @@ panic_stand_down:
     - action: alarmo.disarm
       continue_on_error: true
       data:
-        code: '3627'
+        code: '{{ states(''input_text.alarmo_code_system'') }}'
         entity_id: alarm_control_panel.default
   - parallel:
     - action: notify.drake
@@ -1159,6 +1177,7 @@ security_critical_alert:
             message: '{{ body }}'
             data:
               tag: alarmo_security
+              visibility: private
               group: security
               url: /lovelace-security/main-floor-security
               entity_id: camera.camera1_fluent
@@ -1169,7 +1188,7 @@ security_critical_alert:
                   critical: 1
                   volume: 1
               actions:
-              - action: ALARMO_DISARM
+              - action: HA_DISARM_ME
                 title: Disarm Alarm
                 authenticationRequired: true
                 destructive: true
@@ -1191,13 +1210,12 @@ security_critical_alert:
                   critical: 1
                   volume: 1
               actions:
-              - action: ALARMO_DISARM
+              - action: HA_DISARM_ME
                 title: Disarm Alarm
                 authenticationRequired: true
                 destructive: true
               - action: ALARMO_VIEW
                 title: View Cameras
-          enabled: false
     default:
     - action: notify.mobile_app_drake_s_pixel_11_pro
       data:
@@ -1205,6 +1223,7 @@ security_critical_alert:
         message: '{{ body }}'
         data:
           tag: alarmo_security
+          visibility: private
           group: security
           url: /lovelace-security/main-floor-security
           entity_id: camera.camera1_fluent
@@ -1215,7 +1234,7 @@ security_critical_alert:
               critical: 1
               volume: 1
           actions:
-          - action: ALARMO_DISARM
+          - action: HA_DISARM_ME
             title: Disarm Alarm
             authenticationRequired: true
             destructive: true

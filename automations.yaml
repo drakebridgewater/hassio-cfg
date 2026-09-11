@@ -23,7 +23,7 @@
       entity_id: alarm_control_panel.default
       skip_delay: true
       force: true
-      code: '8123'
+      code: '{{ states(''input_text.alarmo_code_system'') }}'
   mode: single
 - id: '1670179035186'
   alias: Guest Mode
@@ -105,11 +105,12 @@
 - id: '1670181006472'
   alias: Presence - Trigger When Entering Home
   description: Disarms Alarmo when a household member arrives home, attributing the
-    disarm to the specific person via their personal Alarmo code (so the Alarmo event
-    log shows who) AND a logbook.log entry (so HA's logbook shows who). Per-person
-    codes are stored in input_text.alarmo_code_<name> helpers. Falls back to a shared
-    code if home_occupied fires without an identifiable person. Guest mode disarm
-    sends an actionable notification to Drake with a re-arm escape hatch.
+    disarm to the specific person via their internal Alarmo user (Drake_Internal /
+    Shawna_Internal, so the Alarmo log separates auto-disarms from typed keypad PINs)
+    AND a logbook.log entry (so HA's logbook shows who). Codes live in
+    input_text.alarmo_code_<name> helpers; anyone without a valid helper code falls
+    back to the System user. Guest mode disarm sends an actionable notification to
+    Drake with a re-arm escape hatch.
   triggers:
   - platform: zone
     entity_id: person.drake
@@ -160,12 +161,14 @@
         elif trigger.id == ''person_abby'' %}Abby{% elif trigger.id == ''person_named_guest''
         %}Guest{% elif trigger.id == ''guest_mode_enabled'' %}Guest Mode{% else %}Household{%
         endif %}'
-      actor_code: '{% if trigger.id == ''person_drake'' %}{{ states(''input_text.alarmo_code_drake'')
-        }}{% elif trigger.id == ''person_shawna'' %}{{ states(''input_text.alarmo_code_shawna'')
-        }}{% elif trigger.id == ''person_ethan'' %}{{ states(''input_text.alarmo_code_ethan'')
-        }}{% elif trigger.id == ''person_abby'' %}{{ states(''input_text.alarmo_code_abby'')
-        }}{% elif trigger.id == ''person_named_guest'' %}{{ states(''input_text.alarmo_code_guest'')
-        }}{% else %}3627{% endif %}'
+      actor_code: >-
+        {% set map = {
+             'person_drake': 'input_text.alarmo_code_drake',
+             'person_shawna': 'input_text.alarmo_code_shawna',
+             'person_named_guest': 'input_text.alarmo_code_guest'
+           } %}
+        {% set code = states(map.get(trigger.id, 'input_text.alarmo_code_system')) %}
+        {{ code if code is match('^[0-9]{4,32}$') else states('input_text.alarmo_code_system') }}
       actor_entity: '{% if trigger.id.startswith(''person_'') %}{{ trigger.entity_id
         }}{% else %}automation.presence_trigger_when_entering_home{% endif %}'
   - alias: Log attribution to HA logbook (always, even if alarm wasn't actually armed)
@@ -243,7 +246,7 @@
           data:
             entity_id: alarm_control_panel.default
             mode: away
-            code: '3627'
+            code: '{{ states(''input_text.alarmo_code_system'') }}'
             force: true
             skip_delay: true
   mode: queued
@@ -1773,13 +1776,10 @@
         targets: mobile_drake
         message: Guest mode is on and the alarm changed to {{ trigger.to_state.state
           }}. Disarming.
-    - action: alarm_control_panel.alarm_disarm
-      metadata: {}
-      target:
-        device_id:
-        - 2e352ec054b810b88b5af3a785913c4c
+    - action: alarmo.disarm
       data:
-        code: '169841'
+        entity_id: alarm_control_panel.default
+        code: '{{ states(''input_text.alarmo_code_system'') }}'
       continue_on_error: true
     else:
     - choose:
@@ -4799,9 +4799,13 @@
   mode: parallel
 - id: '1782103688340'
   alias: Security - Critical Alarm Alert Driver
-  description: Fires critical actionable alert script on Alarmo pending (Drake) and
-    triggered (Drake+Shawna). Listens for the Disarm notification action and disarms
-    Alarmo, then clears the notification on both phones.
+  description: Fires the critical actionable alert script on Alarmo pending and triggered.
+    The Disarm action is HA_DISARM_ME, deliberately not Alarmo's reserved ALARMO_DISARM
+    (Alarmo handles that itself with skip_code, which raced this automation and dropped
+    attribution). The tapping person is resolved from the event context user_id, which
+    mobile_app binds to that phone's registration, and the alarm is disarmed with their
+    internal Alarmo code. An unrecognised device, or a tap while the alarm is not pending
+    or triggered, does nothing. Any disarm clears the alert on both phones.
   triggers:
   - entity_id: alarm_control_panel.default
     to: pending
@@ -4813,39 +4817,77 @@
     trigger: state
   - event_type: mobile_app_notification_action
     event_data:
-      action: ALARMO_DISARM
+      action: HA_DISARM_ME
     id: disarm
     trigger: event
+  - entity_id: alarm_control_panel.default
+    to: disarmed
+    id: cleared
+    trigger: state
   conditions: []
   actions:
   - choose:
-    - conditions:
+    - alias: Alert on entry delay and on trigger
+      conditions:
       - condition: trigger
         id:
+        - pending
         - triggered
       sequence:
       - action: script.security_critical_alert
         data:
           phase: '{{ trigger.id }}'
-    - conditions:
+    - alias: Disarm as the tapping person, only while the alarm is live
+      conditions:
       - condition: trigger
         id: disarm
+      - condition: state
+        entity_id: alarm_control_panel.default
+        state:
+        - pending
+        - triggered
       sequence:
-      - action: alarm_control_panel.alarm_disarm
-        target:
-          entity_id: alarm_control_panel.default
-        data:
-          code: '{{ states(''input_text.alarmo_code_drake'') }}'
-      - action: notify.mobile_app_drake_s_pixel_11_pro
-        data:
-          message: clear_notification
+      - variables:
+          tapper_code: >-
+            {% set map = {
+                 '9edc32828f114914baabce7b9ae21eb3': 'input_text.alarmo_code_drake',
+                 '79f6891d0d1b40a798e2407ca48889aa': 'input_text.alarmo_code_shawna'
+               } %}
+            {% set helper = map.get(trigger.event.context.user_id) %}
+            {{ states(helper) if helper else '' }}
+      - if:
+        - condition: template
+          value_template: '{{ tapper_code | string is match(''^[0-9]{4,32}$'') }}'
+        then:
+        - action: alarmo.disarm
           data:
-            tag: alarmo_security
-      - action: notify.mobile_app_shawnas_iphone
-        data:
-          message: clear_notification
+            entity_id: alarm_control_panel.default
+            code: '{{ tapper_code }}'
+        else:
+        - action: system_log.write
           data:
-            tag: alarmo_security
+            level: warning
+            logger: automation.security_critical_alarm_alert_driver
+            message: 'HA_DISARM_ME ignored: user_id {{ trigger.event.context.user_id }}
+              has no valid Alarmo code mapped.'
+    - alias: Clear the alert on both phones however the alarm was disarmed
+      conditions:
+      - condition: trigger
+        id: cleared
+      sequence:
+      - parallel:
+        - action: notify.mobile_app_drake_s_pixel_11_pro
+          continue_on_error: true
+          data:
+            message: clear_notification
+            data:
+              tag: alarmo_security
+        - action: notify.mobile_app_shawnas_iphone
+          continue_on_error: true
+          data:
+            message: clear_notification
+            data:
+              tag: alarmo_security
   mode: parallel
   max: 10
 - id: '1782243414971'
