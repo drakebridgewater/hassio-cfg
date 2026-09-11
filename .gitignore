@@ -8,6 +8,7 @@ secrets.yaml
 .cache/
 .HA_VERSION
 .uuid
+.ha_run.lock
 known_devices.yaml
 html5_push_registrations.conf
 
