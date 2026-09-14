@@ -1,0 +1,58 @@
+# Ambient edge glow — REFERENCE COPY.
+# The live card is in the UI-managed dashboard /lovelace-mushroom/dashboard
+# (last card of the last section). .storage/ is gitignored, so this file is the
+# version-controlled source of truth: paste it via "Edit card > Show code editor" if it's lost.
+#
+# Palette comes from sensor.dashboard_glow (configs/templates.yaml), whose logic lives in
+# custom_templates/dashboard_glow.jinja. Pick the mode with input_select.dashboard_glow_mode.
+#
+# How it works: the card is zero-size in the grid, card_mod pins its ha-card to the viewport
+# behind everything (z-index -1), paints a slowly rotating conic-gradient, and masks the
+# middle out with a radial gradient so only the edges glow.
+# The screen visibility condition means phones/narrow windows never create the card at all.
+type: markdown
+content: " "
+text_only: true
+grid_options:
+  columns: full
+visibility:
+  - condition: screen
+    media_query: "(min-width: 1024px)"
+card_mod:
+  style: |
+    {# Ambient edge glow. Palette: sensor.dashboard_glow (custom_templates/dashboard_glow.jinja). Desktop/tablet only via visibility. #}
+    {% set colors = state_attr('sensor.dashboard_glow', 'colors') %}
+    {% set opacity = state_attr('sensor.dashboard_glow', 'opacity') | float(0) %}
+    ha-card {
+      position: fixed !important;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: none !important;
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      overflow: hidden;
+      opacity: {{ opacity if colors else 0 }};
+      transition: opacity 3s ease;
+      -webkit-mask-image: radial-gradient(ellipse closest-side at 50% 50%, transparent 70%, #000 125%);
+      mask-image: radial-gradient(ellipse closest-side at 50% 50%, transparent 70%, #000 125%);
+    }
+    ha-card::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 160vmax;
+      height: 160vmax;
+      background: conic-gradient(from 0deg, {{ colors or 'transparent, transparent' }});
+      transform: translate(-50%, -50%);
+      animation: glow-spin 120s linear infinite;
+    }
+    @keyframes glow-spin {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      ha-card::before { animation: none; }
+    }

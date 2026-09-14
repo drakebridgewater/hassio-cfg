@@ -37,3 +37,11 @@ cube_scene_preset:
     - Enchanted
     - Sunset
   icon: mdi:palette
+dashboard_glow_mode:
+  name: Dashboard Glow Mode
+  options:
+    - Auto
+    - Season
+    - Temperature
+    - "Off"
+  icon: mdi:gradient-horizontal
