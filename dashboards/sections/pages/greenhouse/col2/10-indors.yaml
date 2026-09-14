@@ -1,0 +1,48 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading: Indors
+    heading_style: title
+  - type: custom:bubble-card
+    card_type: button
+    button_type: switch
+    sub_button:
+      main:
+        - entity: switch.all_grow_lights_group
+          icon: mdi:power
+          tap_action:
+            action: toggle
+          state_background: true
+      bottom: []
+    entity: switch.all_grow_lights_group
+    rows: 1
+    show_icon: true
+    scrolling_effect: true
+    show_state: true
+    force_icon: false
+    show_name: true
+    show_last_changed: false
+    show_last_updated: false
+    modules: []
+    temperature_colouring:
+      elements:
+        state_display: false
+    button_action:
+      tap_action:
+        action: more-info
+  - type: custom:bubble-card
+    card_type: button
+    button_type: switch
+    name: Basement Bathroom Grow Light
+    sub_button:
+      bottom: []
+      main:
+        - entity: switch.dining_room_grow_light
+          icon: mdi:power
+          tap_action:
+            action: toggle
+    entity: switch.basement_bathroom_holiday
+    rows: 1
+    button_action:
+      tap_action:
+        action: more-info

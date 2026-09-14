@@ -1,0 +1,135 @@
+type: markdown
+text_only: true
+content: |+
+  {% set commute = states('sensor.waze_aspire_dental_to_home') |int(default=0) %}
+  {% set abby_daycare = is_state('binary_sensor.abby_at_daycare', 'on') %}
+  {% set ethan_daycare = is_state('binary_sensor.ethan_at_daycare', 'on') %}
+  {% set drake_home = is_state('person.drake', 'home') %}
+  {% set shawna_work = is_state('person.shawna', 'work') %}
+
+  {# Weather Emoji Mapper #}
+  {% set weather_icons = {
+    'sunny': '☀️', 'clear-night': '🌙', 'partlycloudy': '⛅',
+    'cloudy': '☁️', 'rainy': '🌧️', 'pouring': '🌧️',
+    'lightning': '⛈️', 'lightning-rainy': '⛈️', 'snowy': '❄️',
+    'snowy-rainy': '🌨️', 'fog': '🌫️', 'windy': '💨', 'windy-variant': '💨'
+  } %}
+
+  {# Current Weather & Time Setup #}
+  {% set current_cond_raw = states('weather.pirateweather') %}
+  {% set current_icon = weather_icons.get(current_cond_raw, '🌡️') %}
+  {% set temp = states('sensor.wirelesstag_outdoor_temperature') %}
+  {% set condition = current_cond_raw | replace('_', ' ') | title %}
+
+  {% set current_hour = now().hour %}
+  {% set is_night = current_hour >= 20 or current_hour < 5 %} {# 8 PM to 5 AM #}
+
+  {# Nighttime Specific Variables #}
+  {% set solar = states('sensor.garage_envoy_202208027163_solar_production_today_meter') | float(default=0) / 1000 | round(1) %}
+  {% set garage_open = is_state('cover.garage_door', 'open') %}
+  {% set front_door_open = is_state('binary_sensor.front_door', 'on') %}
+
+  {# Tomorrow's Weather (Pulls from our NEW template sensor) #}
+  {% set forecast = state_attr('sensor.daily_weather_forecast', 'forecast') %}
+  {% if forecast %}
+    {% set tmrw_cond_raw = forecast[1].condition | default('unknown') %}
+    {% set tmrw_icon = weather_icons.get(tmrw_cond_raw, '📅') %}
+    {% set tomorrow_high = forecast[1].temperature | default('--') %}
+    {% set tomorrow_low = forecast[1].templow | default('--') %}
+    {% set tomorrow_cond = tmrw_cond_raw | replace('_', ' ') | title %}
+  {% else %}
+    {% set tmrw_icon, tomorrow_high, tomorrow_low, tomorrow_cond = '📅', '--', '--', 'Unknown' %}
+  {% endif %}
+
+  {# 1. Daycare Alert Logic (NOW WITH PROXIMITY) #}
+  {% set pickups = [] %}
+  {% if ethan_daycare %} {% set pickups = pickups + ["Ethan"] %} {% endif %}
+  {% if abby_daycare %} {% set pickups = pickups + ["Abby"] %} {% endif %}
+
+  {# Proximity Variables & Feet-to-Miles Conversion #}
+  {% set raw_dist = states('sensor.daycare_nearest_distance') %}
+  {% set prox_dist = (raw_dist | float(default=0) / 5280) | round(1) if raw_dist not in ['unknown', 'unavailable'] else raw_dist %}
+  {% set prox_dir = states('sensor.daycare_nearest_direction_of_travel') %}
+  {% set prox_person = states('sensor.daycare_nearest_device') | default('Someone') | title %}
+
+
+  {% set alert = "success" %}
+  {% if today_at("16:00") <= now() <= today_at("19:00") %}
+    {% if pickups | length > 0 %}
+      {% set verb = "are" if pickups | length > 1 else "is" %}
+      {% set base_status = pickups | join(" and ") ~ " " ~ verb ~ " at daycare." %}
+
+      {# Append the proximity context if available #}
+      {% if prox_dist != 'unknown' and prox_dist != 'unavailable' %}
+        {% if prox_dir == 'arrived' %}
+          {% set status = base_status ~ " " ~ prox_person ~ " has arrived for pickup!" %}
+        {% elif prox_dir == 'towards' %}
+          {% set status = base_status ~ " " ~ prox_person ~ " is " ~ prox_dist ~ " miles away and heading there now." %}
+        {% else %}
+          {% set status = base_status ~ " The nearest person (" ~ prox_person ~ ") is " ~ prox_dist ~ " miles away." %}
+        {% endif %}
+      {% else %}
+        {% set status = base_status %}
+      {% endif %}
+
+      {% set alert = "warning" %}
+    {% else %}
+      {% if drake_home %}
+        {% set status = "Everyone is already home." %}
+      {% else %}
+        {% set status = "No daycare pickups needed today!" %}
+      {% endif %}
+      {% set alert = "success" %}
+    {% endif %}
+  {% endif %}
+
+  {# 2. Security Alert Logic #}
+  {% set open_doors = [] %}
+  {% if garage_open %} {% set open_doors = open_doors + ["Garage"] %} {% endif %}
+  {% if front_door_open %} {% set open_doors = open_doors + ["Front Door"] %} {% endif %}
+
+  {# Conditional Environmental Alerts #}
+  {% set aqi = states('sensor.airnow_aqi') | int(default=0) %}
+  {% if aqi >= 50 %}
+  **⚠️ Outdoor Air Quality:** {{ aqi }} AQI *(Elevated)*
+  {% endif %}
+
+  {# --- MAIN CARD OUTPUT --- #}
+
+  {% if shawna_work %}
+  ### 🚗 Commute Overview
+  Your drive home is currently **{{ commute  }} minutes**.
+
+  {% elif is_night %}
+    **☀️ Solar Production:** {{ solar }} kWh today.
+    **{{ tmrw_icon }} Tomorrow:** {{ tomorrow_cond }}, High of {{ tomorrow_high }}°, Low of {{ tomorrow_low }}°.
+
+    {% if open_doors | length > 0 %} <ha-alert alert-type="error">⚠️ The {{ open_doors | join(" and ") }} {{ "are" if open_doors | length > 1 else "is" }} still OPEN.</ha-alert>
+    {% else %}
+    <ha-alert alert-type="success">🛡️ The entryways are closed.</ha-alert>
+    {% endif %}
+
+  {% elif temp == "unavailable" %}
+    {{ current_icon }} It is currently **{{ condition }}**.
+  {% else %}
+    {{ current_icon }} It is currently **{{ temp | int(default=0) }}°** and **{{ condition }}**.
+  {% endif %}
+
+  {# Daycare Alerts (Appended if active) #}
+  {% if alert != "success" %}
+    <ha-alert alert-type="{{ alert }}">{{ status }}</ha-alert>
+  {% endif %}
+
+visibility:
+  - condition: user
+    users:
+      - 9edc32828f114914baabce7b9ae21eb3
+      - 79f6891d0d1b40a798e2407ca48889aa
+card_mod:
+  style: |
+    ha-markdown {
+      text-align: center;
+    }
+    ha-alert {
+      display: block;
+    }

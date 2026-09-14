@@ -1,0 +1,16 @@
+# Color light. One slider: brightness by default, or `slider: hue` for color
+# or `slider: white_temp` for warmth.
+bubble_light_color:
+  default:
+    - name: null
+    - icon: null
+    - slider: brightness
+  card:
+    type: custom:decluttering-card
+    template: bubble_control
+    variables:
+      - entity: '[[entity]]'
+      - name: '[[name]]'
+      - icon: '[[icon]]'
+      - button_type: slider
+      - slider: '[[slider]]'

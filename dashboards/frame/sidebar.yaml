@@ -1,0 +1,5 @@
+# Shared view frame: left sidebar on every view.
+type: vertical-stack
+view_layout:
+  grid-area: sidebar
+cards: !include_dir_list ../sections/sidebar

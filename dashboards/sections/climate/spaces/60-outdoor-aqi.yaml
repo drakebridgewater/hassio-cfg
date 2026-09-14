@@ -1,0 +1,28 @@
+# Outdoor air quality (AirNow). Also shown in the #aqi-overview pop-up.
+type: custom:decluttering-card
+template: aq_room
+variables:
+  - name: Outdoor
+  - subtitle: AirNow · Air Quality
+  - temp: sensor.wirelesstag_outdoor_temperature
+  - humid: sensor.wirelesstag_outdoor_humidity
+  - score:
+      pm25: sensor.airnow_pm2_5
+  - tiles:
+      - name: AQI
+        entity: sensor.airnow_aqi
+        unit: index
+        good: 50
+        mod: 100
+        high: 150
+      - name: PM2.5
+        entity: sensor.airnow_pm2_5
+        decimals: 1
+        good: 12
+        mod: 35
+        high: 75
+      - name: Ozone
+        entity: sensor.airnow_o3
+        good: 50
+        mod: 100
+        high: 150

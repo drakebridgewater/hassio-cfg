@@ -1,0 +1,46 @@
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: separator
+    name: Entertainment Center
+  - type: custom:mushroom-entity-card
+    entity: automation.applet_tv_auto_pause
+  - type: vertical-stack
+    cards:
+    - type: custom:decluttering-card
+      template: bubble_light_color
+      variables:
+        - entity: light.tv_lights_group
+        - name: All
+
+    - type: custom:decluttering-card
+      template: bubble_light_color
+      variables:
+        - entity: light.entertainment_center_backdrop
+        - icon: hue:lightstrip-tv
+    - type: horizontal-stack
+      cards:
+      - type: custom:decluttering-card
+        template: bubble_light_color
+        variables:
+          - entity: light.living_room_tv_left_lamp
+          - icon: hue:floor-shade
+      - type: custom:decluttering-card
+        template: bubble_light_color
+        variables:
+          - entity: light.living_room_tv_right_lamp
+          - icon: hue:floor-shade
+    - type: horizontal-stack
+      cards:
+      - type: custom:decluttering-card
+        template: bubble_light_color
+        variables:
+          - entity: light.yeelight_pulley_lamp
+          - name: Couch Left
+          - icon: hue:floor-shade
+      - type: custom:decluttering-card
+        template: bubble_light_color
+        variables:
+          - entity: light.yeelight_theater_left
+          - name: Couch Right
+          - icon: hue:floor-shade

@@ -1,0 +1,25 @@
+# Security pages bar.
+type: custom:decluttering-card
+template: navbar
+view_layout:
+  grid-area: footer
+variables:
+  - routes:
+      - url: /lovelace-main/home
+        icon: mdi:home
+        label: Home
+      - url: /lovelace-main/security
+        icon: mdi:shield-home
+        label: Overview
+      - url: /lovelace-main/camera-events
+        icon: mdi:motion-play-outline
+        label: Events
+      - url: /lovelace-main/cameras
+        icon: mdi:cctv
+        label: Outdoor
+      - url: /lovelace-main/doorbell
+        icon: mdi:doorbell-video
+        label: Doorbell
+      - url: /lovelace-main/armed
+        icon: mdi:shield-lock
+        label: Armed

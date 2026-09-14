@@ -1,0 +1,19 @@
+type: custom:bubble-card
+card_type: button
+button_type: state
+entity: input_boolean.guest_mode
+show_last_changed: true
+tap_action:
+  action: toggle
+modules:
+  - inline_confirmation
+inline_confirmation:
+  icon_confirmation: true
+  card_confirmation: true
+sub_button:
+  main: []
+  bottom: []
+visibility:
+  - condition: state
+    entity: input_boolean.guest_mode
+    state: "on"

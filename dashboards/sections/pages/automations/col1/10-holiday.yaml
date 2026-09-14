@@ -1,0 +1,29 @@
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    entity: input_boolean.doorbell_motion_detection
+    force_icon: false
+    show_last_changed: true
+    show_attribute: false
+    sub_button:
+      - entity: input_boolean.doorbell_motion_detection
+        icon: mdi:power
+        tap_action:
+          action: toggle
+  - type: custom:bubble-card
+    card_type: separator
+    name: Holiday
+    icon: mdi:string-lights
+  - type: horizontal-stack
+    cards:
+      - type: custom:bubble-card
+        card_type: button
+        modules:
+          - default
+        entity: input_boolean.holiday_mode
+        show_state: true
+        sub_button: []
+        tap_action:
+          action: toggle

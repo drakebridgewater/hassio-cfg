@@ -1,0 +1,22 @@
+
+  # Same frame as grid.yaml (sidebar, banner, footer) with one wide `main` area
+  # for full-width pages: cameras, calendar, music.
+  grid-gap: var(--custom-layout-card-padding)
+  grid-template-columns: 1fr 3fr
+  grid-template-rows: min-content 1fr min-content
+  grid-template-areas: |
+    "sidebar  banner"
+    "sidebar  main  "
+    "footer   footer"
+  mediaquery:
+    #phone
+    "(max-width: 1200px)":
+      grid-gap: calc(var(--custom-layout-card-padding) * 1.7)
+      grid-template-columns: 100%
+      grid-template-areas: |
+        ".      "
+        "banner "
+        "main   "
+        "sidebar"
+        "footer "
+        ".      "

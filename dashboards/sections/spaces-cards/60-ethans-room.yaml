@@ -203,18 +203,11 @@ cards:
       columns: 2
       square: false
       cards:
-        - entity: light.ethan_s_bedroom_wall_switch
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Wall Switch
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
+        - type: custom:decluttering-card
+          template: bubble_light
+          variables:
+            - entity: light.ethan_s_bedroom_wall_switch
+            - name: Wall Switch
         - entity: fan.ethan_s_cribside
           type: custom:bubble-card
           card_type: button
@@ -227,15 +220,8 @@ cards:
               icon: mdi:power
               tap_action:
                 action: toggle
-        - entity: switch.twinkle_lights
-          type: custom:bubble-card
-          card_type: button
-          button_type: switch
-          name: Twinkle Lights
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
+        - type: custom:decluttering-card
+          template: bubble_switch
+          variables:
+            - entity: switch.twinkle_lights
+            - name: Twinkle Lights

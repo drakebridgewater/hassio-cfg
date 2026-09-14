@@ -1,0 +1,27 @@
+# Effect light strip (WLED-style): brightness slider, current effect as
+# attribute, palette and preset selects below.
+bubble_light_effect:
+  default:
+    - name: null
+    - icon: null
+  card:
+    type: custom:decluttering-card
+    template: bubble_control
+    variables:
+      - entity: '[[entity]]'
+      - name: '[[name]]'
+      - icon: '[[icon]]'
+      - button_type: slider
+      - show_attribute: true
+      - attribute: effect
+      - bottom:
+          - entity: '[[palette]]'
+            name: Colors
+            sub_button_type: select
+            show_name: true
+            show_icon: false
+          - entity: '[[preset]]'
+            name: Presets
+            sub_button_type: select
+            show_name: true
+            show_icon: false

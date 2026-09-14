@@ -1,17 +1,16 @@
-type: vertical-stack
-cards: 
-  - type: custom:bubble-card
-    card_type: pop-up
-    hash: '#family_room_remote'
-    button_type: switch
-    name: Family Room Remote
-    entity: media_player.family_room
-    icon: mdi:theater
-    force_icon: false
-    show_state: true
-    show_last_changed: false
-    tap_action:
-      action: more-info
+type: custom:bubble-card
+card_type: pop-up
+hash: '#family_room_remote'
+button_type: switch
+name: Family Room Remote
+entity: media_player.family_room
+icon: mdi:theater
+force_icon: false
+show_state: true
+show_last_changed: false
+tap_action:
+  action: more-info
+cards:
   - type: custom:bubble-card
     card_type: media-player
     entity: media_player.family_room

@@ -1,396 +1,193 @@
-# Dashboards Architecture Documentation
+# Dashboards Architecture
 
 ## Overview
 
-This document describes the architecture and structure of the Home Assistant Lovelace dashboards. The dashboard system uses a modular, component-based approach with YAML configuration files organized by functionality and view type.
+`lovelace-main` ("My Home") is a YAML-mode dashboard built from small include files. The GUI (storage)
+dashboards under `.storage/lovelace.*` are where UI ideas are prototyped; they are ported here, never
+the other way around, and are never edited from YAML work.
 
-## Folder Structure
+Guiding rules:
+- **Every view shares one frame**: status banner, chips, sidebar, room bar and pop-ups, and a navbar.
+  A view file only adds its content areas.
+- **Like controls look alike**: switches and lights render through shared decluttering templates.
+- **Small files**: use `!include_dir_list` directories instead of long lists; one card per file.
+
+## Folder structure
 
 ```
 dashboards/
-├── button-card-templates/    # Reusable button card templates
-├── cards/                     # Standalone card definitions
-├── layouts/                   # Grid layout definitions for responsive design
-├── popup/                     # Popup/modal card definitions (hash-based navigation)
-├── sections/                  # Reusable UI sections
-│   ├── footer/               # Footer components (button bars, etc.)
-│   ├── sidebar/              # Sidebar components (overview, weather, etc.)
-│   └── spaces-cards/         # Space/room cards (3-tier view system)
-├── views/                     # View definitions organized by context
-│   ├── admin/                # Administrative views
-│   ├── default/              # Main/default views
-│   ├── living_room/         # Living room specific views
-│   └── wall_display/        # Wall display configurations
-├── visibility/                # Visibility condition definitions
-├── lovelace-main.yaml        # Main dashboard configuration
-├── lovelace-admin.yaml       # Admin dashboard
-├── lovelace-security.yaml    # Security dashboard
-├── lovelace-tablet.yaml      # Tablet-optimized dashboard
-└── lovelace_resources.yaml   # Custom card resources
+├── lovelace-main.yaml          # Entry point: templates + views
+├── lovelace-admin.yaml         # Admin dashboard (views/admin)
+├── lovelace_resources.yaml     # Frontend resources
+├── decluttering-templates/     # Shared card templates (controls, navbar, air quality)
+├── frame/                      # banner / sidebar / footer cards included by every view
+├── navigation/                 # navbar route set per page group
+├── layouts/                    # grid-layout definitions (grid.yaml, grid_wide.yaml)
+├── views/default/              # One file per view, NN-name.yaml
+├── sections/
+│   ├── banner/                 # Status message markdown + status chips
+│   ├── sidebar/                # Sidebar cards (reactive cards first)
+│   ├── footer/                 # Room button bar + all pop-ups
+│   ├── spaces-cards/           # Room cards on Home (3-tier system)
+│   ├── rooms/<room>/           # Room content, used by room pop-ups (and future subviews)
+│   ├── pages/<page>/colN/      # Content for pages ported from the GUI
+│   └── climate/                # Air quality, spaces, trends (Climate page + room pop-ups)
+├── popup/                      # Bubble pop-ups (hash navigation)
+├── cards/                      # Standalone cards
+├── visibility/                 # Reusable visibility conditions
+├── button-card-templates/      # Legacy button-card templates (not loaded)
+└── unused/                     # Retired configs
 ```
 
-## Core Concepts
+## Views and the shared frame
 
-### 1. Dashboard Entry Points
-
-The main dashboard files (`lovelace-main.yaml`, `lovelace-admin.yaml`, etc.) serve as entry points that:
-- Define the overall dashboard structure
-- Include views from the `views/` directory
-- Reference custom card resources
-
-**Example:**
-```yaml
-# lovelace-main.yaml
-views: !include_dir_list views/default
-```
-
-### 2. Views
-
-Views are top-level pages in the dashboard. They are organized by context:
-- **default/**: Main user-facing views (home, cameras, scheduling, etc.)
-- **admin/**: Administrative views (people, groups, misc)
-- **living_room/**: Space-specific detailed views
-- **wall_display/**: Optimized views for wall-mounted displays
-
-Views use the `!include_dir_list` directive to automatically include all files in a directory, ordered by filename prefix (e.g., `00-home.yaml`, `10-cameras.yaml`).
-
-### 3. Sections
-
-Sections are reusable UI components that can be included in multiple views. They are organized by type:
-
-#### Spaces Cards (`sections/spaces-cards/`)
-Space cards implement a **3-tier view system** (see below). Each space has its own file:
-- `10-kitchen.yaml`
-- `15-dining.yaml`
-- `20-living-room.yaml`
-- etc.
-
-#### Sidebar (`sections/sidebar/`)
-Sidebar components displayed in the main home view:
-- Overview cards
-- Weather information
-- Trash schedules
-- Timers
-- Media controls
-- Battery status
-- Warnings
-
-#### Footer (`sections/footer/`)
-Footer components, typically button bars for quick actions.
-
-### 4. Popups
-
-Popups are modal overlays triggered by hash-based navigation (e.g., `#kitchen`, `#living-room`). They use `custom:bubble-card` with `card_type: pop-up` and a `hash` property.
-
-**Structure:**
-```yaml
-- type: custom:bubble-card
-  card_type: pop-up
-  hash: '#kitchen'
-  # ... popup header configuration
-  cards:
-    # ... popup content cards
-```
-
-## 3-Tier View System for Space Cards
-
-Space cards implement a progressive disclosure pattern with three levels:
-
-### Tier 1: Minimal View
-- **Always visible** - The main button card showing:
-  - Space name and icon
-  - Key metrics (temperature, humidity, light sensor)
-  - Door/window status indicators
-  - Quick controls (main lights)
-  - Chevron icons for expand/collapse state
-- **Interaction**: 
-  - Single tap: Navigate to detailed popup
-  - Double tap: Toggle expanded view
-
-### Tier 2: More View (Expanded)
-- **Conditionally visible** - Shown when `input_boolean.{space}_view_expanded` is `on`
-- **Content**: 2-column grid of named control cards
-  - All lights with sliders/switches
-  - Fans and other controls
-  - Each card shows its name for clarity
-- **Trigger**: Double-tap on minimal view card
-
-### Tier 3: Detailed View (Popup)
-- **Modal overlay** - Triggered by hash navigation (e.g., `#kitchen`)
-- **Content**: Complete entity list for the space
-  - All sensors
-  - All controls
-  - Media players
-  - Specialized controls (refrigerator, etc.)
-- **Trigger**: Single tap on minimal view card
-
-### Implementation Pattern
+Every view is a `custom:grid-layout` view. Home is the only tab; every other view is a subview with
+`back_path: /lovelace-main/home` and is reached through the navbar or room bar.
 
 ```yaml
-type: custom:stack-in-card
-card_mod:
-  style: |
-    ha-card {
-      background-color: rgba(R, G, B, 0.25) !important;
-      background: linear-gradient(...);
-    }
-cards:
-  # MINIMAL VIEW - Always visible
-  - type: custom:bubble-card
-    card_type: button
-    # ... minimal view configuration
-    double_tap_action:
-      action: call-service
-      service: input_boolean.toggle
-      target:
-        entity_id: input_boolean.{space}_view_expanded
-
-  # BOTTOM SUB-BUTTONS - Hide when expanded
-  - type: conditional
-    conditions:
-      - condition: state
-        entity: input_boolean.{space}_view_expanded
-        state: 'off'
-    card:
-      type: custom:bubble-card
-      card_type: sub-buttons
-      # ... bottom buttons configuration
-
-  # MORE VIEW - Expanded inline view
-  - type: conditional
-    conditions:
-      - condition: state
-        entity: input_boolean.{space}_view_expanded
-        state: 'on'
-    card:
-      type: grid
-      columns: 2
-      cards:
-        # ... 2-column grid of named control cards
-
-  # DETAILED VIEW - Popup
-  - type: custom:bubble-card
-    card_type: pop-up
-    hash: '#{space}'
-    # ... popup header
-    cards:
-      # ... detailed content
-```
-
-### State Management
-
-Each space card uses an `input_boolean` helper for the expanded state:
-- `input_boolean.kitchen_view_expanded`
-- `input_boolean.living_room_view_expanded`
-- `input_boolean.dining_view_expanded`
-- etc.
-
-These are defined in `configs/input_boolean.yaml` and toggled via double-tap actions.
-
-## Layout System
-
-The dashboard uses `custom:grid-layout` for responsive design. Layout definitions are in `layouts/`:
-
-### Grid Layout Structure
-
-```yaml
+title: Security
+path: security
+subview: true
+back_path: /lovelace-main/home
 type: custom:grid-layout
 layout: !include ../../layouts/grid.yaml
+cards:
+  - !include ../../frame/banner.yaml       # grid-area: banner
+  - !include ../../frame/sidebar.yaml      # grid-area: sidebar
+  - !include ../../frame/footer.yaml       # grid-area: footer
+  - !include ../../navigation/security.yaml
+  - type: vertical-stack
+    view_layout:
+      grid-area: section1
+    cards: !include_dir_list ../../sections/pages/security/col1
 ```
 
-### Responsive Breakpoints
+Layouts:
+- `layouts/grid.yaml`: sidebar + banner + `section1`–`section9` + footer, with phone/tablet/desktop breakpoints.
+- `layouts/grid_wide.yaml`: the same frame with one wide `main` area (cameras, calendar, music).
 
-Layouts adapt to different screen sizes:
-- **Desktop** (>2100px): 4-column grid with sidebar
-- **Large Tablet** (1650-2100px): 3-column grid
-- **Tablet** (1200-1650px): 2-column grid
-- **Phone** (<1200px): Single column, stacked layout
+### Adding a page
 
-Grid areas are defined for:
-- `sidebar`: Left sidebar navigation
-- `banner`: Top status bar
-- `section1-9`: Main content areas
-- `footer`: Bottom action bar
+1. Create `sections/pages/<page>/col1/` (and `col2`, `col3` as needed), one card per file.
+2. Add `views/default/NN-<page>.yaml` using the frame snippet above.
+3. Add one route to the matching group file in `navigation/`.
 
-## Custom Cards Used
+## Navigation
 
-### Primary Cards
-- **`custom:bubble-card`**: Main card type for buttons, popups, and media players
-- **`custom:stack-in-card`**: Container for stacking multiple cards
-- **`custom:mushroom-chips-card`**: Status chips display
-- **`custom:mushroom-template-card`**: Template-based cards
-- **`custom:grid-layout`**: Responsive grid layout system
+| Screen | Room bar (`sections/footer/button-bar.yaml`) | Navbar (`navigation/`) |
+|---|---|---|
+| Phone (<768px) | hidden | fixed bottom bar |
+| Tablet / desktop (≥768px) | shown | fixed rail on the right |
 
-### Secondary Cards
-- **`custom:auto-entities`**: Dynamic entity lists
-- **`custom:advanced-camera-card`**: Camera displays
-- **`custom:scheduler-card`**: Scheduling interface
-- **`custom:mini-media-player`**: Media player controls
+The navbar is `decluttering-templates/navbar.yaml`; each view includes the bar for its page group,
+which only supplies `routes`. On Home the bar lists the groups; on every other page it shows Home
+first, then the pages in that group.
 
-## Naming Conventions
+| Group file | Pages |
+|---|---|
+| `home.yaml` | Security, Rooms (pop-up of room hashes), Planning, House |
+| `security.yaml` | Overview, Events, Outdoor (`cameras`), Doorbell, Armed |
+| `rooms.yaml` | Ethan, Garage, Greenhouse, Bathrooms, Rooms pop-up |
+| `planning.yaml` | Calendar, Scheduling, Automations, Gardening (`planting`) |
+| `house.yaml` | Cleaning, Climate, Music, Misc, Help |
 
-### Files
-- **Views**: `{number}-{name}.yaml` (e.g., `00-home.yaml`, `10-cameras.yaml`)
-  - Numbers control ordering
-  - Descriptive names indicate content
-- **Space Cards**: `{number}-{space-name}.yaml` (e.g., `10-kitchen.yaml`)
-  - Numbers control display order
-  - Hyphenated space names
-- **Sections**: `{number}-{description}.yaml` (e.g., `01-overview.yaml`)
-  - Numbers control ordering within sections
+Room hash links shared by two bars live in `navigation/rooms-popup.yaml`.
 
-### Entities
-- **View Expansion**: `input_boolean.{space}_view_expanded`
-- **Automation Blockers**: `input_boolean.lighting_automation_blocker_{space}`
-- **Sensors**: `sensor.{space}_{type}_sensor_{metric}`
-- **Binary Sensors**: `binary_sensor.{space}_{type}`
+## Control templates
 
-## YAML Includes
+Loaded with `decluttering_templates: !include_dir_merge_named decluttering-templates/`. File order
+does not matter; templates layer by nesting a `custom:decluttering-card` that points at the base.
 
-The dashboard heavily uses YAML include directives:
+| Template | Use for | Notes |
+|---|---|---|
+| `bubble_control` | Base, not used directly | Icon tap → more-info, power button on the right → toggle, one slider |
+| `bubble_switch` | `switch.*`, on/off lights | Card body tap toggles |
+| `bubble_light` | Dimmers, light groups | Brightness slider |
+| `bubble_light_temp` | Tunable-white lights | `slider: brightness` (default) or `white_temp` |
+| `bubble_light_color` | Color lights | `slider: brightness` (default), `hue` or `white_temp` |
+| `bubble_light_effect` | WLED-style strips | Brightness slider + `palette` / `preset` selects |
+| `aq_metric` | Air quality readings | Icon amber at `good`, red at `bad` |
 
-### `!include`
-Includes a single file:
+**One slider per card.** Never add extra slider sub-buttons below a light.
+
 ```yaml
-chips: !include ../../sections/status-bar.yaml
+- type: custom:decluttering-card
+  template: bubble_light_color
+  variables:
+    - entity: light.corner_couch_lamp
+    - name: Corner Lamp        # optional; defaults to the friendly name
+    - slider: hue              # optional
 ```
 
-### `!include_dir_list`
-Includes all files in a directory as a list (ordered by filename):
+Pick the light template from the entity's `supported_color_modes`: any of `hs/rgb/rgbw/rgbww/xy` →
+color, only `color_temp` → temp, `brightness` → light, `onoff` → switch.
+
+## Banner, chips and sidebar
+
+- `sections/banner/10-status-message.yaml`: weather, daycare pickup, commute and night door checks (Jinja markdown).
+- `sections/banner/20-status-chips.yaml`: presence, Alarmo, garage, doors/windows (only while open),
+  motion, thermostat, lights on, power usage, solar (only while producing).
+- `sections/sidebar/`: reactive cards (who's away, guest mode, upcoming reminders, warnings) show on
+  every screen; static cards (weather, calendars, media, reports) use
+  `visibility: [{condition: screen, media_query: "(min-width: 768px)"}]`.
+
+## Rooms
+
+### Home room cards (`sections/spaces-cards/`), 3-tier system
+
+1. **Minimal**: always-visible Bubble button with key readings (temperature, air quality, doors and
+   windows). Tap → room pop-up; double tap → toggle `input_boolean.<room>_view_expanded`.
+2. **Expanded**: conditional grid of controls while the helper is `on`.
+3. **Detailed**: the room pop-up (`popup/<room>.yaml`).
+
+Readings added to the minimal card's `sub_button.main` go at the end so `bubble_badges`
+`sub_button_index` and `sub_button_coloring` `button_N` references don't shift.
+
+### Room pop-ups
+
+Pop-ups use Bubble Card's standalone format (v3.2+): the `pop-up` card is the top-level card and
+holds its content in `cards:`. Never wrap a pop-up in a `vertical-stack`; Bubble treats that as legacy.
+
 ```yaml
-cards: !include_dir_list ../../sections/spaces-cards
+type: custom:bubble-card
+card_type: pop-up
+hash: '#master'
+name: Master Bedroom
+...
+cards: !include_dir_list ../sections/rooms/master-bedroom
 ```
 
-### `!include_dir_merge_named`
-Merges all files in a directory into a named dictionary:
-```yaml
-button_card_templates: !include_dir_merge_named dashboards/button-card-templates/
-```
+A room's air-quality card is pulled in by a one-line file in its room directory,
+e.g. `sections/rooms/master-bedroom/90-air-quality.yaml`:
+`!include ../../climate/air-quality/30-master-bedroom.yaml`.
 
-## Color System
+The room content in `sections/rooms/<room>/` is container-independent, so a room can later become a
+subview by adding a thin view file that includes the same directory.
 
-Each space card has a unique background color for visual distinction:
+## Climate
 
-- **Kitchen**: Green gradient (`rgba(139, 195, 74, 0.25)`)
-- **Living Room**: Blue gradient (`rgba(33, 150, 243, 0.25)`)
-- **Dining Room**: Amber/Orange gradient (`rgba(255, 193, 7, 0.25)`)
+`views/default/40-climate.yaml` includes:
+- `sections/climate/air-quality/`: one card per room (Living Room / Ecobee, Family Room / View Plus,
+  Master Bedroom / Apollo AIR-1). The same files are included in the room pop-ups.
+- `sections/climate/spaces/`: attic, crawl space, outdoor AQI (also used by `#aqi-overview`).
+- `sections/climate/trends/`: thermostat, temperature and humidity graphs.
 
-Colors are applied via `card_mod` styling on the `stack-in-card` container.
+## YAML includes
 
-## Interaction Patterns
+- `!include file.yaml`: one file, path relative to the including file.
+- `!include_dir_list dir`: every file in `dir` as a list item, ordered by filename (`NN-name.yaml`).
+- `!include_dir_merge_named dir`: merge every file's top-level keys into one mapping (templates).
 
-### Tap Actions
-- **Single tap**: Navigate to detailed popup or more-info
-- **Double tap**: Toggle expanded view (for space cards)
-- **Hold**: More-info dialog or alternative action
+## Validation and testing
 
-### Navigation
-- **Hash-based**: `#kitchen`, `#living-room` for popups
-- **Path-based**: `navigation_path: "home"` for view navigation
+- Parse with HA's loader (resolves includes):
+  `docker exec Home-Assistant-Core python3 -c "from homeassistant.util.yaml import load_yaml; load_yaml('/config/dashboards/lovelace-main.yaml')"`
+- YAML dashboards reload on browser refresh; no restart needed.
+- Test in the browser with screenshots only. Bubble pop-ups animate in, and clicks can land on cards
+  behind them and toggle real devices.
 
-## Best Practices
+## Custom cards used
 
-### 1. Modularity
-- Keep cards reusable and focused on a single purpose
-- Use sections for repeated UI patterns
-- Extract common patterns into templates
-
-### 2. Responsive Design
-- Use grid layouts with responsive breakpoints
-- Test on multiple screen sizes
-- Use visibility conditions for screen-size-specific content
-
-### 3. State Management
-- Use `input_boolean` helpers for UI state
-- Keep state names consistent: `{space}_view_expanded`
-- Document state dependencies
-
-### 4. Performance
-- Minimize nested includes
-- Use conditional cards to hide unused content
-- Optimize image sizes and media content
-
-### 5. Maintainability
-- Use descriptive file names with ordering prefixes
-- Comment complex configurations
-- Keep related cards in the same directory
-- Document custom card requirements
-
-### 6. Accessibility
-- Provide clear labels and names
-- Use icons consistently
-- Ensure sufficient color contrast
-- Support keyboard navigation where possible
-
-## Adding a New Space Card
-
-To add a new space card:
-
-1. **Create the card file** in `sections/spaces-cards/`:
-   - Name: `{number}-{space-name}.yaml`
-   - Follow the 3-tier view pattern
-
-2. **Add input_boolean** in `configs/input_boolean.yaml`:
-   ```yaml
-   {space}_view_expanded:
-     name: "{Space} View Expanded"
-     icon: mdi:home
-   ```
-
-3. **Choose a unique background color**:
-   - Update `card_mod.style` with a distinct color
-   - Ensure good contrast with card content
-
-4. **Implement the 3 tiers**:
-   - Minimal view with chevron toggle
-   - Conditional bottom sub-buttons
-   - Conditional expanded grid view
-   - Popup with detailed content
-
-5. **Test interactions**:
-   - Single tap → popup
-   - Double tap → expand/collapse
-   - Verify all controls work
-
-## Troubleshooting
-
-### Card Not Appearing
-- Check YAML syntax (indentation, quotes)
-- Verify entity IDs exist
-- Check include paths are correct
-- Review Home Assistant logs for errors
-
-### Popup Not Showing
-- Verify hash matches navigation path
-- Check popup card structure (should have `card_type: pop-up`)
-- Ensure popup card is properly nested
-
-### Expanded View Not Working
-- Verify `input_boolean.{space}_view_expanded` exists
-- Check conditional card conditions
-- Ensure double-tap action is configured correctly
-
-### Layout Issues
-- Check grid layout configuration
-- Verify grid-area assignments
-- Test responsive breakpoints
-- Review z-index for overlapping elements
-
-## Future Enhancements
-
-Potential improvements to consider:
-
-1. **Template System**: Create reusable templates for space cards
-2. **Theme Support**: Centralized color/theme configuration
-3. **Accessibility**: Enhanced keyboard navigation and screen reader support
-4. **Performance**: Lazy loading for popup content
-5. **Documentation**: Inline documentation for complex cards
-6. **Testing**: Automated validation of YAML structure
-
-## Related Documentation
-
-- Home Assistant Lovelace: https://www.home-assistant.io/dashboards/
-- Bubble Card: https://github.com/Clooos/Bubble-Card
-- Mushroom Cards: https://github.com/piitaya/lovelace-mushroom
-- Grid Layout: https://github.com/thomasloven/lovelace-layout-card
-
+Bubble Card (+ modules in `/config/bubble_card/modules`), decluttering-card, navbar-card, layout-card,
+mushroom, stack-in-card, card-mod, calendar-card-pro, skylight-calendar-card, advanced-camera-card,
+alarmo-card, mini-graph-card, auto-entities, fold-entity-row, scheduler-card, mass-player-card.

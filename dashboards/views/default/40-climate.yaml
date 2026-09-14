@@ -1,0 +1,25 @@
+title: Climate
+path: climate
+icon: mdi:thermometer
+subview: true
+back_path: /lovelace-main/home
+type: custom:grid-layout
+layout: !include ../../layouts/grid.yaml
+cards:
+  - !include ../../frame/banner.yaml
+  - !include ../../frame/sidebar.yaml
+  - !include ../../frame/footer.yaml
+  - !include ../../navigation/house.yaml
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: section1
+    cards: !include_dir_list ../../sections/climate/air-quality
+  - type: vertical-stack
+    view_layout:
+      grid-area: section2
+    cards: !include_dir_list ../../sections/climate/spaces
+  - type: vertical-stack
+    view_layout:
+      grid-area: section3
+    cards: !include_dir_list ../../sections/climate/trends

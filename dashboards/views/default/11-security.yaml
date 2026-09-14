@@ -1,0 +1,25 @@
+title: Security
+path: security
+icon: mdi:shield-home
+subview: true
+back_path: /lovelace-main/home
+type: custom:grid-layout
+layout: !include ../../layouts/grid.yaml
+cards:
+  - !include ../../frame/banner.yaml
+  - !include ../../frame/sidebar.yaml
+  - !include ../../frame/footer.yaml
+  - !include ../../navigation/security.yaml
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: section1
+    cards: !include_dir_list ../../sections/pages/security/col1
+  - type: vertical-stack
+    view_layout:
+      grid-area: section2
+    cards: !include_dir_list ../../sections/pages/security/col2
+  - type: vertical-stack
+    view_layout:
+      grid-area: section3
+    cards: !include_dir_list ../../sections/pages/security/col3

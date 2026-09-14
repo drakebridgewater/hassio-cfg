@@ -1,0 +1,31 @@
+type: markdown
+content: |-
+  {% set alarm = states('alarm_control_panel.abode_alarm') %}
+  {% set doors = states('binary_sensor.any_door_open_group') %}
+  {% set windows = states('binary_sensor.window_open_group') %}
+  {% set lock = states('lock.og_u_bolt_pro') %}
+  {% set smoke = states('binary_sensor.smoke_alarm_monitor') %}
+  {% set leaks = expand('binary_sensor.basement_bathroom_sink_water_leak_detected','binary_sensor.crawl_space_leak_monitor_water_leak_detected','binary_sensor.main_bathroom_sink_water_leak_detected','binary_sensor.crawl_space_water_leak_detected_2','binary_sensor.master_bathroom_toilet_water_leak_detected') | selectattr('state','eq','on') | list | count %}
+  {% set issues = [] %}
+
+  {% if leaks > 0 %}
+  {% set issues = issues + ['💧 ' ~ leaks ~ ' water leak(s) detected'] %}
+  {% endif %}
+
+  {% if doors == 'on' %}
+  {% set issues = issues + ['🚪 Door(s) open'] %}
+  {% endif %}
+
+  {% if windows == 'on' %}
+  {% set issues = issues + ['🪟 Window(s) open'] %}
+  {% endif %}
+
+  {% if lock != 'locked' %}
+  {% set issues = issues + ['🔓 Front door lock is ' + lock] %}
+  {% endif %}
+  {% if issues | count == 0 %}## ✅ All Secure
+
+  **Alarm:** {{ alarm | title }}  •  **No active alerts**{% else %}## ⚠️ Attention Needed
+
+  {% for issue in issues %} * {{ issue }}
+  {% endfor %}{% endif %}

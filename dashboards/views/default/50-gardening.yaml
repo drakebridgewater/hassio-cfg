@@ -2,18 +2,14 @@ max_columns: 4
 title: Planting
 path: planting
 type: custom:grid-layout
-layout: !include ../../layouts/grid_no_sidebar.yaml
+subview: true
+back_path: /lovelace-main/home
+layout: !include ../../layouts/grid.yaml
 cards:
- 
-  - type: custom:mushroom-chips-card
-    view_layout:
-      grid-area: banner
-    chips: !include ../../sections/status-bar.yaml
-
-  - type: vertical-stack
-    view_layout:
-      grid-area: footer
-    cards: !include_dir_list ../../sections/footer
+  - !include ../../frame/banner.yaml
+  - !include ../../frame/sidebar.yaml
+  - !include ../../frame/footer.yaml
+  - !include ../../navigation/planning.yaml
 
   - type: custom:stack-in-card
     view_layout:

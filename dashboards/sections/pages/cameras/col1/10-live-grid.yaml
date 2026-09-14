@@ -1,0 +1,111 @@
+# All outdoor cameras live, cycling (from the GUI Outdoor Cams page).
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.frontdoor
+    triggers:
+      occupancy: true
+      motion: true
+    dependencies:
+      all_cameras: true
+  - camera_entity: camera.garage
+    triggers:
+      occupancy: true
+      motion: true
+    dependencies:
+      all_cameras: true
+  - camera_entity: camera.driveway
+    triggers:
+      occupancy: true
+      motion: true
+    dependencies:
+      all_cameras: true
+    dimensions:
+      aspect_ratio: "2:1"
+  - camera_entity: camera.backyard
+    triggers:
+      occupancy: true
+      motion: true
+    dependencies:
+      all_cameras: true
+menu:
+  style: outside
+  button_size: 47
+  position: top
+  buttons:
+    iris:
+      enabled: true
+      permanent: true
+    cameras:
+      enabled: false
+      permanent: true
+      alignment: opposing
+      priority: 21
+    substreams:
+      enabled: false
+      permanent: true
+    live:
+      enabled: true
+      permanent: true
+    download:
+      enabled: false
+      permanent: true
+    display_mode:
+      enabled: false
+      permanent: true
+    media_player:
+      enabled: false
+      permanent: true
+    fullscreen:
+      enabled: false
+      permanent: true
+    recordings:
+      enabled: true
+      icon: mdi:record-rec
+      priority: 29
+    clips:
+      permanent: true
+    expand:
+      enabled: true
+status_bar:
+  style: outside
+  position: bottom
+  items:
+    technology:
+      enabled: true
+media_viewer:
+  display: {}
+  draggable: false
+  zoomable: false
+media_gallery:
+  controls:
+    thumbnails:
+      size: 170
+      show_details: true
+      show_favorite_control: true
+      show_timeline_control: true
+      show_download_control: true
+timeline:
+  controls:
+    thumbnails: {}
+  style: stack
+view:
+  default: live
+  default_cycle_camera: true
+  keyboard_shortcuts:
+    ptz_left:
+      key: ArrowLeft
+    ptz_right:
+      key: ArrowRight
+    ptz_up:
+      key: ArrowUp
+    ptz_down:
+      key: ArrowDown
+    ptz_zoom_in:
+      key: +
+    ptz_zoom_out:
+      key: "-"
+    ptz_home:
+      key: h
+live:
+  draggable: false
+  zoomable: false

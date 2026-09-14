@@ -1,0 +1,17 @@
+title: Cleaning
+path: cleaning
+icon: mdi:vacuum-outline
+subview: true
+back_path: /lovelace-main/home
+type: custom:grid-layout
+layout: !include ../../layouts/grid.yaml
+cards:
+  - !include ../../frame/banner.yaml
+  - !include ../../frame/sidebar.yaml
+  - !include ../../frame/footer.yaml
+  - !include ../../navigation/house.yaml
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: section1
+    cards: !include_dir_list ../../sections/pages/cleaning/col1

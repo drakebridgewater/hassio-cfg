@@ -1,0 +1,13 @@
+# On/off control: switch.* entities and lights without dimming.
+bubble_switch:
+  default:
+    - name: null
+    - icon: null
+  card:
+    type: custom:decluttering-card
+    template: bubble_control
+    variables:
+      - entity: '[[entity]]'
+      - name: '[[name]]'
+      - icon: '[[icon]]'
+      - button_type: switch

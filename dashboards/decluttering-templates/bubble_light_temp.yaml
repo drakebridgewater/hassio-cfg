@@ -1,0 +1,16 @@
+# Tunable-white light. One slider: brightness by default, or
+# `slider: white_temp` for a warmth slider.
+bubble_light_temp:
+  default:
+    - name: null
+    - icon: null
+    - slider: brightness
+  card:
+    type: custom:decluttering-card
+    template: bubble_control
+    variables:
+      - entity: '[[entity]]'
+      - name: '[[name]]'
+      - icon: '[[icon]]'
+      - button_type: slider
+      - slider: '[[slider]]'

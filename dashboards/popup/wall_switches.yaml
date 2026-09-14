@@ -1,23 +1,20 @@
-type: vertical-stack
-cards: 
-  - type: custom:bubble-card
-    hash: '#wall_switches'
-    card_type: pop-up
-    button_type: name
-    name: All Lights 
-    force_icon: false
-    show_state: true
-    show_last_changed: false
-    show_attribute: true
-    attribute: max_color_temp_kelvin
-    bg_opacity: '35'
-    button_action:
-      tap_action:
-        action: none
-    tap_action:
-      action: toggle
-
-
+type: custom:bubble-card
+hash: '#wall_switches'
+card_type: pop-up
+button_type: name
+name: All Lights 
+force_icon: false
+show_state: true
+show_last_changed: false
+show_attribute: true
+attribute: max_color_temp_kelvin
+bg_opacity: '35'
+button_action:
+  tap_action:
+    action: none
+tap_action:
+  action: toggle
+cards:
   - type: custom:bubble-card
     card_type: separator
     name: Upstairs
@@ -25,148 +22,44 @@ cards:
     columns: 2
     square: false
     cards:
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.awning_wall_switch
-      name: Awning
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.awning_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.master_bedroom_wall_switch
-      name: Bedroom
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+        - name: Awning
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.master_bedroom_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.master_bedroom_closet_wall_switch
-      name: Master Closet
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+        - name: Bedroom
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.master_bedroom_closet_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.kitchen_wall_switch
-      name: Kitchen
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+        - name: Master Closet
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.kitchen_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
+        - name: Kitchen
 
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.vaulted_light
-      name: Dining Room
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      sub_button:
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.vaulted_light
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
+        - name: Dining Room
 
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.stairs_wall_switch
-      name: Stairs
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.stairs_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
+        - name: Stairs
 
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.awning_wall_switch
-      name: Awning
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.awning_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
-
+        - name: Awning
   - type: custom:bubble-card
     card_type: separator
     name: Downstairs
@@ -175,67 +68,21 @@ cards:
     square: false
     cards:
 
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.ethan_s_bedroom_wall_switch
-      name: Ethan
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.ethan_s_bedroom_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.office_wall_switch
-      name: Office
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+        - name: Ethan
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.office_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.family_room_wall_switch
-      name: Family Room
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+        - name: Office
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.family_room_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
-
+        - name: Family Room
   - type: custom:bubble-card
     card_type: separator
     name: Hallways
@@ -243,47 +90,16 @@ cards:
     columns: 2
     square: false
     cards:
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.upstairs_hallway_wall_switch
-      name: Upstairs
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.upstairs_hallway_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.basement_hallway_wall_switch
-      name: Downstairs
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+        - name: Upstairs
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.basement_hallway_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
-
+        - name: Downstairs
   - type: custom:bubble-card
     card_type: separator
     name: Bathrooms
@@ -291,67 +107,21 @@ cards:
     columns: 2
     square: false
     cards:
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.main_bathroom_wall_switch
-      name: Main
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.main_bathroom_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.master_bathroom_wall_switch
-      name: Master
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+        - name: Main
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.master_bathroom_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.basement_bathroom_wall_switch
-      name: Basement
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+        - name: Master
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.basement_bathroom_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
-
+        - name: Basement
   - type: custom:bubble-card
     card_type: separator
     name: Garage
@@ -359,28 +129,11 @@ cards:
     columns: 2
     square: false
     cards:
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.garage_wall_switch
-      name: Garage
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.garage_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
-
-
+        - name: Garage
   - type: custom:bubble-card
     card_type: separator
     name: Outdoors
@@ -388,63 +141,18 @@ cards:
     columns: 2
     square: false
     cards:
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.front_porch_wall_switch
-      name: Porch
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.front_porch_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.basement_deck_wall_switch
-      name: Basement Deck
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+        - name: Porch
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.basement_deck_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
-    - type: custom:bubble-card
-      card_type: button
-      button_type: slider
-      entity: light.upstairs_deck_wall_switch
-      name: Upstairs Deck
-      show_state: true
-      show_last_changed: true
-      show_attribute: false
-      tap_action:
-        action: more-info
-      hold_action:
-        action: more-info
-      sub_button:
+        - name: Basement Deck
+    - type: custom:decluttering-card
+      template: bubble_light
+      variables:
         - entity: light.upstairs_deck_wall_switch
-          name: ""
-          icon: mdi:power
-          tap_action:
-            action: toggle
-          hold_action:
-            action: more-info
+        - name: Upstairs Deck

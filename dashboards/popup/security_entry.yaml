@@ -1,17 +1,16 @@
-type: vertical-stack
-cards: 
-  - type: custom:bubble-card
-    card_type: pop-up
-    hash: '#main_floor_security'
-    button_type: switch
-    name: Main Floor Security
-    icon: mdi:door-closed-lock
-    entity: alarm_control_panel.abode_alarm
-    force_icon: false
-    show_state: true
-    show_last_changed: false
-    tap_action:
-      action: more-info
+type: custom:bubble-card
+card_type: pop-up
+hash: '#main_floor_security'
+button_type: switch
+name: Main Floor Security
+icon: mdi:door-closed-lock
+entity: alarm_control_panel.abode_alarm
+force_icon: false
+show_state: true
+show_last_changed: false
+tap_action:
+  action: more-info
+cards:
   - type: custom:bubble-card
     card_type: button
     button_type: state

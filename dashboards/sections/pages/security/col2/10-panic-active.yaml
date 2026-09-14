@@ -1,0 +1,31 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading: 🚨 Panic Active
+    heading_style: title
+    icon: mdi:alarm-light
+  - type: markdown
+    content: |-
+      ## {{ states('input_text.last_panic_type') | title }} panic is active
+
+      **Started:** approximately when alarm changed to current state
+      **Pre-panic alarm state:** `{{ states('input_text.pre_panic_alarm_state') }}`
+
+      Disarm on either Ring keypad with your code, or tap **Stand Down** below. This will silence sirens, stop announcements, restore lights, and return the alarm to its pre-panic state. Garage door and door locks will be left as-is.
+  - type: tile
+    entity: script.panic_stand_down
+    name: Stand Down — Reset Panic
+    icon: mdi:check-decagram
+    color: green
+    tap_action:
+      action: perform-action
+      perform_action: script.panic_stand_down
+      confirmation:
+        text: 'Confirm: stand down the active panic event? This will silence sirens and restore the alarm to its pre-panic state.'
+    grid_options:
+      columns: 12
+      rows: 1
+visibility:
+  - condition: state
+    entity: input_boolean.panic_active
+    state: 'on'

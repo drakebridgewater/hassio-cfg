@@ -113,47 +113,23 @@ cards:
       #       enqueue_mode: play
       #     target: {}
 
-  - entity: light.ethan_s_bedroom_wall_switch
-    name: Ceiling
-    icon: hue:friends-of-hue-iq-pendant
-    type: custom:bubble-card
-    card_type: button
-    button_type: slider
-    show_last_updated: true
-    tap_action:
-      action: more-info
-    sub_button:
-      - name: Toggle button
-        icon: mdi:power
-        tap_action:
-          action: toggle
-  - entity: switch.twinkle_lights
-    name: Twinkle Lights
-    type: custom:bubble-card
-    card_type: button
-    button_type: switch
-    show_last_updated: true
-    tap_action:
-      action: more-info
-    sub_button:
-      - name: Toggle button
-        icon: mdi:power
-        tap_action:
-          action: toggle
-  - entity: light.toy_chest_strip
-    name: Bed
-    icon: mdi:bed-single
-    type: custom:bubble-card
-    card_type: button
-    button_type: slider
-    show_last_updated: true
-    tap_action:
-      action: more-info
-    sub_button:
-      - name: Toggle button
-        icon: mdi:power
-        tap_action:
-          action: toggle
+  - type: custom:decluttering-card
+    template: bubble_light
+    variables:
+      - entity: light.ethan_s_bedroom_wall_switch
+      - name: Ceiling
+      - icon: hue:friends-of-hue-iq-pendant
+  - type: custom:decluttering-card
+    template: bubble_switch
+    variables:
+      - entity: switch.twinkle_lights
+      - name: Twinkle Lights
+  - type: custom:decluttering-card
+    template: bubble_light_color
+    variables:
+      - entity: light.toy_chest_strip
+      - name: Bed
+      - icon: mdi:bed-single
 
   - entity: fan.ethan_s_cribside
     name: Fan
@@ -168,22 +144,12 @@ cards:
         icon: mdi:power
         tap_action:
           action: toggle
-  - entity: switch.ethan_s_door_switch
-    name: White Noise
-    icon: mdi:sleep
-    type: custom:bubble-card
-    card_type: button
-    button_type: slider
-    show_last_updated: true
-    tap_action:
-      action: more-info
-    sub_button:
-      - name: Toggle button
-        icon: mdi:power
-        tap_action:
-          action: toggle
-        hold_action:
-          action: more-info
+  - type: custom:decluttering-card
+    template: bubble_switch
+    variables:
+      - entity: switch.ethan_s_door_switch
+      - name: White Noise
+      - icon: mdi:sleep
   # - entity: light.ethan_s_holiday_switch
   #   name: Holiday Lights
   #   type: custom:bubble-card

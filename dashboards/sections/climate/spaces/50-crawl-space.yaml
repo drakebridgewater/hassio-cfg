@@ -1,0 +1,42 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading_style: title
+    heading: Crawl Space
+    badges:
+      - type: entity
+        show_state: true
+        show_icon: true
+        entity: sensor.crawl_space_temperature_sensor_humidity
+  - type: markdown
+    text_only: true
+    content: |
+      <ha-alert alert-type="warning">The crawl space is at risk of mold growth</ha-alert>
+    visibility:
+      - condition: numeric_state
+        entity: sensor.crawl_space_mold_risk_index_risk_index
+        above: 0
+  - type: custom:mini-graph-card
+    name: Crawl Space Temperature
+    icon: mdi:temperature-fahrenheit
+    entities:
+      - entity: sensor.crawl_space_temperature_sensor_temperature
+        show_legend_state: true
+    smoothing: false
+    align_icon: left
+    align_state: center
+    hours_to_show: 72
+    points_per_hour: 2
+    aggregate_func: avg
+    lower_bound: 50
+    upper_bound: 80
+    show:
+      labels: true
+      labels_secondary: true
+    color_thresholds:
+      - value: 50
+        color: "#5cb0ff"
+      - value: 60
+        color: "#de9e00"
+      - value: 80
+        color: "#d43400"

@@ -1,0 +1,113 @@
+title: ''
+entities:
+- calendar.bridgewater_s_v2
+- calendar.drake_s_google
+- calendar.shawna_s_gmail
+- calendar.ethans_calendar
+- calendar.guest_mode_2
+- calendar.partiful_2
+- calendar.birthdays
+- calendar.holidays_in_united_states_2
+default_view: week-compact
+first_day_of_week: 1
+week_days:
+- 0
+- 1
+- 2
+- 3
+- 4
+- 5
+- 6
+week_start_hour: 7
+week_end_hour: 21
+lock_schedule_hours: false
+hide_the_past: false
+disable_swipe_controls: false
+show_all_events_month: false
+show_all_details_month: false
+hide_empty_days: false
+agenda_compact_events: false
+compact_width: false
+show_current_time_bar: true
+show_event_location: true
+use_short_location: true
+event_location_font_size: 9
+background_opacity: 100
+header_background_opacity: 100
+event_calendar_friendly_name: true
+event_title_prefix: badge_icon
+combine_style: bars
+combine_background: primary
+event_color_mode: classic
+event_neutral_background: '#F8F3E9'
+event_tint_opacity: 80
+event_color_bar_width: 18
+hide_calendars: false
+hide_year: true
+hide_controls: false
+hide_dark_mode_toggle: true
+show_dashboard_nav_button: true
+header_dashboard_path: /lovelace-main/home
+header_weather_sensor: ''
+color_scheme: auto
+enable_event_management: true
+type: custom:skylight-calendar-card
+readonly_calendars:
+- calendar.birthdays
+- calendar.ethan_choreops_calendar
+- calendar.home_maintenance_calendar
+- calendar.home_maintenance_schedule
+- calendar.partiful_2
+- calendar.ridwell
+- calendar.holidays_in_united_states_2
+colors:
+  calendar.birthdays: '#ffff00'
+  calendar.bridgewater_s_v2: '#7900b5'
+  calendar.drake_fastmail_fm: '#20b56a'
+  calendar.drake_s_google: '#20b56a'
+  calendar.drake_s_work_schedule: '#20b56a'
+  calendar.ethan_choreops_calendar: '#5977ff'
+  calendar.gmail: '#0000ff'
+  calendar.ethan_fm: '#5977ff'
+  calendar.ethans_calendar: '#5977ff'
+  calendar.guest_mode_2: '#ffffff'
+  calendar.home_maintenance_calendar: '#b56005'
+  calendar.home_maintenance_schedule: '#ababab'
+  calendar.icalendar_fm: '#20b56a'
+  calendar.partiful_2: '#8833b5'
+  calendar.ridwell: '#b56010'
+  calendar.shawna_s_gmail: '#b526a6'
+  calendar.holidays_in_united_states_2: '#c54040'
+rolling_days_week_compact: 7
+compact_height: true
+show_week_numbers_month: true
+compact_header: true
+hide_calendar_names: false
+header_background_transparent: true
+background_transparent: true
+hide_event_calendar_bubble: false
+event_font_size: 13
+event_time_font_size: 11
+max_events: 0
+combine_calendars: true
+calendar_names:
+  calendar.ethans_calendar: Ethan
+  calendar.home_maintenance_schedule: Maintance
+  calendar.holidays_in_united_states_2: Holidays
+hide_badge_calendars:
+- calendar.guest_mode_2
+- calendar.home_maintenance_schedule
+rolling_weeks: 28
+rolling_days_schedule: 5
+day_styles:
+- condition: weekday
+  background: '#005'
+  background_opacity: 0.04
+- condition: weekend
+  background: '#fff'
+  background_opacity: 0.14
+- condition: today
+  border_color: '#0082f6'
+  border_width: 1px
+- condition: past
+  opacity: 0.45

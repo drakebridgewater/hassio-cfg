@@ -1,0 +1,34 @@
+type: vertical-stack
+title: Configurations
+cards:
+- type: custom:bubble-card
+  card_type: separator
+  name: Scheduling
+  icon: mdi:clock-outline
+- type: entities
+  entities:
+  - type: custom:fold-entity-row
+    head:
+      type: section
+      label: Scheduling (General)
+    entities:
+      - type: custom:scheduler-card
+        tags: masterBedroom
+        title: false
+        discover_existing: false
+        sort_by:
+          - state
+          - relative-time
+        display_options:
+          primary_info: default
+          secondary_info:
+            - relative-time
+          icon: action
+        show_header_toggle: false
+- type: custom:mushroom-entity-card
+  entity: switch.schedule_master_bedroom_lights_on_automation
+  name: Master Lighting Automation Schedule
+  tap_action:
+    action: toggle
+  hold_action:
+    action: more-info  

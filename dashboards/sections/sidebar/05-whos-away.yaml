@@ -1,0 +1,37 @@
+type: custom:bubble-card
+card_type: separator
+name: Who's away
+icon: mdi:home-export-outline
+modules:
+  - default
+sub_button:
+  main:
+    - entity: person.drake
+      visibility:
+        - condition: state
+          entity: person.drake
+          state_not: home
+    - entity: person.shawna
+      visibility:
+        - condition: state
+          entity: person.shawna
+          state_not: home
+    - entity: person.ethan
+      tap_action:
+        action: more-info
+      visibility:
+        - condition: state
+          entity: binary_sensor.ethan_at_daycare
+          state: "on"
+    - entity: person.abby
+      visibility:
+        - condition: state
+          entity: binary_sensor.abby_at_daycare
+          state: "on"
+    - entity: binary_sensor.home_occupied
+      icon: mdi:plus-thick
+      show_state: false
+      tap_action:
+        action: navigate
+        navigation_path: "#people_overview"
+  bottom: []

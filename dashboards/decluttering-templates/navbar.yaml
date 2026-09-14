@@ -1,0 +1,25 @@
+# Fixed navigation bar: bottom bar on phones, right-side rail from 768px up.
+# Views include their page group's bar from dashboards/navigation/, which only
+# passes `routes`, so the bar's look is defined once here.
+navbar:
+  card:
+    type: custom:navbar-card
+    desktop:
+      position: right
+      min_width: 768
+      show_labels: true
+      show_popup_label_backgrounds: true
+    mobile:
+      show_labels: true
+      show_popup_label_backgrounds: true
+    layout:
+      auto_padding:
+        enabled: true
+    haptic:
+      tap_action: true
+      url: true
+    styles: |
+      .navbar-popup-backdrop {
+        background: rgba(0, 0, 0, 0.8);
+      }
+    routes: '[[routes]]'

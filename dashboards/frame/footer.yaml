@@ -1,0 +1,5 @@
+# Shared view frame: room button bar and pop-ups on every view.
+type: vertical-stack
+view_layout:
+  grid-area: footer
+cards: !include_dir_list ../sections/footer

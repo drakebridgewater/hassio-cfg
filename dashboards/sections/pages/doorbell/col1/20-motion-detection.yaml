@@ -1,0 +1,16 @@
+type: custom:bubble-card
+card_type: button
+button_type: switch
+entity: input_boolean.doorbell_motion_detection
+name: Doorbell motion detection
+icon: mdi:motion-sensor
+show_state: true
+show_last_changed: true
+tap_action:
+  action: more-info
+sub_button:
+  main:
+    - icon: mdi:power
+      tap_action:
+        action: toggle
+  bottom: []

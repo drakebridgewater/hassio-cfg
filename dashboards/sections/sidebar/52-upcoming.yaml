@@ -1,0 +1,162 @@
+# Upcoming: goodnight scene at night, take-out reminders when due (all sizes),
+# birthdays (tablet and up).
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: separator
+    name: Upcoming
+    sub_button:
+      main:
+        - entity: todo.shopping_list
+          name: ""
+          icon: mdi:cart-variant
+          show_state: true
+          tap_action:
+            action: navigate
+            navigation_path: /todo?entity_id=todo.shopping_list
+      bottom: []
+
+  - type: custom:bubble-card
+    card_type: button
+    button_type: switch
+    entity: scene.goodnight
+    name: Activate Goodnight Scene
+    modules:
+      - default
+    visibility:
+      - condition: time
+        after: "20:00:00"
+        before: "05:00:00"
+
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: binary_sensor.ridwell_pickup_tomorrow
+        state: "on"
+      - condition: state
+        entity: input_boolean.ridwell_taken_out
+        state: "off"
+    card:
+      type: custom:bubble-card
+      card_type: button
+      button_type: state
+      entity: calendar.ridwell
+      name: Ridwell - Put bags outside
+      icon: mdi:delete-circle-outline
+      show_state: false
+      show_name: true
+      show_attribute: true
+      attribute: message
+      modules:
+        - default
+      sub_button:
+        - entity: input_boolean.ridwell_taken_out
+          name: Complete?
+          icon: mdi:checkbox-blank-outline
+          show_name: true
+          tap_action:
+            action: toggle
+          double_tap_action:
+            action: more-info
+      styles: |
+        .bubble-icon {
+          color: green !important;
+        }
+
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: binary_sensor.tomorrow_monday
+        state: "on"
+      - condition: state
+        entity: input_boolean.garbage_taken_out
+        state: "off"
+    card:
+      type: custom:bubble-card
+      card_type: button
+      button_type: state
+      entity: calendar.ridwell
+      name: Garbage, Recycling, and Compost
+      icon: mdi:recycle
+      show_state: false
+      show_name: true
+      show_attribute: true
+      attribute: message
+      modules:
+        - default
+      sub_button:
+        - entity: input_boolean.garbage_taken_out
+          name: Complete?
+          icon: mdi:checkbox-blank-outline
+          show_name: true
+          tap_action:
+            action: toggle
+          double_tap_action:
+            action: more-info
+      styles: |
+        .bubble-icon {
+          color: green !important;
+        }
+
+  - type: custom:calendar-card-pro
+    visibility:
+      - condition: screen
+        media_query: "(min-width: 768px)"
+    entities:
+      - entity: calendar.birthdays
+    days_to_show: 30
+    compact_events_to_show: 1
+    filter_duplicates: true
+    language: en
+    title: 🎂 Upcoming Birthdays
+    title_font_size: 18px
+    title_color: "#baf1ff"
+    vertical_line_width: 5px
+    day_spacing: 5px
+    event_spacing: 2px
+    additional_card_spacing: 2px
+    day_separator_color: "#baf1ff80"
+    month_separator_color: var(--secondary-text-color)
+    today_indicator: pulse
+    date_vertical_alignment: top
+    weekday_color: "#baf1ff"
+    day_font_size: 18px
+    day_color: "#baf1ff"
+    month_color: "#baf1ff"
+    show_countdown: true
+    event_color: "#baf1ff"
+    show_time: false
+    time_24h: false
+    time_font_size: 11px
+    time_color: "#baf1ff"
+    show_location: false
+    remove_location_country: true
+    location_font_size: 10px
+    row_spacing: 10px
+    weather:
+      position: date
+      date:
+        show_conditions: true
+        show_high_temp: true
+        show_low_temp: false
+        show_uv_index: false
+        uv_index_threshold: 0
+        icon_size: 14px
+        font_size: 12px
+        color: var(--primary-text-color)
+      event:
+        show_conditions: true
+        show_temp: true
+        show_uv_index: false
+        uv_index_threshold: 0
+        icon_size: 14px
+        font_size: 12px
+        color: var(--primary-text-color)
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-main/calendar
+    hold_action:
+      action: navigate
+      navigation_path: /lovelace-main/calendar
+    refresh_interval: 15
+    refresh_on_navigate: false

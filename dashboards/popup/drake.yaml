@@ -1,22 +1,21 @@
-type: vertical-stack
-cards: 
-  - type: custom:bubble-card
-    card_type: pop-up
-    hash: "#drake"
-    button_type: state
-    entity: binary_sensor.any_door_open_group
-    name: Doors
-    force_icon: false
-    show_state: true
-    show_last_changed: false
-    show_attribute: true
-    attribute: max_color_temp_kelvin
-    bg_opacity: '35'
-    button_action:
-      tap_action:
-        action: none
-    tap_action:
-      action: toggle
+type: custom:bubble-card
+card_type: pop-up
+hash: "#drake"
+button_type: state
+entity: binary_sensor.any_door_open_group
+name: Doors
+force_icon: false
+show_state: true
+show_last_changed: false
+show_attribute: true
+attribute: max_color_temp_kelvin
+bg_opacity: '35'
+button_action:
+  tap_action:
+    action: none
+tap_action:
+  action: toggle
+cards:
   - type: custom:auto-entities
     card:
       type: grid
@@ -36,4 +35,3 @@ cards:
             device_class: door
           options:
             type: custom:mushroom-entity-card
-

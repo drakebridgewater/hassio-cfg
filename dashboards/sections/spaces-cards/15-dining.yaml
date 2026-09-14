@@ -203,18 +203,11 @@ cards:
       columns: 2
       square: false
       cards:
-        - entity: light.vaulted_light
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Vaulted Light
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
+        - type: custom:decluttering-card
+          template: bubble_light
+          variables:
+            - entity: light.vaulted_light
+            - name: Vaulted Light
         - entity: fan.ceiling_fan
           type: custom:bubble-card
           card_type: button
@@ -227,39 +220,18 @@ cards:
               icon: mdi:power
               tap_action:
                 action: toggle
-        - entity: light.dining_room_ambience
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Dining Ambience
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-        - entity: light.stair_ambience_01
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Stair Ambience
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-        - entity: light.stairs_wall_switch
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Stairs
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
+        - type: custom:decluttering-card
+          template: bubble_light_color
+          variables:
+            - entity: light.dining_room_ambience
+            - name: Dining Ambience
+        - type: custom:decluttering-card
+          template: bubble_light_color
+          variables:
+            - entity: light.stair_ambience_01
+            - name: Stair Ambience
+        - type: custom:decluttering-card
+          template: bubble_light
+          variables:
+            - entity: light.stairs_wall_switch
+            - name: Stairs

@@ -52,6 +52,9 @@ cards:
           show_state: true
           show_icon: false
           show_background: false
+          tap_action:
+            action: navigate
+            navigation_path: /lovelace-main/climate
           visibility:
             - condition: screen
               media_query: "(min-width: 768px)"
@@ -260,54 +263,26 @@ cards:
       columns: 2
       square: false
       cards:
-        - entity: light.master_bedroom_wall_switch
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Wall Switch
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-        - entity: light.drake_s_bedside_lamp
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Drake's Lamp
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-        - entity: light.shawna_s_bedside_lamp
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Shawna's Lamp
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-        - entity: light.master_bedroom_dresser_lamp
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Dresser Lamp
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
+        - type: custom:decluttering-card
+          template: bubble_light
+          variables:
+            - entity: light.master_bedroom_wall_switch
+            - name: Wall Switch
+        - type: custom:decluttering-card
+          template: bubble_light_temp
+          variables:
+            - entity: light.drake_s_bedside_lamp
+            - name: "Drake's Lamp"
+        - type: custom:decluttering-card
+          template: bubble_light_temp
+          variables:
+            - entity: light.shawna_s_bedside_lamp
+            - name: "Shawna's Lamp"
+        - type: custom:decluttering-card
+          template: bubble_light_color
+          variables:
+            - entity: light.master_bedroom_dresser_lamp
+            - name: Dresser Lamp
         # - entity: light.master_bedroom_closet_wall_switch
         #   type: custom:bubble-card
         #   card_type: button
@@ -336,22 +311,12 @@ cards:
               show_background: true
               show_name: false
               
-        - entity: switch.master_bedroom_grow_lamp
-          name: Grow Light
-          icon: mdi:flower
-          type: custom:bubble-card
-          card_type: button
-          button_type: switch
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-
-              show_background: true
-              show_name: false
+        - type: custom:decluttering-card
+          template: bubble_switch
+          variables:
+            - entity: switch.master_bedroom_grow_lamp
+            - name: Grow Light
+            - icon: mdi:flower
       bottom_layout: rows
     styles: ""
     modules:

@@ -1,0 +1,96 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading: Refrigerator
+    heading_style: title
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    card_layout: large-2-rows
+    name: Refrigerator
+    entity: sensor.hz526153_current_temperature_fridge
+    icon: mdi:fridge
+    show_state: false
+    sub_button:
+      - entity: sensor.hz526153_current_temperature_fridge
+        icon: mdi:fridge-top
+        show_background: false
+        show_state: true
+        tap_action:
+          action: more-info
+      - entity: sensor.hz526153_current_temperature_freezer
+        icon: mdi:fridge-bottom
+        show_state: true
+        show_background: false
+      - entity: binary_sensor.hz526153_door_status_any_open
+        icon: mdi:fridge-alert
+        show_background: true
+        show_state: true
+        show_attribute: false
+        show_name: false
+      - entity: sensor.hz526153_water_filter_status
+        show_state: true
+        show_background: false
+        icon: mdi:water
+      - entity: sensor.hz526153_ice_maker_bucket_status_state_full_fridge
+        icon: mdi:delete-variant
+        show_background: false
+        show_state: true
+        tap_action:
+          action: more-info
+  - type: custom:bubble-card
+    card_type: button
+    name: Fridge
+    button_type: state
+    entity: water_heater.hz526153_fridge
+    sub_button:
+      - entity: water_heater.hz526153_fridge
+        name: Normal
+        icon: mdi:air-filter
+        tap_action:
+          action: call-service
+          service: water_heater.set_operation_mode
+          data:
+            operation_mode: Normal
+          target:
+            entity_id: water_heater.hz526153_fridge
+        show_name: true
+      - entity: water_heater.hz526153_fridge
+        name: TURBO
+        icon: mdi:car-turbocharger
+        tap_action:
+          action: call-service
+          service: water_heater.set_operation_mode
+          data:
+            operation_mode: Turbo Cool
+          target:
+            entity_id: water_heater.hz526153_fridge
+        show_name: true
+  - type: custom:bubble-card
+    card_type: button
+    name: Freezer
+    button_type: state
+    entity: water_heater.hz526153_freezer
+    sub_button:
+      - entity: water_heater.hz526153_freezer
+        name: Normal
+        icon: mdi:air-filter
+        tap_action:
+          action: call-service
+          service: water_heater.set_operation_mode
+          data:
+            operation_mode: Normal
+          target:
+            entity_id: water_heater.hz526153_freezer
+        show_name: true
+      - entity: water_heater.hz526153_freezer
+        name: TURBO
+        icon: mdi:car-turbocharger
+        tap_action:
+          action: call-service
+          service: water_heater.set_operation_mode
+          data:
+            operation_mode: Turbo Freeze
+          target:
+            entity_id: water_heater.hz526153_freezer
+        show_name: true

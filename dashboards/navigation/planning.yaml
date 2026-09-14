@@ -1,0 +1,22 @@
+# Planning pages bar.
+type: custom:decluttering-card
+template: navbar
+view_layout:
+  grid-area: footer
+variables:
+  - routes:
+      - url: /lovelace-main/home
+        icon: mdi:home
+        label: Home
+      - url: /lovelace-main/calendar
+        icon: mdi:calendar
+        label: Calendar
+      - url: /lovelace-main/scheduling
+        icon: mdi:calendar-clock
+        label: Scheduling
+      - url: /lovelace-main/automations
+        icon: mdi:home-automation
+        label: Automations
+      - url: /lovelace-main/planting
+        icon: mdi:flower
+        label: Gardening

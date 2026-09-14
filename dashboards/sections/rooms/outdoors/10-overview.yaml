@@ -1,0 +1,48 @@
+type: custom:mushroom-chips-card
+chips:
+  - type: template
+    entity: sensor.airnow_aqi
+    icon_color: |+
+      {% if int(states('sensor.airnow_aqi'))>=100 -%}
+        red
+      {%- elif int(states('sensor.airnow_aqi'))>=50 -%}
+        yellow
+      {%- else %}
+        green
+      {%- endif %}
+    icon:  |+
+      {% if int(states('sensor.airnow_aqi'))>=100 -%}
+        mdi:alert
+      {%- elif int(states('sensor.airnow_aqi'))>=50 -%}
+        mdi:weather-dust
+      {%- else %}
+        mdi:leaf
+      {%- endif %}
+    content: 'AQI {{states(''sensor.airnow_aqi'')}}'
+    # content_info: none
+    tap_action:
+      action: navigate
+  #     navigation_path: "#aqi-overview"
+  # - type: template
+  #   entity: sensor.pollen_max
+  #   icon_color: |-
+  #     {% if int(states('sensor.pollen_max'))>50 -%}
+  #       red
+  #     {%- elif int(states('sensor.pollen_max'))>25 -%}
+  #       yellow
+  #     {%- else %}
+  #       green
+  #     {%- endif %}
+  #   icon:  |+
+  #     {% if int(states('sensor.pollen_max'))>50 -%}
+  #       mdi:virus
+  #     {%- elif int(states('sensor.pollen_max'))>25 -%}
+  #       mdi:virus-outline
+  #     {%- else %}
+  #       mdi:leaf
+  #     {%- endif %}
+  #   content: 'Pollen ({{states(''sensor.pollen_max'')}} ppm)'
+  #   # content_info: none
+  #   tap_action:
+  #     action: navigate
+  #     navigation_path: "#pollen-overview"

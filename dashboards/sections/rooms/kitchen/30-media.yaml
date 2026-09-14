@@ -1,0 +1,41 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading: Media
+    heading_style: title
+  - type: custom:bubble-card
+    card_type: media-player
+    name: Google Home
+    entity: media_player.kitchen_google
+    show_state: true
+    show_last_updated: true
+    show_attribute: true
+    attribute: assumed_state
+    card_layout: large
+    scrolling_effect: false
+    show_icon: true
+    force_icon: true
+    show_name: true
+    show_last_changed: true
+    columns: 2
+    rows: 1
+    tap_action:
+      action: more-info
+    hide:
+      play_pause_button: true
+      volume_button: true
+      previous_button: true
+      next_button: true
+      power_button: true
+    sub_button:
+      - entity: media_player.kitchen_google
+        icon: mdi:volume-high
+        name: Volume level
+        tap_action:
+          action: more-info
+        show_name: false
+        show_state: false
+        show_last_updated: false
+        show_attribute: true
+        show_background: false
+        attribute: volume_level

@@ -1,0 +1,25 @@
+title: Greenhouse
+path: greenhouse
+icon: mdi:greenhouse
+subview: true
+back_path: /lovelace-main/home
+type: custom:grid-layout
+layout: !include ../../layouts/grid.yaml
+cards:
+  - !include ../../frame/banner.yaml
+  - !include ../../frame/sidebar.yaml
+  - !include ../../frame/footer.yaml
+  - !include ../../navigation/rooms.yaml
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: section1
+    cards: !include_dir_list ../../sections/pages/greenhouse/col1
+  - type: vertical-stack
+    view_layout:
+      grid-area: section2
+    cards: !include_dir_list ../../sections/pages/greenhouse/col2
+  - type: vertical-stack
+    view_layout:
+      grid-area: section3
+    cards: !include_dir_list ../../sections/pages/greenhouse/col3

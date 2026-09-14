@@ -1,0 +1,17 @@
+title: Calendar
+path: calendar
+icon: mdi:calendar
+subview: true
+back_path: /lovelace-main/home
+type: custom:grid-layout
+layout: !include ../../layouts/grid_wide.yaml
+cards:
+  - !include ../../frame/banner.yaml
+  - !include ../../frame/sidebar.yaml
+  - !include ../../frame/footer.yaml
+  - !include ../../navigation/planning.yaml
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: main
+    cards: !include_dir_list ../../sections/pages/calendar/col1

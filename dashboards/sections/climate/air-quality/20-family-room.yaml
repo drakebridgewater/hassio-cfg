@@ -1,0 +1,41 @@
+# Family Room air quality (Airthings View Plus). Also shown in the #family pop-up.
+type: custom:decluttering-card
+template: aq_room
+variables:
+  - name: Family Room
+  - temp: sensor.view_plus_temperature
+  - humid: sensor.view_plus_humidity
+  - score:
+      pm25: sensor.view_plus_pm2_5
+      voc: sensor.view_plus_volatile_organic_compounds_parts
+      voc_max: 300
+      co2: sensor.view_plus_carbon_dioxide
+  - tiles:
+      - name: PM1.0
+        entity: sensor.view_plus_pm1
+        good: 10
+        mod: 25
+        high: 50
+      - name: PM2.5
+        entity: sensor.view_plus_pm2_5
+        good: 12
+        mod: 35
+        high: 75
+      - name: Radon
+        entity: sensor.view_plus_radon
+        unit: pCi/L
+        scale: 0.027027
+        decimals: 1
+        good: 2
+        mod: 4
+        high: 8
+      - name: VOC
+        entity: sensor.view_plus_volatile_organic_compounds_parts
+        good: 100
+        mod: 200
+        high: 300
+      - name: CO₂
+        entity: sensor.view_plus_carbon_dioxide
+        good: 800
+        mod: 1200
+        high: 2000

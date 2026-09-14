@@ -1,0 +1,40 @@
+# Master Bedroom air quality (Apollo AIR-1). Also shown in the #master pop-up.
+type: custom:decluttering-card
+template: aq_room
+variables:
+  - name: Master Bedroom
+  - temp: sensor.apollo_air_1_f8b340_sen55_temperature
+  - humid: sensor.apollo_air_1_f8b340_sen55_humidity
+  - score:
+      pm25: sensor.apollo_air_1_f8b340_pm_2_5mm_weight_concentration
+      voc: sensor.apollo_air_1_f8b340_sen55_voc
+      voc_max: 300
+      co2: sensor.apollo_air_1_f8b340_co2
+  - tiles:
+      - name: PM1.0
+        entity: sensor.apollo_air_1_f8b340_pm_1mm_weight_concentration
+        good: 10
+        mod: 25
+        high: 50
+      - name: PM2.5
+        entity: sensor.apollo_air_1_f8b340_pm_2_5mm_weight_concentration
+        good: 12
+        mod: 35
+        high: 75
+      - name: CO
+        entity: sensor.apollo_air_1_f8b340_carbon_monoxide
+        decimals: 1
+        good: 4
+        mod: 9
+        high: 35
+      - name: VOC
+        entity: sensor.apollo_air_1_f8b340_sen55_voc
+        unit: index
+        good: 150
+        mod: 250
+        high: 400
+      - name: CO₂
+        entity: sensor.apollo_air_1_f8b340_co2
+        good: 800
+        mod: 1200
+        high: 2000
