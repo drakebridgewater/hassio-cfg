@@ -1,0 +1,49 @@
+# Alarm header card (Alarm status chip opens this page), styled like the Climate thermostat card.
+# Tap opens the Alarmo more-info keypad; there are no arm/disarm buttons, so code policy stays in Alarmo.
+type: custom:bubble-card
+card_type: button
+button_type: state
+entity: alarm_control_panel.default
+name: Alarm
+show_state: true
+show_last_changed: true
+state_color: false
+tap_action:
+  action: more-info
+button_action:
+  tap_action:
+    action: more-info
+sub_button:
+  main: []
+  bottom:
+    - entity: binary_sensor.any_door_open_group
+      name: Doors
+      show_name: true
+      show_state: true
+      state_background: false
+      tap_action:
+        action: navigate
+        navigation_path: '#door'
+    - entity: binary_sensor.window_open_group
+      name: Windows
+      show_name: true
+      show_state: true
+      state_background: false
+      tap_action:
+        action: navigate
+        navigation_path: '#window'
+    - entity: lock.og_u_bolt_pro
+      name: Front Lock
+      show_name: true
+      show_state: true
+      state_background: false
+      tap_action:
+        action: more-info
+    - entity: binary_sensor.whole_house_motion_group
+      name: Motion
+      icon: mdi:motion-sensor
+      show_name: true
+      show_state: true
+      state_background: false
+      tap_action:
+        action: more-info

@@ -15,6 +15,13 @@ button_action:
 tap_action:
   action: toggle
 cards:
+  # Header card (wall switch status chip opens this pop-up): the whole group, one brightness slider
+  - type: custom:decluttering-card
+    template: bubble_light
+    variables:
+      - entity: light.wall_switch_light_group
+      - name: All Wall Switches
+      - icon: mdi:light-switch
   - type: custom:bubble-card
     card_type: separator
     name: Upstairs

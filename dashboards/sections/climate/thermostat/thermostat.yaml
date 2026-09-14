@@ -1,0 +1,28 @@
+# Thermostat (Ecobee), first card on the Climate page. The status-chip header cards
+# (security, doors, windows, wall switches) follow this look.
+type: custom:bubble-card
+card_type: climate
+entity: climate.thermostat
+sub_button:
+  main:
+    - name: Mode
+      select_attribute: hvac_modes
+      state_background: false
+      show_arrow: false
+      sub_button_type: select
+      show_name: true
+      show_state: true
+    - entity: sensor.thermostat_temperature
+      show_state: true
+      state_background: false
+max_temp: 77
+min_temp: 66
+step: 1
+show_state: true
+force_icon: false
+show_last_changed: false
+state_color: false
+hide_temperature: false
+hide_target_temp_high: false
+main_buttons_position: bottom
+rows: 1.719

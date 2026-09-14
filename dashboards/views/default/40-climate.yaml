@@ -4,22 +4,30 @@ icon: mdi:thermometer
 subview: true
 back_path: /lovelace-main/home
 type: custom:grid-layout
-layout: !include ../../layouts/grid.yaml
+layout: !include ../../layouts/grid_wide.yaml
 cards:
   - !include ../../frame/banner.yaml
   - !include ../../frame/sidebar.yaml
   - !include ../../frame/footer.yaml
   - !include ../../navigation/house.yaml
 
-  - type: vertical-stack
+  # Masonry drops each card into the shortest column, so tall air-quality cards
+  # don't leave empty rows next to the short ones. One include per card so the
+  # cards balance individually; order is the fill order.
+  - type: custom:layout-card
+    layout_type: masonry
     view_layout:
-      grid-area: section1
-    cards: !include_dir_list ../../sections/climate/air-quality
-  - type: vertical-stack
-    view_layout:
-      grid-area: section2
-    cards: !include_dir_list ../../sections/climate/spaces
-  - type: vertical-stack
-    view_layout:
-      grid-area: section3
-    cards: !include_dir_list ../../sections/climate/trends
+      grid-area: main
+    layout:
+      width: 400
+      max_cols: 3
+    cards:
+      - !include ../../sections/climate/thermostat/thermostat.yaml
+      - !include ../../sections/climate/air-quality/10-living-room.yaml
+      - !include ../../sections/climate/spaces/40-attic.yaml
+      - !include ../../sections/climate/air-quality/20-family-room.yaml
+      - !include ../../sections/climate/spaces/50-crawl-space.yaml
+      - !include ../../sections/climate/air-quality/30-master-bedroom.yaml
+      - !include ../../sections/climate/spaces/60-outdoor-aqi.yaml
+      - !include ../../sections/climate/trends/60-temperature.yaml
+      - !include ../../sections/climate/trends/70-humidity.yaml
