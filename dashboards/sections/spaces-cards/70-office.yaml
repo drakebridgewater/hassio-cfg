@@ -147,7 +147,6 @@ cards:
       sub_button:
         main: []
         bottom:
-        bottom:
           - entity: light.office_wall_switch
             icon: mdi:ceiling-light
             tap_action:
@@ -194,41 +193,20 @@ cards:
       columns: 2
       square: false
       cards:
-        - entity: light.office_wall_switch
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Wall Switch
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-        - entity: light.desk_lights_group
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Desk Lights
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-        - entity: light.wled_candles
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Candles
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
+        - type: custom:decluttering-card
+          template: bubble_light
+          variables:
+            - entity: light.office_wall_switch
+            - name: Wall Switch
+        - type: custom:decluttering-card
+          template: bubble_light_color
+          variables:
+            - entity: light.desk_lights_group
+            - name: Desk Lights
+        - type: custom:decluttering-card
+          template: bubble_light_color
+          variables:
+            - entity: light.wled_candles
+            - name: Candles
 
     

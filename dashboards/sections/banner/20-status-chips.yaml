@@ -1,0 +1,268 @@
+type: custom:mushroom-chips-card
+alignment: center
+chips:
+  - type: conditional
+    conditions:
+      - condition: screen
+        media_query: "(min-width: 0px) and (max-width: 767px)"
+    chip:
+  - type: entity
+    conditions: !include ../../visibility/disarmed.yaml
+    entity: binary_sensor.home_occupied
+    use_entity_picture: true
+    tap_action:
+      action: navigate
+      navigation_path: "#people_overview"
+    hold_action:
+      action: more-info
+    card_mod:
+      style: |
+        ha-card {
+          --chip-icon-size: 0.8em
+        }
+
+  # Alarmo panel
+  - type: conditional
+    conditions: !include ../../visibility/disarmed.yaml
+    chip:
+      type: template
+      entity: alarm_control_panel.default
+      tap_action:
+        action: navigate
+        navigation_path: /lovelace-main/security
+      hold_action:
+        action: more-info
+      content: "{{ states('alarm_control_panel.default') | replace('_', ' ') | title }}"
+      icon: |-
+        {% set s = states('alarm_control_panel.default') %}
+        {% if s == 'disarmed' %}mdi:shield-off
+        {% elif s == 'armed_home' %}mdi:shield-home
+        {% elif s == 'armed_night' %}mdi:shield-moon
+        {% elif s == 'triggered' %}mdi:bell-ring
+        {% elif s in ['arming', 'pending'] %}mdi:shield-sync
+        {% else %}mdi:shield{% endif %}
+      icon_color: |-
+        {% set s = states('alarm_control_panel.default') %}
+        {% if s == 'disarmed' %}blue
+        {% elif s in ['arming', 'pending'] %}amber
+        {% else %}red{% endif %}
+      card_mod:
+        style: |
+          ha-card {
+            --chip-icon-size: 0.8em
+          }
+          {% if not is_state(config.entity, 'disarmed') %}
+            .content {
+            animation: boing 3s ease infinite;
+            transform-origin: 50% 90%;
+          }
+          @keyframes boing {
+            0% { transform: scale3d(1, 1, 1); }
+            7% { transform: scale3d(1.25, 0.75, 1); }
+            10% { transform: scale3d(0.75, 1.25, 1); }
+            12% { transform: scale3d(1.15, 0.85, 1); }
+            16% { transform: scale3d(0.95, 1.05, 1); }
+            19% { transform: scale3d(1.05, 0.95, 1); }
+            25% { transform: scale3d(1, 1, 1); }
+          }
+          {% endif %}
+
+  # Garage door: tap toggles, hold more-info
+  - type: entity
+    conditions: !include ../../visibility/disarmed.yaml
+    entity: cover.garage_door
+    tap_action:
+      action: toggle
+    hold_action:
+      action: more-info
+    icon_color: yellow
+    content_info: none
+    card_mod:
+      style: |
+        ha-card {
+          --chip-icon-size: 0.8em
+        }
+        {% if is_state(config.entity, 'open') %}
+          .content {
+          animation: boing 3s ease infinite;
+          transform-origin: 50% 90%;
+        }
+        @keyframes boing {
+          0% { transform: scale3d(1, 1, 1); }
+          7% { transform: scale3d(1.25, 0.75, 1); }
+          10% { transform: scale3d(0.75, 1.25, 1); }
+          12% { transform: scale3d(1.15, 0.85, 1); }
+          16% { transform: scale3d(0.95, 1.05, 1); }
+          19% { transform: scale3d(1.05, 0.95, 1); }
+          25% { transform: scale3d(1, 1, 1); }
+        }
+        {% endif %}
+
+  # Doors and windows only show while something is open
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: binary_sensor.any_door_open_group
+        state: "on"
+    chip:
+      type: entity
+      entity: binary_sensor.any_door_open_group
+      tap_action:
+        action: navigate
+        navigation_path: "#door"
+      content_info: none
+      icon_color: yellow
+      card_mod:
+        style: |
+          ha-card {
+            --chip-icon-size: 0.8em
+          }
+          .content {
+            animation: boing 3s ease infinite;
+            transform-origin: 50% 90%;
+          }
+          @keyframes boing {
+            0% { transform: scale3d(1, 1, 1); }
+            7% { transform: scale3d(1.25, 0.75, 1); }
+            10% { transform: scale3d(0.75, 1.25, 1); }
+            12% { transform: scale3d(1.15, 0.85, 1); }
+            16% { transform: scale3d(0.95, 1.05, 1); }
+            19% { transform: scale3d(1.05, 0.95, 1); }
+            25% { transform: scale3d(1, 1, 1); }
+          }
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: binary_sensor.window_open_group
+        state: "on"
+    chip:
+      type: entity
+      entity: binary_sensor.window_open_group
+      tap_action:
+        action: navigate
+        navigation_path: "#window"
+      content_info: none
+      icon_color: yellow
+      card_mod:
+        style: |
+          ha-card {
+            --chip-icon-size: 0.8em
+          }
+          .content {
+            animation: boing 3s ease infinite;
+            transform-origin: 50% 90%;
+          }
+          @keyframes boing {
+            0% { transform: scale3d(1, 1, 1); }
+            7% { transform: scale3d(1.25, 0.75, 1); }
+            10% { transform: scale3d(0.75, 1.25, 1); }
+            12% { transform: scale3d(1.15, 0.85, 1); }
+            16% { transform: scale3d(0.95, 1.05, 1); }
+            19% { transform: scale3d(1.05, 0.95, 1); }
+            25% { transform: scale3d(1, 1, 1); }
+          }
+
+  # Motion (icon only)
+  - type: template
+    entity: binary_sensor.whole_house_motion_group
+    tap_action:
+      action: more-info
+    icon_color: |-
+      {% if states('binary_sensor.whole_house_motion_group') == 'on' -%}
+        yellow
+      {%- else %}
+        white
+      {%- endif %}
+    icon: mdi:motion-sensor
+    content_info: none
+    card_mod:
+      style: |
+        ha-card {
+          --chip-icon-size: 0.8em
+        }
+        {% if is_state(config.entity, 'on') %}
+        .content {
+          animation: clip 2s linear infinite;
+        }
+        @keyframes clip {
+          50% { clip-path: polygon(0 0, 55% 0, 100% 100%, 0 100%); }
+        }
+        {% endif %}
+
+  # Thermostat
+  - type: template
+    entity: climate.thermostat
+    content: |-
+      {% set s = states('climate.thermostat') %}
+      {{ {'heat': 'Heat', 'cool': 'Cool', 'heat_cool': 'Auto', 'off': 'Off'}.get(s, 'Unknown') }}
+    icon_color: |-
+      {% set s = states('climate.thermostat') %}
+      {{ {'heat': 'red', 'cool': 'blue', 'heat_cool': 'green'}.get(s, 'grey') }}
+    icon: |-
+      {% set s = states('climate.thermostat') %}
+      {{ {'heat': 'mdi:fire', 'cool': 'mdi:air-conditioner', 'heat_cool': 'mdi:hvac'}.get(s, 'mdi:hvac-off') }}
+    card_mod:
+      style: |
+        ha-card {
+          --chip-icon-size: 0.8em
+        }
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-main/climate
+    hold_action:
+      action: more-info
+
+  # Wall switches and lights-on count
+  - type: light
+    entity: light.wall_switch_light_group
+    icon: mdi:light-switch
+    tap_action:
+      action: navigate
+      navigation_path: "#wall_switches"
+    card_mod:
+      style: |
+        ha-card {
+          --chip-icon-size: 0.8em
+        }
+  - type: template
+    icon: |-
+      {% set lights_on = states.light | selectattr('state', 'eq', 'on') | rejectattr('entity_id', 'match', '.*group.*') | list | count %}
+      {{ 'mdi:lightbulb-multiple' if lights_on > 0 else 'mdi:lightbulb-multiple-off' }}
+    icon_color: |-
+      {% set lights_on = states.light | selectattr('state', 'eq', 'on') | rejectattr('entity_id', 'match', '.*group.*') | list | count %}
+      {{ 'amber' if lights_on > 0 else 'disabled' }}
+    content: |-
+      {% set lights_on = states.light | selectattr('state', 'eq', 'on') | rejectattr('entity_id', 'match', '.*group.*') | list | count %}
+      {{ lights_on ~ ' On' if lights_on > 0 else 'All Off' }}
+    tap_action:
+      action: navigate
+      navigation_path: "#lights"
+
+  # Power: usage and solar in one chip; opens the Home Assistant Energy dashboard
+  - type: template
+    entity: sensor.sense_energy
+    icon: |-
+      {% set using = states('sensor.sense_energy') | int(0) %}
+      {% set solar = states('sensor.envoy_202208027163_current_power_production') | int(0) %}
+      {{ 'mdi:solar-power-variant' if solar > using else 'mdi:meter-electric-outline' }}
+    icon_color: |-
+      {% set using = states('sensor.sense_energy') | int(0) %}
+      {% set solar = states('sensor.envoy_202208027163_current_power_production') | int(0) %}
+      {{ 'green' if solar > using else 'amber' if solar > 20 else 'blue' }}
+    content: |-
+      {% set using = states('sensor.sense_energy') | int(0) %}
+      {% set solar = states('sensor.envoy_202208027163_current_power_production') | int(0) %}
+      {% macro watts(w) %}{{ (w / 1000) | round(1) ~ ' kW' if w >= 1000 else w ~ ' W' }}{% endmacro %}
+      ↓ {{ watts(using) }}{% if solar > 20 %}  ☀ {{ watts(solar) }}{% endif %}
+    tap_action:
+      action: navigate
+      navigation_path: /energy
+    hold_action:
+      action: more-info
+
+  - type: entity
+    entity: todo.default
+    icon: mdi:cart-variant
+    tap_action:
+      action: navigate
+      navigation_path: /todo?entity_id=todo.default

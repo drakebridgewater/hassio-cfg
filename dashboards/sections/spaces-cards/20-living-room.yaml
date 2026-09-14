@@ -93,6 +93,16 @@ cards:
             - condition: state
               entity: input_boolean.living_room_view_expanded
               state: 'off'
+        - entity: sensor.thermostat_air_quality_index
+          show_state: true
+          show_icon: false
+          show_background: false
+          tap_action:
+            action: navigate
+            navigation_path: /lovelace-main/climate
+          visibility:
+            - condition: screen
+              media_query: "(min-width: 768px)"
       bottom_layout: rows
     styles: ""
     modules:
@@ -220,30 +230,16 @@ cards:
       columns: 2
       square: false
       cards:
-        - entity: light.awning_left_lamp
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Awning Left
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-        - entity: light.awning_right_lamp
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Awning Right
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
+        - type: custom:decluttering-card
+          template: bubble_light_color
+          variables:
+            - entity: light.awning_left_lamp
+            - name: Awning Left
+        - type: custom:decluttering-card
+          template: bubble_light_color
+          variables:
+            - entity: light.awning_right_lamp
+            - name: Awning Right
         - entity: fan.main_air_circulator
           type: custom:bubble-card
           card_type: button
@@ -256,66 +252,31 @@ cards:
               icon: mdi:power
               tap_action:
                 action: toggle
-        - entity: light.entertainment_center_backdrop
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Behind TV
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-        - entity: light.living_room_tv_left_lamp
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: TV Left
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-        - entity: light.living_room_tv_right_lamp
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: TV Right
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-        - entity: light.yeelight_pulley_lamp
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Pulley Lamp
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-        - entity: light.yeelight_theater_left
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Theater Left
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
+        - type: custom:decluttering-card
+          template: bubble_light_color
+          variables:
+            - entity: light.entertainment_center_backdrop
+            - name: Behind TV
+        - type: custom:decluttering-card
+          template: bubble_light_color
+          variables:
+            - entity: light.living_room_tv_left_lamp
+            - name: TV Left
+        - type: custom:decluttering-card
+          template: bubble_light_color
+          variables:
+            - entity: light.living_room_tv_right_lamp
+            - name: TV Right
+        - type: custom:decluttering-card
+          template: bubble_light_color
+          variables:
+            - entity: light.yeelight_pulley_lamp
+            - name: Pulley Lamp
+        - type: custom:decluttering-card
+          template: bubble_light_color
+          variables:
+            - entity: light.yeelight_theater_left
+            - name: Theater Left
 
   # DETAILED VIEW - Popup (triggered by hash navigation)
   # - type: vertical-stack

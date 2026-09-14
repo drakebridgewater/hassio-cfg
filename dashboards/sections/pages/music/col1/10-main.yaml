@@ -1,0 +1,11 @@
+type: custom:mass-player-card
+entities:
+  - media_player.family_room_2
+  - media_player.kitchen_display_2
+  - media_player.living_room_2
+expressive: false
+panel: true
+sync_player_across_dashboard: true
+queue:
+  show_album_covers: true
+  show_artist_names: true

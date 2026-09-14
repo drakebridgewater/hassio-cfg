@@ -1,0 +1,58 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading: Lighting
+    heading_style: title
+  - type: custom:bubble-card
+    card_type: sub-buttons
+    sub_button:
+      main: []
+      bottom:
+        - name: Synced Lights
+          buttons_layout: inline
+          group:
+            - entity: light.kitchen_wall_switch
+              icon: hue:bulb-group-ceiling-round
+              show_name: true
+              name: Kitchen
+              tap_action:
+                service: ""
+                action: toggle
+              hold_action:
+                action: more-info
+            - entity: automation.synced_entities
+              name: Synced Lights
+              show_icon: true
+              show_name: true
+              icon: mdi:sync-alert
+            - entity: light.vaulted_light
+              show_name: true
+              name: Dining
+              tap_action:
+                service: ""
+                action: toggle
+              hold_action:
+                action: more-info
+  - type: custom:decluttering-card
+    template: bubble_light_color
+    variables:
+      - entity: light.kitchen_sink_lamp
+  - type: horizontal-stack
+    cards:
+      - type: custom:decluttering-card
+        template: bubble_light_color
+        variables:
+          - entity: light.pantry_left_lamp
+          - name: Pantry Left
+      - type: custom:decluttering-card
+        template: bubble_light_temp
+        variables:
+          - entity: light.pantry_right_lamp
+          - name: Pantry Right
+  - type: custom:decluttering-card
+    template: bubble_light_effect
+    variables:
+      - entity: light.kitchen_cabinet_light_strip
+      - icon: phu:light-strip
+      - palette: select.kitchen_cabinet_light_strip_color_palette
+      - preset: select.kitchen_cabinet_light_strip_preset

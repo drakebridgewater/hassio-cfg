@@ -1,0 +1,52 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading_style: title
+    heading: Upstairs Greenhouse
+    icon: mdi:greenhouse
+  - type: custom:bubble-card
+    card_type: button
+    button_type: switch
+    name: Left Greenhouse
+    sub_button:
+      main:
+        - entity: sensor.living_room_greenhouse_humidity
+          show_last_changed: false
+          show_background: false
+          show_state: true
+        - entity: sensor.living_room_greenhouse_battery_plus
+          show_state: true
+          show_background: false
+          fill_width: false
+        - entity: switch.left_greenhouse_plug
+          icon: mdi:power
+          tap_action:
+            action: toggle
+    entity: switch.left_greenhouse_plug
+  - type: custom:mini-graph-card
+    name: Temperature
+    icon: mdi:temperature-fahrenheit
+    entities:
+      - entity: sensor.dinning_room_greenhouse_temperature
+    smoothing: false
+    align_icon: left
+    align_state: center
+    hours_to_show: 12
+    points_per_hour: 6
+    aggregate_func: avg
+    lower_bound: 65
+    upper_bound: 85
+    show:
+      labels: true
+      labels_secondary: true
+      icon: true
+      name: true
+      state: true
+      name_adaptive_color: true
+    color_thresholds:
+      - value: 67
+        color: '#5cb0ff'
+      - value: 76
+        color: '#de9e00'
+      - value: 85
+        color: '#d43400'

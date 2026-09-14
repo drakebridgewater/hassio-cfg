@@ -1,0 +1,25 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading: Recent Security Events
+    heading_style: title
+    icon: mdi:history
+  - type: logbook
+    title: Last 12 Hours
+    hours_to_show: 12
+    target:
+      entity_id:
+        - alarm_control_panel.default
+        - lock.og_u_bolt_pro
+        - cover.garage_door
+        - binary_sensor.front_door
+        - binary_sensor.kitchen_door
+        - binary_sensor.basement_sliding_door
+        - binary_sensor.frontdeck_package_occupancy
+        - binary_sensor.frontdoor_package_occupancy
+        - binary_sensor.smoke_alarm_monitor
+        - binary_sensor.basement_bathroom_sink_water_leak_detected
+        - binary_sensor.crawl_space_leak_monitor_water_leak_detected
+        - binary_sensor.main_bathroom_sink_water_leak_detected
+        - binary_sensor.crawl_space_water_leak_detected_2
+        - binary_sensor.master_bathroom_toilet_water_leak_detected

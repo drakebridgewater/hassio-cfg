@@ -1,0 +1,40 @@
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.driveway
+    triggers:
+      occupancy: true
+      motion: true
+  - camera_entity: camera.frontdoor
+    always_error_if_entity_unavailable: false
+    triggers:
+      occupancy: true
+      motion: true
+  - camera_entity: camera.backyard
+  - camera_entity: camera.garage
+view:
+  default: clips
+  dim: false
+  camera_select: clips
+media_gallery:
+  controls:
+    thumbnails:
+      size: 176
+      show_details: true
+      show_favorite_control: true
+      show_timeline_control: true
+      show_download_control: false
+    filter:
+      mode: right
+timeline:
+  style: ribbon
+  controls:
+    thumbnails:
+      mode: below
+      size: 138
+status_bar:
+  style: outside
+  position: bottom
+media_viewer:
+  transition_effect: none
+  display:
+    mode: grid

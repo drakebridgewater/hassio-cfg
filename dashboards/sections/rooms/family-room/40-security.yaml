@@ -1,0 +1,35 @@
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: separator
+    name: Security
+  - show_state: false
+    view_layout:
+      grid-area: section6
+    show_name: false
+    camera_view: auto
+    type: picture-entity
+    entity: camera.family_room_camera
+    tap_action:
+      action: call-service
+      service: abode.capture_image
+      data:
+        entity_id: camera.family_room_camera
+    aspect_ratio: '9:5'
+  - type: vertical-stack
+    cards:
+      - type: custom:bubble-card
+        card_type: separator
+        name: Ceiling Lights
+      - type: custom:decluttering-card
+        template: bubble_light_color
+        variables:
+          - entity: light.family_room_ceiling_lamp_01
+      - type: custom:decluttering-card
+        template: bubble_light_color
+        variables:
+          - entity: light.family_room_ceiling_lamp_02
+      - type: custom:decluttering-card
+        template: bubble_light_color
+        variables:
+          - entity: light.family_room_ceiling_lamp_03

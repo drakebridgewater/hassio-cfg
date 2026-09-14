@@ -1,0 +1,148 @@
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: separator
+    sub_button:
+      main:
+        - entity: binary_sensor.garage_entry_motion_sensor_occupancy
+          icon: mdi:motion-sensor
+          state_background: true
+          show_background: false
+          visibility:
+            - condition: state
+              entity: binary_sensor.garage_entry_motion_sensor_occupancy
+              state: 'on'
+        - entity: binary_sensor.garage_door_motion_sensor_occupancy
+          icon: mdi:motion-sensor
+          state_background: true
+          show_background: false
+          visibility:
+            - condition: state
+              entity: binary_sensor.garage_door_motion_sensor_occupancy
+              state: 'on'
+        - entity: binary_sensor.garage_portal
+          icon: mdi:motion-sensor
+          state_background: true
+          show_background: false
+          visibility:
+            - condition: state
+              entity: binary_sensor.garage_portal
+              state: 'on'
+      bottom: []
+    name: Garage
+    icon: mdi:garage
+  - type: custom:bubble-card
+    card_type: cover
+    sub_button:
+      main: []
+      bottom: []
+    entity: cover.garage_door
+    show_state: true
+    show_attribute: true
+    attribute: current_position
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    sub_button:
+      main:
+        - entity: switch.drivewaycam_dahua_siren
+          show_name: true
+          name: Siren
+        - entity: light.drivewaycam_dahua_security_light
+          name: Strobe
+          show_name: true
+          show_state: false
+          show_attribute: false
+          attribute: color_mode
+        - entity: sensor.driveway_last_recognized_face
+          show_state: true
+      bottom: []
+    entity: camera.drivewaycam_dahua_main
+    name: Driveway
+    show_icon: true
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    sub_button:
+      main:
+        - entity: binary_sensor.garage_dog_occupancy
+          show_name: false
+          show_state: true
+        - entity: sensor.driveway_last_recognized_face
+          show_state: true
+      bottom: []
+    entity: camera.garage
+    rows: 1
+  - type: custom:bubble-card
+    card_type: separator
+    sub_button:
+      main:
+        - entity: binary_sensor.frontdeck_package_occupancy
+          icon: mdi:package
+          state_background: true
+          show_background: false
+          visibility:
+            - condition: state
+              entity: binary_sensor.frontdeck_package_occupancy
+              state: 'on'
+        - entity: binary_sensor.front_door
+          icon: ''
+          state_background: true
+          show_background: false
+          visibility:
+            - condition: state
+              entity: binary_sensor.front_door
+              state: 'on'
+        - entity: binary_sensor.porch_motion_motion_detection
+          icon: ''
+          state_background: true
+          show_background: false
+          visibility:
+            - condition: state
+              entity: binary_sensor.porch_motion_motion_detection
+              state: 'on'
+      bottom: []
+    name: Front Door
+    icon: hue:room-front-door
+  - type: custom:bubble-card
+    card_type: button
+    button_type: switch
+    sub_button:
+      main:
+        - entity: sensor.frontdoor_last_recognized_face
+          show_name: false
+          show_state: true
+          show_icon: true
+        - entity: binary_sensor.frontdoor_package_occupancy
+          icon: mdi:package-check
+          show_state: true
+      bottom: []
+    entity: camera.frontdoor
+    button_action:
+      tap_action:
+        action: more-info
+    show_state: true
+  - type: custom:bubble-card
+    card_type: separator
+    sub_button:
+      main:
+        - entity: binary_sensor.kitchen_door
+          visibility:
+            - condition: state
+              entity: binary_sensor.kitchen_door
+              state: 'on'
+      bottom: []
+    name: Kitchen Door
+    icon: phu:panel-glass-door-close
+  - type: custom:bubble-card
+    card_type: separator
+    sub_button:
+      main:
+        - entity: binary_sensor.basement_sliding_door
+          visibility:
+            - condition: state
+              entity: binary_sensor.basement_sliding_door
+              state: 'on'
+      bottom: []
+    name: Basement Door
+    icon: mdi:door-sliding

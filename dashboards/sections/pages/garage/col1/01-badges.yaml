@@ -1,0 +1,47 @@
+type: custom:mushroom-chips-card
+chips:
+  - type: entity
+    entity: binary_sensor.home_occupied
+  - type: entity
+    entity: alarm_control_panel.default
+  - type: entity
+    entity: cover.garage_door
+    tap_action:
+      action: toggle
+    hold_action:
+      action: more-info
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: lock.og_u_bolt_pro
+        state_not: locked
+    chip:
+      type: entity
+      entity: lock.og_u_bolt_pro
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: binary_sensor.front_door
+        state_not: 'off'
+    chip:
+      type: entity
+      entity: binary_sensor.front_door
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: binary_sensor.garage_portal
+        state_not: 'off'
+    chip:
+      type: entity
+      entity: binary_sensor.garage_portal
+  - type: entity
+    entity: binary_sensor.whole_house_motion_group
+    icon: mdi:motion-sensor
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: binary_sensor.window_open_group
+        state: 'on'
+    chip:
+      type: entity
+      entity: binary_sensor.window_open_group

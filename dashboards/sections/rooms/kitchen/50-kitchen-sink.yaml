@@ -1,0 +1,15 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading: Kitchen Sink
+    heading_style: title
+  - type: custom:mushroom-chips-card
+    chips:
+      - type: entity
+        entity: sensor.flo_under_kitchen_sink_temperature
+      - type: entity
+        entity: sensor.flo_under_kitchen_sink_humidity
+      - type: entity
+        entity: sensor.flo_under_kitchen_sink_battery
+      - type: entity
+        entity: binary_sensor.flo_under_kitchen_sink_water_detected

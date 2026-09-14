@@ -3,20 +3,15 @@ max_columns: 4
 title: Ethan
 path: ethan
 type: custom:grid-layout
-layout: !include ../../layouts/grid_no_sidebar.yaml
+subview: true
+back_path: /lovelace-main/home
+layout: !include ../../layouts/grid.yaml
 
 cards:
-
- 
-  - type: custom:mushroom-chips-card
-    view_layout:
-      grid-area: banner
-    chips: !include ../../sections/status-bar.yaml
-
-  - type: vertical-stack
-    view_layout:
-      grid-area: footer
-    cards: !include_dir_list ../../sections/footer
+  - !include ../../frame/banner.yaml
+  - !include ../../frame/sidebar.yaml
+  - !include ../../frame/footer.yaml
+  - !include ../../navigation/rooms.yaml
 
   - type: custom:stack-in-card
     view_layout:
@@ -26,54 +21,23 @@ cards:
             heading_style: title
             heading: Bedroom
             icon: mdi:bed
-          - type: custom:bubble-card
-            card_type: button
-            button_type: slider
-            entity: light.ethan_s_bedroom_wall_switch
-            name: Wall Switch
-            sub_button:
-              main:
-                - entity: light.ethan_s_bedroom_wall_switch
-                  tap_action:
-                    action: toggle
-                  icon: mdi:power
-              bottom: []
-            show_state: false
-            show_last_changed: false
-            show_last_updated: true
-          - type: custom:bubble-card
-            card_type: button
-            button_type: slider
-            name: Bed Lights
-            sub_button:
-              main:
-                - entity: light.toy_chest_strip
-                  tap_action:
-                    action: toggle
-                  icon: mdi:power
-              bottom: []
-            entity: light.toy_chest_strip
-            show_state: false
-            show_last_changed: false
-            show_last_updated: true
-            show_attribute: false
-            icon: mdi:bed-empty
-          - entity: switch.ethan_s_door_switch
-            name: White Noise
-            icon: mdi:sleep
-            type: custom:bubble-card
-            card_type: button
-            button_type: switch
-            show_last_updated: true
-            tap_action:
-              action: more-info
-            sub_button:
-              - name: Toggle button
-                icon: mdi:power
-                tap_action:
-                  action: toggle
-                hold_action:
-                  action: more-info
+          - type: custom:decluttering-card
+            template: bubble_light
+            variables:
+              - entity: light.ethan_s_bedroom_wall_switch
+              - name: Wall Switch
+          - type: custom:decluttering-card
+            template: bubble_light_color
+            variables:
+              - entity: light.toy_chest_strip
+              - name: Bed Lights
+              - icon: mdi:bed-empty
+          - type: custom:decluttering-card
+            template: bubble_switch
+            variables:
+              - entity: switch.ethan_s_door_switch
+              - name: White Noise
+              - icon: mdi:sleep
           - entity: fan.ethan_s_cribside
             name: Fan
             type: custom:bubble-card
@@ -85,20 +49,12 @@ cards:
                 icon: mdi:power
                 tap_action:
                   action: toggle
-          - entity: switch.ethan_s_door_switch
-            name: White Noise
-            icon: mdi:sleep
-            type: custom:bubble-card
-            card_type: button
-            button_type: switch
-            show_last_updated: true
-            sub_button:
-              - name: Toggle button
-                icon: mdi:power
-                tap_action:
-                  action: toggle
-                hold_action:
-                  action: more-info
+          - type: custom:decluttering-card
+            template: bubble_switch
+            variables:
+              - entity: switch.ethan_s_door_switch
+              - name: White Noise
+              - icon: mdi:sleep
           - type: custom:bubble-card
             card_type: sub-buttons
             sub_button:

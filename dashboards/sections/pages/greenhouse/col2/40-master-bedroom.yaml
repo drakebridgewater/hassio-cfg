@@ -1,0 +1,52 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading_style: title
+    heading: Master Bedroom
+    icon: mdi:bed-king
+  - type: custom:bubble-card
+    entity: switch.master_bedroom_grow_lamp
+    card_type: button
+    button_type: switch
+    name: Grow Light
+    sub_button:
+      main:
+        - entity: sensor.apollo_air_1_f8b340_sen55_temperature
+          show_last_changed: false
+          show_background: false
+          show_state: true
+        - entity: switch.master_bedroom_grow_lamp
+          icon: mdi:power
+          tap_action:
+            action: toggle
+      bottom: []
+    button_action:
+      tap_action:
+        action: more-info
+  - type: custom:mini-graph-card
+    name: Temperature
+    icon: mdi:temperature-fahrenheit
+    entities:
+      - entity: sensor.apollo_air_1_f8b340_sen55_temperature
+    smoothing: false
+    align_icon: left
+    align_state: center
+    hours_to_show: 12
+    points_per_hour: 6
+    aggregate_func: avg
+    lower_bound: 65
+    upper_bound: 85
+    show:
+      labels: true
+      labels_secondary: true
+      icon: true
+      name: true
+      state: true
+      name_adaptive_color: true
+    color_thresholds:
+      - value: 67
+        color: '#5cb0ff'
+      - value: 76
+        color: '#de9e00'
+      - value: 85
+        color: '#d43400'

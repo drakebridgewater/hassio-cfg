@@ -2,7 +2,7 @@
 - condition: or
   conditions:
   - condition: state
-    entity: alarm_control_panel.abode_alarm
+    entity: alarm_control_panel.default
     state: disarmed
 
   - condition: user

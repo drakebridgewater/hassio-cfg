@@ -1,0 +1,28 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading: Environmental Hazards
+    heading_style: title
+    icon: mdi:fire-alert
+  - type: tile
+    entity: binary_sensor.smoke_alarm_monitor
+    name: Smoke Alarm
+    color: red
+  - type: tile
+    entity: sensor.apollo_air_1_f8b340_carbon_monoxide
+    name: Carbon Monoxide
+    color: orange
+  - type: custom:auto-entities
+    card:
+      type: entities
+      title: Water Leak Sensors
+      show_header_toggle: false
+      state_color: true
+    filter:
+      include:
+        - entity_id: binary_sensor.*water_leak*
+    sort:
+      method: state
+      reverse: true
+    show_empty: false
+    card_param: entities

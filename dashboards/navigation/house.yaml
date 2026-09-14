@@ -1,0 +1,25 @@
+# House pages bar.
+type: custom:decluttering-card
+template: navbar
+view_layout:
+  grid-area: footer
+variables:
+  - routes:
+      - url: /lovelace-main/home
+        icon: mdi:home
+        label: Home
+      - url: /lovelace-main/cleaning
+        icon: mdi:vacuum-outline
+        label: Cleaning
+      - url: /lovelace-main/climate
+        icon: mdi:thermometer
+        label: Climate
+      - url: /lovelace-main/music
+        icon: mdi:music
+        label: Music
+      - url: /lovelace-main/misc
+        icon: mdi:dots-grid
+        label: Misc
+      - url: /lovelace-main/help
+        icon: mdi:help-circle-outline
+        label: Help

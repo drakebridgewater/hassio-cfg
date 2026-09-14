@@ -1,0 +1,50 @@
+# Doorbell: live view with recent events as thumbnails below.
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.frontdoor
+    always_error_if_entity_unavailable: false
+    triggers:
+      occupancy: true
+      motion: true
+view:
+  default: live
+  dim: false
+live:
+  draggable: false
+  zoomable: false
+  controls:
+    thumbnails:
+      mode: below
+      media_type: events
+      size: 140
+menu:
+  style: outside
+  position: top
+  buttons:
+    live:
+      enabled: true
+      permanent: true
+    clips:
+      enabled: true
+      permanent: true
+    snapshots:
+      enabled: true
+    recordings:
+      enabled: true
+      icon: mdi:record-rec
+    fullscreen:
+      enabled: true
+    cameras:
+      enabled: false
+status_bar:
+  style: outside
+  position: bottom
+media_gallery:
+  controls:
+    thumbnails:
+      size: 170
+      show_details: true
+      show_timeline_control: true
+      show_download_control: true
+timeline:
+  style: ribbon

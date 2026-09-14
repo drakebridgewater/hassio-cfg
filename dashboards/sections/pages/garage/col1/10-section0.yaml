@@ -1,0 +1,56 @@
+type: vertical-stack
+cards:
+  - type: custom:decluttering-card
+    template: bubble_light
+    variables:
+      - entity: light.garage_wall_switch
+      - icon: mdi:light-switch
+  - type: custom:advanced-camera-card
+    cameras:
+      - camera_entity: camera.garage
+    menu:
+      style: outside
+      button_size: 47
+      buttons:
+        iris:
+          enabled: false
+        cameras:
+          enabled: true
+        substreams:
+          enabled: false
+        live:
+          enabled: true
+        download:
+          enabled: false
+        display_mode:
+          enabled: false
+        media_player:
+          enabled: false
+        fullscreen:
+          enabled: false
+        recordings:
+          enabled: true
+          icon: mdi:record-rec
+          priority: 29
+    status_bar:
+      style: outside
+      position: bottom
+    media_viewer:
+      display: {}
+    media_gallery:
+      controls:
+        thumbnails:
+          size: 140
+          show_details: true
+    timeline:
+      controls:
+        thumbnails: {}
+  - type: custom:bubble-card
+    card_type: button
+    button_type: switch
+    sub_button:
+      main: []
+      bottom: []
+    entity: input_boolean.dog_outside
+    show_last_updated: true
+    name: Is Abby Outside

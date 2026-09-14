@@ -1,0 +1,28 @@
+# Living Room air quality (Ecobee thermostat). Also shown in the #living-room and #aqi-overview pop-ups.
+type: custom:decluttering-card
+template: aq_room
+variables:
+  - name: Living Room
+  - temp: sensor.thermostat_temperature
+  - humid: sensor.thermostat_humidity
+  - score:
+      voc: sensor.thermostat_voc
+      voc_max: 660
+      co2: sensor.thermostat_co2
+  - tiles:
+      - name: AQI
+        entity: sensor.thermostat_air_quality_index
+        unit: index
+        good: 50
+        mod: 100
+        high: 150
+      - name: VOC
+        entity: sensor.thermostat_voc
+        good: 220
+        mod: 660
+        high: 1430
+      - name: CO₂
+        entity: sensor.thermostat_co2
+        good: 800
+        mod: 1200
+        high: 2000

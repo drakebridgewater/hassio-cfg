@@ -1,0 +1,31 @@
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: separator
+    name: Lamps
+  - type: horizontal-stack
+    cards:
+      - type: custom:decluttering-card
+        template: bubble_light_color
+        variables:
+          - entity: light.family_room_couch_right_lamp
+          - name: Couch Lamp
+          - icon: hue:aura
+      - type: custom:decluttering-card
+        template: bubble_light_color
+        variables:
+          - entity: light.family_room_couch_left_lamp
+          - name: Chair Lamp
+          - icon: hue:aura
+  - type: custom:decluttering-card
+    template: bubble_light_color
+    variables:
+      - entity: light.corner_couch_lamp
+      - name: Corner Lamp
+      - icon: hue:beyond-up
+  - type: custom:decluttering-card
+    template: bubble_light_color
+    variables:
+      - entity: light.shelf_strip
+      - name: Shelf Strip
+      - icon: hue:friends-of-hue-iq-pendant

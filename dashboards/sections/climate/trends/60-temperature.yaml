@@ -1,0 +1,45 @@
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: separator
+    name: Trends
+    icon: mdi:chart-line
+  - type: thermostat
+    entity: climate.thermostat
+  - type: custom:mini-graph-card
+    name: Temperature
+    icon: mdi:temperature-fahrenheit
+    entities:
+      - entity: sensor.view_plus_temperature
+        name: Family
+        show_legend_state: true
+      - entity: sensor.apollo_air_1_f8b340_sen55_temperature
+        name: Master
+        show_legend_state: true
+      - entity: sensor.living_room_temperature_sensor_temperature
+        name: Main
+        show_legend_state: true
+      - entity: sensor.office_temperature_sensor_temperature
+        name: Office
+        show_legend_state: true
+      - entity: sensor.ethan_bedroom_temperature
+        name: Ethan
+        show_legend_state: true
+    smoothing: false
+    align_icon: left
+    align_state: center
+    hours_to_show: 12
+    points_per_hour: 6
+    lower_bound: 60
+    upper_bound: 80
+    show:
+      labels: true
+      labels_secondary: true
+      name_adaptive_color: true
+    color_thresholds:
+      - value: 67
+        color: "#5cb0ff"
+      - value: 70
+        color: "#de9e00"
+      - value: 74
+        color: "#d43400"

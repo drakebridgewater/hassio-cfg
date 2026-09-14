@@ -1,0 +1,5 @@
+# Shared view frame: status message and chips at the top of every view.
+type: vertical-stack
+view_layout:
+  grid-area: banner
+cards: !include_dir_list ../sections/banner

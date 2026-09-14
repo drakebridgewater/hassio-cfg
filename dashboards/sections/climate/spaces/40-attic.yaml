@@ -1,0 +1,42 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading_style: title
+    heading: Attic
+    badges:
+      - type: entity
+        show_state: true
+        show_icon: true
+        entity: sensor.acurite_tower_attic_sensor_humidity
+  - type: markdown
+    text_only: true
+    content: |
+      <ha-alert alert-type="warning">Attic is at risk of mold growth</ha-alert>
+    visibility:
+      - condition: numeric_state
+        entity: sensor.attic_mold_risk_index_risk_index
+        above: 0
+  - type: custom:mini-graph-card
+    name: Attic Temperature
+    icon: mdi:temperature-fahrenheit
+    entities:
+      - entity: sensor.acurite_tower_attic_sensor_temperature
+        show_legend_state: true
+    smoothing: false
+    align_icon: left
+    align_state: center
+    hours_to_show: 72
+    points_per_hour: 2
+    aggregate_func: avg
+    lower_bound: 32
+    upper_bound: 110
+    show:
+      labels: true
+      labels_secondary: true
+    color_thresholds:
+      - value: 32
+        color: "#5cb0ff"
+      - value: 70
+        color: "#de9e00"
+      - value: 95
+        color: "#d43400"

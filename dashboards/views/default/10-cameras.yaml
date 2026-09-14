@@ -1,19 +1,19 @@
 title: Cameras
 path: cameras
 type: custom:grid-layout
-layout: !include ../../layouts/grid_no_sidebar.yaml
+subview: true
+back_path: /lovelace-main/home
+layout: !include ../../layouts/grid.yaml
 cards:
-
-  ######################### Status Bar ############################################
-  - type: custom:mushroom-chips-card
-    view_layout:
-      grid-area: banner
-    chips: !include ../../sections/status-bar.yaml
+  - !include ../../frame/banner.yaml
+  - !include ../../frame/sidebar.yaml
+  - !include ../../frame/footer.yaml
+  - !include ../../navigation/security.yaml
 
   - type: vertical-stack
     view_layout:
-      grid-area: footer
-    cards: !include_dir_list ../../sections/footer
+      grid-area: section7
+    cards: !include_dir_list ../../sections/pages/cameras/col1
   
       
   - type: custom:stack-in-card

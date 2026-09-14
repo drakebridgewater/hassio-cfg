@@ -1,0 +1,39 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading: Who's Where (Double Take + Frigate)
+    heading_style: title
+    icon: mdi:face-recognition
+  - type: markdown
+    content: |-
+      {% set people = [('Drake','sensor.frigate_drake_last_camera','device_tracker.double_take_drake'),('Shawna','sensor.frigate_shawna_last_camera','device_tracker.double_take_shawna'),('Ethan','sensor.frigate_ethan_last_camera','device_tracker.double_take_ethan'),('Keke','sensor.frigate_kellean_last_camera','device_tracker.double_take_keke'),('Jordan','sensor.frigate_jordan_last_camera','device_tracker.double_take_jordanbayles'),('John','sensor.frigate_john_last_camera','device_tracker.double_take_johnbayles')] %}
+      {% set ns = namespace(rows=[]) %}
+      {% for name, cam_sensor, tracker in people %}
+      {% set cam = states(cam_sensor) %}
+      {% set seen_at = states[cam_sensor].last_changed if states[cam_sensor] else None %}
+      {% set tracker_state = states(tracker) %}
+      {% if cam not in ['Unknown','unknown','unavailable','none','None'] %}
+      {% set ns.rows = ns.rows + [(name, cam, seen_at, tracker_state)] %}
+      {% endif %}
+      {% endfor %}## 👤 Recently Identified
+
+      {% if ns.rows | count == 0 %}*No recent face matches.*{% else %}| Person | Last Camera | Seen | Status |
+      |---|---|---|---|
+      {% for name, cam, seen, tracker in ns.rows %}| **{{ name }}** | {{ cam }} | {{ relative_time(seen) }} ago | {{ '🏠 home' if tracker == 'home' else '🚪 away' }} |
+      {% endfor %}{% endif %}
+  - type: tile
+    entity: sensor.frontdoor_person_count
+    name: Front Door
+    color: blue
+  - type: tile
+    entity: sensor.driveway_person_count
+    name: Driveway
+    color: blue
+  - type: tile
+    entity: sensor.backyard_person_count
+    name: Backyard
+    color: blue
+  - type: tile
+    entity: sensor.entryway_person_count
+    name: Entryway
+    color: blue

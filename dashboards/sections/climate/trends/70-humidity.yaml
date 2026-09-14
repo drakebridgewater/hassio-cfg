@@ -1,0 +1,30 @@
+type: custom:mini-graph-card
+name: Humidity
+icon: mdi:water-percent
+entities:
+  - entity: sensor.view_plus_humidity
+    name: Family
+    show_legend_state: true
+  - entity: sensor.apollo_air_1_f8b340_sen55_humidity
+    name: Master
+    show_legend_state: true
+  - entity: sensor.thermostat_humidity
+    name: Main
+    show_legend_state: true
+smoothing: false
+align_icon: left
+align_state: center
+hours_to_show: 24
+points_per_hour: 2
+lower_bound: 20
+upper_bound: 70
+show:
+  labels: true
+  labels_secondary: true
+color_thresholds:
+  - value: 20
+    color: "#de9e00"
+  - value: 35
+    color: "#26b000"
+  - value: 55
+    color: "#d43400"

@@ -1,0 +1,54 @@
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: separator
+    name: Weather
+    sub_button:
+      - entity: sensor.wirelesstag_outdoor_temperature
+        show_background: false
+        show_icon: false
+        show_name: false
+        show_state: true
+      - entity: sensor.wirelesstag_outdoor_humidity
+        show_background: false
+        show_icon: false
+        show_name: false
+        show_state: true
+      - entity: weather.pirateweather
+        show_icon: true
+        show_background: false
+  - type: entities
+    entities:
+    - type: custom:fold-entity-row
+      head: sensor.thermal_comfort_humidex
+      entities:
+        - entity: sensor.thermal_comfort_absolute_humidity
+          name: Absolute humidity
+        - entity: sensor.thermal_comfort_dew_point
+          name: Dew point
+        - entity: sensor.thermal_comfort_dew_point_perception
+          name: Dew point perception
+        - entity: sensor.thermal_comfort_frost_point
+          name: Frost point
+        - entity: sensor.thermal_comfort_frost_risk
+          name: Frost risk
+        - entity: sensor.thermal_comfort_heat_index
+          name: Heat index
+        - entity: sensor.thermal_comfort_humidex
+          name: Humidex
+        - entity: sensor.thermal_comfort_humidex_perception
+          name: Humidex perception
+        - entity: sensor.thermal_comfort_moist_air_enthalpy
+          name: Moist air enthalpy
+        - entity: sensor.thermal_comfort_relative_strain_perception
+          name: Relative strain perception
+        - entity: sensor.thermal_comfort_summer_scharlau_perception
+          name: Summer scharlau perception
+        - entity: sensor.thermal_comfort_summer_simmer_index
+          name: Summer simmer index
+        - entity: sensor.thermal_comfort_summer_simmer_perception
+          name: Summer simmer perception
+        - entity: sensor.thermal_comfort_thoms_discomfort_perception
+          name: Thoms discomfort perception
+        - entity: sensor.thermal_comfort_winter_scharlau_perception
+          name: Winter scharlau perception

@@ -1,0 +1,31 @@
+# Room pop-ups (hash links), shared by the Home and Rooms bars.
+- label: Living Room
+  icon: mdi:sofa
+  tap_action:
+    action: navigate
+    navigation_path: "#living-room"
+- label: Kitchen
+  icon: mdi:fridge
+  tap_action:
+    action: navigate
+    navigation_path: "#kitchen"
+- label: Family Room
+  icon: mdi:theater
+  tap_action:
+    action: navigate
+    navigation_path: "#family"
+- label: Master
+  icon: mdi:bed-king-outline
+  tap_action:
+    action: navigate
+    navigation_path: "#master"
+- label: Office
+  icon: mdi:desk
+  tap_action:
+    action: navigate
+    navigation_path: "#office"
+- label: Outdoors
+  icon: hue:room-outdoors
+  tap_action:
+    action: navigate
+    navigation_path: "#outdoors"

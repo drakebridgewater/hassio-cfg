@@ -1,0 +1,29 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading: Unavailable Security Sensors
+    heading_style: title
+    icon: mdi:alert-circle-outline
+  - type: custom:auto-entities
+    card:
+      type: entities
+      title: null
+      show_header_toggle: false
+    filter:
+      include:
+        - entity_id: binary_sensor.*door*
+          state: unavailable
+        - entity_id: binary_sensor.*window*
+          state: unavailable
+        - entity_id: binary_sensor.*motion*
+          state: unavailable
+        - entity_id: binary_sensor.*leak*
+          state: unavailable
+        - entity_id: binary_sensor.*smoke*
+          state: unavailable
+        - entity_id: lock.*
+          state: unavailable
+        - entity_id: camera.*
+          state: unavailable
+    show_empty: false
+    card_param: entities

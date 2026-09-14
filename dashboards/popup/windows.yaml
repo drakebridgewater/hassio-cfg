@@ -1,30 +1,28 @@
-
-type: vertical-stack
+type: custom:bubble-card
+card_type: pop-up
+hash: '#window'
+button_type: name
+name: Window Sensors
 cards:
-- type: custom:bubble-card
-  card_type: pop-up
-  hash: '#window'
-  button_type: name
-  name: Window Sensors
-- type: custom:auto-entities
-  card_param: cards
-  card:
-    type: grid
-    columns: 1
-    square: false
-  filter:
-    include:
-      - domain: binary_sensor
-        attributes:
-          device_class: window
-        options:
-          type: custom:bubble-card
-          card_type: button
-          button_type: state
-    exclude: 
-      - state: unavailable
-      - state: unknown
-      - entity_id: group
-  sort:
-    method: state
-    reverse: true
+  - type: custom:auto-entities
+    card_param: cards
+    card:
+      type: grid
+      columns: 1
+      square: false
+    filter:
+      include:
+        - domain: binary_sensor
+          attributes:
+            device_class: window
+          options:
+            type: custom:bubble-card
+            card_type: button
+            button_type: state
+      exclude: 
+        - state: unavailable
+        - state: unknown
+        - entity_id: group
+    sort:
+      method: state
+      reverse: true

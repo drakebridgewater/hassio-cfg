@@ -1,0 +1,55 @@
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: separator
+  - type: custom:mushroom-chips-card
+    chips:
+      - type: entity
+        entity: input_boolean.lighting_automation_blocker_kitchen
+        content_info: name
+        icon_color: red
+        icon: mdi:auto-mode
+        name: Automation
+        tap_action:
+          action: toggle
+        use_entity_picture: false
+      - type: template
+        entity: binary_sensor.kitchen_motion_sensor_occupancy
+        icon_color: |-
+          {% if states('binary_sensor.kitchen_motion_sensor_occupancy') == 'on' -%}
+          red
+          {%- else %}
+          grey
+          {%- endif %}
+        icon: mdi:motion-sensor
+        content: |-
+          {% if states('binary_sensor.kitchen_motion_sensor_occupancy') == 'off' -%}
+          No Motion detected
+          {% elif states('binary_sensor.kitchen_motion_sensor_occupancy') == 'on' -%}
+          Motion Detected
+          {%- else %}
+          Motion Error
+          {%- endif %}
+        tap_action:
+          action: more-info
+      - type: template
+        entity: binary_sensor.kitchen_door
+        icon_color: |-
+          {% if states('binary_sensor.kitchen_door') == 'on' -%}
+          red
+          {%- else %}
+          grey
+          {%- endif %}
+        icon: mdi:door
+        content: |-
+          {% if states('binary_sensor.kitchen_door') == 'off' -%}
+          Kitchen Door Closed
+          {% elif states('binary_sensor.kitchen_door') == 'on' -%}
+          Kitchen Door Open
+          {%- else %}
+          Kitchen Door Error
+          {%- endif %}
+        tap_action:
+          action: more-info
+      - type: entity
+        entity: sensor.thermostat_temperature

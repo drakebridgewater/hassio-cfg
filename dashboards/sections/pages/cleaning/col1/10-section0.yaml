@@ -1,0 +1,27 @@
+type: vertical-stack
+cards:
+  - type: custom:mushroom-vacuum-card
+    entity: vacuum.roborock_q5
+    icon_animation: true
+    fill_container: false
+    grid_options:
+      columns: 12
+      rows: 1
+    commands:
+      - on_off
+      - start_pause
+      - stop
+      - locate
+      - return_home
+      - clean_spot
+    tap_action:
+      action: more-info
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    secondary_info: state
+  - type: picture
+    image:
+      media_content_id: https://demo.home-assistant.io/stub_config/t-shirt-promo.png
+    image_entity: image.roborock_q5_map_0

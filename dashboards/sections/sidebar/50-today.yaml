@@ -1,0 +1,72 @@
+# Today's events (tablet and up). The clock lives in 15-weather.yaml.
+type: vertical-stack
+visibility:
+  - condition: screen
+    media_query: "(min-width: 768px)"
+cards:
+  - type: custom:calendar-card-pro
+    entities:
+      - entity: calendar.bridgewater_s_v2
+      - entity: calendar.ridwell
+      - entity: calendar.drake_s_google
+      - entity: calendar.drake_fastmail_fm
+      # calendar.icalendar_fm, calendar.home_maintenance_calendar and
+      # calendar.home_maintenance_schedule return HTTP 400 from /api/calendars;
+      # each load counts toward the traefik fail2ban limit, so leave them out
+      # until those integrations are fixed.
+    days_to_show: 1
+    compact_events_to_show: 2
+    filter_duplicates: true
+    split_multiday_events: true
+    title: 📅 Today
+    title_font_size: 16px
+    title_color: "#baf1ff"
+    day_separator_width: 1px
+    day_separator_color: "#baf1ff80"
+    week_separator_width: 1px
+    month_separator_width: 1.5px
+    month_separator_color: var(--secondary-text-color)
+    date_vertical_alignment: top
+    weekday_color: "#baf1ff"
+    day_font_size: 18px
+    day_color: "#baf1ff"
+    month_color: "#baf1ff"
+    show_countdown: true
+    show_progress_bar: true
+    event_icon_vertical_alignment: top
+    event_color: "#baf1ff"
+    show_single_allday_time: false
+    time_24h: false
+    time_font_size: 11px
+    time_color: "#baf1ff"
+    show_location: false
+    remove_location_country: true
+    location_font_size: 10px
+    row_spacing: 10px
+    weather:
+      position: date
+      date:
+        show_conditions: true
+        show_high_temp: true
+        show_low_temp: false
+        show_uv_index: false
+        uv_index_threshold: 0
+        icon_size: 14px
+        font_size: 12px
+        color: var(--primary-text-color)
+      event:
+        show_conditions: true
+        show_temp: true
+        show_uv_index: false
+        uv_index_threshold: 0
+        icon_size: 14px
+        font_size: 12px
+        color: var(--primary-text-color)
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-main/calendar
+    hold_action:
+      action: url
+      url_path: https://calendar.google.com
+    refresh_interval: 15
+    refresh_on_navigate: false

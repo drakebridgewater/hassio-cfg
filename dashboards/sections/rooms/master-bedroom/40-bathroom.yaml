@@ -1,0 +1,50 @@
+type: vertical-stack
+title: Bathroom
+cards:
+  - type: custom:mushroom-chips-card
+    chips:
+      - type: template
+        entity: binary_sensor.master_bathroom_motion_sensor_occupancy
+        icon_color: |-
+          {% if states('binary_sensor.master_bathroom_motion_sensor_occupancy') == 'on' -%}
+            red
+          {%- else %}
+            grey
+          {%- endif %}
+        icon: mdi:motion-sensor
+        content: |-
+          {% if states('binary_sensor.master_bathroom_motion_sensor_occupancy') == 'off' -%}
+            No Motion detected
+          {% elif states('binary_sensor.master_bathroom_motion_sensor_occupancy') == 'on' -%}
+            Motion Detected
+          {%- else %}
+            Motion Error
+          {%- endif %}
+        tap_action:
+          action: more-info
+
+      - type: template
+        entity: binary_sensor.master_bathroom_window
+        icon_color: |-
+          {% if states('binary_sensor.master_bathroom_window') == 'on' -%}
+            red
+          {%- else %}
+            grey
+          {%- endif %}
+        icon: mdi:motion-sensor
+        content: |-
+          {% if states('binary_sensor.master_bathroom_window') == 'off' -%}
+            Window Closed
+          {% elif states('binary_sensor.master_bathroom_window') == 'on' -%}
+            Window Open
+          {%- else %}
+            Window Error
+          {%- endif %}
+        tap_action:
+          action: more-info
+  - type: custom:decluttering-card
+    template: bubble_light
+    variables:
+      - entity: light.master_bathroom_wall_switch
+      - name: Bathroom Wall Switch
+      - icon: mdi:paper-roll

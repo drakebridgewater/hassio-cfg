@@ -1,0 +1,60 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading: Motion Timeline (Last 24h)
+    heading_style: title
+    icon: mdi:motion-sensor
+  - type: custom:mini-graph-card
+    name: Outdoor Motion (Frigate)
+    hours_to_show: 24
+    points_per_hour: 4
+    aggregate_func: max
+    group_by: interval
+    smoothing: false
+    show:
+      labels: true
+      graph: bar
+      fill: true
+      legend: true
+    entities:
+      - entity: sensor.frontdoor_person_count
+        name: Front
+        color: var(--blue-color)
+      - entity: sensor.driveway_person_count
+        name: Drive
+        color: var(--orange-color)
+      - entity: sensor.backyard_person_count
+        name: Back
+        color: var(--green-color)
+      - entity: sensor.garage_person_count
+        name: Garage
+        color: var(--purple-color)
+      - entity: sensor.porch_person_count
+        name: Porch
+        color: var(--red-color)
+  - type: custom:mini-graph-card
+    name: Indoor Motion
+    hours_to_show: 24
+    points_per_hour: 4
+    aggregate_func: max
+    group_by: interval
+    smoothing: false
+    show:
+      labels: true
+      graph: bar
+      fill: true
+      legend: true
+    entities:
+      - entity: binary_sensor.entry_motion_sensor
+        name: Entry
+      - entity: binary_sensor.basement_motion_detector
+        name: Family Rm
+      - entity: binary_sensor.hallway_motion_sensor
+        name: Hallway
+      - entity: binary_sensor.office_multi_sensor_home_security_motion_detection
+        name: Office
+    state_map:
+      - value: 'off'
+        label: Clear
+      - value: 'on'
+        label: Motion

@@ -1,0 +1,11 @@
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: separator
+    name: Garbage
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-entity-card
+        entity: switch.ridwell_opt_in_to_next_pickup
+      - type: custom:mushroom-entity-card
+        entity: sensor.ridwell_ridwell_pickup_4659_se_meadowcrest_ct

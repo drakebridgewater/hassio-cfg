@@ -1,0 +1,55 @@
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: separator
+    sub_button:
+      main:
+        - entity: binary_sensor.frontdeck_package_occupancy
+          icon: mdi:package
+          state_background: true
+          show_background: false
+          visibility:
+            - condition: state
+              entity: binary_sensor.frontdeck_package_occupancy
+              state: 'on'
+        - entity: binary_sensor.front_door
+          icon: ''
+          state_background: true
+          show_background: false
+          visibility:
+            - condition: state
+              entity: binary_sensor.front_door
+              state: 'on'
+      bottom: []
+    name: Cameras
+    icon: mdi:cctv
+  - type: picture-glance
+    title: Frontdoor
+    camera_image: camera.frontdoor
+    camera_view: auto
+    entities:
+      - entity: sensor.frontdoor_person_count
+        icon: mdi:account
+      - entity: sensor.frontdoor_last_recognized_face
+        icon: mdi:face-recognition
+      - entity: binary_sensor.frontdoor_package_occupancy
+        icon: mdi:package-variant
+    tap_action:
+      action: navigate
+      navigation_path: /dashboard-security/outdoor-cams
+  - type: picture-glance
+    title: Driveway
+    camera_image: camera.driveway
+    camera_view: auto
+    entities:
+      - entity: sensor.driveway_person_count
+        icon: mdi:account
+      - entity: sensor.driveway_last_recognized_face
+        icon: mdi:face-recognition
+      - entity: switch.drivewaycam_dahua_siren
+        icon: mdi:bullhorn
+      - entity: light.drivewaycam_dahua_security_light
+        icon: mdi:lightbulb-on
+    tap_action:
+      action: navigate
+      navigation_path: /dashboard-security/outdoor-cams

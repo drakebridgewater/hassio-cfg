@@ -1,0 +1,32 @@
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: separator
+    sub_button:
+      main: []
+      bottom: []
+    name: Blocked Auto Lighting
+  - type: custom:auto-entities
+    card:
+      type: entities
+      state_color: true
+      show_header_toggle: false
+    filter:
+      include:
+        - entity_id: /^input_boolean.lighting_automation_blocker_.*$/
+          options:
+            type: custom:mushroom-template-card
+            primary: |
+              {{ state_attr(entity, 'friendly_name').split('-')[1]}}
+            secondary: |
+              {{ area_name('this.entity_id') }} - {{ states(entity) }}
+            icon: mdi:auto-mode
+            features_position: bottom
+            tap_action:
+              action: more-info
+            color: |
+              {% if is_state(entity, 'on') %}
+                red
+              {% else %}
+                disabled
+              {% endif %}

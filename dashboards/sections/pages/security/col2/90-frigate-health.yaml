@@ -1,0 +1,26 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading: Frigate Health
+    heading_style: title
+    icon: mdi:cog-outline
+  - type: tile
+    entity: sensor.frigate_status
+    name: Status
+    color: green
+  - type: tile
+    entity: sensor.frigate_uptime
+    name: Uptime
+  - type: tile
+    entity: sensor.frigate_detection_fps
+    name: Detection FPS
+  - type: tile
+    entity: sensor.frigate_coral_inference_speed
+    name: Coral Inference (ms)
+  - type: tile
+    entity: sensor.frigate_camera_fps
+    name: Camera FPS
+  - type: tile
+    entity: sensor.frigate_skipped_fps
+    name: Skipped FPS
+    color: red

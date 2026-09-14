@@ -1,0 +1,27 @@
+# Rooms pages bar.
+type: custom:decluttering-card
+template: navbar
+view_layout:
+  grid-area: footer
+variables:
+  - routes:
+      - url: /lovelace-main/home
+        icon: mdi:home
+        label: Home
+      - url: /lovelace-main/ethan
+        icon: mdi:teddy-bear
+        label: Ethan
+      - url: /lovelace-main/garage
+        icon: mdi:garage
+        label: Garage
+      - url: /lovelace-main/greenhouse
+        icon: mdi:greenhouse
+        label: Greenhouse
+      - url: /lovelace-main/bathrooms
+        icon: mdi:toilet
+        label: Bathrooms
+      - icon: mdi:floor-plan
+        label: Rooms
+        tap_action:
+          action: open-popup
+        popup: !include rooms-popup.yaml

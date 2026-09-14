@@ -280,18 +280,11 @@ cards:
       columns: 2
       square: false
       cards:
-        - entity: light.kitchen_wall_switch
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Kitchen Wall Switch
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
+        - type: custom:decluttering-card
+          template: bubble_light
+          variables:
+            - entity: light.kitchen_wall_switch
+            - name: Kitchen Wall Switch
         - entity: fan.ceiling_fan
           type: custom:bubble-card
           card_type: button
@@ -304,64 +297,29 @@ cards:
               icon: mdi:power
               tap_action:
                 action: toggle
-        - entity: light.vaulted_light
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Vaulted Light
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-        - entity: light.kitchen_cabinet_light_strip
-          type: custom:bubble-card
-          card_type: button
-          button_type: switch
-          name: Cabinet Light Strip
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-        - entity: light.kitchen_sink_lamp
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Sink Lamp
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-        - entity: light.pantry_left_lamp
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Pantry Left
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
-        - entity: light.pantry_right_lamp
-          type: custom:bubble-card
-          card_type: button
-          button_type: slider
-          name: Pantry Right
-          show_name: true
-          show_last_updated: true
-          sub_button:
-            - name: Toggle button
-              icon: mdi:power
-              tap_action:
-                action: toggle
+        - type: custom:decluttering-card
+          template: bubble_light
+          variables:
+            - entity: light.vaulted_light
+            - name: Vaulted Light
+        - type: custom:decluttering-card
+          template: bubble_light_color
+          variables:
+            - entity: light.kitchen_cabinet_light_strip
+            - name: Cabinet Light Strip
+        - type: custom:decluttering-card
+          template: bubble_light_color
+          variables:
+            - entity: light.kitchen_sink_lamp
+            - name: Sink Lamp
+        - type: custom:decluttering-card
+          template: bubble_light_color
+          variables:
+            - entity: light.pantry_left_lamp
+            - name: Pantry Left
+        - type: custom:decluttering-card
+          template: bubble_light_temp
+          variables:
+            - entity: light.pantry_right_lamp
+            - name: Pantry Right
 

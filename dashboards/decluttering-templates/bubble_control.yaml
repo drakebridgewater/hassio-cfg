@@ -1,0 +1,37 @@
+# Generalized control card. Every switch/light template nests this one, so the
+# look and interaction of all controls is defined once:
+#   icon tap      -> more-info
+#   power button  -> toggle (right side)
+#   card body     -> one slider (brightness, hue or white_temp), or tap = toggle on switches
+# `null` defaults let Bubble fall back to the entity's friendly name and icon.
+bubble_control:
+  default:
+    - name: null
+    - icon: null
+    - button_type: slider
+    - slider: brightness
+    - show_attribute: false
+    - attribute: null
+    - bottom: []
+  card:
+    type: custom:bubble-card
+    card_type: button
+    button_type: '[[button_type]]'
+    light_slider_type: '[[slider]]'
+    entity: '[[entity]]'
+    name: '[[name]]'
+    icon: '[[icon]]'
+    show_state: true
+    show_last_changed: true
+    show_attribute: '[[show_attribute]]'
+    attribute: '[[attribute]]'
+    tap_action:
+      action: more-info
+    hold_action:
+      action: more-info
+    sub_button:
+      main:
+        - icon: mdi:power
+          tap_action:
+            action: toggle
+      bottom: '[[bottom]]'

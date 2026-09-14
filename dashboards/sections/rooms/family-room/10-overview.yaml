@@ -1,0 +1,51 @@
+type: custom:mushroom-chips-card
+chips:
+  - type: entity
+    entity: input_boolean.lighting_automation_blocker_family_room
+    content_info: name
+    icon_color: red
+    icon: mdi:auto-mode
+    name: Automation
+    tap_action:
+      action: toggle
+    use_entity_picture: false
+  - type: template
+    entity: binary_sensor.athom_family_room_presence_sensor_occupancy
+    icon_color: |-
+      {% if states('binary_sensor.athom_family_room_presence_sensor_occupancy') == 'on' -%}
+        red
+      {%- else %}
+        grey
+      {%- endif %}
+    icon: mdi:motion-sensor
+    content: |-
+      {% if states('binary_sensor.athom_family_room_presence_sensor_occupancy') == 'off' -%}
+        No Motion detected
+      {% elif states('binary_sensor.athom_family_room_presence_sensor_occupancy') == 'on' -%}
+        Motion Detected
+      {%- else %}
+        Motion Error
+      {%- endif %}
+    tap_action:
+      action: more-info
+  - type: template
+    entity: binary_sensor.basement_sliding_door
+    icon_color: |-
+      {% if states('binary_sensor.basement_sliding_door') == 'on' -%}
+        red
+      {%- else %}
+        grey
+      {%- endif %}
+    icon: mdi:door-sliding
+    content: |-
+      {% if states('binary_sensor.basement_sliding_door') == 'off' -%}
+        Door Closed
+      {% elif states('binary_sensor.basement_sliding_door') == 'on' -%}
+        Door Open
+      {%- else %}
+        Door Error
+      {%- endif %}
+    tap_action:
+      action: more-info
+  - type: entity
+    entity: sensor.acurite_tower_family_room_temperature

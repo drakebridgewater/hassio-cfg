@@ -1,0 +1,56 @@
+type: vertical-stack
+cards:
+  - type: heading
+    heading_style: title
+    heading: Office Greenhouse
+    icon: mdi:greenhouse
+  - type: custom:bubble-card
+    card_type: button
+    button_type: switch
+    sub_button:
+      main:
+        - entity: sensor.dinning_room_greenhouse_humidity
+          show_background: false
+          fill_width: false
+          show_state: true
+        - entity: sensor.dinning_room_greenhouse_battery_plus
+          show_background: false
+          fill_width: false
+          show_state: true
+        - entity: switch.office_smart_plug
+          icon: mdi:power
+          tap_action:
+            action: toggle
+      bottom: []
+    entity: switch.office_smart_plug
+    button_action:
+      tap_action:
+        action: more-info
+    name: Office Grow Light
+  - type: custom:mini-graph-card
+    name: Temperature
+    icon: mdi:temperature-fahrenheit
+    entities:
+      - entity: sensor.living_room_greenhouse_temperature
+    smoothing: false
+    align_icon: left
+    align_state: center
+    hours_to_show: 12
+    points_per_hour: 6
+    aggregate_func: avg
+    lower_bound: 65
+    upper_bound: 85
+    show:
+      labels: true
+      labels_secondary: true
+      icon: true
+      name: true
+      state: true
+      name_adaptive_color: true
+    color_thresholds:
+      - value: 67
+        color: '#5cb0ff'
+      - value: 76
+        color: '#de9e00'
+      - value: 85
+        color: '#d43400'

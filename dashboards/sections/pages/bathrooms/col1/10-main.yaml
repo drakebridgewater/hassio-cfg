@@ -1,0 +1,82 @@
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: separator
+    sub_button:
+      main:
+        - entity: binary_sensor.basement_bathroom_sink_water_leak_detected
+          name: Leak Detected
+          show_name: true
+          icon: mdi:alert
+          visibility:
+            - condition: state
+              entity: binary_sensor.basement_bathroom_sink_water_leak_detected
+              state: 'on'
+      bottom: []
+    name: Main
+    icon: mdi:toilet
+  - type: custom:bubble-card
+    card_type: button
+    button_type: switch
+    sub_button:
+      main:
+        - entity: light.main_bathroom_wall_switch
+          icon: mdi:power
+          tap_action:
+            action: toggle
+      bottom: []
+    entity: light.main_bathroom_wall_switch
+    name: Wall Switch
+    icon: mdi:light-switch-off
+    use_accent_color: false
+    show_state: true
+    show_attribute: true
+    attribute: brightness
+  - type: custom:bubble-card
+    card_type: separator
+    sub_button:
+      main: []
+      bottom: []
+    name: Master
+    icon: mdi:shower-head
+  - type: custom:bubble-card
+    card_type: button
+    button_type: switch
+    sub_button:
+      main:
+        - entity: light.master_bathroom_wall_switch
+          icon: mdi:power
+          tap_action:
+            action: toggle
+      bottom: []
+    entity: light.master_bathroom_wall_switch
+    name: Wall Switch
+    icon: mdi:light-switch-off
+    use_accent_color: false
+    show_state: true
+    show_attribute: true
+    attribute: brightness
+  - type: custom:bubble-card
+    card_type: separator
+    sub_button:
+      main: []
+      bottom: []
+    name: Basement
+    icon: hue:room-bathroom
+  - type: custom:bubble-card
+    card_type: button
+    button_type: switch
+    sub_button:
+      main:
+        - entity: light.basement_bathroom_wall_switch
+          icon: mdi:power
+          tap_action:
+            action: toggle
+      bottom: []
+    entity: light.basement_bathroom_wall_switch
+    name: Wall Switch
+    icon: mdi:light-switch-off
+    use_accent_color: false
+    show_state: true
+    show_attribute: true
+    attribute: brightness
