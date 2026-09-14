@@ -627,3 +627,17 @@
         data:
           effect: "{{ effect }}"
           speed: 1.0
+
+# Dashboard ambient edge glow (palette logic in custom_templates/dashboard_glow.jinja).
+# Read by the glow card at the bottom of the /lovelace-mushroom/dashboard view.
+- sensor:
+    - name: "Dashboard Glow"
+      unique_id: dashboard_glow
+      icon: mdi:gradient-horizontal
+      state: >
+        {% from 'dashboard_glow.jinja' import glow_key %}{{ glow_key() }}
+      attributes:
+        colors: >
+          {% from 'dashboard_glow.jinja' import glow_key, glow_colors %}{{ glow_colors(glow_key()) }}
+        opacity: >
+          {% from 'dashboard_glow.jinja' import glow_key, glow_opacity %}{{ glow_opacity(glow_key()) }}

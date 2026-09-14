@@ -1,0 +1,52 @@
+{#- Dashboard ambient edge glow.
+    glow_key()        -> palette name: off | spring/summer/autumn/winter | freezing/cold/cool/warm/hot/scorching
+    glow_colors(key)  -> CSS color stops for a seamless conic-gradient (first color repeated at the end)
+    glow_opacity(key) -> layer opacity; temperature extremes glow stronger
+    Mode comes from input_select.dashboard_glow_mode:
+      Auto        season palette, but outdoor temp takes over at the extremes (<=32F or >=90F)
+      Season      season palette only
+      Temperature outdoor temp palette only
+      Off         no glow -#}
+
+{%- macro glow_key() -%}
+{%- set mode = states('input_select.dashboard_glow_mode') -%}
+{%- set season = states('sensor.season') -%}
+{%- set raw = states('sensor.wirelesstag_outdoor_temperature') -%}
+{%- set t = raw | float if is_number(raw) else none -%}
+{%- set band = none if t is none
+      else 'freezing' if t <= 32
+      else 'cold' if t < 50
+      else 'cool' if t < 68
+      else 'warm' if t < 80
+      else 'hot' if t < 90
+      else 'scorching' -%}
+{%- set has_season = season in ['spring', 'summer', 'autumn', 'winter'] -%}
+{%- if mode == 'Off' -%}off
+{%- elif mode == 'Temperature' -%}{{ band or 'off' }}
+{%- elif mode == 'Season' -%}{{ season if has_season else 'off' }}
+{%- elif band in ['freezing', 'scorching'] -%}{{ band }}
+{%- elif has_season -%}{{ season }}
+{%- else -%}{{ band or 'off' }}
+{%- endif -%}
+{%- endmacro -%}
+
+{%- macro glow_colors(key) -%}
+{%- set palettes = {
+  'winter':    ['#7dd3fc', '#a5b4fc', '#e0f2fe', '#c4b5fd'],
+  'spring':    ['#86efac', '#f9a8d4', '#fde68a', '#5eead4'],
+  'summer':    ['#fbbf24', '#fb7185', '#38bdf8', '#f97316'],
+  'autumn':    ['#f97316', '#b45309', '#dc2626', '#facc15'],
+  'freezing':  ['#60a5fa', '#a5f3fc', '#e0e7ff', '#818cf8'],
+  'cold':      ['#38bdf8', '#6366f1', '#22d3ee', '#a78bfa'],
+  'cool':      ['#2dd4bf', '#34d399', '#60a5fa', '#a3e635'],
+  'warm':      ['#facc15', '#fb923c', '#f472b6', '#fde047'],
+  'hot':       ['#f97316', '#ef4444', '#f59e0b', '#fb7185'],
+  'scorching': ['#dc2626', '#ea580c', '#b91c1c', '#f59e0b'],
+} -%}
+{%- set c = palettes.get(key, []) -%}
+{{- (c + c[:1]) | join(', ') -}}
+{%- endmacro -%}
+
+{%- macro glow_opacity(key) -%}
+{{- 0 if key == 'off' else 0.8 if key in ['freezing', 'scorching'] else 0.55 -}}
+{%- endmacro -%}

@@ -107,10 +107,9 @@
   description: Disarms Alarmo when a household member arrives home, attributing the
     disarm to the specific person via their internal Alarmo user (Drake_Internal /
     Shawna_Internal, so the Alarmo log separates auto-disarms from typed keypad PINs)
-    AND a logbook.log entry (so HA's logbook shows who). Codes live in
-    input_text.alarmo_code_<name> helpers; anyone without a valid helper code falls
-    back to the System user. Guest mode disarm sends an actionable notification to
-    Drake with a re-arm escape hatch.
+    AND a logbook.log entry (so HA's logbook shows who). Codes live in input_text.alarmo_code_<name>
+    helpers; anyone without a valid helper code falls back to the System user. Guest
+    mode disarm sends an actionable notification to Drake with a re-arm escape hatch.
   triggers:
   - platform: zone
     entity_id: person.drake
@@ -161,14 +160,11 @@
         elif trigger.id == ''person_abby'' %}Abby{% elif trigger.id == ''person_named_guest''
         %}Guest{% elif trigger.id == ''guest_mode_enabled'' %}Guest Mode{% else %}Household{%
         endif %}'
-      actor_code: >-
-        {% set map = {
-             'person_drake': 'input_text.alarmo_code_drake',
-             'person_shawna': 'input_text.alarmo_code_shawna',
-             'person_named_guest': 'input_text.alarmo_code_guest'
-           } %}
-        {% set code = states(map.get(trigger.id, 'input_text.alarmo_code_system')) %}
-        {{ code if code is match('^[0-9]{4,32}$') else states('input_text.alarmo_code_system') }}
+      actor_code: "{% set map = {\n     'person_drake': 'input_text.alarmo_code_drake',\n
+        \    'person_shawna': 'input_text.alarmo_code_shawna',\n     'person_named_guest':
+        'input_text.alarmo_code_guest'\n   } %}\n{% set code = states(map.get(trigger.id,
+        'input_text.alarmo_code_system')) %} {{ code if code is match('^[0-9]{4,32}$')
+        else states('input_text.alarmo_code_system') }}"
       actor_entity: '{% if trigger.id.startswith(''person_'') %}{{ trigger.entity_id
         }}{% else %}automation.presence_trigger_when_entering_home{% endif %}'
   - alias: Log attribution to HA logbook (always, even if alarm wasn't actually armed)
@@ -1668,53 +1664,6 @@
         entity_id:
         - sensor.openuv_max_uv_index
         - sensor.openuv_current_ozone_level
-  - alias: Daycare Travel Time Update
-    if:
-    - condition: time
-      after: '16:00:00'
-      before: '17:30:00'
-    then:
-    - if:
-      - condition: and
-        conditions:
-        - condition: state
-          entity_id: binary_sensor.ethan_at_daycare
-          state: 'on'
-        - condition: zone
-          entity_id: person.drake
-          zone: zone.work
-      then:
-      - service: ticker.notify
-        data:
-          category: Parents
-          title: Time to Pick up Ethan
-          message: Leave work in {{ (today_at("17:30") | as_timestamp - now()  | as_timestamp
-            - ( states('sensor.drake_iphone_idevice_travel_time_daycare')|float *60))
-            |  timestamp_custom("%Hh%Mm", false) }} to pick up Ethan. The Drive will
-            take {{  states('sensor.drake_iphone_idevice_travel_time_daycare') }}m
-      enabled: true
-    - if:
-      - condition: and
-        conditions:
-        - condition: state
-          entity_id: binary_sensor.ethan_at_daycare
-          state: 'on'
-        - condition: zone
-          entity_id: person.drake
-          zone: zone.home
-      then:
-      - service: ticker.notify
-        data:
-          category: Parents
-          title: Time to Pick up Ethan
-          message: Leave work in {{ (today_at("17:30") | as_timestamp - now()  | as_timestamp
-            - ( states('sensor.drake_iphone_idevice_travel_time_daycare')|float *60))
-            |  timestamp_custom("%Hh%Mm", false) }} to pick up Ethan. The Drive will
-            take {{  states('sensor.drake_iphone_idevice_travel_time_daycare') }}m
-    else:
-    - data:
-        notification_id: AlertPickUpEthan
-      action: persistent_notification.dismiss
   - data:
       entity_id: camera.family_room_camera
     action: abode.capture_image
@@ -2241,28 +2190,6 @@
     target:
       area_id: ethan_s_bedroom
     action: switch.turn_off
-  mode: single
-- id: '1712760968334'
-  alias: Action - iOS Events
-  description: ''
-  trigger:
-  - platform: event
-    event_type: ios.action_fired
-    event_data:
-      actionName: Garage Door Toggle
-    id: ios-garage
-  condition: []
-  action:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id:
-        - ios-garage
-      sequence:
-      - device_id: e94d22613669e78bee07420de5fa3490
-        domain: button
-        entity_id: bdd7a909695cdf6dcf4530c78f558fd1
-        type: press
   mode: single
 - id: '1713966769932'
   alias: Calendar Notifications & Actions
@@ -3562,8 +3489,8 @@
 - id: '1789160400000'
   alias: Magic Cube - Room Controller
   description: 'Ethan''s Magic Cube (Aqara T1 Pro, must be in scene_mode) as a modal
-    room lighting remote. The face pointing up picks the mode and rotating adjusts it:
-    1 room select, 2 bulb select (0 = All), 3 colour, 4 brightness, 5 room scenes,
+    room lighting remote. The face pointing up picks the mode and rotating adjusts
+    it: 1 room select, 2 bulb select (0 = All), 3 colour, 4 brightness, 5 room scenes,
     6 motion lock. Flipping onto the room or bulb face shows the current selection.
     Shake toggles the current target; hold re-blinks the active room. Physical faces
     are remapped by editing the sides variable only.
@@ -3576,8 +3503,8 @@
     LED TIERS: the room indicator uses the spatial tier (LED 7), which nothing else
     paints, so the mode (LED 4) and global (LED 1) tiers and their 5-minute heartbeats
     are untouched. The motion lock flips the same blocker booleans as the config-button
-    hold on each switch, so LED 4 turning orange (manual) IS the lock indicator - there
-    is no cube-specific lock LED.
+    hold on each switch, so LED 4 turning orange (manual) IS the lock indicator -
+    there is no cube-specific lock LED.
 
 
     MAIN LOCK: sensor.lighting_mode_main_area (LED 4 on kitchen and awning) reads
@@ -3595,7 +3522,8 @@
   - alias: Only real cube gestures (plain state reports carry no action)
     condition: template
     value_template: '{{ trigger.payload_json is defined and trigger.payload_json.get(''action'')
-      in [''rotate_right'', ''rotate_left'', ''flip_to_side'', ''shake'', ''hold''] }}'
+      in [''rotate_right'', ''rotate_left'', ''flip_to_side'', ''shake'', ''hold'']
+      }}'
   actions:
   - variables:
       sides:
@@ -3736,10 +3664,11 @@
           entity_id: script.cube_flash_target
         data:
           variables:
-            lights: '{{ [cfg.bulbs[new_index - 1]] if new_index > 0 else cfg.bulbs }}'
-    - alias: Colour face, rotate - shift hue on colour bulbs, colour temperature on white-only
-        bulbs. With All selected only bulbs that are already on change (unless none
-        are on).
+            lights: '{{ [cfg.bulbs[new_index - 1]] if new_index > 0 else cfg.bulbs
+              }}'
+    - alias: Colour face, rotate - shift hue on colour bulbs, colour temperature on
+        white-only bulbs. With All selected only bulbs that are already on change
+        (unless none are on).
       conditions:
       - condition: template
         value_template: '{{ face_mode == ''color'' and is_rotate }}'
@@ -3748,20 +3677,21 @@
           for_each: '{{ adjust_targets }}'
           sequence:
           - variables:
-              modes: '{{ state_attr(repeat.item, ''supported_color_modes'') or [] }}'
+              modes: '{{ state_attr(repeat.item, ''supported_color_modes'') or []
+                }}'
           - choose:
             - conditions:
               - condition: template
-                value_template: '{{ modes | select(''in'', [''hs'', ''xy'', ''rgb'', ''rgbw'',
-                  ''rgbww'']) | list | length > 0 }}'
+                value_template: '{{ modes | select(''in'', [''hs'', ''xy'', ''rgb'',
+                  ''rgbw'', ''rgbww'']) | list | length > 0 }}'
               sequence:
               - action: light.turn_on
                 target:
                   entity_id: '{{ repeat.item }}'
                 data:
-                  hs_color: '{% set hs = state_attr(repeat.item, ''hs_color'') or [0,
-                    0] %}{{ [((hs[0] | float(0)) + direction * degrees) % 360, [hs[1]
-                    | float(0), 80] | max] }}'
+                  hs_color: '{% set hs = state_attr(repeat.item, ''hs_color'') or
+                    [0, 0] %}{{ [((hs[0] | float(0)) + direction * degrees) % 360,
+                    [hs[1] | float(0), 80] | max] }}'
                 continue_on_error: true
             - conditions:
               - condition: template
@@ -3774,8 +3704,8 @@
                   color_temp_kelvin: '{% set lo = state_attr(repeat.item, ''min_color_temp_kelvin'')
                     | int(2000) %}{% set hi = state_attr(repeat.item, ''max_color_temp_kelvin'')
                     | int(6500) %}{% set cur = state_attr(repeat.item, ''color_temp_kelvin'')
-                    | int((lo + hi) // 2) %}{{ [[cur + direction * degrees * 10, lo] |
-                    max, hi] | min | int }}'
+                    | int((lo + hi) // 2) %}{{ [[cur + direction * degrees * 10, lo]
+                    | max, hi] | min | int }}'
                 continue_on_error: true
     - alias: Brightness face, rotate - step brightness by about a third of the rotation
         angle. Dimming stops at 1% and never switches a bulb off.
@@ -3784,8 +3714,8 @@
         value_template: '{{ face_mode == ''brightness'' and is_rotate }}'
       sequence:
       - variables:
-          step: '{{ (direction * ([[degrees / 3, 1] | max, 50] | min)) | round(0) |
-            int }}'
+          step: '{{ (direction * ([[degrees / 3, 1] | max, 50] | min)) | round(0)
+            | int }}'
       - repeat:
           for_each: '{{ adjust_targets }}'
           sequence:
@@ -3802,8 +3732,8 @@
               data:
                 brightness_pct: '{{ [[current + step, 1] | max, 100] | min }}'
               continue_on_error: true
-    - alias: Scene face, rotate - step through presets and apply to every bulb in the
-        room
+    - alias: Scene face, rotate - step through presets and apply to every bulb in
+        the room
       conditions:
       - condition: template
         value_template: '{{ face_mode == ''scene'' and is_rotate }}'
@@ -3837,11 +3767,12 @@
           }}'
         target:
           entity_id: '{{ cfg.blockers }}'
-    - alias: Flipped onto the room face, or hold on any face - show which room is active
+    - alias: Flipped onto the room face, or hold on any face - show which room is
+        active
       conditions:
       - condition: template
-        value_template: '{{ gesture in [''flip_to_side'', ''hold''] and (face_mode ==
-          ''room'' or gesture == ''hold'') }}'
+        value_template: '{{ gesture in [''flip_to_side'', ''hold''] and (face_mode
+          == ''room'' or gesture == ''hold'') }}'
       sequence:
       - action: script.turn_on
         target:
@@ -3853,7 +3784,8 @@
     - alias: Flipped onto the bulb face - flash the current selection
       conditions:
       - condition: template
-        value_template: '{{ gesture == ''flip_to_side'' and face_mode == ''bulb'' }}'
+        value_template: '{{ gesture == ''flip_to_side'' and face_mode == ''bulb''
+          }}'
       sequence:
       - action: script.turn_on
         target:
@@ -5105,9 +5037,9 @@
     The Disarm action is HA_DISARM_ME, deliberately not Alarmo's reserved ALARMO_DISARM
     (Alarmo handles that itself with skip_code, which raced this automation and dropped
     attribution). The tapping person is resolved from the event context user_id, which
-    mobile_app binds to that phone's registration, and the alarm is disarmed with their
-    internal Alarmo code. An unrecognised device, or a tap while the alarm is not pending
-    or triggered, does nothing. Any disarm clears the alert on both phones.
+    mobile_app binds to that phone's registration, and the alarm is disarmed with
+    their internal Alarmo code. An unrecognised device, or a tap while the alarm is
+    not pending or triggered, does nothing. Any disarm clears the alert on both phones.
   triggers:
   - entity_id: alarm_control_panel.default
     to: pending
@@ -5150,13 +5082,10 @@
         - triggered
       sequence:
       - variables:
-          tapper_code: >-
-            {% set map = {
-                 '9edc32828f114914baabce7b9ae21eb3': 'input_text.alarmo_code_drake',
-                 '79f6891d0d1b40a798e2407ca48889aa': 'input_text.alarmo_code_shawna'
-               } %}
-            {% set helper = map.get(trigger.event.context.user_id) %}
-            {{ states(helper) if helper else '' }}
+          tapper_code: "{% set map = {\n     '9edc32828f114914baabce7b9ae21eb3': 'input_text.alarmo_code_drake',\n
+            \    '79f6891d0d1b40a798e2407ca48889aa': 'input_text.alarmo_code_shawna'\n
+            \  } %}\n{% set helper = map.get(trigger.event.context.user_id) %} {{
+            states(helper) if helper else '' }}"
       - if:
         - condition: template
           value_template: '{{ tapper_code | string is match(''^[0-9]{4,32}$'') }}'
@@ -5170,8 +5099,8 @@
           data:
             level: warning
             logger: automation.security_critical_alarm_alert_driver
-            message: 'HA_DISARM_ME ignored: user_id {{ trigger.event.context.user_id }}
-              has no valid Alarmo code mapped.'
+            message: 'HA_DISARM_ME ignored: user_id {{ trigger.event.context.user_id
+              }} has no valid Alarmo code mapped.'
     - alias: Clear the alert on both phones however the alarm was disarmed
       conditions:
       - condition: trigger
