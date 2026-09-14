@@ -4,8 +4,6 @@ cards:
     card_type: separator
     name: Trends
     icon: mdi:chart-line
-  - type: thermostat
-    entity: climate.thermostat
   - type: custom:mini-graph-card
     name: Temperature
     icon: mdi:temperature-fahrenheit

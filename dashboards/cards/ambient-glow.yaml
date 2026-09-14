@@ -1,7 +1,9 @@
-# Ambient edge glow — REFERENCE COPY.
-# The live card is in the UI-managed dashboard /lovelace-mushroom/dashboard
-# (last card of the last section). .storage/ is gitignored, so this file is the
-# version-controlled source of truth: paste it via "Edit card > Show code editor" if it's lost.
+# Ambient edge glow.
+# YAML dashboard (lovelace-main): included on every view through the shared footer frame
+# (sections/footer/99-ambient-glow.yaml).
+# GUI dashboard /lovelace-mushroom/dashboard: pasted as the last card of the last section.
+# .storage/ is gitignored, so this file is the source of truth for that copy too:
+# paste it via "Edit card > Show code editor" if it's lost.
 #
 # Palette comes from sensor.dashboard_glow (configs/templates.yaml), whose logic lives in
 # custom_templates/dashboard_glow.jinja. Pick the mode with input_select.dashboard_glow_mode.

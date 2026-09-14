@@ -4,6 +4,45 @@ hash: '#door'
 button_type: name
 name: Door Sensors
 cards:
+  # Header card (door status chip opens this pop-up), styled like the Climate thermostat card
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    entity: binary_sensor.any_door_open_group
+    name: Doors
+    icon: mdi:door
+    show_state: true
+    show_last_changed: true
+    tap_action:
+      action: more-info
+    button_action:
+      tap_action:
+        action: more-info
+    sub_button:
+      main: []
+      bottom:
+        - entity: lock.og_u_bolt_pro
+          name: Front Lock
+          show_name: true
+          show_state: true
+          state_background: false
+          tap_action:
+            action: more-info
+        - entity: cover.garage_door
+          name: Garage
+          show_name: true
+          show_state: true
+          state_background: false
+          tap_action:
+            action: more-info
+        - entity: binary_sensor.window_open_group
+          name: Windows
+          show_name: true
+          show_state: true
+          state_background: false
+          tap_action:
+            action: navigate
+            navigation_path: '#window'
   - type: custom:auto-entities
     card_param: cards
     card:

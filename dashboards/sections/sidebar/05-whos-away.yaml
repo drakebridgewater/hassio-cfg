@@ -4,6 +4,45 @@ name: Who's away
 icon: mdi:home-export-outline
 modules:
   - default
+# Title and icon follow presence (binary_sensor.home_occupied) and Alarmo:
+#   someone home, disarmed  -> "Who's away"
+#   someone home, armed     -> "Who's away · Night guard" (shield icon)
+#   nobody home, armed      -> "Away · Guarded" (home-lock, green)
+#   nobody home, disarmed   -> "Away · Unguarded" (home-alert, amber)
+#   arming / entry delay    -> amber; triggered -> "Alarm triggered" (red)
+styles: |
+  ${(() => {
+    const home = hass.states['binary_sensor.home_occupied']?.state === 'on';
+    const alarm = hass.states['alarm_control_panel.default']?.state ?? 'unavailable';
+    const guard = {
+      disarmed: 'Unguarded',
+      armed_away: 'Guarded',
+      armed_home: 'Guarded',
+      armed_night: 'Night guard',
+      armed_vacation: 'Vacation guard',
+      arming: 'Arming',
+      pending: 'Entry delay',
+    }[alarm] ?? 'Alarm ' + alarm;
+    const armed = alarm.startsWith('armed_');
+    let name, icon, color = '';
+    if (alarm === 'triggered') {
+      name = 'Alarm triggered'; icon = 'mdi:bell-ring'; color = 'var(--red-color)';
+    } else if (alarm === 'arming' || alarm === 'pending') {
+      name = (home ? "Who's away" : 'Away') + ' · ' + guard; icon = 'mdi:shield-sync'; color = 'var(--amber-color)';
+    } else if (home) {
+      name = armed ? "Who's away · " + guard : "Who's away";
+      icon = alarm === 'armed_night' ? 'mdi:shield-moon' : armed ? 'mdi:shield-home' : 'mdi:home-export-outline';
+    } else if (armed) {
+      name = 'Away · ' + guard; icon = 'mdi:home-lock'; color = 'var(--green-color)';
+    } else {
+      name = 'Away · ' + guard; icon = 'mdi:home-alert-outline'; color = 'var(--amber-color)';
+    }
+    const nameEl = card.querySelector('.bubble-name');
+    if (nameEl) nameEl.innerText = name;
+    const iconEl = card.querySelector('.bubble-icon');
+    if (iconEl) { iconEl.setAttribute('icon', icon); iconEl.style.color = color; }
+    return '';
+  })()}
 sub_button:
   main:
     - entity: person.drake

@@ -7,7 +7,8 @@ dashboards under `.storage/lovelace.*` are where UI ideas are prototyped; they a
 the other way around, and are never edited from YAML work.
 
 Guiding rules:
-- **Every view shares one frame**: status banner, chips, sidebar, room bar and pop-ups, and a navbar.
+- **Every view shares one frame**: status banner, chips, sidebar, room bar and pop-ups, a navbar, and
+  the ambient edge glow (`cards/ambient-glow.yaml`, included from `sections/footer/`; desktop only).
   A view file only adds its content areas.
 - **Like controls look alike**: switches and lights render through shared decluttering templates.
 - **Small files**: use `!include_dir_list` directories instead of long lists; one card per file.
@@ -166,11 +167,27 @@ subview by adding a thin view file that includes the same directory.
 
 ## Climate
 
-`views/default/40-climate.yaml` includes:
+`views/default/40-climate.yaml` uses `layouts/grid_wide.yaml` with one `custom:layout-card`
+(`layout_type: masonry`) in `main`. Masonry fills the shortest column, so a tall card doesn't leave
+empty rows beside short ones. Each card is included on its own line (not `!include_dir_list`) so the
+cards balance individually; list order is the fill order.
+- `sections/climate/thermostat/thermostat.yaml`: Bubble climate card, first on the page.
 - `sections/climate/air-quality/`: one card per room (Living Room / Ecobee, Family Room / View Plus,
   Master Bedroom / Apollo AIR-1). The same files are included in the room pop-ups.
 - `sections/climate/spaces/`: attic, crawl space, outdoor AQI (also used by `#aqi-overview`).
-- `sections/climate/trends/`: thermostat, temperature and humidity graphs.
+- `sections/climate/trends/`: temperature and humidity graphs.
+
+## Status chip header cards
+
+A status chip that opens a page or pop-up gets a Bubble header card there, styled like the thermostat
+card: the group entity with its state, and related readings as `sub_button.bottom`.
+
+| Chip | Header card |
+|---|---|
+| Thermostat | `sections/climate/thermostat/thermostat.yaml` |
+| Alarm | `sections/pages/security/col1/00-alarm.yaml` (more-info only, no arm/disarm buttons) |
+| Doors / Windows | first card in `popup/doors.yaml` / `popup/windows.yaml` |
+| Wall switches | first card in `popup/wall_switches.yaml` (`bubble_light`) |
 
 ## YAML includes
 

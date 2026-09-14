@@ -4,6 +4,31 @@ hash: '#window'
 button_type: name
 name: Window Sensors
 cards:
+  # Header card (window status chip opens this pop-up), styled like the Climate thermostat card
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    entity: binary_sensor.window_open_group
+    name: Windows
+    icon: mdi:window-closed-variant
+    show_state: true
+    show_last_changed: true
+    tap_action:
+      action: more-info
+    button_action:
+      tap_action:
+        action: more-info
+    sub_button:
+      main: []
+      bottom:
+        - entity: binary_sensor.any_door_open_group
+          name: Doors
+          show_name: true
+          show_state: true
+          state_background: false
+          tap_action:
+            action: navigate
+            navigation_path: '#door'
   - type: custom:auto-entities
     card_param: cards
     card:
