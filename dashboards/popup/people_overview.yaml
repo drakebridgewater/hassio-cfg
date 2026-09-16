@@ -58,21 +58,23 @@ cards:
               height: 40px;
               --mush-icon-size: 60px;
             }
-      - type: custom:mushroom-chips-card
-        chips:
-          - type: entity
-            entity: sensor.drakes_iphone_battery_plus
-          - type: entity
-            entity: sensor.drakes_iphone_steps
-          - type: entity
-            entity: sensor.drake_iphone_idevice_travel_time_min_home
-            icon: mdi:home
-        card_mod:
-          style: |
-            ha-card {
-              --chip-box-shadow: 0px 0px 0px 0px;
-              --chip-background: none;
-            }
+      - type: custom:decluttering-card
+        template: bubble_chips
+        variables:
+          - chips:
+              - entity: sensor.drakes_iphone_battery_plus
+                show_state: true
+                fill_width: false
+                show_background: false
+              - entity: sensor.drakes_iphone_steps
+                show_state: true
+                fill_width: false
+                show_background: false
+              - entity: sensor.drake_iphone_idevice_travel_time_min_home
+                icon: mdi:home
+                show_state: true
+                fill_width: false
+                show_background: false
   - entity: person.drake
     card_layout: large-2-rows
     type: custom:bubble-card
@@ -138,21 +140,23 @@ cards:
               height: 40px;
               --mush-icon-size: 60px;
             }
-      - type: custom:mushroom-chips-card
-        chips:
-          - type: entity
-            entity: sensor.shawna_iphone_battery_plus
-          - type: entity
-            entity: sensor.shwana_iphone_steps
-          - type: entity
-            entity: sensor.shawna_iphone_idevice_travel_time_home
-            icon: mdi:home
-        card_mod:
-          style: |
-            ha-card {
-              --chip-box-shadow: 0px 0px 0px 0px;
-              --chip-background: none;
-            }
+      - type: custom:decluttering-card
+        template: bubble_chips
+        variables:
+          - chips:
+              - entity: sensor.shawna_iphone_battery_plus
+                show_state: true
+                fill_width: false
+                show_background: false
+              - entity: sensor.shwana_iphone_steps
+                show_state: true
+                fill_width: false
+                show_background: false
+              - entity: sensor.shawna_iphone_idevice_travel_time_home
+                icon: mdi:home
+                show_state: true
+                fill_width: false
+                show_background: false
   # - entity: person.shawna
   #   card_layout: large-2-rows
   #   type: custom:bubble-card

@@ -1,0 +1,83 @@
+# Master Bedroom card. Layout, badges and actions come from decluttering-templates/room_card.yaml.
+type: custom:decluttering-card
+template: room_card
+variables:
+  - name: Master Bedroom
+  - icon: mdi:bed-king-outline
+  - color: 156, 39, 176
+  - popup: '#master'
+  - entity: binary_sensor.master_bedroom_motion_sensor_occupancy
+  - temp: sensor.apollo_air_1_f8b340_sen55_temperature
+  - humid: sensor.apollo_air_1_f8b340_sen55_humidity
+  - blocker: input_boolean.lighting_automation_blocker_master_bedroom
+  - badges:
+      - name: Window open
+        target: main_icon
+        icon: mdi:window-open-variant
+        color: red
+        animation: pulse
+        condition:
+          - condition: or
+            conditions:
+              - condition: state
+                entity_id: binary_sensor.master_bedroom_window
+                state: 'on'
+              - condition: state
+                entity_id: binary_sensor.master_bathroom_window
+                state: 'on'
+      - name: Leak
+        target: main_icon
+        icon: mdi:water-alert
+        color: blue
+        animation: shake
+        condition:
+          - condition: state
+            entity_id: binary_sensor.master_bathroom_toilet_water_leak_detected
+            state: 'on'
+      # Thresholds match the HIGH band on the Climate page air-quality card.
+      - name: Air quality
+        target: main_icon
+        icon: mdi:weather-dust
+        color: orange
+        animation: glow
+        condition:
+          - condition: or
+            conditions:
+              - condition: numeric_state
+                entity_id: sensor.apollo_air_1_f8b340_co2
+                above: 1200
+              - condition: numeric_state
+                entity_id: sensor.apollo_air_1_f8b340_pm_2_5mm_weight_concentration
+                above: 35
+              - condition: numeric_state
+                entity_id: sensor.apollo_air_1_f8b340_sen55_voc
+                above: 250
+              - condition: numeric_state
+                entity_id: sensor.apollo_air_1_f8b340_carbon_monoxide
+                above: 9
+      - name: Too warm
+        target: main_icon
+        icon: mdi:fire
+        color: orange
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.apollo_air_1_f8b340_sen55_temperature
+            above: 72
+      - name: Too cold
+        target: main_icon
+        icon: mdi:snowflake-alert
+        color: cyan
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.apollo_air_1_f8b340_sen55_temperature
+            below: 69
+      - name: Occupied
+        target: main_icon
+        icon: mdi:motion-sensor
+        color: green
+        condition:
+          - condition: state
+            entity_id: binary_sensor.master_bedroom_motion_sensor_occupancy
+            state: 'on'

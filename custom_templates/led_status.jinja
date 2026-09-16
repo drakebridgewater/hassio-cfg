@@ -1,0 +1,348 @@
+{#- =====================================================================
+    Inovelli VZM31-SN LED bar - SINGLE SOURCE OF TRUTH
+    =====================================================================
+
+    LED numbering: LED 1 = bottom segment, LED 7 = top.
+    Tier -> LED, as implemented in script.led_set (scripts.yaml):
+        mode     -> Led 4    spatial -> Led 7
+        global   -> Led 1    critical -> All (whole bar)
+
+    WHO READS THIS FILE
+      global tier (Led 1)   automations.yaml 'Notification: Apply Global LED
+                            on state change' is DRIVEN by global_table() -
+                            edit the table here and the bar follows.
+      mode tier (Led 4)     automations.yaml 'Notification: Apply Mode LED on
+                            state change' is MIRRORED here, not driven. Edit
+                            both or binary_sensor.led_4_table_agrees goes off.
+      critical tier (All)   automations.yaml 'Notification: Apply Critical LED
+                            on state change' is MIRRORED here, not driven.
+      spatial tier (Led 7)  scripts.yaml script.cube_room_indicator is
+                            MIRRORED here, not driven.
+      dashboard             /lighting-status/0, via the sensor.led_* entities
+                            in packages/led_status.yaml.
+
+    LEDs 2, 3, 5 and 6 are written by nothing. There is no table for them.
+
+    Macros return STRINGS, so every table emits JSON and every consumer pipes
+    it through | from_json. Keep every tag whitespace-trimmed ({%- -%}) or
+    from_json will choke on the newlines.
+
+    Excluded by design: ad-hoc whole-bar calls such as the 20 s broadcast
+    flash in automations.yaml, which have no persistent state to read.
+-#}
+
+
+{#- ---------------------------------------------------------------- ----
+    SWITCH SETS
+    The twelve non-sanctuary switches and the four sanctuary ones. The
+    sanctuary list is duplicated inside script.led_set, which applies the
+    night brightness cap; this copy decides who is TARGETED at all.
+-------------------------------------------------------------------- -#}
+{%- macro switch_sets() -%}
+{
+"main": [
+"light.family_room_wall_switch","light.kitchen_wall_switch",
+"light.awning_wall_switch","light.office_wall_switch",
+"light.upstairs_hallway_wall_switch","light.basement_bathroom_wall_switch",
+"light.basement_hallway_wall_switch","light.garage_wall_switch",
+"light.basement_deck_wall_switch","light.upstairs_deck_wall_switch",
+"light.front_porch_wall_switch","light.stairs_wall_switch"],
+"sanctuary": [
+"light.master_bedroom_wall_switch","light.master_bedroom_closet_wall_switch",
+"light.master_bathroom_wall_switch","light.ethan_s_bedroom_wall_switch"]
+}
+{%- endmacro -%}
+
+{%- macro all_switches() -%}
+{%- set s = switch_sets() | from_json -%}
+{{- (s.main + s.sanctuary) | to_json -}}
+{%- endmacro -%}
+
+
+{#- ---------------------------------------------------------------- ----
+    GLOBAL TIER - LED 1
+    Priority order matches the sensor.active_global_notification UI helper
+    (.storage/core.config_entries). binary_sensor.led_1_table_agrees checks
+    that the two have not drifted.
+
+    ONE COLOUR PER STATE: red is reserved for critical, blue for the
+    switch's own firmware default, leaving exactly seven usable colours for
+    seven states. Orange and yellow are the one confusable pair, so they are
+    additionally separated by effect (front door pulses, fridge slow-blinks).
+    Adding a state means picking a new axis, not a new colour.
+-------------------------------------------------------------------- -#}
+{%- macro global_table() -%}
+[
+{"p":1,"key":"garage_overhead","label":"Garage Door Open","short":"Garage Door",
+ "entity":"cover.garage_door","on":"open","color":"white","effect":"pulse",
+ "sanctuary":true,"icon":"mdi:garage-open-variant",
+ "why":"The overhead door - the largest exposure in the house."},
+{"p":2,"key":"front_door","label":"Front Door Open","short":"Front Door",
+ "entity":"binary_sensor.front_door","on":"on","color":"orange","effect":"pulse",
+ "sanctuary":true,"icon":"mdi:door-open",
+ "why":"Perimeter breach. Pulses so it cannot be confused with the fridge."},
+{"p":3,"key":"garage_entry","label":"Garage Entry Door Open","short":"Garage Entry",
+ "entity":"binary_sensor.garage_portal","on":"on","color":"purple","effect":"pulse",
+ "sanctuary":true,"icon":"mdi:door-sliding-open",
+ "why":"The walk-through contact. Split off from the front door so the two no longer share orange."},
+{"p":4,"key":"kitchen_door","label":"Kitchen Door Open","short":"Kitchen Door",
+ "entity":"binary_sensor.kitchen_door","on":"on","color":"teal","effect":"pulse",
+ "sanctuary":false,"icon":"mdi:door",
+ "why":"Interior-adjacent, so the bedrooms are left out of it."},
+{"p":5,"key":"slider","label":"Slider Open","short":"Basement Slider",
+ "entity":"binary_sensor.basement_sliding_door","on":"on","color":"magenta","effect":"pulse",
+ "sanctuary":false,"icon":"mdi:door-sliding",
+ "why":"Basement slider. Split off from the kitchen door so the two no longer share teal."},
+{"p":6,"key":"fridge","label":"Fridge Open","short":"Fridge",
+ "entity":"input_boolean.fridge_open_too_long","on":"on","color":"yellow","effect":"slow_blink",
+ "sanctuary":false,"icon":"mdi:fridge-alert",
+ "why":"Latches only after 2 minutes continuously open, so it is a transient go-close-it alert. Deliberately NOT wired to the house alarm."},
+{"p":7,"key":"windows","label":"Windows Open","short":"Windows",
+ "entity":"binary_sensor.window_open_group","on":"on","color":"green","effect":"pulse",
+ "sanctuary":false,"icon":"mdi:window-open-variant",
+ "why":"Usually a deliberate ambient state, so it sits below the fridge."}
+]
+{%- endmacro -%}
+
+{#- Every row whose source entity is currently active, highest priority first. -#}
+{%- macro global_stack() -%}
+{%- set ns = namespace(out=[]) -%}
+{%- for r in global_table() | from_json -%}
+{%- if states(r.entity) == r.on -%}{%- set ns.out = ns.out + [r] -%}{%- endif -%}
+{%- endfor -%}
+{{- (ns.out | sort(attribute='p') | list) | to_json -}}
+{%- endmacro -%}
+
+{#- The one row the bar is actually painting, or an empty string for Idle. -#}
+{%- macro global_showing() -%}
+{%- set s = global_stack() | from_json -%}
+{{- (s[0] if s else none) | to_json -}}
+{%- endmacro -%}
+
+
+{#- ---------------------------------------------------------------- ----
+    CRITICAL TIER - whole bar
+    Mirrors automations.yaml. The firmware layers a whole-bar override ABOVE
+    any individual LED, so while this tier is painting, LEDs 1, 4 and 7 are
+    still being written but are invisible. That is what hides_individual_leds
+    reports, and what the masking banner on the dashboard warns about.
+-------------------------------------------------------------------- -#}
+{%- macro critical_table() -%}
+[
+{"p":1,"key":"triggered","label":"Triggered","state":"Triggered",
+ "color":"red","effect":"fast_blink","brightness":100,"icon":"mdi:alarm-light",
+ "why":"Alarm sounding. Bypasses the night brightness cap - a real emergency."},
+{"p":2,"key":"armed_away","label":"Armed Away","state":"Armed Away",
+ "color":"red","effect":"solid","brightness":100,"icon":"mdi:shield-lock",
+ "why":"Whole bar red so the armed state is unmissable from any room."},
+{"p":3,"key":"armed_night","label":"Armed Night","state":"Armed Night",
+ "color":"red","effect":"solid","brightness":100,"icon":"mdi:shield-moon",
+ "why":"Whole bar red so the armed state is unmissable from any room."},
+{"p":4,"key":"armed_vacation","label":"Armed Vacation","state":"Armed Vacation",
+ "color":"red","effect":"solid","brightness":100,"icon":"mdi:shield-airplane",
+ "why":"Whole bar red so the armed state is unmissable from any room."},
+{"p":5,"key":"armed_home","label":"Armed Home","state":"Armed Home",
+ "color":"red","effect":"solid","brightness":100,"icon":"mdi:shield-home",
+ "why":"Whole bar red so the armed state is unmissable from any room."}
+]
+{%- endmacro -%}
+
+{%- macro critical_stack() -%}
+{%- set cur = states('sensor.active_critical_notification') -%}
+{%- set ns = namespace(out=[]) -%}
+{%- for r in critical_table() | from_json -%}
+{%- if r.state == cur -%}{%- set ns.out = ns.out + [r] -%}{%- endif -%}
+{%- endfor -%}
+{{- ns.out | to_json -}}
+{%- endmacro -%}
+
+{#- True whenever the whole-bar override is hiding LEDs 1, 4 and 7. -#}
+{%- macro critical_masking() -%}
+{{- (critical_stack() | from_json) | count > 0 -}}
+{%- endmacro -%}
+
+
+{#- ---------------------------------------------------------------- ----
+    MODE TIER - LED 4
+    Mirrors automations.yaml. auto is green SOLID, so LED 4 is never dark on
+    a mapped switch - this tier has no empty state.
+
+    WHY DEGRADED BLINKS: orange (hue 21) and yellow (hue 42) are close on the
+    Inovelli wheel and at brightness 30 orange desaturates toward amber,
+    making solid manual and solid degraded indistinguishable. The blink
+    carries the distinction instead of the hue. Do not make degraded solid
+    again without also moving one of the two hues.
+-------------------------------------------------------------------- -#}
+{%- macro mode_table() -%}
+{
+"auto":     {"color":"green","effect":"solid","brightness":15,"icon":"mdi:robot","why":"Motion automations are running."},
+"manual":   {"color":"orange","effect":"solid","brightness":30,"icon":"mdi:hand-back-right","why":"A blocker is on - this zone ignores its motion automations."},
+"degraded": {"color":"yellow","effect":"slow_blink","brightness":30,"icon":"mdi:alert","why":"The zone's motion automation is switched off. Blinks so it cannot be read as manual."},
+"unmapped": {"color":"off","effect":"off","brightness":0,"icon":"mdi:circle-off-outline","why":"No zone owns this switch, so LED 4 is held dark."},
+"unknown":  {"color":"white","effect":"solid","brightness":15,"icon":"mdi:help-circle","why":"Sentinel - the mode sensor is unknown or unavailable."}
+}
+{%- endmacro -%}
+
+{#- The eleven zones, with the blocker that forces manual and a friendly name. -#}
+{%- macro mode_zones() -%}
+[
+{"zone":"main_area","name":"Main Area","icon":"mdi:home-floor-1","floor":"upstairs","blocker":"input_boolean.lighting_automation_blocker_main_area"},
+{"zone":"upstairs_hallway","name":"Upstairs Hallway","icon":"mdi:stairs","floor":"upstairs","blocker":"input_boolean.lighting_automation_blocker_upstairs_hallway"},
+{"zone":"master_bedroom","name":"Master Bedroom","icon":"mdi:bed","floor":"upstairs","blocker":"input_boolean.lighting_automation_blocker_master_bedroom"},
+{"zone":"master_bathroom","name":"Master Bathroom","icon":"mdi:shower","floor":"upstairs","blocker":"input_boolean.lighting_automation_blocker_master_bathroom"},
+{"zone":"garage","name":"Garage","icon":"mdi:garage","floor":"upstairs","blocker":"input_boolean.lighting_automation_blocker_garage"},
+{"zone":"ethan_s_room","name":"Ethan's Room","icon":"mdi:teddy-bear","floor":"downstairs","blocker":"input_boolean.lighting_automation_blocker_ethan_s_room"},
+{"zone":"family_room","name":"Family Room","icon":"mdi:sofa","floor":"downstairs","blocker":"input_boolean.lighting_automation_blocker_family_room"},
+{"zone":"office_room","name":"Office","icon":"mdi:desk","floor":"downstairs","blocker":"input_boolean.lighting_automation_blocker_office_room"},
+{"zone":"basement_bathroom","name":"Basement Bathroom","icon":"mdi:toilet","floor":"downstairs","blocker":"input_boolean.lighting_automation_blocker_basement_bathroom"},
+{"zone":"basement_hallway","name":"Basement Hallway","icon":"mdi:transit-connection-horizontal","floor":"downstairs","blocker":"input_boolean.lighting_automation_blocker_basement_hallway"},
+{"zone":"stairs","name":"Stairs","icon":"mdi:stairs-box","floor":"downstairs","blocker":"input_boolean.lighting_automation_blocker_stairs"}
+]
+{%- endmacro -%}
+
+{#- The sixteen switches and the zone each one displays. -#}
+{%- macro mode_switch_map() -%}
+[
+{"switch":"light.family_room_wall_switch","zone":"family_room"},
+{"switch":"light.kitchen_wall_switch","zone":"main_area"},
+{"switch":"light.awning_wall_switch","zone":"main_area"},
+{"switch":"light.office_wall_switch","zone":"office_room"},
+{"switch":"light.upstairs_hallway_wall_switch","zone":"upstairs_hallway"},
+{"switch":"light.master_bedroom_wall_switch","zone":"master_bedroom"},
+{"switch":"light.master_bedroom_closet_wall_switch","zone":"master_bedroom"},
+{"switch":"light.ethan_s_bedroom_wall_switch","zone":"ethan_s_room"},
+{"switch":"light.master_bathroom_wall_switch","zone":"master_bathroom"},
+{"switch":"light.basement_bathroom_wall_switch","zone":"basement_bathroom"},
+{"switch":"light.basement_hallway_wall_switch","zone":"basement_hallway"},
+{"switch":"light.garage_wall_switch","zone":"garage"},
+{"switch":"light.basement_deck_wall_switch","zone":"unmapped"},
+{"switch":"light.upstairs_deck_wall_switch","zone":"unmapped"},
+{"switch":"light.front_porch_wall_switch","zone":"unmapped"},
+{"switch":"light.stairs_wall_switch","zone":"stairs"}
+]
+{%- endmacro -%}
+
+{#- Each zone resolved to the colour and effect its switches are showing now. -#}
+{%- macro mode_rows() -%}
+{%- set tbl = mode_table() | from_json -%}
+{%- set ns = namespace(out=[]) -%}
+{%- for z in mode_zones() | from_json -%}
+  {%- set m = states('sensor.lighting_mode_' ~ z.zone) -%}
+  {%- set key = m if m in tbl else 'unknown' -%}
+  {%- set t = tbl[key] -%}
+  {%- set ns.out = ns.out + [{
+      'zone': z.zone, 'name': z.name, 'icon': z.icon, 'floor': z.floor,
+      'blocker': z.blocker, 'mode': key,
+      'color': t.color, 'effect': t.effect, 'brightness': t.brightness,
+      'ui': color_ui(t.color), 'hex': color_hex(t.color),
+      'label': t.color | capitalize ~ ' ' ~ effect_label(t.effect),
+      'why': t.why }] -%}
+{%- endfor -%}
+{{- ns.out | to_json -}}
+{%- endmacro -%}
+
+{#- Switches no zone owns - LED 4 is held dark on these three. -#}
+{%- macro mode_unmapped() -%}
+{{- (mode_switch_map() | from_json | selectattr('zone','eq','unmapped')
+     | map(attribute='switch') | list) | to_json -}}
+{%- endmacro -%}
+
+
+{#- ---------------------------------------------------------------- ----
+    SPATIAL TIER - LED 7
+    Mirrors script.cube_room_indicator. Genuinely transient: white fast blink
+    for 3 seconds, then it clears. There is no "LED 7 is lit right now" state
+    anywhere, so the dashboard reports the cube's SELECTED room plus when it
+    last flashed, and says so.
+-------------------------------------------------------------------- -#}
+{%- macro cube_rooms() -%}
+[
+{"room":"Master","name":"Master Bedroom","icon":"mdi:bed","switches":["light.master_bedroom_wall_switch","light.master_bedroom_closet_wall_switch"]},
+{"room":"Ethan","name":"Ethan's Room","icon":"mdi:teddy-bear","switches":["light.ethan_s_bedroom_wall_switch"]},
+{"room":"Office","name":"Office","icon":"mdi:desk","switches":["light.office_wall_switch"]},
+{"room":"Family","name":"Family Room","icon":"mdi:sofa","switches":["light.family_room_wall_switch"]},
+{"room":"Main","name":"Main Area","icon":"mdi:home-floor-1","switches":["light.kitchen_wall_switch","light.awning_wall_switch"]}
+]
+{%- endmacro -%}
+
+{%- macro spatial_paint() -%}
+{"color":"white","effect":"fast_blink","brightness":100,"duration_seconds":3}
+{%- endmacro -%}
+
+
+{#- ---------------------------------------------------------------- ----
+    PRESENTATION HELPERS
+-------------------------------------------------------------------- -#}
+{#- led_set's semantic vocabulary -> a frontend colour word. magenta maps to
+    pink, following led_set's own magenta -> Pink decision. -#}
+{%- macro color_ui(name) -%}
+{%- set m = {'red':'red','orange':'orange','yellow':'yellow','green':'green',
+             'blue':'blue','purple':'purple','magenta':'pink','teal':'teal',
+             'white':'white','off':'disabled'} -%}
+{{- m.get(name, 'grey') -}}
+{%- endmacro -%}
+
+{%- macro color_hex(name) -%}
+{%- set m = {'red':'#ff453a','orange':'#ff9f0a','yellow':'#ffd60a','green':'#32d74b',
+             'blue':'#0a84ff','purple':'#bf5af2','magenta':'#ff375f','teal':'#40c8e0',
+             'white':'#f2f2f7','off':'#8e8e93'} -%}
+{{- m.get(name, '#8e8e93') -}}
+{%- endmacro -%}
+
+{%- macro color_dot(name) -%}
+{%- set m = {'red':'🔴','orange':'🟠','yellow':'🟡','green':'🟢','blue':'🔵',
+             'purple':'🟣','magenta':'🩷','teal':'🩵','white':'⚪','off':'⚫'} -%}
+{{- m.get(name, '⚪') -}}
+{%- endmacro -%}
+
+{%- macro effect_label(e) -%}
+{{- {'solid':'solid','pulse':'pulse','fast_blink':'fast blink',
+     'slow_blink':'slow blink','off':'dark','clear':'cleared'}.get(e, e | replace('_',' ')) -}}
+{%- endmacro -%}
+
+{#- Quick Reference, generated from the tables above so it cannot drift.
+    The hand-written version of this legend had already gone stale. -#}
+{%- macro legend_md() -%}
+### Reading the bar
+
+LED 1 is the **bottom** segment, LED 7 the **top**. Four tiers write four
+different LEDs, and the firmware layers a whole-bar override above all of them.
+
+| LED | Tier | Scope | Empty state |
+| --- | --- | --- | --- |
+| Full bar | Critical (alarm) | All 16 switches | Disarmed |
+| 7 | Spatial (magic cube) | The selected room | Not flashing |
+| 4 | Lighting mode | Per zone | Never - `auto` is green solid |
+| 1 | Global notifications | 12 switches, +4 bedrooms for perimeter alerts | Idle |
+
+LEDs 2, 3, 5 and 6 are unused - nothing writes them.
+
+### LED 1 - global, in priority order
+
+Only the highest-priority active cause is painted; the rest queue behind it.
+
+| | Colour | Effect | Cause |
+| --- | --- | --- | --- |
+{% for r in global_table() | from_json -%}
+| P{{ r.p }} | {{ color_dot(r.color) }} {{ r.color | capitalize }} | {{ effect_label(r.effect) }} | {{ r.label }}{% if r.sanctuary %} · bedrooms too, dimmed{% endif %} |
+{% endfor %}
+
+### LED 4 - lighting mode
+
+| Colour | Effect | Means |
+| --- | --- | --- |
+{% for k in ['auto','manual','degraded','unmapped'] -%}
+{% set t = (mode_table() | from_json)[k] -%}
+| {{ color_dot(t.color) }} {{ t.color | capitalize }} | {{ effect_label(t.effect) }} | {{ k | capitalize }} |
+{% endfor %}
+
+Tap a room to toggle its blocker; hold for details.
+
+### Two things that make the bar lie
+
+- **Armed alarm masks everything.** The whole-bar red override sits above
+  LEDs 1, 4 and 7 in firmware. They are still being painted, just invisible.
+- **Bedrooms are dimmed.** Master Bedroom, Master Closet, Master Bathroom and
+  Ethan's Room only ever receive the three perimeter alerts, always at
+  brightness 1, and after dark every one of them is capped to 1 regardless.
+{%- endmacro -%}

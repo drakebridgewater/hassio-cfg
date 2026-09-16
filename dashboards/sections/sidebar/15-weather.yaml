@@ -79,42 +79,5 @@ cards:
     show_decimal: true
     apparent_sensor: sensor.home_realfeel_temperature_max_0d
     aqi_sensor: sensor.home_air_quality_0d
-  # - type: custom:bubble-card
-  #   card_type: button
-  #   button_type: state
-  #   entity: weather.home
-  #   name: Weather
-  #   show_state: true
-  #   card_layout: large-2-rows
-  #   sub_button:
-  #     - name: Home temperature
-  #       icon: mdi:home-thermometer-outline
-  #       entity: sensor.thermostat_temperature
-  #       show_state: true
-  #       show_icon: true
-  #       show_background: false
-  #       tap_action:
-  #         action: more-info
-  #     - name: Outside temperature
-  #       entity: sensor.wirelesstag_outdoor_temperature
-  #       show_state: true
-  #       show_background: false
-  #       tap_action:
-  #         action: more-info
-  #     - name: Today
-  #       entity: sensor.home_realfeel_temperature_max_0d
-  #       show_name: true
-  #       show_state: true
-  #       show_background: false
-  #       tap_action:
-  #         action: more-info
-  #     - name: Tomorrow
-  #       entity: sensor.home_realfeel_temperature_max_1d
-  #       show_name: true
-  #       show_state: true
-  #       show_background: false
-  #       show_attribute: true
-  #       tap_action:
-  #         action: more-info
-  #   show_name: false
-  #   show_attribute: true
+    condition: screen
+    media_query: "(min-width: 1200px)"

@@ -3,7 +3,7 @@ card_type: pop-up
 hash: '#family'
 button_type: switch
 name: Family Room
-entity: light.family_room_lights_group
+entity: light.family_room_wall_switch
 force_icon: false
 show_state: true
 show_last_changed: false

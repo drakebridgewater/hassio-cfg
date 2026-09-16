@@ -11,13 +11,13 @@ card:
   1_name: Living Room
   1_icon: mdi:sofa
   1_link: "#living-room"
-  1_entity: light.living_room_light_group
+  1_entity: light.awning_lights
   1_pir_sensor: binary_sensor.living_room_presence_sensor_occupancy
 
   2_name: Kitchen
   2_icon: mdi:fridge
   2_link: "#kitchen"
-  2_entity: light.kitchen_lights_group
+  2_entity: light.kitchen_wall_switch
   2_pir_sensor: binary_sensor.kitchen_motion_sensor_occupancy
 
   3_link: /lovelace-main/ethan
@@ -29,13 +29,13 @@ card:
   4_link: "#family"
   4_name: Family Room
   4_icon: mdi:sofa
-  4_entity: light.family_room_lights_group
+  4_entity: light.family_room_wall_switch
   4_pir_sensor: binary_sensor.athom_family_room_presence_sensor_occupancy
 
   5_link: "#master"
   5_name: Master Bedroom
   5_icon: mdi:bed-king-outline
-  5_entity: light.bedroom_lights_group
+  5_entity: light.master_bedroom_wall_switch
   5_pir_sensor: binary_sensor.master_bedroom_motion_sensor_occupancy
 
   6_link: "#office"
@@ -47,5 +47,5 @@ card:
   7_link: "#outdoors"
   7_name: Outdoor
   7_icon: hue:room-outdoors
-  7_entity: light.outdoor_lights_group
+  7_entity: light.outdoor_wall_switch_light_group
   7_pir_sensor: binary_sensor.frontdoor_all_occupancy

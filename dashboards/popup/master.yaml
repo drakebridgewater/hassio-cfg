@@ -3,7 +3,7 @@ card_type: pop-up
 hash: '#master'
 button_type: switch
 name: Master Bedroom
-entity: light.bedroom_lights_group
+entity: light.master_bedroom_wall_switch
 force_icon: false
 show_state: true
 show_last_changed: false

@@ -1,0 +1,54 @@
+# Crawl Space card. Layout, badges and actions come from decluttering-templates/room_card.yaml.
+type: custom:decluttering-card
+template: room_card
+variables:
+  - name: Crawl Space
+  - icon: mdi:home-floor-b
+  - color: 158, 158, 158
+  - popup: /lovelace-main/climate
+  - entity: sensor.crawl_space_temperature_sensor_temperature
+  - temp: sensor.crawl_space_temperature_sensor_temperature
+  - humid: sensor.crawl_space_temperature_sensor_humidity
+  - badges:
+      - name: Leak
+        target: main_icon
+        icon: mdi:water-alert
+        color: blue
+        animation: shake
+        condition:
+          - condition: or
+            conditions:
+              - condition: state
+                entity_id: binary_sensor.crawl_space_leak_monitor_water_leak_detected
+                state: 'on'
+              - condition: state
+                entity_id: binary_sensor.crawl_space_water_leak_detected_2
+                state: 'on'
+      - name: Mold risk
+        target: main_icon
+        icon: mdi:mushroom-outline
+        color: orange
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.crawl_space_mold_risk_index_risk_index
+            above: 0
+      # Ranges match the crawl space graph on the Climate page.
+      - name: Warm
+        target: main_icon
+        icon: mdi:fire
+        color: orange
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.crawl_space_temperature_sensor_temperature
+            above: 80
+      - name: Cold
+        target: main_icon
+        icon: mdi:snowflake-alert
+        color: cyan
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.crawl_space_temperature_sensor_temperature
+            below: 50

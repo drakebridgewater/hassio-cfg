@@ -650,55 +650,6 @@
         target:
           area_id: office
         action: light.turn_off
-- id: '1678748418623'
-  alias: Inovelli Indicator - Mac Camera
-  description: ''
-  trigger:
-  - platform: state
-    id: inactive
-    entity_id:
-    - sensor.drakes_macbook_pro_active_camera
-    from:
-    to: inactive
-  - platform: state
-    id: active
-    entity_id:
-    - sensor.drakes_macbook_pro_active_camera
-    from: inactive
-    to:
-  condition:
-  - condition: state
-    entity_id: person.drake
-    state: home
-  action:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id: inactive
-      sequence:
-      - service: script.1713191378784
-        data:
-          led: All
-          effect: Clear
-          color: 0
-          level: 0
-          duration: 0
-          target:
-            device_id: 4845a6a6beec4d5968ad71e5bd9ebf26
-    - conditions:
-      - condition: trigger
-        id: active
-      sequence:
-      - service: script.1713191378784
-        data:
-          led: All
-          color: Pink
-          level: 98
-          effect: Aurora
-          duration: Indefinitely
-          target:
-            device_id: 4845a6a6beec4d5968ad71e5bd9ebf26
-  mode: single
 - id: '1679065353958'
   alias: Inovelli - Basement Bathroom Wall Switch
   description: ''
@@ -3335,11 +3286,13 @@
     path: Blackshome/sensor-light.yaml
     input:
       motion_trigger:
-      - binary_sensor.office_multi_sensor_home_security_motion_detection
+      - binary_sensor.sensy_one_f81080_any_presence
       light_switch:
         entity_id:
         - light.office_behind_monitor_lamp
         - light.office_desk_right_lamp
+        - light.office_wall_right
+        - light.office_wall_left
       boolean_scenes_scripts: input_boolean.scenes_scripts_toggle_helper_office
       include_light_control:
       - use_brightness
@@ -4016,14 +3969,25 @@
 - id: '1777173013844'
   alias: 'Notification: Apply Global LED on state change'
   description: 'Reacts to changes in sensor.active_global_notification (the global
-    priority queue) and calls script.led_set with the appropriate color/effect for
-    the active notification, or clears LED 1 (bottom) if no notification is active.
-    Targets Inovelli VZM31-SN switches via explicit entity lists (NOT a light group
-    — Zanix doesn''t expand light groups properly). Heartbeat automation re-triggers
-    this every 5 minutes when active.
+    priority queue) and paints Led 1 (bottom) with the colour and effect for the active
+    notification, or clears Led 1 if nothing is open. Targets Inovelli VZM31-SN switches
+    via explicit entity lists (NOT a light group — Zanix doesn''t expand light groups
+    properly). Heartbeat automation re-triggers this every 5 minutes when active.
 
 
-    ONE COLOR PER STATE: every state the priority sensor can emit gets its own colour
+    TABLE-DRIVEN: the colour, effect, priority and sanctuary flag for every state
+    live in custom_templates/led_status.jinja (macro global_table), NOT in this file.
+    This automation looks the active state up in that table and makes at most two
+    led_set calls. The same table drives /lighting-status/0, so the page and the bar
+    cannot disagree; binary_sensor.led_1_table_agrees watches for the table drifting
+    from the sensor.active_global_notification helper''s own priority chain. To change
+    a colour, edit the jinja table - editing this file will not change the bar.
+
+    After editing the table, reload Custom Jinja2 templates; this automation picks
+    up the new values on its next trigger or heartbeat.
+
+
+    ONE COLOUR PER STATE: every state the priority sensor can emit gets its own colour
     on Led 1, so the bar is readable on sight rather than by elimination. Only one
     global notification is ever displayed at a time (the sensor is a priority queue),
     so the risk is misremembering a colour, not telling two apart side by side. Orange
@@ -4039,242 +4003,51 @@
     Master Bathroom, Ethan''s Bedroom) only receive the three perimeter-breach alerts
     — Garage Door Open (the overhead door, cover.garage_door), Front Door Open, and
     Garage Entry Door Open (the walk-through contact, binary_sensor.garage_portal)
-    — and only ever at brightness 1. Low-urgency notifications (kitchen door, slider,
-    windows, fridge) go to the twelve non-sanctuary switches only, so a bedroom bar
-    never lights for a fridge left ajar. Each perimeter branch therefore makes TWO
-    led_set calls: the twelve at full brightness, the four at brightness 1. The Idle
-    branch still releases all sixteen — a switch that stopped being a target still
-    has to be cleared.'
+    — and only ever at brightness 1. That eligibility is the "sanctuary" flag on each
+    table row. Low-urgency notifications (kitchen door, slider, windows, fridge) go
+    to the twelve non-sanctuary switches only, so a bedroom bar never lights for a
+    fridge left ajar. The Idle branch still releases all sixteen — a switch that stopped
+    being a target still has to be cleared.'
   triggers:
   - entity_id: sensor.active_global_notification
     trigger: state
+  variables:
+    row: '{# The table row for whatever the priority queue is currently emitting,
+      or none for Idle / unknown. #}{% from ''led_status.jinja'' import global_table
+      %}{% set cur = states(''sensor.active_global_notification'') %}{% set m = global_table()
+      | from_json | selectattr(''label'', ''eq'', cur) | list %}{{ m[0] if m else none
+      }}'
+    sets: '{% from ''led_status.jinja'' import switch_sets %}{{ switch_sets() | from_json
+      }}'
   actions:
-  - alias: Branch on active notification state
+  - alias: Paint the active notification, or release Led 1 when nothing is open
     choose:
-    - alias: Garage Door Open (the overhead door itself, cover.garage_door) → WHITE
-        pulse. Sanctuary-eligible, and the HIGHEST priority entry in the queue - an
-        open overhead door is the largest exposure in the house.
+    - alias: A table row matched, so paint its colour and effect on Led 1.
       conditions:
-      - condition: state
-        entity_id: sensor.active_global_notification
-        state:
-        - Garage Door Open
+      - condition: template
+        value_template: '{{ row is mapping }}'
       sequence:
-      - alias: Non-sanctuary switches at tier default brightness
+      - alias: The twelve non-sanctuary switches, at the global tier default brightness
+          (100).
         action: script.led_set
         data:
-          color: white
-          effect: pulse
           tier: global
-          switch_entity:
-          - light.family_room_wall_switch
-          - light.kitchen_wall_switch
-          - light.awning_wall_switch
-          - light.office_wall_switch
-          - light.upstairs_hallway_wall_switch
-          - light.basement_bathroom_wall_switch
-          - light.basement_hallway_wall_switch
-          - light.garage_wall_switch
-          - light.basement_deck_wall_switch
-          - light.upstairs_deck_wall_switch
-          - light.front_porch_wall_switch
-          - light.stairs_wall_switch
-      - alias: Sanctuary switches at brightness 1
-        action: script.led_set
-        data:
-          color: white
-          effect: pulse
-          tier: global
-          brightness: 1
-          switch_entity:
-          - light.master_bedroom_wall_switch
-          - light.master_bedroom_closet_wall_switch
-          - light.master_bathroom_wall_switch
-          - light.ethan_s_bedroom_wall_switch
-    - alias: Front Door Open → ORANGE pulse. Sanctuary-eligible. Second in the queue.
-      conditions:
-      - condition: state
-        entity_id: sensor.active_global_notification
-        state:
-        - Front Door Open
-      sequence:
-      - alias: Non-sanctuary switches at tier default brightness
-        action: script.led_set
-        data:
-          color: orange
-          effect: pulse
-          tier: global
-          switch_entity:
-          - light.family_room_wall_switch
-          - light.kitchen_wall_switch
-          - light.awning_wall_switch
-          - light.office_wall_switch
-          - light.upstairs_hallway_wall_switch
-          - light.basement_bathroom_wall_switch
-          - light.basement_hallway_wall_switch
-          - light.garage_wall_switch
-          - light.basement_deck_wall_switch
-          - light.upstairs_deck_wall_switch
-          - light.front_porch_wall_switch
-          - light.stairs_wall_switch
-      - alias: Sanctuary switches at brightness 1
-        action: script.led_set
-        data:
-          color: orange
-          effect: pulse
-          tier: global
-          brightness: 1
-          switch_entity:
-          - light.master_bedroom_wall_switch
-          - light.master_bedroom_closet_wall_switch
-          - light.master_bathroom_wall_switch
-          - light.ethan_s_bedroom_wall_switch
-    - alias: Garage Entry Door Open (the walk-through contact, binary_sensor.garage_portal)
-        → PURPLE pulse. Sanctuary-eligible. Third in the queue; split out from Front
-        Door so the two no longer share orange.
-      conditions:
-      - condition: state
-        entity_id: sensor.active_global_notification
-        state:
-        - Garage Entry Door Open
-      sequence:
-      - alias: Non-sanctuary switches at tier default brightness
-        action: script.led_set
-        data:
-          color: purple
-          effect: pulse
-          tier: global
-          switch_entity:
-          - light.family_room_wall_switch
-          - light.kitchen_wall_switch
-          - light.awning_wall_switch
-          - light.office_wall_switch
-          - light.upstairs_hallway_wall_switch
-          - light.basement_bathroom_wall_switch
-          - light.basement_hallway_wall_switch
-          - light.garage_wall_switch
-          - light.basement_deck_wall_switch
-          - light.upstairs_deck_wall_switch
-          - light.front_porch_wall_switch
-          - light.stairs_wall_switch
-      - alias: Sanctuary switches at brightness 1
-        action: script.led_set
-        data:
-          color: purple
-          effect: pulse
-          tier: global
-          brightness: 1
-          switch_entity:
-          - light.master_bedroom_wall_switch
-          - light.master_bedroom_closet_wall_switch
-          - light.master_bathroom_wall_switch
-          - light.ethan_s_bedroom_wall_switch
-    - alias: Kitchen Door Open → TEAL pulse. NOT sanctuary-eligible.
-      conditions:
-      - condition: state
-        entity_id: sensor.active_global_notification
-        state:
-        - Kitchen Door Open
-      sequence:
-      - action: script.led_set
-        data:
-          color: teal
-          effect: pulse
-          tier: global
-          switch_entity:
-          - light.family_room_wall_switch
-          - light.kitchen_wall_switch
-          - light.awning_wall_switch
-          - light.office_wall_switch
-          - light.upstairs_hallway_wall_switch
-          - light.basement_bathroom_wall_switch
-          - light.basement_hallway_wall_switch
-          - light.garage_wall_switch
-          - light.basement_deck_wall_switch
-          - light.upstairs_deck_wall_switch
-          - light.front_porch_wall_switch
-          - light.stairs_wall_switch
-    - alias: Slider Open → MAGENTA pulse. NOT sanctuary-eligible. Split out from Kitchen
-        Door so the two no longer share teal.
-      conditions:
-      - condition: state
-        entity_id: sensor.active_global_notification
-        state:
-        - Slider Open
-      sequence:
-      - action: script.led_set
-        data:
-          color: magenta
-          effect: pulse
-          tier: global
-          switch_entity:
-          - light.family_room_wall_switch
-          - light.kitchen_wall_switch
-          - light.awning_wall_switch
-          - light.office_wall_switch
-          - light.upstairs_hallway_wall_switch
-          - light.basement_bathroom_wall_switch
-          - light.basement_hallway_wall_switch
-          - light.garage_wall_switch
-          - light.basement_deck_wall_switch
-          - light.upstairs_deck_wall_switch
-          - light.front_porch_wall_switch
-          - light.stairs_wall_switch
-    - alias: Windows Open → GREEN pulse. NOT sanctuary-eligible. Green is the most
-        benign colour in the palette and open windows are usually deliberate.
-      conditions:
-      - condition: state
-        entity_id: sensor.active_global_notification
-        state:
-        - Windows Open
-      sequence:
-      - action: script.led_set
-        data:
-          color: green
-          effect: pulse
-          tier: global
-          switch_entity:
-          - light.family_room_wall_switch
-          - light.kitchen_wall_switch
-          - light.awning_wall_switch
-          - light.office_wall_switch
-          - light.upstairs_hallway_wall_switch
-          - light.basement_bathroom_wall_switch
-          - light.basement_hallway_wall_switch
-          - light.garage_wall_switch
-          - light.basement_deck_wall_switch
-          - light.upstairs_deck_wall_switch
-          - light.front_porch_wall_switch
-          - light.stairs_wall_switch
-    - alias: Fridge Open → YELLOW slow blink, brightness override since mixed colour.
-        NOT sanctuary-eligible. Fires from input_boolean.fridge_open_too_long via
-        the fridge debounce state machine (2 minutes continuously open). The slow
-        blink also keeps it distinct from Front Door's orange pulse.
-      conditions:
-      - condition: state
-        entity_id: sensor.active_global_notification
-        state:
-        - Fridge Open
-      sequence:
-      - action: script.led_set
-        data:
-          brightness: 100
-          color: yellow
-          effect: slow_blink
-          tier: global
-          switch_entity:
-          - light.family_room_wall_switch
-          - light.kitchen_wall_switch
-          - light.awning_wall_switch
-          - light.office_wall_switch
-          - light.upstairs_hallway_wall_switch
-          - light.basement_bathroom_wall_switch
-          - light.basement_hallway_wall_switch
-          - light.garage_wall_switch
-          - light.basement_deck_wall_switch
-          - light.upstairs_deck_wall_switch
-          - light.front_porch_wall_switch
-          - light.stairs_wall_switch
+          color: '{{ row.color }}'
+          effect: '{{ row.effect }}'
+          switch_entity: '{{ sets.main | list }}'
+      - alias: 'Perimeter alerts only: the four sanctuary switches, always at brightness
+          1.'
+        if:
+        - condition: template
+          value_template: '{{ row.sanctuary }}'
+        then:
+        - action: script.led_set
+          data:
+            tier: global
+            color: '{{ row.color }}'
+            effect: '{{ row.effect }}'
+            brightness: 1
+            switch_entity: '{{ sets.sanctuary | list }}'
     default:
     - alias: No notification → release the global tier LED on ALL sixteen switches.
         The global tier paints Led 1 (bottom), so the release has to target Led 1.
@@ -5338,3 +5111,63 @@
     needs_change: "{{ prev_mode != target_mode\n   or (prev_set | map('float', -999)
       | map('round', 0) | list)\n      != (want_set | map('float', -999) | map('round',
       0) | list) }}"
+- id: '1789508245654'
+  alias: Master Bedroom - Air Quality LED
+  description: Colors the Apollo AIR-1 LED by the worst of CO2, PM2.5 and VOC index
+    (green good / yellow moderate / red poor). Brightness 100% when Alarmo is disarmed,
+    1% in any other alarm state. Only sends a command when color or brightness would
+    actually change.
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.apollo_air_1_f8b340_co2
+    - sensor.apollo_air_1_f8b340_pm_2_5mm_weight_concentration
+    - sensor.apollo_air_1_f8b340_sen55_voc
+    - alarm_control_panel.default
+  - trigger: state
+    entity_id: binary_sensor.apollo_air_1_f8b340_online
+    to: 'on'
+  - trigger: homeassistant
+    event: start
+  conditions:
+  - condition: state
+    entity_id: automation.master_bedroom_air_quality_led
+    state:
+    - 'on'
+  actions:
+  - variables:
+      led: light.apollo_air_1_f8b340_rgb_light
+      co2: '{{ states(''sensor.apollo_air_1_f8b340_co2'') | float(none) }}'
+      pm25: '{{ states(''sensor.apollo_air_1_f8b340_pm_2_5mm_weight_concentration'')
+        | float(none) }}'
+      voc: '{{ states(''sensor.apollo_air_1_f8b340_sen55_voc'') | float(none) }}'
+      level: '{% set ns = namespace(l=-1) %}
+
+        {% if co2 is number %}{% set ns.l = [ns.l, 2 if co2 > 1500 else 1 if co2 >
+        1000 else 0] | max %}{% endif %}
+
+        {% if pm25 is number %}{% set ns.l = [ns.l, 2 if pm25 > 35 else 1 if pm25
+        > 12 else 0] | max %}{% endif %}
+
+        {% if voc is number %}{% set ns.l = [ns.l, 2 if voc > 250 else 1 if voc >
+        150 else 0] | max %}{% endif %}
+
+        {{ ns.l }}'
+      rgb: '{{ [[0, 255, 0], [255, 255, 0], [255, 0, 0]][level | int] if level | int
+        >= 0 else none }}'
+      brightness: '{{ 150 if is_state(''alarm_control_panel.default'', ''disarmed'')
+        else 3 }}'
+  - condition: template
+    value_template: '{{ rgb is not none }}'
+  - condition: template
+    value_template: "{{ not is_state(led, 'on')\n   or (state_attr(led, 'rgb_color')
+      or []) | list != rgb\n   or state_attr(led, 'brightness') | int(0) != brightness
+      }}"
+  - action: light.turn_on
+    target:
+      entity_id: '{{ led }}'
+    data:
+      rgb_color: '{{ rgb }}'
+      brightness: '{{ brightness }}'
+  mode: queued
+  max: 5

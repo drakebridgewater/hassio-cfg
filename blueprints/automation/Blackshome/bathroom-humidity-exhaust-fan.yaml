@@ -126,8 +126,8 @@ blueprint:
               - label: Disable manual trigger
                 value: disable_manual_trigger
               multiple: false
-              sort: false
               custom_value: false
+              sort: false
         manual_trigger:
           name: Manual Trigger
           description: 'Enter an entity that will manually trigger the automation.
@@ -342,8 +342,8 @@ blueprint:
               - label: Disable the maximum humidity option
                 value: maximum_humidity_disabled
               multiple: false
-              sort: false
               custom_value: false
+              sort: false
         max_humidity:
           name: Maximum Humidity
           description: If you have enabled the maximum humidity option above, please
@@ -378,8 +378,8 @@ blueprint:
               - label: Disable the fan speed options
                 value: fan_speed_disabled
               multiple: false
-              sort: false
               custom_value: false
+              sort: false
         time_delay_low_speed:
           name: Fan Speed - Low Speed Time Delay
           description: If you've selected option 1 in the 'Fan Speed Options' above,
@@ -412,8 +412,8 @@ blueprint:
               - label: Disable winter mode option
                 value: winter_mode_disabled
               multiple: false
-              sort: false
               custom_value: false
+              sort: false
         month_winter_mode:
           name: Months For Winter Mode
           description: Choose the months during which you want the winter mode settings
@@ -448,8 +448,8 @@ blueprint:
                 value: '11'
               - label: December
                 value: '12'
-              sort: false
               custom_value: false
+              sort: false
         winter_rising_humidity:
           name: Winter Rising Humidity Derivative
           description: Specify the percentage increase that the derivative sensor
@@ -528,8 +528,8 @@ blueprint:
               - label: Disable the maximum humidity option
                 value: maximum_humidity_disabled
               multiple: false
-              sort: false
               custom_value: false
+              sort: false
         winter_max_humidity:
           name: Winter Maximum Humidity
           description: If you have enabled the maximum humidity option above, please
@@ -564,8 +564,8 @@ blueprint:
               - label: Disable the fan speed options
                 value: fan_speed_disabled
               multiple: false
-              sort: false
               custom_value: false
+              sort: false
         winter_time_delay_low_speed:
           name: Winter Fan Speed - Low Speed Time Delay
           description: If you've selected option 1 in the 'Fan Speed Options' above,
@@ -601,8 +601,8 @@ blueprint:
               - label: Disable the lights options
                 value: lights_disabled
               multiple: false
-              sort: false
               custom_value: false
+              sort: false
         light_switch:
           name: Lights
           description: 'Select the lights that will be turned on by the trigger sensor.
@@ -645,8 +645,8 @@ blueprint:
                 value: use_colour_temperature
               - label: Use transition
                 value: use_transition
-              sort: false
               custom_value: false
+              sort: false
         light_brightness:
           name: Brightness
           description: The brightness setting for the lights when they are turned
@@ -718,8 +718,8 @@ blueprint:
               - label: Disable manual fan switch
                 value: disable_manual_fan_switch
               multiple: false
-              sort: false
               custom_value: false
+              sort: false
         manual_fan_switch:
           name: Manual Fan Switch
           description: 'Enter a switch that will toggle the fan ON/OFF. When the switch
@@ -780,8 +780,8 @@ blueprint:
               - label: Disable automation link
                 value: disable_automation_link
               multiple: false
-              sort: false
               custom_value: false
+              sort: false
         automation_link:
           name: Automation Link - Bypass Control
           description: 'Please enter the bypass entity of the other automations you
@@ -836,8 +836,8 @@ blueprint:
               - label: Disable operating hours
                 value: operating_hours_disabled
               multiple: false
-              sort: false
               custom_value: false
+              sort: false
         operating_hours_start_time:
           name: Start Time
           description: 'Set the operating hours start time.
@@ -886,8 +886,8 @@ blueprint:
                 value: sat
               - label: Sunday
                 value: sun
-              sort: false
               custom_value: false
+              sort: false
     bypass_settings:
       name: Bypass
       icon: mdi:cog-pause-outline
@@ -919,8 +919,8 @@ blueprint:
               - label: Disable the bypass option
                 value: bypass_disabled
               multiple: false
-              sort: false
               custom_value: false
+              sort: false
         by_pass:
           name: Bypass Switch
           description: 'Select a switch that will bypass the humidity derivative sensor
@@ -945,8 +945,8 @@ blueprint:
               - label: When you turn the bypass off - Turn the fan, lights & automation
                   link OFF and do not run the automation.
                 value: bypass_turn_fan_off
-              sort: false
               custom_value: false
+              sort: false
         include_bypass_auto_off:
           name: Use The Bypass Auto OFF Option (Optional)
           description: Select this option if you want the bypass to automatically
@@ -962,8 +962,8 @@ blueprint:
               - label: Disable the bypass auto off option
                 value: bypass_auto_off_disabled
               multiple: false
-              sort: false
               custom_value: false
+              sort: false
         bypass_auto_off_delay:
           name: Bypass Auto OFF - Time Delay
           description: Please set the auto OFF time delay for the bypass.

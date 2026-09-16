@@ -188,12 +188,16 @@ cards:
     - type: custom:bubble-card
       card_type: separator
       name: Attic
-    - type: custom:mushroom-chips-card
-      chips:
-        - type: entity
-          entity: sensor.acurite_tower_attic_sensor_temperature
-        - type: entity
-          entity: sensor.acurite_tower_attic_sensor_humidity
+    - type: custom:decluttering-card
+      template: bubble_chips
+      variables:
+        - chips:
+            - entity: sensor.acurite_tower_attic_sensor_temperature
+              show_state: true
+              fill_width: false
+            - entity: sensor.acurite_tower_attic_sensor_humidity
+              show_state: true
+              fill_width: false
   - type: vertical-stack
     view_layout:
       grid-area: section5
@@ -201,9 +205,13 @@ cards:
     - type: custom:bubble-card
       card_type: separator
       name: Crawl Space
-    - type: custom:mushroom-chips-card
-      chips:
-        - type: entity
-          entity: sensor.crawl_space_temperature_sensor_temperature
-        - type: entity
-          entity: sensor.crawl_space_temperature_sensor_humidity
+    - type: custom:decluttering-card
+      template: bubble_chips
+      variables:
+        - chips:
+            - entity: sensor.crawl_space_temperature_sensor_temperature
+              show_state: true
+              fill_width: false
+            - entity: sensor.crawl_space_temperature_sensor_humidity
+              show_state: true
+              fill_width: false

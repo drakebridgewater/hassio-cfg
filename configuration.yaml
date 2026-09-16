@@ -180,6 +180,8 @@ recorder:
       - calendar          # calendar.inbox alone = 44 MB of attributes
       - persistent_notification
     entity_globs:
+      # --- High-frequency coordinate attributes ---
+      - sensor.rmm_*_master
       # --- UniFi Dream Machine Pro diagnostics: ~3.2M rows/30d ---
       - sensor.dream_machine_pro_*
       # --- Screek mmWave per-frame target coordinates: ~2.5M rows/30d ---

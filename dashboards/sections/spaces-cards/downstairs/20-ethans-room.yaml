@@ -1,0 +1,47 @@
+# Ethan's Bedroom card. Layout, badges and actions come from decluttering-templates/room_card.yaml.
+type: custom:decluttering-card
+template: room_card
+variables:
+  - name: Ethan's Bedroom
+  - icon: mdi:teddy-bear
+  - color: 0, 188, 212
+  - popup: '#ethan'
+  - entity: binary_sensor.ethans_bedroom_presence_sensor_occupancy
+  - temp: sensor.ethan_bedroom_temperature
+  - blocker: input_boolean.lighting_automation_blocker_ethan_s_room
+  - badges:
+      - name: Window open
+        target: main_icon
+        icon: mdi:window-open-variant
+        color: red
+        animation: pulse
+        condition:
+          - condition: state
+            entity_id: binary_sensor.ethan_s_bedroom_window_sensor_contact
+            state: 'on'
+      - name: Too warm
+        target: main_icon
+        icon: mdi:fire
+        color: orange
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.ethan_bedroom_temperature
+            above: 72
+      - name: Too cold
+        target: main_icon
+        icon: mdi:snowflake-alert
+        color: cyan
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.ethan_bedroom_temperature
+            below: 69
+      - name: Occupied
+        target: main_icon
+        icon: mdi:motion-sensor
+        color: green
+        condition:
+          - condition: state
+            entity_id: binary_sensor.ethans_bedroom_presence_sensor_occupancy
+            state: 'on'

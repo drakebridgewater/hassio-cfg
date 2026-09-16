@@ -1,0 +1,22 @@
+type: custom:bubble-card
+card_type: pop-up
+hash: '#ethan'
+button_type: switch
+name: Ethan's Bedroom
+icon: mdi:teddy-bear
+entity: light.ethan_s_bedroom_wall_switch
+force_icon: true
+show_state: true
+show_last_changed: false
+bg_opacity: '35'
+button_action:
+  tap_action:
+    action: none
+tap_action:
+  action: toggle
+sub_button:
+  - icon: mdi:open-in-new
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-main/ethan
+cards: !include_dir_list ../sections/rooms/ethan

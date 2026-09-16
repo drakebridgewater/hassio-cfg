@@ -1,0 +1,40 @@
+# Attic card. Layout, badges and actions come from decluttering-templates/room_card.yaml.
+type: custom:decluttering-card
+template: room_card
+variables:
+  - name: Attic
+  - icon: mdi:home-roof
+  - color: 121, 85, 72
+  - popup: /lovelace-main/climate
+  - entity: sensor.acurite_tower_attic_sensor_temperature
+  - temp: sensor.acurite_tower_attic_sensor_temperature
+  - humid: sensor.acurite_tower_attic_sensor_humidity
+  - badges:
+      - name: Mold risk
+        target: main_icon
+        icon: mdi:mushroom-outline
+        color: orange
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.attic_mold_risk_index_risk_index
+            above: 0
+      # Ranges match the attic graph on the Climate page.
+      - name: Hot
+        target: main_icon
+        icon: mdi:fire
+        color: orange
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.acurite_tower_attic_sensor_temperature
+            above: 95
+      - name: Freezing
+        target: main_icon
+        icon: mdi:snowflake-alert
+        color: cyan
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.acurite_tower_attic_sensor_temperature
+            below: 32

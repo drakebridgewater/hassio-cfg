@@ -20,4 +20,4 @@ sub_button:
       action: more-info
     hold_action:
       action: more-info
-cards: !include ../cards/office.yaml
+cards: !include_dir_list ../sections/rooms/office

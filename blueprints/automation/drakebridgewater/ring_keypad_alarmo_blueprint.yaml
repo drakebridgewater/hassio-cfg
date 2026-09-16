@@ -20,8 +20,8 @@ blueprint:
           domain:
           - alarm_control_panel
           integration: alarmo
-          reorder: false
           multiple: false
+          reorder: false
     selected_action_police:
       name: Selected Action Police
       description: Select the action for Police Button
@@ -161,9 +161,8 @@ action:
     - service: alarmo.disarm
       data:
         entity_id: !input alarm
-        # Must render as the bare code - Alarmo bcrypt-checks the raw string
-        # and never strips, so any padding fails once codes are required.
-        code: "{{ trigger.event.data.event_data | default('', true) | string | trim }}"
+        code: "{% if trigger.event.data.event_data != none %}\n  {{ trigger.event.data.event_data
+          }}\n{% endif %}\n"
   - conditions:
     - condition: trigger
       id: alarm_armed_night
@@ -208,9 +207,8 @@ action:
         entity_id: !input alarm
         mode: '{{ trigger.id.split("_")[2] }}'
         force: false
-        # Must render as the bare code - Alarmo bcrypt-checks the raw string
-        # and never strips, so any padding fails once codes are required.
-        code: "{{ trigger.event.data.event_data | default('', true) | string | trim }}"
+        code: "{% if trigger.event.data.event_data != none %}\n  {{ trigger.event.data.event_data
+          }}\n{% endif %}\n"
     - wait_for_trigger:
       - platform: event
         event_type: zwave_js_notification
@@ -226,9 +224,8 @@ action:
         entity_id: !input alarm
         mode: '{{ trigger.id.split("_")[2] }}'
         force: true
-        # Must render as the bare code - Alarmo bcrypt-checks the raw string
-        # and never strips, so any padding fails once codes are required.
-        code: "{{ trigger.event.data.event_data | default('', true) | string | trim }}"
+        code: "{% if trigger.event.data.event_data != none %}\n  {{ trigger.event.data.event_data
+          }}\n{% endif %}\n"
   - conditions:
     - condition: trigger
       id:

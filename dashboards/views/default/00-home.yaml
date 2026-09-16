@@ -11,7 +11,32 @@ cards:
   - !include ../../frame/footer.yaml
   - !include ../../navigation/home.yaml
 
+  # Rooms, grouped like the GUI dashboard: a Bubble separator and a 2-wide grid per floor
   - type: vertical-stack
     view_layout:
       grid-area: section1
-    cards: !include_dir_list ../../sections/spaces-cards
+    cards:
+      - type: custom:bubble-card
+        card_type: separator
+        name: Upstairs
+        icon: mdi:home-floor-1
+      - type: grid
+        columns: 2
+        square: false
+        cards: !include_dir_list ../../sections/spaces-cards/upstairs
+      - type: custom:bubble-card
+        card_type: separator
+        name: Downstairs
+        icon: mdi:home-floor-b
+      - type: grid
+        columns: 2
+        square: false
+        cards: !include_dir_list ../../sections/spaces-cards/downstairs
+      - type: custom:bubble-card
+        card_type: separator
+        name: Other
+        icon: mdi:home-group
+      - type: grid
+        columns: 2
+        square: false
+        cards: !include_dir_list ../../sections/spaces-cards/other

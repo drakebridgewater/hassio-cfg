@@ -29,8 +29,8 @@ blueprint:
       default: Shopping List
       selector:
         text:
-          multiple: false
           multiline: false
+          multiple: false
     style:
       name: Border style
       description: Border-glyph family for the title + items table.
@@ -46,8 +46,8 @@ blueprint:
           - hash
           - none
           multiple: false
-          sort: false
           custom_value: false
+          sort: false
 mode: queued
 max_exceeded: silent
 sequence:

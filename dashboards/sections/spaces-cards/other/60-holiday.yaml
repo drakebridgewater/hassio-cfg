@@ -1,0 +1,10 @@
+# Holiday Lights card. Same room_card template: the next holiday takes the readings line.
+type: custom:decluttering-card
+template: room_card
+variables:
+  - name: Holiday Lights
+  - icon: mdi:string-lights
+  - color: 255, 87, 34
+  - popup: '#holiday'
+  - entity: light.holiday_lights
+  - extra: sensor.next_holiday

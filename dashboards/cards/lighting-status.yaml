@@ -1,0 +1,798 @@
+# =============================================================================
+# SOURCE OF TRUTH for the GUI dashboard /lighting-status/0
+# =============================================================================
+# .storage/ is gitignored, so this file is the tracked copy of the storage
+# dashboard `lighting_status`. Same convention as dashboards/cards/ambient-glow.yaml.
+#
+# To deploy: convert to JSON and call the HA MCP tool
+#   set_dashboard_config(url_path="lighting-status", config=<this>, dry_run=True)
+# then again without dry_run. list_dashboard_backups / restore_dashboard is the undo.
+#
+# Every colour, effect and priority shown here comes from the sensor.led_*
+# entities in packages/led_status.yaml, which read custom_templates/led_status.jinja.
+# Do not hand-edit a colour into this file - change the jinja table instead.
+#
+# Layout: one full-width row per LED, top to bottom, FULL BAR -> LED 7 -> ... -> LED 1.
+#
+# DO NOT USE `condition: template` IN `visibility:` ON THIS PAGE. On this HA
+# frontend the template condition never resolves and the card stays hidden
+# forever, silently - verified 2026-09-16 by flipping a live hui-card from a
+# template condition to a state condition and watching `hidden` go false.
+# Every row here gates on `condition: state` / `numeric_state` against a real
+# entity instead; where the logic needed more than that (the night brightness
+# cap) it is precomputed into a binary_sensor in packages/led_status.yaml.
+# LEDs 2, 3, 5 and 6 are written by nothing and render as a single empty line.
+# =============================================================================
+
+views:
+  - title: Status
+    path: ""
+    icon: mdi:lightbulb-on-outline
+    type: sections
+    max_columns: 2
+    badges:
+      - type: entity
+        entity: sensor.led_1_global
+        name: LED 1
+        color: teal
+      - type: entity
+        entity: sensor.led_4_mode
+        name: Zones off auto
+        color: orange
+      - type: entity
+        entity: binary_sensor.led_1_table_agrees
+        name: Table drift
+        color: red
+        visibility:
+          - condition: state
+            entity: binary_sensor.led_1_table_agrees
+            state: "on"
+      - type: entity
+        entity: light.wall_switch_light_group
+        name: All
+        icon: mdi:light-switch
+
+    sections:
+
+      # ===================================================================
+      # FULL BAR - critical / alarm tier
+      # ===================================================================
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:bubble-card
+            card_type: separator
+            name: FULL BAR · Critical
+            icon: mdi:alarm-light
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+
+          - type: markdown
+            text_only: true
+            grid_options: {columns: full, rows: auto}
+            content: >
+              Whole-bar override on all 16 switches. Sits **above** LEDs 1, 4 and 7
+              in firmware — while this is painting, the other three are still being
+              written but are invisible.
+
+          - type: custom:bubble-card
+            card_type: separator
+            name: All switches
+            icon: mdi:home-group
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+
+          - type: custom:mushroom-template-card
+            primary: >
+              {{ state_attr('sensor.led_bar_critical', 'showing_label') }}
+            secondary: >
+              {% set s = state_attr('sensor.led_bar_critical', 'showing') %}
+              {% if s %}{{ s.why }}{% else %}Alarm disarmed — the bar is released to LEDs 1, 4 and 7.{% endif %}
+            icon: >
+              {% set s = state_attr('sensor.led_bar_critical', 'showing') %}
+              {{ s.icon if s else 'mdi:shield-off-outline' }}
+            icon_color: >
+              {% set s = state_attr('sensor.led_bar_critical', 'showing') %}
+              {{ 'red' if s else 'disabled' }}
+            multiline_secondary: true
+            tap_action: {action: more-info, entity: alarm_control_panel.default}
+            grid_options: {columns: full, rows: auto}
+
+          - type: custom:bubble-card
+            card_type: separator
+            name: Room specific
+            icon: mdi:door-closed
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+
+          - type: markdown
+            text_only: true
+            grid_options: {columns: full, rows: 1}
+            content: "*None — critical is whole-house by design.*"
+
+      # ===================================================================
+      # LED 7 - spatial / magic cube tier
+      # ===================================================================
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:bubble-card
+            card_type: separator
+            name: LED 7 · Spatial
+            icon: mdi:cube-scan
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+
+          - type: markdown
+            text_only: true
+            grid_options: {columns: full, rows: auto}
+            content: >
+              Transient — the magic cube flashes the selected room's switches
+              **white fast blink for 3 s**, then clears. Shown below is the cube's
+              *selected* room, not a live LED reading.
+
+          - type: custom:bubble-card
+            card_type: separator
+            name: All switches
+            icon: mdi:home-group
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+
+          - type: markdown
+            text_only: true
+            grid_options: {columns: full, rows: 1}
+            content: "*None — LED 7 is per-room by design.*"
+
+          - type: custom:bubble-card
+            card_type: separator
+            name: Room specific
+            icon: mdi:door-closed
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+
+          - type: custom:mushroom-template-card
+            primary: >
+              {% set r = state_attr('sensor.led_7_spatial', 'room') %}
+              {{ r.name if r else states('sensor.led_7_spatial') }} — White fast blink (3 s)
+            secondary: >
+              {% set t = state_attr('sensor.led_7_spatial', 'last_indicated') %}
+              {% if t %}Last flashed {{ relative_time(as_datetime(t)) }} ago{% else %}Never flashed{% endif %}
+            icon: >
+              {% set r = state_attr('sensor.led_7_spatial', 'room') %}
+              {{ r.icon if r else 'mdi:cube-outline' }}
+            icon_color: white
+            tap_action: {action: more-info, entity: input_select.cube_room}
+            grid_options: {columns: full, rows: auto}
+
+          - type: markdown
+            text_only: true
+            grid_options: {columns: full, rows: auto}
+            content: >
+              ⚠️ **Hidden right now** — the armed whole-bar override outranks LED 7
+              in firmware.
+            visibility:
+              - condition: state
+                entity: binary_sensor.led_bar_masking
+                state: "on"
+
+      # ===================================================================
+      # LED 6 / LED 5 - unassigned
+      # ===================================================================
+      - type: grid
+        cards:
+          - type: custom:bubble-card
+            card_type: separator
+            name: LED 6 · Unassigned
+            icon: mdi:numeric-6-box-outline
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+          - type: markdown
+            text_only: true
+            grid_options: {columns: full, rows: 1}
+            content: "*Nothing writes LED 6.*"
+
+      - type: grid
+        cards:
+          - type: custom:bubble-card
+            card_type: separator
+            name: LED 5 · Unassigned
+            icon: mdi:numeric-5-box-outline
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+          - type: markdown
+            text_only: true
+            grid_options: {columns: full, rows: 1}
+            content: "*Nothing writes LED 5. The admin `Led 5` clear button below is vestigial.*"
+
+      # ===================================================================
+      # LED 4 - lighting mode tier
+      # ===================================================================
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:bubble-card
+            card_type: separator
+            name: LED 4 · Lighting Mode
+            icon: mdi:lightbulb-auto
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+
+          - type: markdown
+            text_only: true
+            grid_options: {columns: full, rows: auto}
+            content: >
+              Always on — `auto` is green solid, so this LED is never dark on a
+              mapped switch. 🟢 Auto · 🟠 Manual · 🟡 Degraded *(slow blink, so it
+              cannot be read as manual)*.
+
+          - type: custom:bubble-card
+            card_type: separator
+            name: All switches
+            icon: mdi:home-group
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+
+          - type: custom:mushroom-entity-card
+            entity: input_boolean.lighting_automation_blocker_all
+            name: Kill Switch (All Manual)
+            icon: mdi:home-off
+            icon_color: >
+              {% if is_state('input_boolean.lighting_automation_blocker_all', 'on') %}orange{% else %}disabled{% endif %}
+            secondary_info: >
+              {% if is_state('input_boolean.lighting_automation_blocker_all', 'on') %}All 16 switches → Orange solid @30{% else %}Off — zones use their individual modes{% endif %}
+            tap_action: {action: toggle}
+            grid_options: {columns: full, rows: auto}
+
+          - type: custom:bubble-card
+            card_type: separator
+            name: Room specific
+            icon: mdi:door-closed
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+
+          - type: heading
+            heading: Upstairs
+            heading_style: subtitle
+            icon: mdi:stairs-up
+
+          - type: custom:mushroom-template-card
+            primary: Main Area
+            entity: input_boolean.lighting_automation_blocker_main_area
+            secondary: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','main_area') | first %}
+              {{ z.mode | capitalize }} · {{ z.label }}
+            icon: mdi:home-floor-1
+            icon_color: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','main_area') | first %}{{ z.ui }}
+            tap_action: {action: toggle}
+            hold_action: {action: more-info, entity: sensor.lighting_mode_main_area}
+
+          - type: custom:mushroom-template-card
+            primary: Upstairs Hallway
+            entity: input_boolean.lighting_automation_blocker_upstairs_hallway
+            secondary: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','upstairs_hallway') | first %}
+              {{ z.mode | capitalize }} · {{ z.label }}
+            icon: mdi:stairs
+            icon_color: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','upstairs_hallway') | first %}{{ z.ui }}
+            tap_action: {action: toggle}
+            hold_action: {action: more-info, entity: sensor.lighting_mode_upstairs_hallway}
+
+          - type: custom:mushroom-template-card
+            primary: Master Bedroom
+            entity: input_boolean.lighting_automation_blocker_master_bedroom
+            secondary: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','master_bedroom') | first %}
+              {{ z.mode | capitalize }} · {{ z.label }}
+            icon: mdi:bed
+            icon_color: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','master_bedroom') | first %}{{ z.ui }}
+            tap_action: {action: toggle}
+            hold_action: {action: more-info, entity: sensor.lighting_mode_master_bedroom}
+
+          - type: custom:mushroom-template-card
+            primary: Master Bathroom
+            entity: input_boolean.lighting_automation_blocker_master_bathroom
+            secondary: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','master_bathroom') | first %}
+              {{ z.mode | capitalize }} · {{ z.label }}
+            icon: mdi:shower
+            icon_color: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','master_bathroom') | first %}{{ z.ui }}
+            tap_action: {action: toggle}
+            hold_action: {action: more-info, entity: sensor.lighting_mode_master_bathroom}
+
+          - type: custom:mushroom-template-card
+            primary: Garage
+            entity: input_boolean.lighting_automation_blocker_garage
+            secondary: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','garage') | first %}
+              {{ z.mode | capitalize }} · {{ z.label }}
+            icon: mdi:garage
+            icon_color: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','garage') | first %}{{ z.ui }}
+            tap_action: {action: toggle}
+            hold_action: {action: more-info, entity: sensor.lighting_mode_garage}
+
+          - type: heading
+            heading: Downstairs
+            heading_style: subtitle
+            icon: mdi:stairs-down
+
+          - type: custom:mushroom-template-card
+            primary: Ethan's Room
+            entity: input_boolean.lighting_automation_blocker_ethan_s_room
+            secondary: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','ethan_s_room') | first %}
+              {{ z.mode | capitalize }} · {{ z.label }}
+            icon: mdi:teddy-bear
+            icon_color: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','ethan_s_room') | first %}{{ z.ui }}
+            tap_action: {action: toggle}
+            hold_action: {action: more-info, entity: sensor.lighting_mode_ethan_s_room}
+
+          - type: custom:mushroom-template-card
+            primary: Family Room
+            entity: input_boolean.lighting_automation_blocker_family_room
+            secondary: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','family_room') | first %}
+              {{ z.mode | capitalize }} · {{ z.label }}
+            icon: mdi:sofa
+            icon_color: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','family_room') | first %}{{ z.ui }}
+            tap_action: {action: toggle}
+            hold_action: {action: more-info, entity: sensor.lighting_mode_family_room}
+
+          - type: custom:mushroom-template-card
+            primary: Office
+            entity: input_boolean.lighting_automation_blocker_office_room
+            secondary: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','office_room') | first %}
+              {{ z.mode | capitalize }} · {{ z.label }}
+            icon: mdi:desk
+            icon_color: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','office_room') | first %}{{ z.ui }}
+            tap_action: {action: toggle}
+            hold_action: {action: more-info, entity: sensor.lighting_mode_office_room}
+
+          - type: custom:mushroom-template-card
+            primary: Basement Bathroom
+            entity: input_boolean.lighting_automation_blocker_basement_bathroom
+            secondary: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','basement_bathroom') | first %}
+              {{ z.mode | capitalize }} · {{ z.label }}
+            icon: mdi:toilet
+            icon_color: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','basement_bathroom') | first %}{{ z.ui }}
+            tap_action: {action: toggle}
+            hold_action: {action: more-info, entity: sensor.lighting_mode_basement_bathroom}
+
+          # icon_color (not color) and a real hallway icon - both were bugs before
+          - type: custom:mushroom-template-card
+            primary: Basement Hallway
+            entity: input_boolean.lighting_automation_blocker_basement_hallway
+            secondary: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','basement_hallway') | first %}
+              {{ z.mode | capitalize }} · {{ z.label }}
+            icon: mdi:transit-connection-horizontal
+            icon_color: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','basement_hallway') | first %}{{ z.ui }}
+            tap_action: {action: toggle}
+            hold_action: {action: more-info, entity: sensor.lighting_mode_basement_hallway}
+
+          - type: custom:mushroom-template-card
+            primary: Stairs
+            entity: input_boolean.lighting_automation_blocker_stairs
+            secondary: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','stairs') | first %}
+              {{ z.mode | capitalize }} · {{ z.label }}
+            icon: mdi:stairs-box
+            icon_color: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','stairs') | first %}{{ z.ui }}
+            tap_action: {action: toggle}
+            hold_action: {action: more-info, entity: sensor.lighting_mode_stairs}
+
+          - type: markdown
+            text_only: true
+            grid_options: {columns: full, rows: auto}
+            content: >
+              *Unmapped (LED 4 held dark): Basement Deck, Upstairs Deck, Front Porch.*
+
+          - type: markdown
+            text_only: true
+            grid_options: {columns: full, rows: auto}
+            content: >
+              ⚠️ **Hidden right now** — the armed whole-bar override outranks LED 4
+              in firmware.
+            visibility:
+              - condition: state
+                entity: binary_sensor.led_bar_masking
+                state: "on"
+
+      # ===================================================================
+      # LED 3 / LED 2 - unassigned
+      # ===================================================================
+      - type: grid
+        cards:
+          - type: custom:bubble-card
+            card_type: separator
+            name: LED 3 · Unassigned
+            icon: mdi:numeric-3-box-outline
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+          - type: markdown
+            text_only: true
+            grid_options: {columns: full, rows: 1}
+            content: "*Nothing writes LED 3.*"
+
+      - type: grid
+        cards:
+          - type: custom:bubble-card
+            card_type: separator
+            name: LED 2 · Unassigned
+            icon: mdi:numeric-2-box-outline
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+          - type: markdown
+            text_only: true
+            grid_options: {columns: full, rows: 1}
+            content: "*Nothing writes LED 2.*"
+
+      # ===================================================================
+      # LED 1 - global notification tier
+      # ===================================================================
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:bubble-card
+            card_type: separator
+            name: LED 1 · Global
+            icon: mdi:bell-ring
+            sub_button:
+              - entity: sensor.led_1_global
+                show_state: true
+                show_background: true
+                tap_action: {action: more-info}
+            grid_options: {columns: full, rows: 1}
+
+          - type: markdown
+            text_only: true
+            grid_options: {columns: full, rows: auto}
+            content: >
+              Bottom segment. Only the **highest-priority active cause** is painted;
+              the rest queue behind it. Priority numbers are fixed — purple is always
+              P3, whatever else is open.
+
+          - type: custom:bubble-card
+            card_type: separator
+            name: All switches
+            icon: mdi:home-group
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+
+          # The one the bar is actually showing, named in full.
+          - type: custom:mushroom-template-card
+            primary: >
+              {{ state_attr('sensor.led_1_global', 'showing_label') }}
+            secondary: >
+              {% set s = state_attr('sensor.led_1_global', 'showing') %}
+              {% set q = state_attr('sensor.led_1_global', 'queued_count') | int(0) %}
+              {% if s %}Showing now{% if q > 0 %} · {{ q }} queued behind it{% endif %} — {{ s.why }}{% else %}Nothing open. LED 1 is released.{% endif %}
+            icon: >
+              {% set s = state_attr('sensor.led_1_global', 'showing') %}
+              {{ s.icon if s else 'mdi:check-circle-outline' }}
+            icon_color: >
+              {% set s = state_attr('sensor.led_1_global', 'showing') %}
+              {% if not s %}disabled{% else %}
+              {{ {'white':'white','orange':'orange','purple':'purple','teal':'teal','magenta':'pink','yellow':'yellow','green':'green'}.get(s.color,'grey') }}
+              {% endif %}
+            multiline_secondary: true
+            tap_action:
+              action: more-info
+              entity: sensor.led_1_global
+            grid_options: {columns: full, rows: auto}
+
+          # --- the priority stack, in fixed order. Each row shows only while
+          # --- its source entity is active, so the visible set is already
+          # --- highest-first and the top one is what the bar is painting.
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            entity: cover.garage_door
+            name: "P1 · White pulse — Garage Door"
+            icon: mdi:garage-open-variant
+            force_icon: true
+            show_state: true
+            show_last_changed: true
+            card_layout: large
+            grid_options: {columns: full, rows: 1}
+            styles: |
+              .bubble-icon { color: #f2f2f7 !important; }
+              .bubble-icon-container { background-color: rgba(242,242,247,0.20) !important; }
+            tap_action: {action: more-info}
+            visibility:
+              - condition: state
+                entity: cover.garage_door
+                state: "open"
+
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            entity: binary_sensor.front_door
+            name: "P2 · Orange pulse — Front Door"
+            icon: mdi:door-open
+            force_icon: true
+            show_state: true
+            show_last_changed: true
+            card_layout: large
+            grid_options: {columns: full, rows: 1}
+            styles: |
+              .bubble-icon { color: #ff9f0a !important; }
+              .bubble-icon-container { background-color: rgba(255,159,10,0.20) !important; }
+            tap_action: {action: more-info}
+            visibility:
+              - condition: state
+                entity: binary_sensor.front_door
+                state: "on"
+
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            entity: binary_sensor.garage_portal
+            name: "P3 · Purple pulse — Garage Entry Door"
+            icon: mdi:door-sliding-open
+            force_icon: true
+            show_state: true
+            show_last_changed: true
+            card_layout: large
+            grid_options: {columns: full, rows: 1}
+            styles: |
+              .bubble-icon { color: #bf5af2 !important; }
+              .bubble-icon-container { background-color: rgba(191,90,242,0.20) !important; }
+            tap_action: {action: more-info}
+            visibility:
+              - condition: state
+                entity: binary_sensor.garage_portal
+                state: "on"
+
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            entity: binary_sensor.kitchen_door
+            name: "P4 · Teal pulse — Kitchen Door"
+            icon: mdi:door
+            force_icon: true
+            show_state: true
+            show_last_changed: true
+            card_layout: large
+            grid_options: {columns: full, rows: 1}
+            styles: |
+              .bubble-icon { color: #40c8e0 !important; }
+              .bubble-icon-container { background-color: rgba(64,200,224,0.20) !important; }
+            tap_action: {action: more-info}
+            visibility:
+              - condition: state
+                entity: binary_sensor.kitchen_door
+                state: "on"
+
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            entity: binary_sensor.basement_sliding_door
+            name: "P5 · Magenta pulse — Basement Slider"
+            icon: mdi:door-sliding
+            force_icon: true
+            show_state: true
+            show_last_changed: true
+            card_layout: large
+            grid_options: {columns: full, rows: 1}
+            styles: |
+              .bubble-icon { color: #ff375f !important; }
+              .bubble-icon-container { background-color: rgba(255,55,95,0.20) !important; }
+            tap_action: {action: more-info}
+            visibility:
+              - condition: state
+                entity: binary_sensor.basement_sliding_door
+                state: "on"
+
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            entity: input_boolean.fridge_open_too_long
+            name: "P6 · Yellow slow blink — Fridge"
+            icon: mdi:fridge-alert
+            force_icon: true
+            show_state: true
+            show_last_changed: true
+            card_layout: large
+            grid_options: {columns: full, rows: 1}
+            styles: |
+              .bubble-icon { color: #ffd60a !important; }
+              .bubble-icon-container { background-color: rgba(255,214,10,0.20) !important; }
+            tap_action: {action: more-info}
+            visibility:
+              - condition: state
+                entity: input_boolean.fridge_open_too_long
+                state: "on"
+
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            entity: binary_sensor.window_open_group
+            name: "P7 · Green pulse — Windows"
+            icon: mdi:window-open-variant
+            force_icon: true
+            show_state: true
+            show_last_changed: true
+            card_layout: large
+            grid_options: {columns: full, rows: 1}
+            styles: |
+              .bubble-icon { color: #32d74b !important; }
+              .bubble-icon-container { background-color: rgba(50,215,75,0.20) !important; }
+            tap_action: {action: more-info}
+            visibility:
+              - condition: state
+                entity: binary_sensor.window_open_group
+                state: "on"
+
+          - type: markdown
+            text_only: true
+            grid_options: {columns: full, rows: 1}
+            content: "*Nothing open — LED 1 is released on all 16 switches.*"
+            visibility:
+              - condition: numeric_state
+                entity: sensor.led_1_global
+                below: 1
+
+          - type: custom:bubble-card
+            card_type: separator
+            name: Room specific
+            icon: mdi:door-closed
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+
+          - type: custom:mushroom-template-card
+            primary: >
+              {% if state_attr('sensor.led_1_global','sanctuary_lit') %}Bedrooms lit at brightness 1{% else %}Bedrooms not lit{% endif %}
+            secondary: >
+              {% if state_attr('sensor.led_1_global','sanctuary_lit') %}
+              Master Bedroom, Master Closet, Master Bathroom and Ethan's Room show the same colour, always dimmed to 1.
+              {% elif states('sensor.led_1_global') | int(0) > 0 %}
+              Low-urgency alert — it goes to the twelve non-bedroom switches only, so a bedroom bar never lights for a fridge left ajar.
+              {% else %}
+              Only the three perimeter alerts (garage door, front door, garage entry) ever reach the four bedroom switches.
+              {% endif %}
+            icon: mdi:bed-clock
+            icon_color: >
+              {% if state_attr('sensor.led_1_global','sanctuary_lit') %}amber{% else %}disabled{% endif %}
+            multiline_secondary: true
+            grid_options: {columns: full, rows: auto}
+
+          - type: markdown
+            text_only: true
+            grid_options: {columns: full, rows: auto}
+            content: >
+              🌙 **Night cap active** — every bedroom switch is held at brightness 1
+              until sunrise, whatever the caller asked for.
+            visibility:
+              - condition: state
+                entity: binary_sensor.led_night_cap
+                state: "on"
+
+          - type: markdown
+            text_only: true
+            grid_options: {columns: full, rows: auto}
+            content: >
+              ⚠️ **Hidden right now** — the armed whole-bar override outranks LED 1
+              in firmware.
+            visibility:
+              - condition: state
+                entity: binary_sensor.led_bar_masking
+                state: "on"
+
+      # ===================================================================
+      # Reference
+      # ===================================================================
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:bubble-card
+            card_type: separator
+            name: Reference
+            icon: mdi:book-open-variant
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+
+          # Generated from custom_templates/led_status.jinja, so it cannot drift.
+          # The hand-written version of this legend had already gone stale.
+          - type: markdown
+            grid_options: {columns: full, rows: auto}
+            content: >
+              {% from 'led_status.jinja' import legend_md %}{{ legend_md() }}
+
+          - type: custom:mushroom-template-card
+            primary: Table drift detected
+            secondary: >
+              led_status.jinja says "{{ state_attr('binary_sensor.led_1_table_agrees','table_says') }}",
+              the sensor helper says "{{ state_attr('binary_sensor.led_1_table_agrees','helper_says') }}".
+              Fix the table, not the page.
+            icon: mdi:table-alert
+            icon_color: red
+            multiline_secondary: true
+            grid_options: {columns: full, rows: auto}
+            visibility:
+              - condition: state
+                entity: binary_sensor.led_1_table_agrees
+                state: "on"
+
+      # ===================================================================
+      # Schedules + Admin  (carried over unchanged)
+      # ===================================================================
+      - type: grid
+        cards:
+          - type: custom:bubble-card
+            card_type: separator
+            name: Block Automations Schedules
+            icon: mdi:calendar-clock
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+          - type: custom:scheduler-card
+            tags: [Auto-Automation]
+            include: [input_boolean, input_number]
+            default_editor: scheme
+            discover_existing: false
+            title: false
+
+      - type: grid
+        cards:
+          - type: custom:bubble-card
+            card_type: separator
+            name: Admin Controls
+            icon: mdi:wrench
+            sub_button: []
+            grid_options: {columns: full, rows: 1}
+          - type: custom:mushroom-template-card
+            primary: Clear Global LED Notifications
+            secondary: Releases LED 1 on all 16 switches
+            icon: mdi:numeric-1-box-outline
+            icon_color: blue
+            grid_options: {columns: full, rows: 1}
+            tap_action:
+              action: perform-action
+              perform_action: script.inovelli_blue_led_zigbee2mqtt
+              data: {led: Led 1, effect: Clear, color: 0, level: 0, duration: 0}
+              target: {device_id: DEVICE_IDS_PLACEHOLDER}
+          - type: custom:mushroom-template-card
+            primary: Clear Switch Status LED Notifications
+            secondary: LED 5 — vestigial, nothing writes it
+            icon: mdi:numeric-5-box-outline
+            icon_color: disabled
+            grid_options: {columns: full, rows: 1}
+            tap_action:
+              action: perform-action
+              perform_action: script.inovelli_blue_led_zigbee2mqtt
+              data: {led: Led 5, effect: Clear, color: 0, level: 0, duration: 0}
+              target: {device_id: DEVICE_IDS_PLACEHOLDER}
+          - type: custom:mushroom-template-card
+            primary: Clear Spatial LED Notifications
+            secondary: Releases LED 7 on all 16 switches
+            icon: mdi:numeric-7-box-outline
+            icon_color: blue
+            grid_options: {columns: full, rows: 1}
+            tap_action:
+              action: perform-action
+              perform_action: script.inovelli_blue_led_zigbee2mqtt
+              data: {led: Led 7, effect: Clear, color: 0, level: 0, duration: 0}
+              target: {device_id: DEVICE_IDS_PLACEHOLDER}
+          - type: custom:mushroom-template-card
+            primary: Clear Critical LEDs Notifications
+            secondary: Releases the whole-bar override on all 16 switches
+            icon: mdi:alarm-light-off
+            icon_color: red
+            grid_options: {columns: full, rows: 1}
+            tap_action:
+              action: perform-action
+              perform_action: script.inovelli_blue_led_zigbee2mqtt
+              data: {led: All, effect: Clear, color: 0, level: 0, duration: 0}
+              target: {device_id: DEVICE_IDS_PLACEHOLDER}
