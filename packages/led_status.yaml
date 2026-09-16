@@ -1,0 +1,222 @@
+# =============================================================================
+# Inovelli LED bar - status entities for /lighting-status/0
+# =============================================================================
+# Every colour, effect and priority in here is imported from
+# custom_templates/led_status.jinja, which is the single source of truth. These
+# sensors do nothing but read state - none of them calls script.led_set, so
+# nothing in this file can change a physical LED.
+#
+# Each field re-imports the macro it needs. That is deliberate: Home Assistant
+# evaluates `state` and every attribute independently, so the table has to be
+# imported per field rather than inlined twice. Same pattern as
+# sensor.dashboard_glow in configs/templates.yaml.
+#
+# After editing: reload Custom Jinja2 templates, THEN Template entities.
+# =============================================================================
+
+led_status:
+  template:
+    - sensor:
+
+        # --- LED 1 - global notification tier -------------------------------
+        # State is the COUNT of active causes, so "is this section empty?" is a
+        # one-token test on the dashboard and the value graphs cleanly. The
+        # winning cause is one attribute away in `showing`.
+        - name: "LED 1 Global"
+          unique_id: led_1_global
+          icon: mdi:numeric-1-box-outline
+          state: >
+            {% from 'led_status.jinja' import global_stack %}
+            {{ (global_stack() | from_json) | count }}
+          unit_of_measurement: "causes"
+          state_class: measurement
+          attributes:
+            led: 1
+            tier: global
+            stack: >
+              {% from 'led_status.jinja' import global_stack %}
+              {{ global_stack() | from_json }}
+            active_keys: >
+              {% from 'led_status.jinja' import global_stack %}
+              {{ (global_stack() | from_json) | map(attribute='key') | list }}
+            showing: >
+              {% from 'led_status.jinja' import global_stack %}
+              {% set s = global_stack() | from_json %}
+              {{ s[0] if s else none }}
+            showing_label: >
+              {% from 'led_status.jinja' import global_stack, effect_label %}
+              {% set s = global_stack() | from_json %}
+              {% if s %}{{ s[0].color | capitalize }} {{ effect_label(s[0].effect) }} - {{ s[0].label }}{% else %}Idle{% endif %}
+            queued_count: >
+              {% from 'led_status.jinja' import global_stack %}
+              {{ [(global_stack() | from_json) | count - 1, 0] | max }}
+            # Non-empty when the whole-bar critical override is hiding this LED.
+            masked_by: >
+              {% from 'led_status.jinja' import critical_masking %}
+              {{ 'critical' if critical_masking() == 'True' else 'none' }}
+            # True when the four sanctuary switches are capped to brightness 1.
+            night_cap: >
+              {{ is_state('sun.sun', 'below_horizon')
+                 and not is_state('sensor.active_critical_notification', 'Triggered') }}
+            # True when the winning cause reaches the bedrooms at all.
+            sanctuary_lit: >
+              {% from 'led_status.jinja' import global_stack %}
+              {% set s = global_stack() | from_json %}
+              {{ s[0].sanctuary if s else false }}
+            # The switches the global automation actually paints for the current
+            # state. This is the SAME switch_sets() macro the automation feeds to
+            # led_set, so an empty list here means the automation is targeting
+            # nothing - the one silent failure mode of the table-driven rewrite.
+            targets: >
+              {% from 'led_status.jinja' import global_stack, switch_sets %}
+              {% set s = global_stack() | from_json %}
+              {% set sets = switch_sets() | from_json %}
+              {% if not s %}{{ [] }}
+              {% elif s[0].sanctuary %}{{ sets.main + sets.sanctuary }}
+              {% else %}{{ sets.main }}{% endif %}
+            target_count: >
+              {% from 'led_status.jinja' import global_stack, switch_sets %}
+              {% set s = global_stack() | from_json %}
+              {% set sets = switch_sets() | from_json %}
+              {% if not s %}0
+              {% elif s[0].sanctuary %}{{ (sets.main + sets.sanctuary) | count }}
+              {% else %}{{ sets.main | count }}{% endif %}
+
+        # --- Full bar - critical / alarm tier --------------------------------
+        - name: "LED Bar Critical"
+          unique_id: led_bar_critical
+          icon: mdi:alarm-light-outline
+          state: >
+            {% from 'led_status.jinja' import critical_stack %}
+            {{ (critical_stack() | from_json) | count }}
+          unit_of_measurement: "causes"
+          state_class: measurement
+          attributes:
+            led: "all"
+            tier: critical
+            alarm_state: "{{ states('sensor.active_critical_notification') }}"
+            stack: >
+              {% from 'led_status.jinja' import critical_stack %}
+              {{ critical_stack() | from_json }}
+            showing: >
+              {% from 'led_status.jinja' import critical_stack %}
+              {% set s = critical_stack() | from_json %}
+              {{ s[0] if s else none }}
+            showing_label: >
+              {% from 'led_status.jinja' import critical_stack, effect_label %}
+              {% set s = critical_stack() | from_json %}
+              {% if s %}{{ s[0].color | capitalize }} {{ effect_label(s[0].effect) }} - {{ s[0].label }}{% else %}Cleared (disarmed){% endif %}
+            # The firmware layers a whole-bar override ABOVE every individual
+            # LED. While this is true, LEDs 1, 4 and 7 are painted but invisible.
+            hides_individual_leds: >
+              {% from 'led_status.jinja' import critical_masking %}
+              {{ critical_masking() == 'True' }}
+
+        # --- LED 4 - lighting mode tier --------------------------------------
+        # Never empty: `auto` is green solid, so a mapped switch always shows
+        # something here. State is the count of zones NOT in auto.
+        - name: "LED 4 Mode"
+          unique_id: led_4_mode
+          icon: mdi:numeric-4-box-outline
+          state: >
+            {% from 'led_status.jinja' import mode_rows %}
+            {{ (mode_rows() | from_json) | rejectattr('mode', 'eq', 'auto') | list | count }}
+          unit_of_measurement: "zones"
+          state_class: measurement
+          attributes:
+            led: 4
+            tier: mode
+            zones: >
+              {% from 'led_status.jinja' import mode_rows %}
+              {{ mode_rows() | from_json }}
+            kill_switch: >
+              {{ is_state('input_boolean.lighting_automation_blocker_all', 'on') }}
+            unmapped: >
+              {% from 'led_status.jinja' import mode_unmapped %}
+              {{ mode_unmapped() | from_json }}
+            degraded_zones: >
+              {% from 'led_status.jinja' import mode_rows %}
+              {{ (mode_rows() | from_json) | selectattr('mode', 'eq', 'degraded')
+                 | map(attribute='name') | list }}
+            manual_zones: >
+              {% from 'led_status.jinja' import mode_rows %}
+              {{ (mode_rows() | from_json) | selectattr('mode', 'eq', 'manual')
+                 | map(attribute='name') | list }}
+            masked_by: >
+              {% from 'led_status.jinja' import critical_masking %}
+              {{ 'critical' if critical_masking() == 'True' else 'none' }}
+
+        # --- LED 7 - spatial / magic cube tier -------------------------------
+        # Genuinely transient: the indicator paints white fast blink for 3 s and
+        # clears. There is no "LED 7 is lit right now" state to read, so the
+        # state here is the cube's SELECTED room and the dashboard says so.
+        - name: "LED 7 Spatial"
+          unique_id: led_7_spatial
+          icon: mdi:numeric-7-box-outline
+          state: "{{ states('input_select.cube_room') }}"
+          attributes:
+            led: 7
+            tier: spatial
+            transient: true
+            room: >
+              {% from 'led_status.jinja' import cube_rooms %}
+              {% set r = cube_rooms() | from_json
+                 | selectattr('room', 'eq', states('input_select.cube_room')) | list %}
+              {{ r[0] if r else none }}
+            rooms: >
+              {% from 'led_status.jinja' import cube_rooms %}
+              {{ cube_rooms() | from_json }}
+            paint: >
+              {% from 'led_status.jinja' import spatial_paint %}
+              {{ spatial_paint() | from_json }}
+            last_indicated: >
+              {{ state_attr('script.cube_room_indicator', 'last_triggered') }}
+            masked_by: >
+              {% from 'led_status.jinja' import critical_masking %}
+              {{ 'critical' if critical_masking() == 'True' else 'none' }}
+
+    - binary_sensor:
+
+        # --- Drift guard ------------------------------------------------------
+        # global_table() in the jinja file and the sensor.active_global_notification
+        # UI helper (.storage/core.config_entries) both encode the same priority
+        # chain, in two different systems. If either is edited without the other,
+        # this goes off. Treat that as a bug in the table, not in the page.
+        - name: "LED 1 Table Agrees"
+          unique_id: led_1_table_agrees
+          device_class: problem
+          icon: mdi:table-check
+          state: >
+            {% from 'led_status.jinja' import global_stack %}
+            {% set s = global_stack() | from_json %}
+            {% set mine = s[0].label if s else 'Idle' %}
+            {{ mine != states('sensor.active_global_notification') }}
+          attributes:
+            table_says: >
+              {% from 'led_status.jinja' import global_stack %}
+              {% set s = global_stack() | from_json %}
+              {{ s[0].label if s else 'Idle' }}
+            helper_says: "{{ states('sensor.active_global_notification') }}"
+
+        # --- Masking guard ----------------------------------------------------
+        # On whenever the armed whole-bar override is hiding LEDs 1, 4 and 7.
+        - name: "LED Bar Masking"
+          unique_id: led_bar_masking
+          icon: mdi:eye-off
+          state: >
+            {% from 'led_status.jinja' import critical_masking %}
+            {{ critical_masking() == 'True' }}
+
+        # --- Night brightness cap ---------------------------------------------
+        # Precomputed as an entity because the dashboard can only gate cards on
+        # `condition: state`; `condition: template` never resolves on this
+        # frontend and leaves the card hidden forever. Same logic script.led_set
+        # applies: after dark, the four sanctuary switches are pinned to
+        # brightness 1 - unless the alarm is actually Triggered, which bypasses
+        # the cap because that is a real emergency.
+        - name: "LED Night Cap"
+          unique_id: led_night_cap
+          icon: mdi:weather-night
+          state: >
+            {{ is_state('sun.sun', 'below_horizon')
+               and not is_state('sensor.active_critical_notification', 'Triggered') }}

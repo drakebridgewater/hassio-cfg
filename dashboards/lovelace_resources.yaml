@@ -41,8 +41,8 @@
   type: module
 - url: /hacsfiles/ha-weather-forecast-card/weather-forecast-card.js
   type: module
-- url: /hacsfiles/radar_map_manager/radar-map-card.js
-  type: module
+# - url: /hacsfiles/radar_map_manager/radar-map-card.js
+#   type: module
 - url: /hacsfiles/hass-hue-icons/hass-hue-icons.js
   type: module
 - url: /hacsfiles/kiosk-mode/kiosk-mode.js
