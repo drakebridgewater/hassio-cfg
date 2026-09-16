@@ -29,7 +29,7 @@ dashboards/
 │   ├── banner/                 # Status message markdown + status chips
 │   ├── sidebar/                # Sidebar cards (reactive cards first)
 │   ├── footer/                 # Room button bar + all pop-ups
-│   ├── spaces-cards/           # Room cards on Home (3-tier system)
+│   ├── spaces-cards/           # Room cards on Home: upstairs/, downstairs/, other/
 │   ├── rooms/<room>/           # Room content, used by room pop-ups (and future subviews)
 │   ├── pages/<page>/colN/      # Content for pages ported from the GUI
 │   └── climate/                # Air quality, spaces, trends (Climate page + room pop-ups)
@@ -108,6 +108,32 @@ does not matter; templates layer by nesting a `custom:decluttering-card` that po
 | `bubble_light_color` | Color lights | `slider: brightness` (default), `hue` or `white_temp` |
 | `bubble_light_effect` | WLED-style strips | Brightness slider + `palette` / `preset` selects |
 | `aq_metric` | Air quality readings | Icon amber at `good`, red at `bad` |
+| `room_card` | Home room cards | See Rooms |
+| `bubble_chips` | Chip rows | Bubble sub-buttons; replaces `mushroom-chips-card` |
+
+### Chips
+
+Chip rows are Bubble sub-buttons, never `mushroom-chips-card`:
+
+```yaml
+type: custom:decluttering-card
+template: bubble_chips
+variables:
+  - align: center              # optional: start (default) | center | end
+  - chips:
+      - entity: binary_sensor.kitchen_door
+        name: Door
+        show_name: true
+        icon: mdi:door
+        show_state: true
+        state_background: true   # highlight while on/open
+        fill_width: false        # chip-sized, not stretched
+```
+
+Hide a chip with sub-button `visibility`. Chips that need JS `styles` (dynamic text, icons or colors)
+can't use the template, because decluttering-card breaks on multi-line string variables. Write the
+same sub-buttons card directly instead: `sections/banner/20-status-chips.yaml` and
+`sections/rooms/outdoors/10-overview.yaml`. `styles` targets chips as `.bubble-sub-button-N`.
 
 **One slider per card.** Never add extra slider sub-buttons below a light.
 
@@ -134,15 +160,36 @@ color, only `color_temp` → temp, `brightness` → light, `onoff` → switch.
 
 ## Rooms
 
-### Home room cards (`sections/spaces-cards/`), 3-tier system
+### Home room cards (`sections/spaces-cards/`)
 
-1. **Minimal**: always-visible Bubble button with key readings (temperature, air quality, doors and
-   windows). Tap → room pop-up; double tap → toggle `input_boolean.<room>_view_expanded`.
-2. **Expanded**: conditional grid of controls while the helper is `on`.
-3. **Detailed**: the room pop-up (`popup/<room>.yaml`).
+Home groups the rooms like the GUI dashboard: a Bubble separator and a two-column grid for each of
+`upstairs/`, `downstairs/` and `other/` (one card per file, `NN-name.yaml` sets the order). Spaces
+without a pop-up (attic, crawl space, greenhouses, entries) set `popup` to a page path instead.
 
-Readings added to the minimal card's `sub_button.main` go at the end so `bubble_badges`
-`sub_button_index` and `sub_button_coloring` `button_N` references don't shift.
+Every room card is one `custom:decluttering-card` using `room_card`: a single Bubble button row per
+room, modelled on the stock area card, so all rooms look and behave alike. There is no collapsed or
+expanded state; tapping anywhere opens the room pop-up, where the room's controls live. A room file
+only supplies data:
+
+| Variable | Use |
+|---|---|
+| `name`, `icon`, `color` | Header; `color` is the `r, g, b` card tint |
+| `popup` | Room pop-up hash opened by a tap |
+| `entity` | Occupancy sensor |
+| `temp`, `humid`, `extra` | Readings shown under the name (`temp · humid`); use the area's sensors |
+| `blocker` | `input_boolean.lighting_automation_blocker_<room>`: ring around the icon, amber while blocked |
+| `badges` | Bubble badges on the icon (below) |
+
+Badges go in this order and style so every card reads the same way (only four show at once):
+
+| Alert | Icon | Color | Animation |
+|---|---|---|---|
+| Door open | `mdi:door-open` | red | pulse |
+| Window open (`condition: or` for several) | `mdi:window-open-variant` | red | pulse |
+| Water leak | `mdi:water-alert` | blue | shake |
+| Air quality (HIGH band of the Climate page tiles) | `mdi:weather-dust` | orange | glow |
+| Too warm / too cold (> 72 / < 69 indoors) | `mdi:fire` / `mdi:snowflake-alert` | orange / cyan | glow |
+| Occupied | `mdi:motion-sensor` | green | none |
 
 ### Room pop-ups
 
@@ -157,6 +204,28 @@ name: Master Bedroom
 ...
 cards: !include_dir_list ../sections/rooms/master-bedroom
 ```
+
+Rooms with pop-ups: `#kitchen`, `#dining`, `#living-room`, `#master`, `#family`, `#ethan`, `#office`,
+`#outdoors`, `#holiday`. Ethan's pop-up links to the fuller `/lovelace-main/ethan` subview.
+
+### Porting GUI room pages
+
+Room pop-up content is generated from the GUI dashboard's room pages (the GUI is where rooms are
+designed). Edit the room in the GUI, then run:
+
+```
+docker exec Home-Assistant-Core python3 /config/dashboards/tools/port_gui_rooms.py [room ...]
+touch /mnt/user/appdata/Home-Assistant-Core/dashboards/lovelace-main.yaml
+```
+
+The script writes one file per GUI section to `sections/rooms/<room>/` (`00-badges.yaml` for the
+page badges) and converts cards on the way: headings become Bubble separators (heading badges become
+sub-buttons), badges and Mushroom chips become `bubble_chips`, and simple Bubble light/switch/fan
+buttons become the control templates (the light template is picked from the registry's
+`supported_color_modes`). Everything else is copied. Generated files carry a header marker and are
+replaced on every run; don't edit them. Files without the marker, such as `90-air-quality.yaml`,
+are kept. `--dry-run` reports without writing; the report lists skipped sub-buttons and entities
+missing from the registry.
 
 A room's air-quality card is pulled in by a one-line file in its room directory,
 e.g. `sections/rooms/master-bedroom/90-air-quality.yaml`:
@@ -199,12 +268,13 @@ card: the group entity with its state, and related readings as `sub_button.botto
 
 - Parse with HA's loader (resolves includes):
   `docker exec Home-Assistant-Core python3 -c "from homeassistant.util.yaml import load_yaml; load_yaml('/config/dashboards/lovelace-main.yaml')"`
-- YAML dashboards reload on browser refresh; no restart needed.
+- HA caches a YAML dashboard until `lovelace-main.yaml` itself changes; editing an included file is
+  not enough. `touch dashboards/lovelace-main.yaml`, then refresh the browser. No restart needed.
 - Test in the browser with screenshots only. Bubble pop-ups animate in, and clicks can land on cards
   behind them and toggle real devices.
 
 ## Custom cards used
 
 Bubble Card (+ modules in `/config/bubble_card/modules`), decluttering-card, navbar-card, layout-card,
-mushroom, stack-in-card, card-mod, calendar-card-pro, skylight-calendar-card, advanced-camera-card,
+mushroom (template/entity cards only; chips are Bubble), stack-in-card, card-mod, calendar-card-pro, skylight-calendar-card, advanced-camera-card,
 alarmo-card, mini-graph-card, auto-entities, fold-entity-row, scheduler-card, mass-player-card.

@@ -4,8 +4,8 @@ blueprint:
     a comprehensive Home Assistant blueprint which automatically manages your window
     coverings (such as roller shutters and blinds) based on time, the position of
     the sun, and weather conditions. It adapts intelligently to your preferences,
-    largely eliminating the need for manual adjustments.\n\n**Version**: 2026.08.25
-    V2\n\n### \U0001F517 Resources & Support\n\U0001F4E2 **Latest Changes**: [Changelog](https://hvorragend.github.io/ha-blueprints/CHANGELOG)
+    largely eliminating the need for manual adjustments.\n\n**Version**: 2026.09.12\n\n###
+    \U0001F517 Resources & Support\n\U0001F4E2 **Latest Changes**: [Changelog](https://hvorragend.github.io/ha-blueprints/CHANGELOG)
     | ✨ **Highlights**: [Key Features](https://hvorragend.github.io/ha-blueprints/#key-features)\n\U0001F680
     **Setup**: [Quick Start Guide](https://hvorragend.github.io/ha-blueprints/#quick-start-5-steps)
     | [Prerequisites](https://hvorragend.github.io/ha-blueprints/#essential-prerequisites)\n\U0001F4DA
@@ -260,8 +260,8 @@ blueprint:
           default: ''
           selector:
             text:
-              multiple: false
               multiline: false
+              multiple: false
     position_section:
       name: Cover Position Settings
       icon: mdi:window-shutter-settings
@@ -289,8 +289,8 @@ blueprint:
                 value: custom_sensor
               mode: dropdown
               multiple: false
-              sort: false
               custom_value: false
+              sort: false
         custom_position_sensor:
           name: "\U0001F4CD Custom Position Sensor"
           description: Select sensor that provides position (0-100%). Only used if
@@ -325,8 +325,8 @@ blueprint:
                 value: awning
               mode: dropdown
               multiple: false
-              sort: false
               custom_value: false
+              sort: false
         open_position:
           name: "\U0001F53C Open Position"
           description: What position should the cover be moved into when opening?
@@ -487,8 +487,8 @@ blueprint:
                 value: tilt_before_position
               mode: dropdown
               multiple: false
-              sort: false
               custom_value: false
+              sort: false
         cover_tilt_wait_timeout:
           name: "\U0001F504 Tilt Wait Timeout"
           description: Maximum time to wait for cover to become idle before sending
@@ -810,8 +810,8 @@ blueprint:
           default: Open Cover
           selector:
             text:
-              multiple: false
               multiline: false
+              multiple: false
         calendar_close_title:
           name: "\U0001F4C1 Close Event Title"
           description: 'Title of calendar events that define the evening/close window
@@ -820,8 +820,8 @@ blueprint:
           default: Close Cover
           selector:
             text:
-              multiple: false
               multiline: false
+              multiple: false
     brightness_section:
       name: Brightness Configuration
       description: "<center><p><small>\n  <strong>Only for morning opening &amp; evening
@@ -1186,8 +1186,8 @@ blueprint:
                 value: cond_forecast_weather
               - label: "\U0001F9E9 Custom Condition Sensor (state is 'on')"
                 value: cond_custom
-              sort: false
               custom_value: false
+              sort: false
         shading_conditions_start_or:
           name: "\U0001F31E Shading START - Optional Conditions (OR)"
           description: "**Conditions where AT LEAST ONE must be met to START shading**\n\U0001F4D6
@@ -1215,8 +1215,8 @@ blueprint:
                 value: cond_forecast_weather
               - label: "\U0001F9E9 Custom Condition Sensor (state is 'on')"
                 value: cond_custom
-              sort: false
               custom_value: false
+              sort: false
         shading_conditions_end_and:
           name: "\U0001F325️ Shading END - Required Conditions (AND)"
           description: "**Conditions that MUST ALL become invalid to END shading**\n\U0001F4D6
@@ -1244,8 +1244,8 @@ blueprint:
                 value: cond_forecast_weather
               - label: "\U0001F9E9 Custom Condition Sensor (state is 'off')"
                 value: cond_custom
-              sort: false
               custom_value: false
+              sort: false
         shading_conditions_end_or:
           name: "\U0001F325️ Shading END - Optional Conditions (OR)"
           description: "**Conditions where AT LEAST ONE must become invalid to END
@@ -1281,8 +1281,8 @@ blueprint:
                 value: cond_forecast_weather
               - label: "\U0001F9E9 Custom Condition Sensor (state is 'off')"
                 value: cond_custom
-              sort: false
               custom_value: false
+              sort: false
         shading_custom_sensor:
           name: "\U0001F9E9 Sun Shading - Custom Condition Sensor"
           description: "Optional binary sensor (or toggle helper) evaluated as an
@@ -1428,9 +1428,16 @@ blueprint:
               unit_of_measurement: °C
         shading_temperature_hysteresis1:
           name: 1️⃣ Sun Shading - Temperature Sensor 1 Hysteresis Value
-          description: 'Shading will end only when temperature drops below (minimum
-            - hysteresis value) to prevent frequent open/close cycles. See: [FAQ:
-            How does hysteresis work?](https://hvorragend.github.io/ha-blueprints/FAQ#q-how-does-hysteresis-work)'
+          description: 'Prevents frequent open/close cycles near the minimum value.
+            The hysteresis applies on both sides:
+
+            - Shading starts: temperature > (minimum + hysteresis)
+
+            - Shading ends: temperature < (minimum - hysteresis)
+
+
+            Example: minimum 22 °C and hysteresis 1 °C → shading starts above 23 °C
+            and ends below 21 °C. See: [FAQ: How does hysteresis work?](https://hvorragend.github.io/ha-blueprints/FAQ#q-how-does-hysteresis-work)'
           default: 0.2
           selector:
             number:
@@ -1468,9 +1475,16 @@ blueprint:
               unit_of_measurement: °C
         shading_temperature_hysteresis2:
           name: 2️⃣ Sun Shading - Temperature Sensor 2 Hysteresis Value
-          description: 'Shading will end only when temperature drops below (minimum
-            - hysteresis value) to prevent frequent open/close cycles. See: [FAQ:
-            How does hysteresis work?](https://hvorragend.github.io/ha-blueprints/FAQ#q-how-does-hysteresis-work)'
+          description: 'Prevents frequent open/close cycles near the minimum value.
+            The hysteresis applies on both sides:
+
+            - Shading starts: temperature > (minimum + hysteresis)
+
+            - Shading ends: temperature < (minimum - hysteresis)
+
+
+            Example: minimum 22 °C and hysteresis 1 °C → shading starts above 23 °C
+            and ends below 21 °C. See: [FAQ: How does hysteresis work?](https://hvorragend.github.io/ha-blueprints/FAQ#q-how-does-hysteresis-work)'
           default: 0.2
           selector:
             number:
@@ -1509,8 +1523,8 @@ blueprint:
               - label: Do not use a weather forecast, but the current weather attributes
                 value: weather_attributes
               multiple: false
-              sort: false
               custom_value: false
+              sort: false
         shading_forecast_temp_sensor:
           name: "\U0001F4CA Sun Shading - Direct Temperature Sensor (Alternative)"
           description: "**Alternative method:** Use a sensor that directly provides
@@ -1587,8 +1601,8 @@ blueprint:
               - windy
               - windy-variant
               - exceptional
-              sort: false
               custom_value: false
+              sort: false
         shading_config:
           name: "\U0001F975 Sun Shading - Configuration"
           description: "These options allow you to fine-tune how the system handles
@@ -2347,8 +2361,8 @@ blueprint:
               - error
               - info
               - warning
-              sort: false
               custom_value: false
+              sort: false
     logging_section:
       name: Logging
       description: Optional logbook output for retrospective debugging. The technical
@@ -2554,7 +2568,7 @@ trigger_variables:
     }}"
   automation_entity: '{{ this.entity_id | default('''') }}'
 variables:
-  version: 2026.08.25 V2
+  version: 2026.09.12
   is_paused: '{{ force_pause != [] and states(force_pause) in [''on'', ''true''] }}'
   blind_entities: '{{ expand(blind) | map(attribute=''entity_id'') | list }}'
   current_position: "{% set source = position_source %} {% if source == 'current_position_attr'

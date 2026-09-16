@@ -1,0 +1,63 @@
+# Family Room card. Layout, badges and actions come from decluttering-templates/room_card.yaml.
+type: custom:decluttering-card
+template: room_card
+variables:
+  - name: Family Room
+  - icon: mdi:theater
+  - color: 233, 30, 99
+  - popup: '#family'
+  - entity: binary_sensor.athom_family_room_presence_sensor_occupancy
+  - temp: sensor.view_plus_temperature
+  - humid: sensor.view_plus_humidity
+  - blocker: input_boolean.lighting_automation_blocker_family_room
+  - badges:
+      - name: Door open
+        target: main_icon
+        icon: mdi:door-sliding-open
+        color: red
+        animation: pulse
+        condition:
+          - condition: state
+            entity_id: binary_sensor.basement_sliding_door
+            state: 'on'
+      # Thresholds match the HIGH band on the Climate page air-quality card.
+      - name: Air quality
+        target: main_icon
+        icon: mdi:weather-dust
+        color: orange
+        animation: glow
+        condition:
+          - condition: or
+            conditions:
+              - condition: numeric_state
+                entity_id: sensor.view_plus_carbon_dioxide
+                above: 1200
+              - condition: numeric_state
+                entity_id: sensor.view_plus_pm2_5
+                above: 35
+      - name: Too warm
+        target: main_icon
+        icon: mdi:fire
+        color: orange
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.view_plus_temperature
+            above: 72
+      - name: Too cold
+        target: main_icon
+        icon: mdi:snowflake-alert
+        color: cyan
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.view_plus_temperature
+            below: 69
+      - name: Occupied
+        target: main_icon
+        icon: mdi:motion-sensor
+        color: green
+        condition:
+          - condition: state
+            entity_id: binary_sensor.athom_family_room_presence_sensor_occupancy
+            state: 'on'

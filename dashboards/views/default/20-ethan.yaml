@@ -79,62 +79,31 @@ cards:
     view_layout:
       grid-area: section4
     cards: 
-      - type: custom:mushroom-chips-card
-        chips:
-          - type: entity
-            entity: input_boolean.input_boolean.lighting_automation_blocker_ethan_s_room
-            content_info: name
-            icon_color: red
-            icon: mdi:auto-mode
-            name: Automation
-            tap_action:
-              action: toggle
-            use_entity_picture: false
-          - type: template
-            entity: binary_sensor.activity_in_the_ethan_s_bedroom
-            icon_color: |-
-              {% if states('binary_sensor.activity_in_the_ethan_s_bedroom') == 'on' -%}
-                red
-              {%- else %}
-                grey
-              {%- endif %}
-            icon: mdi:motion-sensor
-            content: |-
-              {% if states('binary_sensor.activity_in_the_ethan_s_bedroom') == 'off' -%}
-                No Motion detected
-              {% elif states('binary_sensor.activity_in_the_ethan_s_bedroom') == 'on' -%}
-                Motion Detected
-              {%- else %}
-                Motion Error
-              {%- endif %}
-            tap_action:
-              action: more-info
-          - type: template
-            entity: binary_sensor.ethan_s_bedroom_window_sensor_contact
-            icon_color: |-
-              {% if states('binary_sensor.ethan_s_bedroom_window_sensor_contact') == 'on' -%}
-                red
-              {%- else %}
-                grey
-              {%- endif %}
-            icon: |-
-              {% if states('binary_sensor.ethan_s_bedroom_window_sensor_contact') == 'off' -%}
-                mdi:blinds-horizontal-closed
-              {% elif states('binary_sensor.ethan_s_bedroom_window_sensor_contact') == 'on' -%}
-                mdi:blinds-horizontal
-              {%- else %}
-                mdi:window-close
-              {%- endif %}
-            content: |-
-              {% if states('binary_sensor.ethan_s_bedroom_window_sensor_contact') == 'off' -%}
-                Window Closed
-              {% elif states('binary_sensor.ethan_s_bedroom_window_sensor_contact') == 'on' -%}
-                Window Open
-              {%- else %}
-                Window Error
-              {%- endif %}
-            tap_action:
-              action: more-info
+      - type: custom:decluttering-card
+        template: bubble_chips
+        variables:
+          - chips:
+              - entity: input_boolean.lighting_automation_blocker_ethan_s_room
+                name: Automation
+                show_name: true
+                icon: mdi:auto-mode
+                show_state: false
+                state_background: true
+                fill_width: false
+                tap_action:
+                  action: toggle
+              - entity: binary_sensor.activity_in_the_ethan_s_bedroom
+                icon: mdi:motion-sensor
+                show_state: true
+                state_background: true
+                fill_width: false
+              - entity: binary_sensor.ethan_s_bedroom_window_sensor_contact
+                name: Window
+                show_name: true
+                icon: mdi:window-closed-variant
+                show_state: true
+                state_background: true
+                fill_width: false
       - type: custom:bubble-card
         card_type: sub-buttons
         sub_button:

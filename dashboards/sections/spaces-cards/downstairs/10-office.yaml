@@ -1,0 +1,48 @@
+# Office card. Layout, badges and actions come from decluttering-templates/room_card.yaml.
+type: custom:decluttering-card
+template: room_card
+variables:
+  - name: Office
+  - icon: mdi:chair-rolling
+  - color: 96, 125, 139
+  - popup: '#office'
+  - entity: binary_sensor.office_multi_sensor_home_security_motion_detection
+  - temp: sensor.office_temperature_sensor_temperature
+  - humid: sensor.office_temperature_sensor_humidity
+  - blocker: input_boolean.lighting_automation_blocker_office_room
+  - badges:
+      - name: Window open
+        target: main_icon
+        icon: mdi:window-open-variant
+        color: red
+        animation: pulse
+        condition:
+          - condition: state
+            entity_id: binary_sensor.office_window
+            state: 'on'
+      - name: Too warm
+        target: main_icon
+        icon: mdi:fire
+        color: orange
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.office_temperature_sensor_temperature
+            above: 72
+      - name: Too cold
+        target: main_icon
+        icon: mdi:snowflake-alert
+        color: cyan
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.office_temperature_sensor_temperature
+            below: 69
+      - name: Occupied
+        target: main_icon
+        icon: mdi:motion-sensor
+        color: green
+        condition:
+          - condition: state
+            entity_id: binary_sensor.office_multi_sensor_home_security_motion_detection
+            state: 'on'

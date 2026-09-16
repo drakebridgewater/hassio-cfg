@@ -1,32 +1,4 @@
-
-# ################ View Expansion Controls ######################
-kitchen_view_expanded:
-  name: "Kitchen View Expanded"
-  icon: mdi:countertop-outline
-living_room_view_expanded:
-  name: "Living Room View Expanded"
-  icon: mdi:sofa-outline
-family_room_view_expanded:
-  name: "Family Room View Expanded"
-  icon: mdi:theater
-master_bedroom_view_expanded:
-  name: "Master Bedroom View Expanded"
-  icon: mdi:bed-king-outline
-ethans_room_view_expanded:
-  name: "Ethan's Room View Expanded"
-  icon: mdi:teddy-bear
-office_view_expanded:
-  name: "Office View Expanded"
-  icon: mdi:chair-rolling
-outdoor_view_expanded:
-  name: "Outdoor View Expanded"
-  icon: mdi:balcony
-dining_view_expanded:
-  name: "Dining View Expanded"
-  icon: mdi:silverware-fork-knife
-holiday_view_expanded:
-  name: "Holiday View Expanded"
-  icon: mdi:string-lights
+{}  # no active input_booleans; examples below are commented out
 # ################ Morning Routine ######################
 # morning_brush_teeth:
 #   name: "Brush Teeth"

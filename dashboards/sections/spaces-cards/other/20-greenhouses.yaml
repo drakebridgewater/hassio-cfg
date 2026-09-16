@@ -1,0 +1,11 @@
+# Greenhouses card. Layout, badges and actions come from decluttering-templates/room_card.yaml.
+type: custom:decluttering-card
+template: room_card
+variables:
+  - name: Greenhouses
+  - icon: mdi:greenhouse
+  - color: 205, 220, 57
+  - popup: /lovelace-main/greenhouse
+  - entity: sensor.living_room_greenhouse_temperature
+  - temp: sensor.living_room_greenhouse_temperature
+  - humid: sensor.living_room_greenhouse_humidity

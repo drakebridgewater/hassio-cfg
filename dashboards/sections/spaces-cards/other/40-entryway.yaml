@@ -1,0 +1,33 @@
+# Security (Entries) card: entry doors and the alarm state. Opens the Security page.
+type: custom:decluttering-card
+template: room_card
+variables:
+  - name: Security (Entries)
+  - icon: mdi:shield-home-outline
+  - color: 255, 152, 0
+  - popup: /lovelace-main/security
+  - entity: binary_sensor.frontdoor_all_occupancy
+  - extra: alarm_control_panel.default
+  - badges:
+      - name: Door open
+        target: main_icon
+        icon: mdi:door-open
+        color: red
+        animation: pulse
+        condition:
+          - condition: or
+            conditions:
+              - condition: state
+                entity_id: binary_sensor.front_door
+                state: 'on'
+              - condition: state
+                entity_id: binary_sensor.garage_portal
+                state: 'on'
+      - name: Occupied
+        target: main_icon
+        icon: mdi:motion-sensor
+        color: green
+        condition:
+          - condition: state
+            entity_id: binary_sensor.frontdoor_all_occupancy
+            state: 'on'

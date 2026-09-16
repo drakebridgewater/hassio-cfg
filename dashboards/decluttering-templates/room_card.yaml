@@ -1,0 +1,68 @@
+# Home room card (sections/spaces-cards/). Every room renders through this template so
+# all cards look and behave alike, modelled on the stock area card: one row with the room
+# icon and name, "temperature · humidity" under the name, and Bubble badges on the icon for
+# anything out of range (see ARCHITECTURE.md). A ring around the icon shows the room's
+# lighting-automation blocker: amber while automations are blocked, faint while they run.
+# Tapping anywhere opens the room pop-up.
+# Variables:
+#   name, icon, color ("r, g, b" tint), popup (hash), entity (occupancy sensor)
+#   temp, humid, extra (optional reading entities), blocker (input_boolean), badges (list)
+room_card:
+  default:
+    - temp: ''
+    - humid: ''
+    - extra: ''
+    - blocker: ''
+    - badges: []
+  card:
+    type: custom:bubble-card
+    card_type: button
+    button_type: state
+    entity: '[[entity]]'
+    name: '[[name]]'
+    icon: '[[icon]]'
+    show_name: true
+    show_icon: true
+    show_state: true
+    show_attribute: false
+    show_last_changed: false
+    scrolling_effect: false
+    use_accent_color: false
+    force_icon: true
+    tap_action:
+      action: navigate
+      navigation_path: '[[popup]]'
+    hold_action:
+      action: none
+    button_action:
+      tap_action:
+        action: navigate
+        navigation_path: '[[popup]]'
+      hold_action:
+        action: none
+    modules:
+      - bubble_badges
+    bubble_badges:
+      badges: '[[badges]]'
+    # Area-card style secondary line: the readings replace the occupancy state text.
+    styles: |-
+      ${(() => {
+        const el = card.querySelector('.bubble-state');
+        if (!el) return '';
+        const fmt = (st) => st && !['unavailable', 'unknown'].includes(st.state) ? hass.formatEntityState(st) : null;
+        const text = [
+          fmt(hass.states['[[temp]]']),
+          fmt(hass.states['[[humid]]']),
+          fmt(hass.states['[[extra]]']),
+        ].filter(Boolean).join(' · ');
+        if (el.innerText !== text) el.innerText = text;
+        return '';
+      })()}
+      .bubble-button-card-container {
+        background: linear-gradient(135deg, rgba([[color]], 0.2) 0%, rgba([[color]], 0.3) 100%) !important;
+      }
+      .bubble-icon-container {
+        ${hass.states['[[blocker]]']?.state === 'on'
+          ? 'box-shadow: 0 0 0 2px var(--amber-color) !important;'
+          : hass.states['[[blocker]]'] ? 'box-shadow: 0 0 0 2px rgba(var(--rgb-primary-text-color, 255, 255, 255), 0.18) !important;' : ''}
+      }

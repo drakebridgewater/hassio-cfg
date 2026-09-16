@@ -1,0 +1,20 @@
+# Chip row (replaces mushroom-chips-card): a Bubble sub-buttons card holding one inline
+# group. Each chip is a Bubble sub-button; set `fill_width: false` on it so it sizes like
+# a chip. Hide chips with sub-button `visibility`. Chips needing JS `styles` (dynamic text or
+# icons) can't use this template: decluttering-card breaks on multi-line string variables, so
+# write the same sub-buttons card directly (see sections/banner/20-status-chips.yaml).
+#   chips   list of sub-buttons
+#   align   start | center | end (default start)
+bubble_chips:
+  default:
+    - align: start
+  card:
+    type: custom:bubble-card
+    card_type: sub-buttons
+    sub_button:
+      main: []
+      bottom:
+        - name: Chips
+          buttons_layout: inline
+          justify_content: '[[align]]'
+          group: '[[chips]]'

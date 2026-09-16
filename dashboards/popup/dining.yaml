@@ -1,0 +1,24 @@
+type: custom:bubble-card
+card_type: pop-up
+hash: '#dining'
+button_type: switch
+name: Dining Room
+icon: mdi:table-furniture
+entity: light.vaulted_light
+force_icon: true
+show_state: true
+show_last_changed: false
+bg_opacity: '35'
+button_action:
+  tap_action:
+    action: none
+tap_action:
+  action: toggle
+sub_button:
+  - entity: fan.ceiling_fan
+    icon: mdi:ceiling-fan
+    tap_action:
+      action: toggle
+    hold_action:
+      action: more-info
+cards: !include_dir_list ../sections/rooms/dining

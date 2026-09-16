@@ -650,55 +650,6 @@
         target:
           area_id: office
         action: light.turn_off
-- id: '1678748418623'
-  alias: Inovelli Indicator - Mac Camera
-  description: ''
-  trigger:
-  - platform: state
-    id: inactive
-    entity_id:
-    - sensor.drakes_macbook_pro_active_camera
-    from:
-    to: inactive
-  - platform: state
-    id: active
-    entity_id:
-    - sensor.drakes_macbook_pro_active_camera
-    from: inactive
-    to:
-  condition:
-  - condition: state
-    entity_id: person.drake
-    state: home
-  action:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id: inactive
-      sequence:
-      - service: script.1713191378784
-        data:
-          led: All
-          effect: Clear
-          color: 0
-          level: 0
-          duration: 0
-          target:
-            device_id: 4845a6a6beec4d5968ad71e5bd9ebf26
-    - conditions:
-      - condition: trigger
-        id: active
-      sequence:
-      - service: script.1713191378784
-        data:
-          led: All
-          color: Pink
-          level: 98
-          effect: Aurora
-          duration: Indefinitely
-          target:
-            device_id: 4845a6a6beec4d5968ad71e5bd9ebf26
-  mode: single
 - id: '1679065353958'
   alias: Inovelli - Basement Bathroom Wall Switch
   description: ''
@@ -3335,11 +3286,13 @@
     path: Blackshome/sensor-light.yaml
     input:
       motion_trigger:
-      - binary_sensor.office_multi_sensor_home_security_motion_detection
+      - binary_sensor.sensy_one_f81080_any_presence
       light_switch:
         entity_id:
         - light.office_behind_monitor_lamp
         - light.office_desk_right_lamp
+        - light.office_wall_right
+        - light.office_wall_left
       boolean_scenes_scripts: input_boolean.scenes_scripts_toggle_helper_office
       include_light_control:
       - use_brightness
@@ -5338,3 +5291,63 @@
     needs_change: "{{ prev_mode != target_mode\n   or (prev_set | map('float', -999)
       | map('round', 0) | list)\n      != (want_set | map('float', -999) | map('round',
       0) | list) }}"
+- id: '1789508245654'
+  alias: Master Bedroom - Air Quality LED
+  description: Colors the Apollo AIR-1 LED by the worst of CO2, PM2.5 and VOC index
+    (green good / yellow moderate / red poor). Brightness 100% when Alarmo is disarmed,
+    1% in any other alarm state. Only sends a command when color or brightness would
+    actually change.
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.apollo_air_1_f8b340_co2
+    - sensor.apollo_air_1_f8b340_pm_2_5mm_weight_concentration
+    - sensor.apollo_air_1_f8b340_sen55_voc
+    - alarm_control_panel.default
+  - trigger: state
+    entity_id: binary_sensor.apollo_air_1_f8b340_online
+    to: 'on'
+  - trigger: homeassistant
+    event: start
+  conditions:
+  - condition: state
+    entity_id: automation.master_bedroom_air_quality_led
+    state:
+    - 'on'
+  actions:
+  - variables:
+      led: light.apollo_air_1_f8b340_rgb_light
+      co2: '{{ states(''sensor.apollo_air_1_f8b340_co2'') | float(none) }}'
+      pm25: '{{ states(''sensor.apollo_air_1_f8b340_pm_2_5mm_weight_concentration'')
+        | float(none) }}'
+      voc: '{{ states(''sensor.apollo_air_1_f8b340_sen55_voc'') | float(none) }}'
+      level: '{% set ns = namespace(l=-1) %}
+
+        {% if co2 is number %}{% set ns.l = [ns.l, 2 if co2 > 1500 else 1 if co2 >
+        1000 else 0] | max %}{% endif %}
+
+        {% if pm25 is number %}{% set ns.l = [ns.l, 2 if pm25 > 35 else 1 if pm25
+        > 12 else 0] | max %}{% endif %}
+
+        {% if voc is number %}{% set ns.l = [ns.l, 2 if voc > 250 else 1 if voc >
+        150 else 0] | max %}{% endif %}
+
+        {{ ns.l }}'
+      rgb: '{{ [[0, 255, 0], [255, 255, 0], [255, 0, 0]][level | int] if level | int
+        >= 0 else none }}'
+      brightness: '{{ 150 if is_state(''alarm_control_panel.default'', ''disarmed'')
+        else 3 }}'
+  - condition: template
+    value_template: '{{ rgb is not none }}'
+  - condition: template
+    value_template: "{{ not is_state(led, 'on')\n   or (state_attr(led, 'rgb_color')
+      or []) | list != rgb\n   or state_attr(led, 'brightness') | int(0) != brightness
+      }}"
+  - action: light.turn_on
+    target:
+      entity_id: '{{ led }}'
+    data:
+      rgb_color: '{{ rgb }}'
+      brightness: '{{ brightness }}'
+  mode: queued
+  max: 5

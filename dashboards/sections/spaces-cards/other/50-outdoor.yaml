@@ -1,0 +1,47 @@
+# Outdoor card. Layout, badges and actions come from decluttering-templates/room_card.yaml.
+type: custom:decluttering-card
+template: room_card
+variables:
+  - name: Outdoor
+  - icon: mdi:balcony
+  - color: 76, 175, 80
+  - popup: '#outdoors'
+  - entity: binary_sensor.porch_motion_motion_detection
+  - temp: sensor.wirelesstag_outdoor_temperature
+  - humid: sensor.wirelesstag_outdoor_humidity
+  - badges:
+      - name: Air quality
+        target: main_icon
+        icon: mdi:weather-dust
+        color: orange
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.airnow_aqi
+            above: 100
+      - name: Hot
+        target: main_icon
+        icon: mdi:fire
+        color: orange
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.wirelesstag_outdoor_temperature
+            above: 80
+      - name: Cold
+        target: main_icon
+        icon: mdi:snowflake-alert
+        color: cyan
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.wirelesstag_outdoor_temperature
+            below: 40
+      - name: Motion
+        target: main_icon
+        icon: mdi:motion-sensor
+        color: green
+        condition:
+          - condition: state
+            entity_id: binary_sensor.porch_motion_motion_detection
+            state: 'on'

@@ -1,0 +1,62 @@
+# Living Room card. Layout, badges and actions come from decluttering-templates/room_card.yaml.
+type: custom:decluttering-card
+template: room_card
+variables:
+  - name: Living Room
+  - icon: mdi:sofa-outline
+  - color: 33, 150, 243
+  - popup: '#living-room'
+  - entity: binary_sensor.living_room_presence_sensor_occupancy
+  - temp: sensor.living_room_temperature_sensor_temperature
+  - humid: sensor.wirelesstag_main_freezer_humidity
+  - blocker: input_boolean.lighting_automation_blocker_living_room
+  - badges:
+      - name: Window open
+        target: main_icon
+        icon: mdi:window-open-variant
+        color: red
+        animation: pulse
+        condition:
+          - condition: or
+            conditions:
+              - condition: state
+                entity_id: binary_sensor.awning_left_window
+                state: 'on'
+              - condition: state
+                entity_id: binary_sensor.awning_right_window
+                state: 'on'
+      - name: Air quality
+        target: main_icon
+        icon: mdi:weather-dust
+        color: orange
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.thermostat_air_quality_index
+            above: 100
+      - name: Too warm
+        target: main_icon
+        icon: mdi:fire
+        color: orange
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.living_room_temperature_sensor_temperature
+            above: 72
+      - name: Too cold
+        target: main_icon
+        icon: mdi:snowflake-alert
+        color: cyan
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.living_room_temperature_sensor_temperature
+            below: 69
+      - name: Occupied
+        target: main_icon
+        icon: mdi:motion-sensor
+        color: green
+        condition:
+          - condition: state
+            entity_id: binary_sensor.living_room_presence_sensor_occupancy
+            state: 'on'

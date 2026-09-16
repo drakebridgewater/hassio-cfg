@@ -1,0 +1,66 @@
+# Kitchen room card. Layout, badges and actions come from decluttering-templates/room_card.yaml.
+type: custom:decluttering-card
+template: room_card
+variables:
+  - name: Kitchen
+  - icon: mdi:countertop-outline
+  - color: 139, 195, 74
+  - popup: '#kitchen'
+  - entity: binary_sensor.athom_presence_sensor_9bd3a3_occupancy
+  - temp: sensor.living_room_temperature_sensor_temperature
+  - humid: sensor.thermostat_humidity
+  - blocker: input_boolean.lighting_automation_blocker_kitchen
+  - badges:
+      - name: Door open
+        target: main_icon
+        icon: mdi:door-open
+        color: red
+        animation: pulse
+        condition:
+          - condition: state
+            entity_id: binary_sensor.kitchen_door
+            state: 'on'
+      - name: Window open
+        target: main_icon
+        icon: mdi:window-open-variant
+        color: red
+        animation: pulse
+        condition:
+          - condition: state
+            entity_id: binary_sensor.kitchen_window
+            state: 'on'
+      - name: Leak
+        target: main_icon
+        icon: mdi:water-alert
+        color: blue
+        animation: shake
+        condition:
+          - condition: state
+            entity_id: binary_sensor.flo_under_kitchen_sink_water_detected
+            state: 'on'
+      - name: Too warm
+        target: main_icon
+        icon: mdi:fire
+        color: orange
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.living_room_temperature_sensor_temperature
+            above: 72
+      - name: Too cold
+        target: main_icon
+        icon: mdi:snowflake-alert
+        color: cyan
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.living_room_temperature_sensor_temperature
+            below: 69
+      - name: Occupied
+        target: main_icon
+        icon: mdi:motion-sensor
+        color: green
+        condition:
+          - condition: state
+            entity_id: binary_sensor.athom_presence_sensor_9bd3a3_occupancy
+            state: 'on'
