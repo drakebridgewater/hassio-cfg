@@ -3266,13 +3266,10 @@
       night_light_brightness: 1
       include_state_control: state_control_enabled
       state_control_entity: input_boolean.lighting_automation_blocker_master_bathroom
-      motion_bypass_lights_off:
-      - light.master_bathroom_wall_switch
       motion_bypass_lights_on:
       - light.master_bathroom_wall_switch
       bypass_time_delay: 5
       include_bypass:
-      - bypass_enabled_turn_off
       - bypass_enabled_turn_on
       include_time: time_enabled
       after_time: 06:00:00
@@ -3339,14 +3336,28 @@
       - binary_sensor.flo_under_kitchen_sink_water_detected
       notify_service: notify.std_critical
 - id: '1760112655504'
-  alias: Synced Entities
-  description: ''
-  use_blueprint:
-    path: self/synced_entities.yaml
-    input:
-      linked_light:
-      - light.vaulted_light
-      - light.kitchen_wall_switch
+  alias: Sync - Kitchen = Dining Room
+  description: 'One-way on/off follow: kitchen wall switch on turns the dining room
+    vaulted light on, kitchen off turns it off. Brightness is intentionally NOT synced
+    so the dining room can be bright while the kitchen is dim (kitchen at 1% or 100%
+    just means on). The dining light keeps whatever brightness it last had.'
+  triggers:
+  - trigger: state
+    entity_id: light.kitchen_wall_switch
+    from: 'off'
+    to: 'on'
+    id: 'on'
+  - trigger: state
+    entity_id: light.kitchen_wall_switch
+    from: 'on'
+    to: 'off'
+    id: 'off'
+  conditions: []
+  actions:
+  - action: light.turn_{{ trigger.id }}
+    target:
+      entity_id: light.vaulted_light
+  mode: queued
 - id: '1762798669384'
   alias: Lighting Automation - Basement Bathroom - Sensor Light
   description: ''
