@@ -7,6 +7,8 @@
 
 - url: /hacsfiles/alarmo-card/alarmo-card.js
   type: module
+- url: /hacsfiles/AlertTicker-Card/alert-ticker-card.js
+  type: module
 - url: /hacsfiles/skylight-calendar-card/skylight-calendar-card.js
   type: module
 - url: /hacsfiles/Bubble-Card/bubble-card.js

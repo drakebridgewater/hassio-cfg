@@ -1,7 +1,7 @@
 blueprint:
   name: Sensor Light Add On
   description: "# ♾️ Sensor Light Add On - Media & Movie - House Alarm - Smoke Alarm
-    + More\n**Version: 2.3**\n\nLights, Camera, Action! Get ready to grab the popcorn
+    + More\n**Version: 2.4**\n\nLights, Camera, Action! Get ready to grab the popcorn
     because it's movie time with a touch of cinematic magic! \U0001F3AC✨\n\n**If you
     like my blueprints, and would like to show your support or just say thank you?
     [Click Here](https://www.paypal.com/donate/?hosted_button_id=WAZS3QSDTPGA8)**
@@ -87,7 +87,7 @@ blueprint:
               multiple: true
               custom_value: true
               options:
-              - label: ON.
+              - label: 'ON'
                 value: 'on'
               - label: Playing
                 value: playing
@@ -153,7 +153,7 @@ blueprint:
               multiple: true
               custom_value: true
               options:
-              - label: OFF.
+              - label: 'OFF'
                 value: 'off'
               - label: Idle
                 value: idle
@@ -196,9 +196,9 @@ blueprint:
                 value: enable_start_turn_off
               - label: Disable the start turn OFF options
                 value: disable_start_turn_off
+              multiple: false
               custom_value: false
               sort: false
-              multiple: false
         off_light_switch:
           name: Start Turn OFF - Lights - Switches
           description: 'Enter the lights and switches to turn OFF when the automation
@@ -262,6 +262,11 @@ blueprint:
 
             **NOTE** - You can only use entities. Areas, devices and labels are not
             supported.
+
+
+            ⚠️ At least one entity must be selected in this input for the automation
+            to run. If you want all lights to turn OFF, select any light entity, enable
+            **Use Brightness**, and set the brightness to **0%**.
 
             '
           default: []
@@ -376,9 +381,9 @@ blueprint:
                 value: use_rgbww_colour
               - label: Disable Colour Control
                 value: disable_colour_control
+              multiple: false
               custom_value: false
               sort: false
-              multiple: false
         light_colour_temperature:
           name: Colour Temperature
           description: 'The colour temperature setting for the lights when they are
@@ -418,7 +423,8 @@ blueprint:
           - 255
           - 255
           selector:
-            object: {}
+            object:
+              multiple: false
         light_rgbww_colour:
           name: RGBWW Colour
           description: 'The RGBWW colour setting for the lights when they are turned
@@ -433,7 +439,8 @@ blueprint:
           - 255
           - 255
           selector:
-            object: {}
+            object:
+              multiple: false
     lights_intermission:
       name: Intermission Lights
       icon: mdi:lightbulb-on-50
@@ -458,9 +465,9 @@ blueprint:
                 value: intermission_enable
               - label: Disable intermission option
                 value: intermission_disable
+              multiple: false
               custom_value: false
               sort: false
-              multiple: false
         intermission_state:
           name: Intermission - Trigger State
           description: 'Choose the state that triggers intermission mode from the
@@ -609,9 +616,9 @@ blueprint:
                 value: use_rgbww_colour
               - label: Disable Colour Control
                 value: disable_colour_control
+              multiple: false
               custom_value: false
               sort: false
-              multiple: false
         intermission_light_colour_temperature:
           name: Colour Temperature
           description: 'The colour temperature setting for the lights when they are
@@ -651,7 +658,8 @@ blueprint:
           - 255
           - 255
           selector:
-            object: {}
+            object:
+              multiple: false
         intermission_light_rgbww_colour:
           name: RGBWW Colour
           description: 'The RGBWW colour setting for the lights when they are turned
@@ -666,7 +674,8 @@ blueprint:
           - 255
           - 255
           selector:
-            object: {}
+            object:
+              multiple: false
     lights_end_turn_on:
       name: Lights ON at End
       icon: mdi:lightbulb-on-outline
@@ -697,9 +706,9 @@ blueprint:
                 value: enable_end_turn_on
               - label: Disable, end turn ON options
                 value: disable_end_turn_on
+              multiple: false
               custom_value: false
               sort: false
-              multiple: false
         end_snapshot_name:
           name: End Turn ON - Snapshot Name
           description: 'If you''ve opted to create a snapshot of your lights and switches,
@@ -713,7 +722,9 @@ blueprint:
             '
           default: enter_unique_snapshot_name_here
           selector:
-            text: {}
+            text:
+              multiline: false
+              multiple: false
         end_snapshot_helper:
           name: End Turn ON - Snapshot Toggle Helper
           description: 'If you have chosen to create a snapshot of your lights and
@@ -730,8 +741,8 @@ blueprint:
               filter:
               - domain:
                 - input_boolean
-              reorder: false
               multiple: false
+              reorder: false
         end_light_switch:
           name: End Turn ON - Lights - Switches - Scenes - Scripts
           description: 'Specify the lights, switches, scenes, and scripts you want
@@ -822,9 +833,9 @@ blueprint:
                 value: use_rgbww_colour
               - label: Disable Colour Control
                 value: disable_colour_control
+              multiple: false
               custom_value: false
               sort: false
-              multiple: false
         end_light_colour_temperature:
           name: Colour Temperature
           description: 'The colour temperature setting for the lights when they are
@@ -864,7 +875,8 @@ blueprint:
           - 255
           - 255
           selector:
-            object: {}
+            object:
+              multiple: false
         end_light_rgbww_colour:
           name: RGBWW Colour
           description: 'The RGBWW colour setting for the lights when they are turned
@@ -879,7 +891,8 @@ blueprint:
           - 255
           - 255
           selector:
-            object: {}
+            object:
+              multiple: false
     automation_link:
       name: Automation Link
       icon: mdi:link-variant
@@ -905,9 +918,9 @@ blueprint:
                 value: enable_automation_link
               - label: Disable automation link
                 value: disable_automation_link
+              multiple: false
               custom_value: false
               sort: false
-              multiple: false
         automation_link:
           name: Automation Link - By-pass Control
           description: 'To disable other automations when this automation is ON, enter
@@ -944,9 +957,9 @@ blueprint:
                 value: enable_time_delay
               - label: Disable time delay
                 value: disable_time_delay
+              multiple: false
               custom_value: false
               sort: false
-              multiple: false
         automation_link_time_delay:
           name: Time Delay
           description: 'Specify the time delay before turning off the automation link.
@@ -980,9 +993,9 @@ blueprint:
                 value: sun_enabled
               - label: Disable the sun option
                 value: sun_disabled
+              multiple: false
               custom_value: false
               sort: false
-              multiple: false
         sun_elevation:
           name: Sun Elevation Falling
           description: 'The sun elevation falling refers to the angle between the
@@ -1035,9 +1048,9 @@ blueprint:
                 value: ambient_enabled
               - label: Disable the ambient options
                 value: ambient_disabled
+              multiple: false
               custom_value: false
               sort: false
-              multiple: false
         ambient_light_sensor:
           name: Ambient Light Sensor
           description: 'Select the ambient sensor to be used.
@@ -1051,8 +1064,8 @@ blueprint:
                 - sensor
                 device_class:
                 - illuminance
-              reorder: false
               multiple: false
+              reorder: false
         ambient_light_options:
           name: Ambient Light Sensor - Site Conditions
           description: 'In some cases when your lights turn ON, your ambient light
@@ -1072,9 +1085,9 @@ blueprint:
                 value: ambient_light_option_enabled
               - label: NO - My Ambient Light Sensor is not affected by the Lights
                 value: ambient_light_option_disabled
+              multiple: false
               custom_value: false
               sort: false
-              multiple: false
         ambient_light_value:
           name: Ambient Light - Low Lux Value
           description: 'Set the Ambient Light Low Lux Value. The light will turn ON
@@ -1121,8 +1134,8 @@ blueprint:
               filter:
               - domain:
                 - input_boolean
-              reorder: false
               multiple: false
+              reorder: false
     bypass_settings:
       name: Bypass
       icon: mdi:cog-pause-outline
@@ -1151,9 +1164,9 @@ blueprint:
                 value: bypass_enabled_pause_automation
               - label: Disable the By-pass option
                 value: bypass_disabled
+              multiple: false
               custom_value: false
               sort: false
-              multiple: false
         trigger_bypass:
           name: By-pass - Switch
           description: 'Select a switch that will bypass (disable) the automation.
@@ -1163,7 +1176,9 @@ blueprint:
             '
           default: []
           selector:
-            entity: {}
+            entity:
+              multiple: false
+              reorder: false
   source_url: https://gist.github.com/Blackshome/85d6e7dbfa3390afbcf3e801b8be6294
 mode: restart
 max_exceeded: silent
@@ -1267,10 +1282,9 @@ variables:
   end_light_entities: "{% set a = end_light_switch and end_light_switch.entity_id
     %} {% if a %}\n  {{ expand(a) | selectattr('domain', 'eq', 'light') | map(attribute='entity_id')
     | list }}\n{% else %}\n  []\n{% endif %}"
-  end_switch_entities_off: "{% set a = end_light_switch and end_light_switch.entity_id
-    %} {% if a %}\n  {{ expand(a) | selectattr('domain', 'eq', 'switch') | selectattr('state',
-    'eq', 'off') | map(attribute='entity_id') | list }}\n{% else %}\n  []\n{% endif
-    %}"
+  end_switch_entities: "{% set a = end_light_switch and end_light_switch.entity_id
+    %} {% if a %}\n  {{ expand(a) | selectattr('domain', 'eq', 'switch') | map(attribute='entity_id')
+    | list }}\n{% else %}\n  []\n{% endif %}"
   end_scene_entities: "{% set a = end_light_switch and end_light_switch.entity_id
     %} {% if a %}\n  {{ expand(a) | selectattr('domain', 'eq', 'scene') | map(attribute='entity_id')
     | list }}\n{% else %}\n  []\n{% endif %}"
@@ -1789,7 +1803,7 @@ action:
         - alias: Turn on the end switches
           action: switch.turn_on
           target:
-            entity_id: '{{ end_switch_entities_off }}'
+            entity_id: '{{ end_switch_entities }}'
         - alias: Turn off the end script
           action: script.turn_on
           data:
@@ -2008,7 +2022,7 @@ action:
         - alias: Turn on the end switches
           action: switch.turn_on
           target:
-            entity_id: '{{ end_switch_entities_off }}'
+            entity_id: '{{ end_switch_entities }}'
         - alias: Turn off the end script
           action: script.turn_on
           data:
@@ -2154,7 +2168,7 @@ action:
         - alias: Turn on the end switches
           action: switch.turn_on
           target:
-            entity_id: '{{ end_switch_entities_off }}'
+            entity_id: '{{ end_switch_entities }}'
         - alias: Turn off the end script
           action: script.turn_on
           data:
@@ -2470,7 +2484,7 @@ action:
     - alias: Turn on the end switches
       action: switch.turn_on
       target:
-        entity_id: '{{ end_switch_entities_off }}'
+        entity_id: '{{ end_switch_entities }}'
     - alias: Turn off the end script
       action: script.turn_on
       data:

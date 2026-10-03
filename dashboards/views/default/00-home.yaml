@@ -16,6 +16,8 @@ cards:
     view_layout:
       grid-area: section1
     cards:
+      - !include ../../cards/alert-ticker.yaml
+      - !include ../../cards/notification-feed.yaml
       - type: custom:bubble-card
         card_type: separator
         name: Upstairs

@@ -18,50 +18,9 @@
   services:
     - service: alexa_media_all_echo_devices
   
-- name: STD_Information
-  platform: group
-  services:
-    - service: mobile_app_drakes_iphone
-    - service: mobile_app_drakes_macbook_pro
-    # - service: pushover_dbridgew
-- name: STD_Warning
-  platform: group
-  services:
-    - service: alexa_media_all_echo_devices
-    - service: mobile_app_shawnas_iphone
-    - service: mobile_app_drakes_iphone
-    - service: mobile_app_drakes_macbook_pro
-    # - service: pushover_dbridgew
-- name: STD_Critical
-  platform: group
-  services:
-    - service: alexa_media_all_echo_devices
-    - service: mobile_app_drakes_iphone
-    - service: mobile_app_shawnas_iphone
-    - service: mobile_app_drakes_macbook_pro
-    # - service: pushover_dbridgew
-    # - service: gmail_alert
-
-- platform: group
-  name: all_iphones
-  services:
-    - service: mobile_app_drakes_iphone
-    - service: mobile_app_shawnas_iphone
-    # - service: pushover_dbridgew
-
-- platform: group
-  name: drake
-  services:
-    - service: mobile_app_drakes_iphone
-    - service: mobile_app_drakes_macbook_pro
-    - service: pushover_dbridgew
-
-- platform: group
-  name: shawna
-  services:
-    - service: mobile_app_shawnas_iphone
-
-
+# Per-person phone notifications go through Ticker (ticker.notify + categories),
+# not notify groups. The STD_*/all_iphones/drake/shawna groups were retired
+# 2026-09-28 (they still pointed at the removed mobile_app_drakes_iphone).
 
 - platform: html5
   vapid_pub_key: !secret firebase_public_key

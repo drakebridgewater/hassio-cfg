@@ -1,6 +1,6 @@
 animated_icon:
   name: Animated Icons 2
-  version: v2.7.0
+  version: v2.10.0
   creator: Airblader (+ @ozumado)
   link: https://github.com/Clooos/Bubble-Card/discussions/2075
   supported:
@@ -18,17 +18,13 @@ animated_icon:
     </ol>
   code: |
     ${(() => {
-      const moduleConfig = this.config?.animated_icon;
-      if (!moduleConfig) return;
-
+      const cardConfig = this.config;
       this.__icon_animations ??= createAnimations();
 
-      return createConfigurations(moduleConfig)
+      return createConfigurations(cardConfig)
         .filter(config => !!config.mode)
         .map(config => {
-          const iconSelector = config.index === -1
-            ? '.bubble-main-icon'
-            : `.bubble-sub-button-${config.index + 1} .bubble-sub-button-icon`;
+          const iconSelector = getIconSelector(cardConfig, config);
 
           // Clean up any leftover nodes if the mode was changed.
           const iconItem = card.querySelector(iconSelector);
@@ -133,10 +129,32 @@ animated_icon:
             iconOff: "mdi:motion-sensor-off",
             animate: animatedMotion,
           },
+          movie: {
+            iconOn: "mdi:movie-roll",
+            animate: animatedMovie,
+          },
+          mower: {
+            iconOn: "mdi:robot-mower",
+            animate: animatedMower,
+          },
+          music: {
+            iconOn: "mdi:music",
+            iconOff: "mdi:music-off",
+            animate: animatedMusic,
+          },
+          printer: {
+            iconOn: "mdi:printer-3d",
+            iconOff: "mdi:printer-3d-off",
+            animate: animatedPrinter,
+          },
           radiator: {
             iconOn: "mdi:radiator",
             iconOff: "mdi:radiator-disabled",
             animate: animatedRadiator,
+          },
+          television: {
+            iconOn: "mdi:television-ambient-light",
+            animate: animatedTelevision,
           },
           vacuum: {
             iconOn: "mdi:robot-vacuum",
@@ -156,7 +174,9 @@ animated_icon:
         };
       }
 
-      function createConfigurations(moduleConfig) {
+      function createConfigurations(config) {
+        const moduleConfig = config?.animated_icon;
+
         return [
           ...(moduleConfig.mode
             ? [{
@@ -173,6 +193,19 @@ animated_icon:
 
           ...(moduleConfig?.buttons ?? []),
         ];
+      }
+
+      function getIconSelector(cardConfig, config) {
+        switch (cardConfig.card_type) {
+          case "separator":
+            return config.index === -1
+              ? '.bubble-icon'
+              : `.bubble-sub-button-${config.index + 1} .bubble-sub-button-icon`;
+          default:
+            return config.index === -1
+              ? '.bubble-main-icon'
+              : `.bubble-sub-button-${config.index + 1} .bubble-sub-button-icon`;
+        }
       }
 
       function isEntityOn(entityId, ignoreState, conditions) {
@@ -214,7 +247,9 @@ animated_icon:
                 'fan_only',
                 'auto',
                 'alarm',
-                'error'
+                'error',
+                'printing',
+                'returning'
             ];
 
             return activeStringStates.includes(normalizedState) || numericState || isTemperature;
@@ -270,17 +305,6 @@ animated_icon:
 
       function animatedAirPurifier(mode, iconSelector) {
         return `
-          ${iconSelector} {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: absolute;
-            top: calc((100% - var(--mdc-icon-size))/2);
-            left: calc((100% - var(--mdc-icon-size))/2);
-            width: var(--mdc-icon-size);
-            height: var(--mdc-icon-size);
-          }
-
           ${iconSelector}:not(.clone) {
             animation: air-purifier-air 1s linear infinite;
           }
@@ -296,17 +320,6 @@ animated_icon:
 
       function animatedAlarm(mode, iconSelector) {
         return `
-          ${iconSelector} {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: absolute;
-            top: calc((100% - var(--mdc-icon-size))/2);
-            left: calc((100% - var(--mdc-icon-size))/2);
-            width: var(--mdc-icon-size);
-            height: var(--mdc-icon-size);
-          }
-
           ${iconSelector}:not(.clone) {
             animation: alarm-alarm 0.75s ease infinite;
           }
@@ -325,17 +338,6 @@ animated_icon:
 
       function animatedAlert(mode, iconSelector) {
         return `
-          ${iconSelector} {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: absolute;
-            top: calc((100% - var(--mdc-icon-size))/2);
-            left: calc((100% - var(--mdc-icon-size))/2);
-            width: var(--mdc-icon-size);
-            height: var(--mdc-icon-size);
-          }
-
           ${iconSelector}:not(.clone) {
             animation: alert-alert 0.75s linear infinite, alert-shake 0.5s linear infinite;
           }
@@ -356,17 +358,6 @@ animated_icon:
 
       function animatedBoil(mode, iconSelector) {
         return `
-          ${iconSelector} {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: absolute;
-            top: calc((100% - var(--mdc-icon-size))/2);
-            left: calc((100% - var(--mdc-icon-size))/2);
-            width: var(--mdc-icon-size);
-            height: var(--mdc-icon-size);
-          }
-
           ${iconSelector}:not(.clone) {
             animation: boil-boil 600ms linear infinite;
           }
@@ -389,17 +380,6 @@ animated_icon:
 
       function animatedDing(mode, iconSelector) {
         return `
-          ${iconSelector} {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: absolute;
-            top: calc((100% - var(--mdc-icon-size))/2);
-            left: calc((100% - var(--mdc-icon-size))/2);
-            width: var(--mdc-icon-size);
-            height: var(--mdc-icon-size);
-          }
-
           ${iconSelector}:not(.clone) {
             animation: ding-ring 4s linear infinite;
             transform-origin: 50% 15%;
@@ -436,17 +416,6 @@ animated_icon:
 
       function animatedDishwasher(mode, iconSelector) {
         return `
-          ${iconSelector} {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: absolute;
-            top: calc((100% - var(--mdc-icon-size))/2);
-            left: calc((100% - var(--mdc-icon-size))/2);
-            width: var(--mdc-icon-size);
-            height: var(--mdc-icon-size);
-          }
-
           ${iconSelector}:not(.clone) {
             animation: dishwasher-bounce 1.5s ease-in-out infinite, dishwasher-wash 1s ease-in-out infinite;
             transform-origin: 50% 75%;
@@ -466,17 +435,6 @@ animated_icon:
 
       function animatedDryer(mode, iconSelector) {
         return `
-          ${iconSelector} {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: absolute;
-            top: calc((100% - var(--mdc-icon-size))/2);
-            left: calc((100% - var(--mdc-icon-size))/2);
-            width: var(--mdc-icon-size);
-            height: var(--mdc-icon-size);
-          }
-
           ${iconSelector}:not(.clone) {
             animation: dryer-shake 400ms ease-in-out infinite, dryer-drum 1s infinite;
             transform-origin: 50% 65%;
@@ -495,17 +453,6 @@ animated_icon:
 
       function animatedFan(mode, iconSelector) {
         return `
-          ${iconSelector} {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: absolute;
-            top: calc((100% - var(--mdc-icon-size))/2);
-            left: calc((100% - var(--mdc-icon-size))/2);
-            width: var(--mdc-icon-size);
-            height: var(--mdc-icon-size);
-          }
-
           ${iconSelector}:not(.clone) {
             animation: fan-spin 1s linear infinite;
           }
@@ -529,18 +476,13 @@ animated_icon:
         }
 
         return `
-          ${iconSelector} {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+          ${iconSelector}.clone {
             position: absolute;
             top: calc((100% - var(--mdc-icon-size))/2);
             left: calc((100% - var(--mdc-icon-size))/2);
             width: var(--mdc-icon-size);
             height: var(--mdc-icon-size);
-          }
 
-          ${iconSelector}.clone {
             clip-path: polygon(0% 0%, 0% 100%, 23% 100%, 23% 23%, 78% 22%, 77% 78%, 23% 78%, 22% 100%, 100% 100%, 100% 0%);
           }
 
@@ -571,54 +513,109 @@ animated_icon:
 
       function animatedMicrowave(mode, iconSelector) {
         return `
-          ${iconSelector} {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: absolute;
-            top: calc((100% - var(--mdc-icon-size))/2);
-            left: calc((100% - var(--mdc-icon-size))/2);
-            width: var(--mdc-icon-size);
-            height: var(--mdc-icon-size);
-          }
-
-          ${iconSelector}:before {
-            content: "";
-            position: absolute;
-            width: 55%;
-            height: 45%;
-            top: 28%;
-            left: 15%;
-            background: var(--bubble-icon-color, var(--bubble-button-background-color));
+          ${iconSelector}:not(.clone) {
             animation: microwave-cook 1.5s linear infinite;
           }
 
           @keyframes microwave-cook {
-            0%, 100% { opacity: 20%; }
-            50%      { opacity: 60%; }
+            0%, 100% { clip-path: inset(0 0 0 0); }
+            50%       { clip-path: polygon(0 0, 0 100%, 17% 100%, 17% 30%, 64% 30%, 64% 70%, 17% 70%, 17% 100%, 100% 100%, 100% 0); }
           }
         `;
       }
 
       function animatedMotion(mode, iconSelector) {
         return `
-          ${iconSelector} {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: absolute;
-            top: calc((100% - var(--mdc-icon-size))/2);
-            left: calc((100% - var(--mdc-icon-size))/2);
-            width: var(--mdc-icon-size);
-            height: var(--mdc-icon-size);
-          }
-
           ${iconSelector}:not(.clone) {
             animation: motion-clip 1.5s linear infinite;
           }
 
           @keyframes motion-clip {
             50% { clip-path: polygon(0 0, 55% 0, 100% 100%, 0 100%); }
+          }
+        `;
+      }
+
+      function animatedMovie(mode, iconSelector) {
+        return `
+          ${iconSelector}:not(.clone) {
+            animation: movie-spin 2s linear infinite reverse;
+          }
+
+          @keyframes movie-spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+          }
+        `;
+      }
+
+      function animatedMower(mode, iconSelector) {
+        return `
+          ${iconSelector}:not(.clone) {
+            animation: mower-drive 6s linear infinite;
+          }
+
+          @keyframes mower-drive {
+            0%   { transform: translateX(0%)    translateY(0px)    rotateY(0deg); }
+            5%   { transform: translateX(6%)    translateY(-0.6px) rotateY(0deg); }
+            10%  { transform: translateX(12%)   translateY(0.6px)  rotateY(0deg); }
+            15%  { transform: translateX(18%)   translateY(-0.6px) rotateY(0deg); }
+            20%  { transform: translateX(23%)   translateY(0.6px)  rotateY(0deg); }
+            22%  { transform: translateX(24%)   translateY(0px)    rotateY(0deg); }
+            25%  { transform: translateX(25%)   translateY(0px)    rotateY(90deg); }
+            28%  { transform: translateX(24%)   translateY(0px)    rotateY(180deg); }
+            33%  { transform: translateX(18%)   translateY(-0.6px) rotateY(180deg); }
+            38%  { transform: translateX(12%)   translateY(0.6px)  rotateY(180deg); }
+            43%  { transform: translateX(6%)    translateY(-0.6px) rotateY(180deg); }
+            50%  { transform: translateX(0%)    translateY(0.6px)  rotateY(180deg); }
+            57%  { transform: translateX(-6%)   translateY(-0.6px) rotateY(180deg); }
+            62%  { transform: translateX(-12%)  translateY(0.6px)  rotateY(180deg); }
+            67%  { transform: translateX(-18%)  translateY(-0.6px) rotateY(180deg); }
+            72%  { transform: translateX(-24%)  translateY(0px)    rotateY(180deg); }
+            75%  { transform: translateX(-25%)  translateY(0px)    rotateY(270deg); }
+            78%  { transform: translateX(-24%)  translateY(0px)    rotateY(360deg); }
+            83%  { transform: translateX(-18%)  translateY(-0.6px) rotateY(360deg); }
+            88%  { transform: translateX(-12%)  translateY(0.6px)  rotateY(360deg); }
+            93%  { transform: translateX(-6%)   translateY(-0.6px) rotateY(360deg); }
+            100% { transform: translateX(0%)    translateY(0px)    rotateY(360deg); }
+          }
+        `;
+      }
+
+      function animatedMusic(mode, iconSelector) {
+        return `
+          ${iconSelector}:not(.clone) {
+            animation: music-beat 1.3s ease-out infinite both;
+          }
+
+          @keyframes music-beat {
+            0%, 60% {       transform: scale(1);     }
+            5%, 17%, 57% {  transform: scale(1.048); }
+            10%, 20%, 51% { transform: scale(1.095); }
+            25%, 45% {      transform: scale(1.143); }
+            30%, 39% {      transform: scale(1.19);  }
+            33% {           transform: scale(1.238); }
+          }
+        `;
+      }
+
+      function animatedPrinter(mode, iconSelector) {
+        return `
+          ${iconSelector}:not(.clone) {
+            animation: printer-print 2s infinite;
+          }
+
+          @keyframes printer-print {
+            0%, 100% { clip-path: polygon(0 0, 0 51%, 20% 51%, 51% 33%, 81% 53%, 100% 53%, 100% 0); }
+            10% { clip-path: polygon(0 0, 0 100%, 49% 100%, 85% 83%, 49% 98%, 50% 89%, 51% 82%, 46% 79%, 36% 73%, 17% 82%, 20% 50%, 51% 33%, 81% 52%, 100% 52%, 100% 0); }
+            20% { clip-path: polygon(0 0, 0 100%, 100% 100%, 85% 83%, 66% 73%, 56% 79%, 51% 83%, 46% 79%, 36% 73%, 17% 82%, 20% 50%, 51% 33%, 81% 52%, 100% 52%, 100% 0); }
+            30% { clip-path: polygon(0 0, 0 100%, 100% 100%, 85% 83%, 66% 73%, 54% 69%, 50% 61%, 45% 69%, 36% 73%, 17% 82%, 20% 50%, 51% 33%, 81% 52%, 100% 52%, 100% 0); }
+            40% { clip-path: polygon(0 0, 0 100%, 100% 100%, 85% 83%, 66% 73%, 54% 69%, 50% 61%, 45% 69%, 34% 63%, 25% 54%, 20% 50%, 51% 33%, 81% 52%, 100% 52%, 100% 0); }
+            50% { clip-path: polygon(0 0, 0 100%, 100% 100%, 76% 51%, 66% 63%, 54% 69%, 50% 61%, 45% 69%, 34% 63%, 25% 54%, 20% 50%, 51% 33%, 81% 52%, 100% 52%, 100% 0); }
+            60% { clip-path: polygon(0 0, 0 100%, 100% 100%, 76% 51%, 66% 63%, 55% 69%, 50% 61%, 39% 55%, 32% 55%, 25% 54%, 20% 50%, 51% 33%, 81% 52%, 100% 52%, 100% 0); }
+            70% { clip-path: polygon(0 0, 0 100%, 100% 100%, 76% 51%, 68% 53%, 60% 55%, 50% 61%, 39% 55%, 32% 55%, 25% 54%, 20% 50%, 51% 33%, 81% 52%, 100% 52%, 100% 0); }
+            80% { clip-path: polygon(0 0, 0 100%, 100% 100%, 76% 51%, 68% 53%, 60% 55%, 50% 61%, 50% 50%, 51% 37%, 31% 44%, 30% 35%, 51% 33%, 81% 52%, 100% 52%, 100% 0); }
+            90% { clip-path: polygon(0 0, 0 100%, 100% 100%, 77% 51%, 67% 42%, 64% 34%, 56% 34%, 50% 36%, 39% 40%, 31% 44%, 30% 35%, 41% 33%, 85% 53%, 100% 52%, 100% 0); }
           }
         `;
       }
@@ -635,18 +632,13 @@ animated_icon:
         }
 
         return `
-          ${iconSelector} {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+          ${iconSelector}.clone {
             position: absolute;
             top: calc((100% - var(--mdc-icon-size))/2);
             left: calc((100% - var(--mdc-icon-size))/2);
             width: var(--mdc-icon-size);
             height: var(--mdc-icon-size);
-          }
 
-          ${iconSelector}.clone {
             animation: radiator-waves 2s ease-in-out infinite;
             transform-origin: 50% 59%;
             clip-path: rect(auto auto 45% auto);
@@ -665,19 +657,50 @@ animated_icon:
         `;
       }
 
-      function animatedVacuum(mode, iconSelector) {
+      function animatedTelevision(mode, iconSelector) {
+        const iconItem = card.querySelector(iconSelector);
+        const parent = iconItem?.parentNode;
+        if (iconItem && parent && !parent.querySelector(`${iconSelector}.clone`)) {
+          const clone = iconItem.cloneNode(true);
+          clone.setAttribute("icon", iconItem.getAttribute("icon"));
+          clone.classList.add('clone');
+          clone.classList.add('clone-'+mode);
+          parent.insertBefore(clone, iconItem);
+        }
+
         return `
-          ${iconSelector} {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+          ${iconSelector}:not(.clone) {
+            clip-path: polygon(
+              evenodd,
+              0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%,
+              20% 25%, 20% 75%, 50% 100%, 80% 75%, 80% 25%, 20% 25%
+            );
+            animation: television-flicker 1.2s infinite ease-in-out;
+          }
+
+          ${iconSelector}.clone {
             position: absolute;
             top: calc((100% - var(--mdc-icon-size))/2);
             left: calc((100% - var(--mdc-icon-size))/2);
             width: var(--mdc-icon-size);
             height: var(--mdc-icon-size);
+
+            clip-path: polygon(evenodd, 20% 25%, 80% 25%, 80% 75%, 50% 100%, 20% 75%);
           }
 
+          @keyframes television-flicker {
+            0%, 100% {
+              opacity: 1;
+            }
+            50% {
+              opacity: 0.3;
+            }
+          }
+        `;
+      }
+
+      function animatedVacuum(mode, iconSelector) {
+        return `
           ${iconSelector}:not(.clone) {
             animation: vacuum-spin 15s ease-in-out infinite;
           }
@@ -718,18 +741,13 @@ animated_icon:
         }
 
         return `
-          ${iconSelector} {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+          ${iconSelector}.clone {
             position: absolute;
             top: calc((100% - var(--mdc-icon-size))/2);
             left: calc((100% - var(--mdc-icon-size))/2);
             width: var(--mdc-icon-size);
             height: var(--mdc-icon-size);
-          }
 
-          ${iconSelector}.clone {
             animation: washing-machine-shake 400ms ease-in-out infinite;
             transform-origin: 50% 59%;
             clip-path: polygon(0 0, 0 100%, 35% 100%, 34% 68%, 60% 41%, 71% 56%, 65% 74%, 47% 79%, 32% 69%, 35% 100%, 100% 100%, 100% 0);
@@ -757,43 +775,16 @@ animated_icon:
       }
 
       function animatedWifi(mode, iconSelector) {
-        const iconItem = card.querySelector(iconSelector);
-        const parent = iconItem?.parentNode;
-        if (iconItem && parent && !parent.querySelector(`${iconSelector}.clone`)) {
-          const clone = iconItem.cloneNode(true);
-          clone.setAttribute("icon", iconItem.getAttribute("icon"));
-          clone.classList.add('clone');
-          clone.classList.add('clone-'+mode);
-          parent.insertBefore(clone, iconItem);
-        }
-
         return `
-          ${iconSelector} {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: absolute;
-            top: calc((100% - var(--mdc-icon-size))/2);
-            left: calc((100% - var(--mdc-icon-size))/2);
-            width: var(--mdc-icon-size);
-            height: var(--mdc-icon-size);
-          }
-
-          ${iconSelector}.clone {
-            animation: wifi-reveal 2.5s cubic-bezier(0.25, 1, 0.5, 1) infinite;
-            clip-path: circle(0% at 50% 88%);
-          }
-
           ${iconSelector}:not(.clone) {
-            opacity: 0.25;
+            animation: wifi-reveal 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
           }
 
           @keyframes wifi-reveal {
-            0%   { opacity: 1; clip-path: circle(0% at 50% 88%); }
-            25%  { opacity: 1; clip-path: circle(25% at 50% 88%); }
-            50%  { opacity: 1; clip-path: circle(50% at 50% 88%); }
-            75%  { opacity: 1; clip-path: circle(100% at 50% 88%); }
-            100% { opacity: 0; clip-path: circle(120% at 50% 88%); }
+            0%   { clip-path: circle(10% at 50% 88%); opacity: 0.3; }
+            40%  { clip-path: circle(55% at 50% 88%); opacity: 1;   }
+            70%  { clip-path: circle(80% at 50% 88%); opacity: 1;   }
+            100% { clip-path: circle(10% at 50% 88%); opacity: 0.3; }
           }
         `;
       }
@@ -832,8 +823,18 @@ animated_icon:
                   value: microwave
                 - label: Motion
                   value: motion
+                - label: Movie
+                  value: movie
+                - label: Mower
+                  value: mower
+                - label: Music
+                  value: music
+                - label: Printer
+                  value: printer
                 - label: Radiator
                   value: radiator
+                - label: Television
+                  value: television
                 - label: Vacuum
                   value: vacuum
                 - label: Washing Machine
@@ -912,8 +913,18 @@ animated_icon:
                       value: microwave
                     - label: Motion
                       value: motion
+                    - label: Movie
+                      value: movie
+                    - label: Mower
+                      value: mower
+                    - label: Music
+                      value: music
+                    - label: Printer
+                      value: printer
                     - label: Radiator
                       value: radiator
+                    - label: Television
+                      value: television
                     - label: Vacuum
                       value: vacuum
                     - label: Washing Machine
