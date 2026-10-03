@@ -29,11 +29,11 @@
         forecast: "{{ daily['weather.pirateweather'].forecast }}"
         
 - binary_sensor:
-  - name: Ethan at Daycare
+  - name: Ethan at School
     state: >
-      {% set db = states("sensor.visited_daycare_drake") | int(0) %}
-      {% set sb = states("sensor.visited_daycare_shawna") | int(0) %}
-      {% set jk  = states("sensor.visited_daycare_jk") | int(0) %}
+      {% set db = states("sensor.visited_school_drake") | int(0) %}
+      {% set sb = states("sensor.visited_school_shawna") | int(0) %}
+      {% set jk  = states("sensor.visited_school_jk") | int(0) %}
 
       {% set visits  = db + sb + jk %}
       {% if visits == 0 -%}
@@ -43,10 +43,10 @@
       {%- else -%}
         false
       {%- endif %}
-  - name: "Ethan at Daycare Helper"
+  - name: "Ethan at School Helper"
     state: >
       {%- if now().hour < 17 or (now().hour == 17 and now().minute < 30) -%}
-        {{ states('binary_sensor.ethan_at_daycare') == 'on' }}
+        {{ states('binary_sensor.ethan_at_school') == 'on' }}
       {%- else -%}
         false
       {%- endif -%}
@@ -155,10 +155,7 @@
       {%- else -%}
         false
       {%- endif %}
-  - name: Time to Pick Ethan up
-    state: >
-      {{( (today_at(states('input_datetime.daycare_closes')) | as_timestamp - now()|as_timestamp)) <= (states('sensor.drake_iphone_idevice_travel_time_min_daycare')|float(0)*60)+5}}
-
+  
   # "The house has been buttoned up long enough to run the HVAC."
   # Turns off the instant anything opens; needs 20 uninterrupted minutes with
   # every door AND window shut before it comes back on. Used by the HVAC

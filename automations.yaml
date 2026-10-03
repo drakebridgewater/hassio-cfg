@@ -280,15 +280,12 @@
       - data:
           message: 'Low Batteries: {{sensors}} have low batteries "'
         action: persistent_notification.create
-      - action: universal_notifier.send
+      - action: ticker.notify
         metadata: {}
         data:
-          priority: false
-          bold_prefix: false
+          category: Batteries
           message: '''{{sensors}} have low batteries '''
           title: Low Batteries
-          targets: mobile_drake
-          skip_greeting: true
       exclude:
         area_id:
         - personal
@@ -532,7 +529,12 @@
         data:
           media_id: spotify:playlist:2y9URNtkzZMfb2VXH3KXIr
         action: mass.play_media
-      down_double: []
+      down_double:
+      - action: light.turn_off
+        metadata: {}
+        target:
+          entity_id: light.apollo_air_1_f8b340_rgb_light
+        data: {}
       config_held:
       - data: {}
         action: input_boolean.toggle
@@ -811,7 +813,7 @@
     path: westenberg/garbage-reminder.yaml
     input:
       garbage_sensor_1: sensor.ridwell_ridwell_pickup_4659_se_meadowcrest_ct
-      notifier: notify.std_information
+      notifier: script.ticker_notify_schedules
 - id: '1687543330752'
   alias: Notification - Doorbell rang
   description: Sends interactive iOS notification with snapshot + 4 action buttons
@@ -850,26 +852,21 @@
         media_content_type: sound
         metadata: {}
     continue_on_error: true
-  - alias: Send actionable notification to iPhones
-    action: notify.all_iphones
+  - alias: Send actionable doorbell notification (critical at night)
+    action: ticker.notify
     data:
+      category: Doorbell
       title: "\U0001F514 Front Door"
       message: Someone is at the front door
+      critical: '{{ now().hour >= 21 or now().hour < 7 }}'
+      navigate_to: /lovelace
       data:
         tag: doorbell-{{ now().strftime('%Y%m%d%H%M%S') }}
         group: doorbell
-        url: /lovelace
         entity_id: camera.frontdoor
         attachment:
           content-type: jpeg
           hide-thumbnail: false
-        push:
-          sound:
-            name: default
-            critical: '{{ 1 if (now().hour >= 21 or now().hour < 7) else 0 }}'
-            volume: 1
-          interruption-level: '{{ ''critical'' if (now().hour >= 21 or now().hour
-            < 7) else ''time-sensitive'' }}'
         actions:
         - action: DOORBELL_VIEW
           title: "\U0001F441 View Live"
@@ -924,8 +921,11 @@
     value_template: '{{ states(''input_text.broadcast_message'') != '''' }}'
   actions:
   - data:
+      category: Broadcasts
+      title: Broadcast
       message: '{{ states(''input_text.broadcast_message'') }}'
-    action: notify.std_information
+    action: ticker.notify
+    continue_on_error: true
   - if:
     - condition: state
       entity_id: input_boolean.broadcast_messages_to_persistant_notifications
@@ -1515,9 +1515,10 @@
           type: is_armed_away
       sequence:
       - data:
+          category: Security
           title: Abode Triggered
           message: '{{ trigger.to_state.attributes.friendly_name }} opened'
-        action: notify.drake
+        action: ticker.notify
     - conditions:
       - condition: trigger
         id: window
@@ -1535,9 +1536,10 @@
           type: is_armed_away
       sequence:
       - data:
+          category: Security
           title: Abode Triggered
           message: '{{ trigger.to_state.attributes.friendly_name }} opened'
-        action: notify.drake
+        action: ticker.notify
     - conditions:
       - condition: trigger
         id: garage
@@ -1555,9 +1557,10 @@
           type: is_armed_away
       sequence:
       - data:
+          category: Security
           title: Abode Triggered
           message: '{{ trigger.to_state.attributes.friendly_name }} opened'
-        action: notify.drake
+        action: ticker.notify
   mode: single
 - id: '1695133842578'
   alias: Time - Every 10 minutes
@@ -1668,12 +1671,11 @@
         - home
         - night
     then:
-    - action: universal_notifier.send
+    - action: ticker.notify
       metadata: {}
       data:
-        priority: false
-        bold_prefix: false
-        targets: mobile_drake
+        category: Alarm
+        title: Alarm Disarmed
         message: Guest mode is on and the alarm changed to {{ trigger.to_state.state
           }}. Disarming.
     - action: alarmo.disarm
@@ -1733,14 +1735,12 @@
             - input_boolean.lighting_automation_blocker_master_bathroom
             - input_boolean.lighting_automation_blocker_office_room
           continue_on_error: true
-        - action: universal_notifier.send
+        - action: ticker.notify
           metadata: {}
           data:
-            targets: mobile_drake
-            priority: false
-            bold_prefix: false
+            category: Alarm
             title: Alarm Updated
-            message: '**ARMED**'
+            message: Armed Away
         - metadata: {}
           data: {}
           action: media_player.media_stop
@@ -1749,16 +1749,88 @@
             - basement
             - main
           continue_on_error: true
+        - choose:
+          - conditions:
+            - condition: lock.is_locked
+              target:
+                device_id:
+                - b5b1c4ed547d90e7c3d6bfe5409e4ed5
+              options:
+                for: 00:00:00
+                behavior: any
+            - condition: door.is_closed
+              target:
+                device_id: b5b1c4ed547d90e7c3d6bfe5409e4ed5
+              options:
+                for: 00:00:00
+                behavior: any
+            sequence: []
+            alias: Locked & Closed
+          - conditions:
+            - condition: door.is_closed
+              target:
+                device_id: b5b1c4ed547d90e7c3d6bfe5409e4ed5
+              options:
+                for: 00:00:00
+                behavior: any
+            - condition: lock.is_unlocked
+              target:
+                device_id: b5b1c4ed547d90e7c3d6bfe5409e4ed5
+              options:
+                for: 00:00:00
+                behavior: all
+            sequence:
+            - action: ticker.notify
+              metadata: {}
+              data:
+                expiration: 48
+                actions: category_default
+                category: Entry Events
+                title: Door is locking now
+                message: The front door was unlocked and is now getting locked
+              continue_on_error: true
+            - action: lock.lock
+              metadata: {}
+              target:
+                entity_id: lock.front_door
+                device_id:
+                - b5b1c4ed547d90e7c3d6bfe5409e4ed5
+              data: {}
+            alias: Unlocked & Closed
+          - conditions:
+            - condition: door.is_open
+              target:
+                device_id: b5b1c4ed547d90e7c3d6bfe5409e4ed5
+              options:
+                for: 00:00:00
+                behavior: any
+            sequence:
+            - action: ticker.notify
+              metadata: {}
+              data:
+                expiration: 48
+                actions: category_default
+                category: Entry Events
+                message: The front door was unlocked and is now getting locked
+                title: Front door is still open!
+                critical: true
+              continue_on_error: true
+            - action: lock.lock
+              metadata: {}
+              target:
+                entity_id: lock.front_door
+                device_id:
+                - b5b1c4ed547d90e7c3d6bfe5409e4ed5
+              data: {}
+            alias: Open!
       - conditions:
         - condition: trigger
           id: night
         sequence:
-        - action: universal_notifier.send
+        - action: ticker.notify
           metadata: {}
           data:
-            targets: mobile_drake
-            priority: false
-            bold_prefix: false
+            category: Alarm
             title: Alarm Updated
             message: Armed Night
         - action: light.turn_off
@@ -1786,12 +1858,10 @@
         - condition: trigger
           id: home
         sequence:
-        - action: universal_notifier.send
+        - action: ticker.notify
           metadata: {}
           data:
-            targets: mobile_drake
-            priority: false
-            bold_prefix: false
+            category: Alarm
             title: Alarm Updated
             message: Armed Home
         - action: light.turn_off
@@ -1819,14 +1889,12 @@
         - condition: trigger
           id: inactive
         sequence:
-        - action: universal_notifier.send
+        - action: ticker.notify
           metadata: {}
           data:
-            targets: mobile_drake
-            priority: false
-            bold_prefix: false
+            category: Alarm
             title: Alarm Updated
-            message: Inactive
+            message: Disarmed
         - data: {}
           enabled: true
           action: input_boolean.turn_off
@@ -2363,16 +2431,14 @@
         id:
         - low
       sequence:
-      - action: universal_notifier.send
+      - action: ticker.notify
         metadata: {}
         data:
-          priority: false
-          bold_prefix: false
+          category: Batteries
           message: The device has a battery level of {{trigger.event.data.battery_level
             }}% {{ '\n' -}} You need {{trigger.event.data.battery_quantity }}x {{trigger.event.data.battery_type
             }}
           title: '{{ trigger.event.data.device_name }} Battery Low'
-          targets: mobile_drake
     - conditions:
       - condition: trigger
         id:
@@ -3042,15 +3108,15 @@
   actions:
   - if:
     - condition: template
-      value_template: "{% set events = state_attr('calendar.ethan_fm', 'message')
-        %} {% if events %}\n  {{ state_attr('calendar.ethan_fm', 'all_day') == true
-        }}\n{% else %}\n  false\n{% endif %}"
+      value_template: "{% set events = state_attr('calendar.ethan', 'message') %}
+        {% if events %}\n  {{ state_attr('calendar.ethan', 'all_day') == true }}\n{%
+        else %}\n  false\n{% endif %}"
     then:
     - action: input_text.set_value
       target:
         entity_id: input_text.broadcast_message
       data:
-        value: Good morning Ethan! Today is  {{ state_attr('calendar.ethan_fm', 'message')
+        value: Good morning Ethan! Today is  {{ state_attr('calendar.ethan', 'message')
           }}
     else:
     - data:
@@ -3334,7 +3400,8 @@
       - binary_sensor.flo_basement_bathroom_water_sensor_water_detected
       - binary_sensor.flo_laundry_water_detected
       - binary_sensor.flo_under_kitchen_sink_water_detected
-      notify_service: notify.std_critical
+      ticker_category: Safety
+      announce_service: notify.alexa_media_all_echo_devices
 - id: '1760112655504'
   alias: Sync - Kitchen = Dining Room
   description: 'One-way on/off follow: kitchen wall switch on turns the dining room
@@ -3782,13 +3849,15 @@
       command_class_name: Notification
   conditions: []
   actions:
-  - action: notify.pushover_dbridgew
+  - action: ticker.notify
     metadata: {}
     data:
+      category: Safety
       title: Master Bedside Button Activated
       message: 'Details:
 
         {{ trigger.event.data }}'
+    continue_on_error: true
   - action: light.turn_on
     metadata: {}
     target:
@@ -4026,8 +4095,8 @@
     row: '{# The table row for whatever the priority queue is currently emitting,
       or none for Idle / unknown. #}{% from ''led_status.jinja'' import global_table
       %}{% set cur = states(''sensor.active_global_notification'') %}{% set m = global_table()
-      | from_json | selectattr(''label'', ''eq'', cur) | list %}{{ m[0] if m else none
-      }}'
+      | from_json | selectattr(''label'', ''eq'', cur) | list %}{{ m[0] if m else
+      none }}'
     sets: '{% from ''led_status.jinja'' import switch_sets %}{{ switch_sets() | from_json
       }}'
   actions:
@@ -5074,17 +5143,17 @@
       max: 74
       mode: heat_cool
       disarmed:
-      - 69
+      - 67
       - 73
       armed_home:
-      - 69
+      - 67
       - 74
       armed_night:
       - 67
-      - 72
+      - 71
       armed_away:
       - 62
-      - 76
+      - 78
       armed_vacation:
       - 58
       - 82
@@ -5152,21 +5221,15 @@
       pm25: '{{ states(''sensor.apollo_air_1_f8b340_pm_2_5mm_weight_concentration'')
         | float(none) }}'
       voc: '{{ states(''sensor.apollo_air_1_f8b340_sen55_voc'') | float(none) }}'
-      level: '{% set ns = namespace(l=-1) %}
-
-        {% if co2 is number %}{% set ns.l = [ns.l, 2 if co2 > 1500 else 1 if co2 >
-        1000 else 0] | max %}{% endif %}
-
-        {% if pm25 is number %}{% set ns.l = [ns.l, 2 if pm25 > 35 else 1 if pm25
-        > 12 else 0] | max %}{% endif %}
-
-        {% if voc is number %}{% set ns.l = [ns.l, 2 if voc > 250 else 1 if voc >
-        150 else 0] | max %}{% endif %}
-
-        {{ ns.l }}'
+      level: "{% set ns = namespace(l=-1) %}\n{% if co2 is number %}\n  {% set ns.l
+        = [ns.l, 2 if co2 > 1000 else 1 if co2 > 800 else 0] | max %}\n{% endif %}\n{%
+        if pm25 is number %}\n  {% set ns.l = [ns.l, 2 if pm25 > 25 else 1 if pm25
+        > 12 else 0] | max %}\n{% endif %}\n{% if voc is number %}\n  {% set ns.l
+        = [ns.l, 2 if voc > 2000 else 1 if voc > 150 else 0] | max %}\n{% endif %}\n{{
+        ns.l }}"
       rgb: '{{ [[0, 255, 0], [255, 255, 0], [255, 0, 0]][level | int] if level | int
         >= 0 else none }}'
-      brightness: '{{ 150 if is_state(''alarm_control_panel.default'', ''disarmed'')
+      brightness: '{{ 90 if is_state(''alarm_control_panel.default'', ''disarmed'')
         else 3 }}'
   - condition: template
     value_template: '{{ rgb is not none }}'

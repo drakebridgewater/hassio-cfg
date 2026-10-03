@@ -1,52 +1,74 @@
 notification_alerts:
-  alert: 
-    # garage_door_info_alert_active:
-    #   name: Garage Door Alert Active
-    #   entity_id: binary_sensor.garage_door_info_alert_active
-    #   state: "on"
-    #   repeat:
-    #     - 60
-    #   can_acknowledge: true
-    #   skip_first: true
-    #   title: "Info - Garage Door Open"
-    #   message: >
-    #     Garage Door open for {{ relative_time(states.binary_sensor.garage_door_alert_active.last_changed) }} \  
-    #     Triggered: {{ as_timestamp(states.binary_sensor.garage_door_alert_active.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }}
-    #   done_message: "Garage Door Alert RESOLVED at {{ as_timestamp(states.binary_sensor.garage_door_alert_active.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }}"
-    #   notifiers:
-    #     - STD_Information
-    #     - "TTS History"
+  # Notifications go through Ticker (ticker.notify) so each person controls what
+  # they receive. HA's alert integration can only target legacy notify services,
+  # so the guest-mode alert below is an automation instead.
+  #
+  # Retired alert examples, kept for reference:
+  # garage_door_info_alert_active:
+  #   name: Garage Door Alert Active
+  #   entity_id: binary_sensor.garage_door_info_alert_active
+  #   state: "on"
+  #   repeat:
+  #     - 60
+  #   can_acknowledge: true
+  #   skip_first: true
+  #   title: "Info - Garage Door Open"
+  #   message: >
+  #     Garage Door open for {{ relative_time(states.binary_sensor.garage_door_alert_active.last_changed) }} \
+  #     Triggered: {{ as_timestamp(states.binary_sensor.garage_door_alert_active.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }}
+  #   done_message: "Garage Door Alert RESOLVED at {{ as_timestamp(states.binary_sensor.garage_door_alert_active.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }}"
+  #
+  # aqi_info_alert_active:
+  #   name: AQI High Alert Active
+  #   entity_id: binary_sensor.air_quality_info_alert_active
+  #   state: "on"
+  #   repeat:
+  #     - 60
+  #   can_acknowledge: true
+  #   skip_first: true
+  #   title: "Info - AQI Elevated"
+  #   message: >
+  #     AQI has been high for {{ relative_time(states.binary_sensor.air_quality_info_alert_active.last_changed) }} \
+  #     Triggered: {{ as_timestamp(states.binary_sensor.air_quality_info_alert_active.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }}
+  #   done_message: "AQI Returned to normal at {{ as_timestamp(states.binary_sensor.air_quality_info_alert_active.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }}"
 
-    guest_mode_enabled_info_alert_active:
-      name: Guest Mode Enabled Alert Active
-      entity_id: input_boolean.guest_mode
-      state: "on"
-      repeat:
-        - 1440
-      can_acknowledge: true
-      skip_first: false
-      title: "Info - Guest Mode Changed"
-      message: >
-        Guest mode enabled {{ relative_time(states.input_boolean.guest_mode.last_changed) }} \  
-        Triggered: {{ as_timestamp(states.input_boolean.guest_mode.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }}
-      done_message: "Guest Mode disabled at {{ as_timestamp(states.input_boolean.guest_mode.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }}"
-      notifiers:
-        - STD_Information
-        - "TTS History"
-
-    # aqi_info_alert_active:
-    #   name: AQI High Alert Active
-    #   entity_id: binary_sensor.air_quality_info_alert_active
-    #   state: "on"
-    #   repeat:
-    #     - 60
-    #   can_acknowledge: true
-    #   skip_first: true
-    #   title: "Info - AQI Elevated"
-    #   message: >
-    #     AQI has been high for {{ relative_time(states.binary_sensor.air_quality_info_alert_active.last_changed) }} \  
-    #     Triggered: {{ as_timestamp(states.binary_sensor.air_quality_info_alert_active.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }}
-    #   done_message: "AQI Returned to normal at {{ as_timestamp(states.binary_sensor.air_quality_info_alert_active.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }}"
-    #   notifiers:
-    #     - STD_Information
-    #     - "TTS History"
+  automation:
+    - id: guest_mode_ticker_alert
+      alias: Notification - Guest Mode Reminder
+      description: Replaces the alert-integration guest-mode alert. Notifies when guest
+        mode turns on, reminds daily while it stays on, and confirms when it turns off.
+      mode: queued
+      triggers:
+        - trigger: state
+          entity_id: input_boolean.guest_mode
+          to: "on"
+          id: "on"
+        - trigger: time
+          at: "09:00:00"
+          id: reminder
+        - trigger: state
+          entity_id: input_boolean.guest_mode
+          from: "on"
+          to: "off"
+          id: "off"
+      conditions:
+        - condition: or
+          conditions:
+            - condition: trigger
+              id: ["on", "off"]
+            - condition: state
+              entity_id: input_boolean.guest_mode
+              state: "on"
+      actions:
+        - action: ticker.notify
+          data:
+            category: Alarm
+            title: >-
+              {{ 'Info - Guest Mode Disabled' if trigger.id == 'off' else 'Info - Guest Mode Enabled' }}
+            message: >-
+              {% if trigger.id == 'off' %}
+              Guest mode disabled at {{ now().strftime('%A %I:%M%p (%d-%b-%Y)') }}
+              {% else %}
+              Guest mode enabled {{ relative_time(states.input_boolean.guest_mode.last_changed) }} ago
+              (since {{ as_timestamp(states.input_boolean.guest_mode.last_changed) | timestamp_custom('%A %I:%M%p (%d-%b-%Y)') }})
+              {% endif %}

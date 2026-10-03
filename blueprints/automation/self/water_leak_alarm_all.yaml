@@ -21,6 +21,20 @@ blueprint:
       selector:
         text:
 
+    ticker_category:
+      name: Ticker category (optional)
+      description: "If set, mobile push goes through ticker.notify with this category (leak = critical) instead of the notify service above."
+      default: ""
+      selector:
+        text:
+
+    announce_service:
+      name: Announce service (optional)
+      description: "Notify service to speak the leak alert on, e.g. notify.alexa_media_all_echo_devices. Leak-detected only."
+      default: ""
+      selector:
+        text:
+
     # Choose notification types
     enable_mobile:
       name: Enable mobile push notifications
@@ -78,6 +92,8 @@ variables:
   # Bind inputs (never put !input inside Jinja)
   leak_entity: "{{ trigger.entity_id }}"
   ns: !input notify_service
+  v_ticker_category: !input ticker_category
+  v_announce_service: !input announce_service
 
   # Current state normalized
   v_state: >-
@@ -145,10 +161,31 @@ action:
               - condition: template
                 value_template: "{{ v_enable_mobile | bool }}"
             then:
-              - service: "{{ ns }}"
+              - if:
+                  - condition: template
+                    value_template: "{{ v_ticker_category != '' }}"
+                then:
+                  - service: ticker.notify
+                    data:
+                      category: "{{ v_ticker_category }}"
+                      critical: true
+                      title: "{{ v_wet_title }}"
+                      message: "{{ v_wet_message }}"
+                else:
+                  - service: "{{ ns }}"
+                    data:
+                      title: "{{ v_wet_title }}"
+                      message: "{{ v_wet_message }}"
+
+          # Spoken announcement (if configured)
+          - if:
+              - condition: template
+                value_template: "{{ v_announce_service != '' }}"
+            then:
+              - service: "{{ v_announce_service }}"
+                continue_on_error: true
                 data:
-                  title: "{{ v_wet_title }}"
-                  message: "{{ v_wet_message }}"
+                  message: "{{ v_wet_title }}. {{ v_wet_message }}"
 
           # HA UI persistent (if enabled)
           - if:
@@ -176,10 +213,21 @@ action:
               - condition: template
                 value_template: "{{ v_enable_mobile | bool }}"
             then:
-              - service: "{{ ns }}"
-                data:
-                  title: "{{ v_clear_title }}"
-                  message: "{{ v_clear_message }}"
+              - if:
+                  - condition: template
+                    value_template: "{{ v_ticker_category != '' }}"
+                then:
+                  - service: ticker.notify
+                    data:
+                      category: "{{ v_ticker_category }}"
+                      critical: false
+                      title: "{{ v_clear_title }}"
+                      message: "{{ v_clear_message }}"
+                else:
+                  - service: "{{ ns }}"
+                    data:
+                      title: "{{ v_clear_title }}"
+                      message: "{{ v_clear_message }}"
 
           # HA UI persistent (if enabled) – keeps wet & clear as separate cards
           - if:

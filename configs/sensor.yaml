@@ -345,43 +345,43 @@
   start: "{{ now().replace(month=1, day=1, hour=0, minute=0, second=0) }}"
   end: "{{ now() }}"
 
-# Ethan's Daycare tracking
+# Ethan's school tracking
 - platform: history_stats
-  name: Visited Daycare Drake
+  name: Visited school Drake
   entity_id: person.drake
-  state: Daycare
+  state: school
   type: count
   start: "{{ today_at() }}"
   end: "{{ now() }}"
 
 - platform: history_stats
-  name: Visited Daycare Shawna
+  name: Visited school Shawna
   entity_id: person.shawna
-  state: Daycare
+  state: school
   type: count
   start: "{{ today_at() }}"
   end: "{{ now() }}"
 
 - platform: history_stats
-  name: Visited Daycare JK
+  name: Visited school JK
   entity_id: person.john_byles
-  state: Daycare
+  state: school
   type: count
   start: "{{ today_at() }}"
   end: "{{ now() }}"
 
 - platform: history_stats
-  name: "Ethan Daycare Visits Counter"
-  entity_id: binary_sensor.ethan_at_daycare
+  name: "Ethan school Visits Counter"
+  entity_id: binary_sensor.ethan_at_school
   state: "on"
   type: count
   start: "{{ now().replace(month=1, day=1, hour=0, minute=0, second=0) }}"
   end: "{{ now() }}"
 
-# Ethan daycare time tracking by day
+# Ethan school time tracking by day
 - platform: history_stats
-  name: Time at daycare on Monday (Ethan)
-  entity_id: binary_sensor.ethan_at_daycare
+  name: Time at school on Monday (Ethan)
+  entity_id: binary_sensor.ethan_at_school
   state: "on"
   type: time
   start: >
@@ -394,8 +394,8 @@
     {{ today_at() - timedelta(days=days_to_subtract) + timedelta(days=1) }}
 
 - platform: history_stats
-  name: Time at daycare on Tuesday (Ethan)
-  entity_id: binary_sensor.ethan_at_daycare
+  name: Time at school on Tuesday (Ethan)
+  entity_id: binary_sensor.ethan_at_school
   state: "on"
   type: time
   start: >
@@ -408,8 +408,8 @@
     {{ today_at() - timedelta(days=days_to_subtract) + timedelta(days=1) }}
 
 - platform: history_stats
-  name: Time at daycare on Wednesday (Ethan)
-  entity_id: binary_sensor.ethan_at_daycare
+  name: Time at school on Wednesday (Ethan)
+  entity_id: binary_sensor.ethan_at_school
   state: "on"
   type: time
   start: >
@@ -422,8 +422,8 @@
     {{ today_at() - timedelta(days=days_to_subtract) + timedelta(days=1) }}
 
 - platform: history_stats
-  name: Time at daycare on Thursday (Ethan)
-  entity_id: binary_sensor.ethan_at_daycare
+  name: Time at school on Thursday (Ethan)
+  entity_id: binary_sensor.ethan_at_school
   state: "on"
   type: time
   start: >
@@ -436,8 +436,8 @@
     {{ today_at() - timedelta(days=days_to_subtract) + timedelta(days=1) }}
 
 - platform: history_stats
-  name: Time at daycare on Friday (Ethan)
-  entity_id: binary_sensor.ethan_at_daycare
+  name: Time at school on Friday (Ethan)
+  entity_id: binary_sensor.ethan_at_school
   state: "on"
   type: time
   start: >
@@ -449,18 +449,18 @@
     {% set days_to_subtract = (today - 4) if today >= 4 else (today + 7 - 4) %}
     {{ today_at() - timedelta(days=days_to_subtract) + timedelta(days=1) }}
 
-# Ethan daycare weekly and daily totals
+# Ethan school weekly and daily totals
 - platform: history_stats
-  name: Time at daycare this week (Ethan)
-  entity_id: binary_sensor.ethan_at_daycare
+  name: Time at school this week (Ethan)
+  entity_id: binary_sensor.ethan_at_school
   state: "on"
   type: time
   start: "{{ today_at() - timedelta(days=now().weekday()) }}"
   end: "{{ now() }}"
 
 - platform: history_stats
-  name: Time at daycare today (Ethan)
-  entity_id: binary_sensor.ethan_at_daycare
+  name: Time at school today (Ethan)
+  entity_id: binary_sensor.ethan_at_school
   state: "on"
   type: time
   start: "{{ today_at() }}"

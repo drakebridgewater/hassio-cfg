@@ -429,13 +429,10 @@ abode_security_alert_notifications:
       confirm_option_mode: action
       confirm_action:
       - variables:
-          tapper_code: >-
-            {% set map = {
-                 '9edc32828f114914baabce7b9ae21eb3': 'input_text.alarmo_code_drake',
-                 '79f6891d0d1b40a798e2407ca48889aa': 'input_text.alarmo_code_shawna'
-               } %}
-            {% set helper = map.get(wait.trigger.event.context.user_id) %}
-            {{ states(helper) if helper else '' }}
+          tapper_code: "{% set map = {\n     '9edc32828f114914baabce7b9ae21eb3': 'input_text.alarmo_code_drake',\n
+            \    '79f6891d0d1b40a798e2407ca48889aa': 'input_text.alarmo_code_shawna'\n
+            \  } %}\n{% set helper = map.get(wait.trigger.event.context.user_id) %}
+            {{ states(helper) if helper else '' }}"
       - if:
         - condition: template
           value_template: '{{ tapper_code | string is match(''^[0-9]{4,32}$'') }}'
@@ -652,9 +649,9 @@ led_set:
         own vocabulary word - its effects lookup keys on ''clear'' and emits clear_effect.
         (''Clear Effect'' misses that lookup and publishes the literal string ''clear
         effect'', which is not a valid z2m enum value and is dropped.) color/level/duration
-        are all sent as 0: the firmware ignores them for a clear, and a non-zero
-        duration on an ''Off'' effect is what previously left a whole-bar override
-        latched forever, masking every individual-LED notification.'
+        are all sent as 0: the firmware ignores them for a clear, and a non-zero duration
+        on an ''Off'' effect is what previously left a whole-bar override latched
+        forever, masking every individual-LED notification.'
       conditions:
       - condition: template
         value_template: '{{ effect | default(''pulse'') == ''clear'' }}'
@@ -667,89 +664,91 @@ led_set:
           color: 0
           level: 0
           duration: 0
-          target: '{% set s = switch_entity %}{% if s is string %}{{ {''entity_id'':
-            [s]} }}{% else %}{{ {''entity_id'': s | list} }}{% endif %}'
+          target: "{% set s = switch_entity %} {% if s is string %}\n  {{ {'entity_id':
+            [s]} }}\n{% else %}\n  {{ {'entity_id': s | list} }}\n{% endif %}"
     default:
     - alias: 'At night + non-triggered: send to sanctuary subset at brightness=1'
       if:
       - condition: template
         value_template: '{% set is_night = is_state(''sun.sun'', ''below_horizon'')
-          %}{% set is_triggered = is_state(''sensor.active_critical_notification'',
-          ''Triggered'') %}{% set s = switch_entity %}{% set entities = [s] if s is
-          string else (s | list) %}{% set sanctuary = [''light.master_bedroom_wall_switch'',
+          %} {% set is_triggered = is_state(''sensor.active_critical_notification'',
+          ''Triggered'') %} {% set s = switch_entity %} {% set entities = [s] if s
+          is string else (s | list) %} {% set sanctuary = [''light.master_bedroom_wall_switch'',
           ''light.master_bedroom_closet_wall_switch'', ''light.master_bathroom_wall_switch'',
-          ''light.ethan_s_bedroom_wall_switch''] %}{% set filtered = entities | select(''in'',
-          sanctuary) | list %}{{ is_night and not is_triggered and filtered | length
+          ''light.ethan_s_bedroom_wall_switch''] %} {% set filtered = entities | select(''in'',
+          sanctuary) | list %} {{ is_night and not is_triggered and filtered | length
           > 0 }}'
       then:
       - action: script.inovelli_blue_led_zigbee2mqtt
         data:
           color: '{% set m = {''red'':''Red'',''orange'':''Orange'',''yellow'':''Yellow'',''green'':''Green'',''blue'':''Blue'',''purple'':''Purple'',''magenta'':''Pink'',''teal'':''Teal'',''white'':''White'',''off'':''Off''}
-            %}{% set c = color | default(''green'') %}{{ m[c] }}'
-          duration: '{# Emit the Z2M duration BYTE, not raw seconds. Z2M encodes
-            1-60 as seconds, 61-120 as minutes (value-60), 121-254 as hours (value-120),
+            %} {% set c = color | default(''green'') %}{{ m[c] }}'
+          duration: "{# Emit the Z2M duration BYTE, not raw seconds. Z2M encodes 1-60
+            as seconds, 61-120 as minutes (value-60), 121-254 as hours (value-120),
             255 as indefinite. Sending raw seconds meant any duration over a minute
             went out of range and the whole payload was dropped - e.g. the spatial
-            tier default of 5 minutes used to publish 300. #}{% set tdd = {''mode'':-1,''spatial'':5,''global'':-1,''critical'':-1}
-            %}{% set ds = duration_seconds | default(0) | int(0) %}{% set dm = duration_minutes
-            | default(0) | int(0) %}{% set td = tdd[tier] %}{% set secs = ds if ds
-            > 0 else (dm * 60 if dm > 0 else (-1 if td == -1 else td * 60)) %}{% if
-            secs < 0 %}255{% elif secs <= 60 %}{{ secs }}{% elif secs <= 3600 %}{{
-            60 + ((secs + 59) // 60) }}{% else %}{{ [254, 120 + ((secs + 3599) // 3600)]
-            | min }}{% endif %}'
+            tier default of 5 minutes used to publish 300. #} {% set tdd = {'mode':-1,'spatial':5,'global':-1,'critical':-1}
+            %} {% set ds = duration_seconds | default(0) | int(0) %} {% set dm = duration_minutes
+            | default(0) | int(0) %} {% set td = tdd[tier] %} {% set secs = ds if
+            ds > 0 else (dm * 60 if dm > 0 else (-1 if td == -1 else td * 60)) %}
+            {% if secs < 0 %}\n  255\n{% elif secs <= 60 %}\n  {{ secs }}\n{% elif
+            secs <= 3600 %}\n  {{ 60 + ((secs + 59) // 60) }}\n{% else %}\n  {{ [254,
+            120 + ((secs + 3599) // 3600)] | min }}\n{% endif %}"
           effect: '{% set m = {''solid'':''Solid'',''pulse'':''Pulse'',''fast_blink'':''Fast
-            Blink'',''slow_blink'':''Slow Blink'',''off'':''Off'',''clear'':''Clear''} %}{{ m[effect | default(''pulse'')] }}'
+            Blink'',''slow_blink'':''Slow Blink'',''off'':''Off'',''clear'':''Clear''}
+            %} {{ m[effect | default(''pulse'')] }}'
           led: '{% set m = {''mode'':''Led 4'',''spatial'':''Led 7'',''global'':''Led
             1'',''critical'':''All''} %}{{ m[tier] }}'
           level: 1
-          target: '{% set s = switch_entity %}{% set entities = [s] if s is string
-            else (s | list) %}{% set sanctuary = [''light.master_bedroom_wall_switch'',
+          target: '{% set s = switch_entity %} {% set entities = [s] if s is string
+            else (s | list) %} {% set sanctuary = [''light.master_bedroom_wall_switch'',
             ''light.master_bedroom_closet_wall_switch'', ''light.master_bathroom_wall_switch'',
-            ''light.ethan_s_bedroom_wall_switch''] %}{% set filtered = entities |
-            select(''in'', sanctuary) | list %}{{ {''entity_id'': filtered} }}'
+            ''light.ethan_s_bedroom_wall_switch''] %} {% set filtered = entities |
+            select(''in'', sanctuary) | list %} {{ {''entity_id'': filtered} }}'
     - alias: Send to non-sanctuary entities (or all entities if not night/triggered)
       if:
       - condition: template
         value_template: '{% set is_night = is_state(''sun.sun'', ''below_horizon'')
-          %}{% set is_triggered = is_state(''sensor.active_critical_notification'',
-          ''Triggered'') %}{% set should_dim = is_night and not is_triggered %}{%
-          set s = switch_entity %}{% set entities = [s] if s is string else (s | list)
-          %}{% set sanctuary = [''light.master_bedroom_wall_switch'', ''light.master_bedroom_closet_wall_switch'',
+          %} {% set is_triggered = is_state(''sensor.active_critical_notification'',
+          ''Triggered'') %} {% set should_dim = is_night and not is_triggered %} {%
+          set s = switch_entity %} {% set entities = [s] if s is string else (s |
+          list) %} {% set sanctuary = [''light.master_bedroom_wall_switch'', ''light.master_bedroom_closet_wall_switch'',
           ''light.master_bathroom_wall_switch'', ''light.ethan_s_bedroom_wall_switch'']
-          %}{% if should_dim %}{% set filtered = entities | reject(''in'', sanctuary)
-          | list %}{% else %}{% set filtered = entities %}{% endif %}{{ filtered |
-          length > 0 }}'
+          %} {% if should_dim %} {% set filtered = entities | reject(''in'', sanctuary)
+          | list %} {% else %} {% set filtered = entities %}{% endif %}{{ filtered
+          | length > 0 }}'
       then:
       - action: script.inovelli_blue_led_zigbee2mqtt
         data:
           color: '{% set m = {''red'':''Red'',''orange'':''Orange'',''yellow'':''Yellow'',''green'':''Green'',''blue'':''Blue'',''purple'':''Purple'',''magenta'':''Pink'',''teal'':''Teal'',''white'':''White'',''off'':''Off''}
             %}{% set c = color | default(''green'') %}{{ m[c] }}'
-          duration: '{# Emit the Z2M duration BYTE, not raw seconds. Z2M encodes
-            1-60 as seconds, 61-120 as minutes (value-60), 121-254 as hours (value-120),
+          duration: "{# Emit the Z2M duration BYTE, not raw seconds. Z2M encodes 1-60
+            as seconds, 61-120 as minutes (value-60), 121-254 as hours (value-120),
             255 as indefinite. Sending raw seconds meant any duration over a minute
             went out of range and the whole payload was dropped - e.g. the spatial
-            tier default of 5 minutes used to publish 300. #}{% set tdd = {''mode'':-1,''spatial'':5,''global'':-1,''critical'':-1}
-            %}{% set ds = duration_seconds | default(0) | int(0) %}{% set dm = duration_minutes
-            | default(0) | int(0) %}{% set td = tdd[tier] %}{% set secs = ds if ds
-            > 0 else (dm * 60 if dm > 0 else (-1 if td == -1 else td * 60)) %}{% if
-            secs < 0 %}255{% elif secs <= 60 %}{{ secs }}{% elif secs <= 3600 %}{{
-            60 + ((secs + 59) // 60) }}{% else %}{{ [254, 120 + ((secs + 3599) // 3600)]
-            | min }}{% endif %}'
+            tier default of 5 minutes used to publish 300. #} {% set tdd = {'mode':-1,'spatial':5,'global':-1,'critical':-1}
+            %} {% set ds = duration_seconds | default(0) | int(0) %} {% set dm = duration_minutes
+            | default(0) | int(0) %} {% set td = tdd[tier] %} {% set secs = ds if
+            ds > 0 else (dm * 60 if dm > 0 else (-1 if td == -1 else td * 60)) %}
+            {% if secs < 0 %}\n  255\n{% elif secs <= 60 %}\n  {{ secs }}\n{% elif
+            secs <= 3600 %}\n  {{ 60 + ((secs + 59) // 60)}}\n{% else %}\n  {{ [254,
+            120 + ((secs + 3599) // 3600)] | min }}\n{% endif %}"
           effect: '{% set m = {''solid'':''Solid'',''pulse'':''Pulse'',''fast_blink'':''Fast
-            Blink'',''slow_blink'':''Slow Blink'',''off'':''Off'',''clear'':''Clear''} %}{{ m[effect | default(''pulse'')] }}'
+            Blink'',''slow_blink'':''Slow Blink'',''off'':''Off'',''clear'':''Clear''}%}
+            {{ m[effect | default(''pulse'')] }}'
           led: '{% set m = {''mode'':''Led 4'',''spatial'':''Led 7'',''global'':''Led
             1'',''critical'':''All''} %}{{ m[tier] }}'
           level: '{% set tdb = {''mode'':15,''spatial'':100,''global'':100,''critical'':100}
-            %}{% set b = brightness | default(none) %}{{ (b if b is not none else
+            %} {% set b = brightness | default(none) %} {{ (b if b is not none else
             tdb[tier]) | int }}'
-          target: '{% set is_night = is_state(''sun.sun'', ''below_horizon'') %}{%
+          target: '{% set is_night = is_state(''sun.sun'', ''below_horizon'') %} {%
             set is_triggered = is_state(''sensor.active_critical_notification'', ''Triggered'')
-            %}{% set should_dim = is_night and not is_triggered %}{% set s = switch_entity
-            %}{% set entities = [s] if s is string else (s | list) %}{% set sanctuary
+            %} {% set should_dim = is_night and not is_triggered %} {% set s = switch_entity
+            %} {% set entities = [s] if s is string else (s | list) %} {% set sanctuary
             = [''light.master_bedroom_wall_switch'', ''light.master_bedroom_closet_wall_switch'',
             ''light.master_bathroom_wall_switch'', ''light.ethan_s_bedroom_wall_switch'']
-            %}{% if should_dim %}{{ {''entity_id'': entities | reject(''in'', sanctuary)
-            | list} }}{% else %}{{ {''entity_id'': entities} }}{% endif %}'
+            %} {% if should_dim %} {{ {''entity_id'': entities | reject(''in'', sanctuary)
+            | list} }} {% else %} {{ {''entity_id'': entities} }} {% endif %}'
 panic_police:
   alias: Panic - Police
   icon: mdi:police-badge
@@ -821,37 +820,13 @@ panic_police:
         called.
       cache: true
     continue_on_error: true
-  - parallel:
-    - action: notify.drake
-      data:
-        title: "\U0001F6A8 POLICE PANIC TRIGGERED"
-        message: Panic button pressed at {{ now().strftime('%I:%M %p') }}. Alarm armed
-          and triggered. All lights on. Doors locked.
-        data:
-          priority: high
-          ttl: 0
-          push:
-            sound:
-              critical: 1
-              name: default
-              volume: 1.0
-            interruption-level: critical
-      continue_on_error: true
-    - action: notify.shawna
-      data:
-        title: "\U0001F6A8 POLICE PANIC TRIGGERED"
-        message: Panic button pressed at {{ now().strftime('%I:%M %p') }}. Alarm armed
-          and triggered. All lights on. Doors locked.
-        data:
-          priority: high
-          ttl: 0
-          push:
-            sound:
-              critical: 1
-              name: default
-              volume: 1.0
-            interruption-level: critical
-      continue_on_error: true
+  - action: ticker.notify
+    data:
+      category: Safety
+      title: "\U0001F6A8 POLICE PANIC TRIGGERED"
+      message: Panic button pressed at {{ now().strftime('%I:%M %p') }}. Alarm armed
+        and triggered. All lights on. Doors locked.
+    continue_on_error: true
 panic_fire:
   alias: Panic - Fire
   description: 'Fire panic button: turns off HVAC, unlocks doors, opens garage, all
@@ -916,37 +891,13 @@ panic_fire:
     data:
       message: Fire alarm. Evacuate the house. Fire alarm. Evacuate the house. Fire
         alarm. Evacuate the house.
-  - parallel:
-    - action: notify.drake
-      continue_on_error: true
-      data:
-        data:
-          priority: high
-          push:
-            interruption-level: critical
-            sound:
-              critical: 1
-              name: default
-              volume: 1
-          ttl: 0
-        message: Fire panic pressed at {{ now().strftime('%I:%M %p') }}. HVAC off,
-          doors unlocked, garage open, lights on. Evacuate now.
-        title: "\U0001F525 FIRE PANIC TRIGGERED"
-    - action: notify.shawna
-      continue_on_error: true
-      data:
-        data:
-          priority: high
-          push:
-            interruption-level: critical
-            sound:
-              critical: 1
-              name: default
-              volume: 1
-          ttl: 0
-        message: Fire panic pressed at {{ now().strftime('%I:%M %p') }}. HVAC off,
-          doors unlocked, garage open, lights on. Evacuate now.
-        title: "\U0001F525 FIRE PANIC TRIGGERED"
+  - action: ticker.notify
+    continue_on_error: true
+    data:
+      category: Safety
+      title: "\U0001F525 FIRE PANIC TRIGGERED"
+      message: Fire panic pressed at {{ now().strftime('%I:%M %p') }}. HVAC off,
+        doors unlocked, garage open, lights on. Evacuate now.
 panic_medical:
   alias: Panic - Medical
   description: 'Medical panic button: alerts family with last camera snapshot, TTS
@@ -1003,37 +954,13 @@ panic_medical:
     data:
       message: Medical assistance requested. Medical assistance requested. Help is
         needed in the house.
-  - parallel:
-    - action: notify.drake
-      continue_on_error: true
-      data:
-        data:
-          priority: high
-          push:
-            interruption-level: critical
-            sound:
-              critical: 1
-              name: default
-              volume: 1
-          ttl: 0
-        message: Medical panic pressed at {{ now().strftime('%I:%M %p') }}. Front
-          door unlocked, path lights on. Check on family immediately.
-        title: "\U0001F3E5 MEDICAL PANIC TRIGGERED"
-    - action: notify.shawna
-      continue_on_error: true
-      data:
-        data:
-          priority: high
-          push:
-            interruption-level: critical
-            sound:
-              critical: 1
-              name: default
-              volume: 1
-          ttl: 0
-        message: Medical panic pressed at {{ now().strftime('%I:%M %p') }}. Front
-          door unlocked, path lights on. Check on family immediately.
-        title: "\U0001F3E5 MEDICAL PANIC TRIGGERED"
+  - action: ticker.notify
+    continue_on_error: true
+    data:
+      category: Safety
+      title: "\U0001F3E5 MEDICAL PANIC TRIGGERED"
+      message: Medical panic pressed at {{ now().strftime('%I:%M %p') }}. Front
+        door unlocked, path lights on. Check on family immediately.
 panic_stand_down:
   alias: Panic - Stand Down
   description: Cleans up after a panic event. Turns off sirens/strobes, stops TTS,
@@ -1111,29 +1038,16 @@ panic_stand_down:
       data:
         code: '{{ states(''input_text.alarmo_code_system'') }}'
         entity_id: alarm_control_panel.default
-  - parallel:
-    - action: notify.drake
-      continue_on_error: true
-      data:
-        data:
-          push:
-            interruption-level: active
-        message: '{{ states(''input_text.last_panic_type'') | title }} panic stood
-          down at {{ now().strftime(''%I:%M %p'') }}. Sirens off, lights restored,
-          alarm returned to {{ states(''input_text.pre_panic_alarm_state'') }}. Garage
-          and locks left as-is — reset manually if needed.'
-        title: ✅ Stand Down
-    - action: notify.shawna
-      continue_on_error: true
-      data:
-        data:
-          push:
-            interruption-level: active
-        message: '{{ states(''input_text.last_panic_type'') | title }} panic stood
-          down at {{ now().strftime(''%I:%M %p'') }}. Sirens off, lights restored,
-          alarm returned to {{ states(''input_text.pre_panic_alarm_state'') }}. Garage
-          and locks left as-is — reset manually if needed.'
-        title: ✅ Stand Down
+  - action: ticker.notify
+    continue_on_error: true
+    data:
+      category: Safety
+      critical: false
+      title: ✅ Stand Down
+      message: '{{ states(''input_text.last_panic_type'') | title }} panic stood
+        down at {{ now().strftime(''%I:%M %p'') }}. Sirens off, lights restored,
+        alarm returned to {{ states(''input_text.pre_panic_alarm_state'') }}. Garage
+        and locks left as-is — reset manually if needed.'
   - action: input_boolean.turn_off
     target:
       entity_id: input_boolean.panic_active
@@ -1144,8 +1058,8 @@ panic_stand_down:
       entity_id: input_text.last_panic_type
 security_critical_alert:
   alias: Security - Critical Alarm Alert
-  description: Critical actionable push for Alarmo. pending = Drake only; triggered
-    = Drake + Shawna. Camera + Disarm button.
+  description: Critical actionable push for Alarmo via Ticker. pending = Security category;
+    triggered = Safety category. Camera + Disarm button.
   icon: mdi:shield-alert
   mode: restart
   fields:
@@ -1165,81 +1079,26 @@ security_critical_alert:
       body: '{% if phase == ''triggered'' %}Alarm is sounding — tripped by {{ sensor_name
         }}.{% else %}{{ sensor_name }} tripped. {{ state_attr(''alarm_control_panel.default'',''delay'')
         or 60 }}s to disarm.{% endif %}'
-  - choose:
-    - conditions:
-      - condition: template
-        value_template: '{{ phase == ''triggered'' }}'
-      sequence:
-      - parallel:
-        - action: notify.mobile_app_drake_s_pixel_11_pro
-          data:
-            title: '{{ title }}'
-            message: '{{ body }}'
-            data:
-              tag: alarmo_security
-              visibility: private
-              group: security
-              url: /lovelace-security/main-floor-security
-              entity_id: camera.camera1_fluent
-              push:
-                interruption-level: critical
-                sound:
-                  name: default
-                  critical: 1
-                  volume: 1
-              actions:
-              - action: HA_DISARM_ME
-                title: Disarm Alarm
-                authenticationRequired: true
-                destructive: true
-              - action: ALARMO_VIEW
-                title: View Cameras
-        - action: notify.mobile_app_shawnas_iphone
-          data:
-            title: '{{ title }}'
-            message: '{{ body }}'
-            data:
-              tag: alarmo_security
-              group: security
-              url: /lovelace-security/main-floor-security
-              entity_id: camera.camera1_fluent
-              push:
-                interruption-level: critical
-                sound:
-                  name: default
-                  critical: 1
-                  volume: 1
-              actions:
-              - action: HA_DISARM_ME
-                title: Disarm Alarm
-                authenticationRequired: true
-                destructive: true
-              - action: ALARMO_VIEW
-                title: View Cameras
-    default:
-    - action: notify.mobile_app_drake_s_pixel_11_pro
+  # triggered → Safety (locked-on phone recipients + Pushover); pending → Security
+  # (per-person subscription). Both categories are critical.
+  - action: ticker.notify
+    data:
+      category: "{{ 'Safety' if phase == 'triggered' else 'Security' }}"
+      title: '{{ title }}'
+      message: '{{ body }}'
+      navigate_to: /lovelace-security/main-floor-security
       data:
-        title: '{{ title }}'
-        message: '{{ body }}'
-        data:
-          tag: alarmo_security
-          visibility: private
-          group: security
-          url: /lovelace-security/main-floor-security
-          entity_id: camera.camera1_fluent
-          push:
-            interruption-level: critical
-            sound:
-              name: default
-              critical: 1
-              volume: 1
-          actions:
-          - action: HA_DISARM_ME
-            title: Disarm Alarm
-            authenticationRequired: true
-            destructive: true
-          - action: ALARMO_VIEW
-            title: View Cameras
+        tag: alarmo_security
+        visibility: private
+        group: security
+        entity_id: camera.camera1_fluent
+        actions:
+        - action: HA_DISARM_ME
+          title: Disarm Alarm
+          authenticationRequired: true
+          destructive: true
+        - action: ALARMO_VIEW
+          title: View Cameras
 esc_pos_shopping_list:
   alias: ESC/POS — Shopping List
   use_blueprint:
@@ -1249,10 +1108,10 @@ esc_pos_shopping_list:
       todo_entity: todo.alexa_todo_shop
 cube_room_indicator:
   alias: Magic Cube - Room Indicator
-  description: 'Blinks the spatial tier (LED 7) on the active cube room''s Inovelli switches
-    and clears LED 7 on every other cube room''s switches. mode: restart plus the leading
-    delay is the debounce - spinning through five rooms sends one blink, not five batches
-    of Zigbee commands.
+  description: 'Blinks the spatial tier (LED 7) on the active cube room''s Inovelli
+    switches and clears LED 7 on every other cube room''s switches. mode: restart
+    plus the leading delay is the debounce - spinning through five rooms sends one
+    blink, not five batches of Zigbee commands.
 
 
     Goes through led_set, so the night sanctuary brightness cap applies and only LED
@@ -1273,8 +1132,8 @@ cube_room_indicator:
           multiple: true
     all_switches:
       name: All cube switches
-      description: Every switch any cube room uses. The ones not in this room get LED
-        7 cleared.
+      description: Every switch any cube room uses. The ones not in this room get
+        LED 7 cleared.
       required: false
       selector:
         entity:
@@ -1334,8 +1193,8 @@ cube_flash_run:
   description: 'Flashes bulbs and puts them back exactly as they were: snapshot, off,
     full on, restore. Works the same for bulbs that were off (one flash, back off)
     and on (dip and flare, back to their colour/brightness). The Hue firmware blink
-    effect is not used because light.turn_on always sends state ON with it, which would
-    leave an off bulb lit.'
+    effect is not used because light.turn_on always sends state ON with it, which
+    would leave an off bulb lit.'
   icon: mdi:lightbulb-on-outline
   mode: queued
   max: 3
@@ -1376,21 +1235,21 @@ cube_flash_run:
       transition: 0
 cube_room_scene:
   alias: Magic Cube - Room Scene
-  description: 'Applies a lighting preset to a list of bulbs, adapting per bulb. A bulb
-    runs the first native effect from the preset''s priority list that appears in its
-    own effect_list (Hue, WLED and Yeelight names share one list). Otherwise colour
-    bulbs take a static colour, cycling through the preset palette so a room gets a
-    spread; white-only bulbs take the preset colour temperature; plain dimmers take
-    brightness only.
+  description: 'Applies a lighting preset to a list of bulbs, adapting per bulb. A
+    bulb runs the first native effect from the preset''s priority list that appears
+    in its own effect_list (Hue, WLED and Yeelight names share one list). Otherwise
+    colour bulbs take a static colour, cycling through the preset palette so a room
+    gets a spread; white-only bulbs take the preset colour temperature; plain dimmers
+    take brightness only.
 
 
     Timed effects (Hue/Yeelight sunrise and sunset) are left out on purpose because
-    they end by fading the bulb off. Strobe and police effects are left out so no scene
-    can be mistaken for the alarm.
+    they end by fading the bulb off. Strobe and police effects are left out so no
+    scene can be mistaken for the alarm.
 
 
-    Movie dims the room''s TV lamps (entity ids containing _tv_) to deep blue and turns
-    the rest off. Rooms without TV lamps get the blue on every bulb.
+    Movie dims the room''s TV lamps (entity ids containing _tv_) to deep blue and
+    turns the rest off. Rooms without TV lamps get the blue on every bulb.
 
 
     mode: restart plus the leading delay debounces preset scrolling from the cube.'
@@ -1436,59 +1295,97 @@ cube_room_scene:
           brightness: 10
           kelvin: 2200
           colors:
-          - [230, 100]
+          - - 230
+            - 100
         Night:
           brightness: 3
           kelvin: 2200
           colors:
-          - [18, 100]
+          - - 18
+            - 100
         Campfire:
           brightness: 35
           kelvin: 2000
-          effects: [fireplace, candle, Fire 2012, Candle Flicker]
+          effects:
+          - fireplace
+          - candle
+          - Fire 2012
+          - Candle Flicker
           colors:
-          - [25, 100]
-          - [12, 100]
-          - [38, 95]
+          - - 25
+            - 100
+          - - 12
+            - 100
+          - - 38
+            - 95
         Deep Sea:
           brightness: 45
           kelvin: 6500
-          effects: [underwater, Pacifica, Lake]
+          effects:
+          - underwater
+          - Pacifica
+          - Lake
           colors:
-          - [185, 100]
-          - [215, 100]
-          - [245, 90]
+          - - 185
+            - 100
+          - - 215
+            - 100
+          - - 245
+            - 90
         Aurora:
           brightness: 50
           kelvin: 5000
-          effects: [cosmos, Aurora, Slowdown]
+          effects:
+          - cosmos
+          - Aurora
+          - Slowdown
           colors:
-          - [135, 90]
-          - [280, 80]
-          - [170, 85]
+          - - 135
+            - 90
+          - - 280
+            - 80
+          - - 170
+            - 85
         Disco:
           brightness: 80
           kelvin: 6500
-          effects: [colorloop, Rainbow, Fast Random Loop, sparkle]
+          effects:
+          - colorloop
+          - Rainbow
+          - Fast Random Loop
+          - sparkle
           colors:
-          - [300, 100]
-          - [180, 100]
-          - [60, 100]
+          - - 300
+            - 100
+          - - 180
+            - 100
+          - - 60
+            - 100
         Enchanted:
           brightness: 30
           kelvin: 3000
-          effects: [enchant, glisten, Twinklefox, Colortwinkles]
+          effects:
+          - enchant
+          - glisten
+          - Twinklefox
+          - Colortwinkles
           colors:
-          - [270, 45]
-          - [320, 40]
+          - - 270
+            - 45
+          - - 320
+            - 40
         Sunset:
           brightness: 50
           kelvin: 2200
-          effects: [sunbeam]
+          effects:
+          - sunbeam
           colors:
-          - [25, 90]
-          - [340, 70]
-          - [280, 60]
+          - - 25
+            - 90
+          - - 340
+            - 70
+          - - 280
+            - 60
       p: '{{ presets[preset] if preset in presets else presets[''Relax''] }}'
       tv_lamps: '{{ lights | select(''search'', ''_tv_'') | list }}'
   - repeat:
@@ -1497,8 +1394,8 @@ cube_room_scene:
       - variables:
           effect_list: '{{ state_attr(repeat.item, ''effect_list'') or [] }}'
           modes: '{{ state_attr(repeat.item, ''supported_color_modes'') or [] }}'
-          has_color: '{{ modes | select(''in'', [''hs'', ''xy'', ''rgb'', ''rgbw'', ''rgbww''])
-            | list | length > 0 }}'
+          has_color: '{{ modes | select(''in'', [''hs'', ''xy'', ''rgb'', ''rgbw'',
+            ''rgbww'']) | list | length > 0 }}'
           effect: '{{ ((p.effects | default([])) | select(''in'', effect_list) | list
             + [''''])[0] }}'
           stop_effect: '{{ ([''stop_hue_effect'', ''Solid'', ''Stop''] | select(''in'',
@@ -1507,8 +1404,8 @@ cube_room_scene:
         - alias: Movie - lamps that are not TV lamps go off
           conditions:
           - condition: template
-            value_template: '{{ preset == ''Movie'' and tv_lamps | length > 0 and repeat.item
-              not in tv_lamps }}'
+            value_template: '{{ preset == ''Movie'' and tv_lamps | length > 0 and
+              repeat.item not in tv_lamps }}'
           sequence:
           - action: light.turn_off
             target:
@@ -1551,8 +1448,8 @@ cube_room_scene:
                 hs_color: '{{ p.colors[(repeat.index - 1) % (p.colors | length)] }}'
                 brightness_pct: '{{ p.brightness }}'
               continue_on_error: true
-          - alias: White bulb, or colour bulb on a white preset (HA converts kelvin for
-              RGB-only bulbs and clamps to each bulb's range)
+          - alias: White bulb, or colour bulb on a white preset (HA converts kelvin
+              for RGB-only bulbs and clamps to each bulb's range)
             conditions:
             - condition: template
               value_template: '{{ has_color or ''color_temp'' in modes }}'
@@ -1571,3 +1468,129 @@ cube_room_scene:
             data:
               brightness_pct: '{{ p.brightness }}'
             continue_on_error: true
+jellyha_play_on_apple_tv_airplay_stream:
+  alias: 'JellyHA: Play on Apple TV (AirPlay Stream)'
+  description: 'Streams selected Jellyfin item to Apple TV via AirPlay (pyatv). Triggered
+    by JellyHA Library Card click action.
+
+    '
+  mode: queued
+  max: 5
+  icon: mdi:apple
+  variables:
+    JELLYFIN_URL: http://192.168.1.100:8096
+    JELLYFIN_API_KEY: YOUR_JELLYFIN_API_KEY_HERE
+    APPLE_TV_ENTITY: media_player.living_room_apple_tv
+  fields:
+    item_id:
+      name: Item ID
+      description: Jellyfin media item ID
+      required: false
+      example: 49ed9530ac681f148ca09b91ca7010c8
+      selector:
+        text:
+    title:
+      name: Title
+      description: Media title
+      required: false
+      example: Inception
+      selector:
+        text:
+    media_type:
+      name: Media Type
+      description: Type of media (Movie, Episode, Series)
+      required: false
+      default: Movie
+      selector:
+        text:
+    series_name:
+      name: Series Name
+      description: Parent TV series name (if episode)
+      required: false
+      selector:
+        text:
+    season:
+      name: Season
+      description: Season number
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 100
+    episode:
+      name: Episode
+      description: Episode number
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 1000
+    year:
+      name: Year
+      description: Release year
+      required: false
+      selector:
+        number:
+          min: 1900
+          max: 2050
+  sequence:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ item_id is defined and item_id not in [none, '''', ''None'']
+          }}'
+      sequence:
+      - action: logbook.log
+        data:
+          name: JellyHA Apple TV Player
+          message: 'Streaming {{ media_type | default(''Media'') }}: {{ title | default(item_id)
+            }} {% if year %}({{ year }}){% endif %} to {{ APPLE_TV_ENTITY }} via AirPlay'
+          domain: media_player
+          entity_id: '{{ APPLE_TV_ENTITY }}'
+      - action: media_player.play_media
+        target:
+          entity_id: '{{ APPLE_TV_ENTITY }}'
+        data:
+          media_content_type: url
+          media_content_id: '{{ JELLYFIN_URL }}/Videos/{{ item_id }}/master.m3u8?api_key={{
+            JELLYFIN_API_KEY }}&MediaSourceId={{ item_id }}&VideoCodec=h264&AudioCodec=aac,mp3&MaxStreamingBitrate=40000000'
+    - conditions:
+      - condition: template
+        value_template: '{{ item_id is not defined or item_id in [none, '''', ''None'']
+          }}'
+      sequence:
+      - action: media_player.media_play_pause
+        target:
+          entity_id: '{{ APPLE_TV_ENTITY }}'
+esc_pos_guest_wi_fi_qr:
+  alias: ESC/POS — Guest Wi-Fi QR
+  use_blueprint:
+    path: cognitivegears/guest_wifi_qr.yaml
+    input:
+      printer: eeab07468a12bbd4c0b900dad7d5acb4
+      ssid: Guest LAN Before Time
+      password: 4659Dinosaurs
+      show_password: false
+ticker_notify_schedules:
+  alias: Ticker - Notify Schedules
+  description: Adapter for blueprints that only accept a notify-style service (title
+    + message), e.g. the westenberg garbage reminder. Routes to Ticker's Schedules
+    category.
+  icon: mdi:calendar-clock
+  mode: queued
+  fields:
+    title:
+      name: Title
+      selector:
+        text: {}
+    message:
+      name: Message
+      required: true
+      selector:
+        text: {}
+  sequence:
+  - action: ticker.notify
+    data:
+      category: Schedules
+      title: '{{ title | default(''Schedule'') }}'
+      message: '{{ message }}'

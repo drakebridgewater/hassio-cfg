@@ -4,8 +4,8 @@ blueprint:
     a comprehensive Home Assistant blueprint which automatically manages your window
     coverings (such as roller shutters and blinds) based on time, the position of
     the sun, and weather conditions. It adapts intelligently to your preferences,
-    largely eliminating the need for manual adjustments.\n\n**Version**: 2026.09.12\n\n###
-    \U0001F517 Resources & Support\n\U0001F4E2 **Latest Changes**: [Changelog](https://hvorragend.github.io/ha-blueprints/CHANGELOG)
+    largely eliminating the need for manual adjustments.\n\n**Version**: 2026.09.29
+    V3\n\n### \U0001F517 Resources & Support\n\U0001F4E2 **Latest Changes**: [Changelog](https://hvorragend.github.io/ha-blueprints/CHANGELOG)
     | ✨ **Highlights**: [Key Features](https://hvorragend.github.io/ha-blueprints/#key-features)\n\U0001F680
     **Setup**: [Quick Start Guide](https://hvorragend.github.io/ha-blueprints/#quick-start-5-steps)
     | [Prerequisites](https://hvorragend.github.io/ha-blueprints/#essential-prerequisites)\n\U0001F4DA
@@ -1153,7 +1153,10 @@ blueprint:
       input:
         shading_conditions_start_and:
           name: "\U0001F31E Shading START - Required Conditions (AND)"
-          description: "**Conditions that MUST ALL be met to START shading**\n\U0001F4D6
+          description: "**Conditions that MUST ALL be met to START shading**\nThe
+            two START lists are combined with **AND**: every condition selected here
+            must be met, **and** at least one condition from the optional (OR) list
+            below. Conditions without a configured sensor are skipped automatically.\n\U0001F4D6
             More details in the [CCA Handbook](https://hvorragend.github.io/ha-blueprints/handbook/shading#shading_conditions_start_and)."
           default:
           - cond_azimuth
@@ -1190,8 +1193,10 @@ blueprint:
               sort: false
         shading_conditions_start_or:
           name: "\U0001F31E Shading START - Optional Conditions (OR)"
-          description: "**Conditions where AT LEAST ONE must be met to START shading**\n\U0001F4D6
-            More details in the [CCA Handbook](https://hvorragend.github.io/ha-blueprints/handbook/shading#shading_conditions_start_or)."
+          description: "**Conditions where AT LEAST ONE must be met to START shading**\nCombined
+            with the required (AND) list above using **AND**: all required conditions
+            must be met **and** at least one of the conditions selected here. An empty
+            list is ignored.\n\U0001F4D6 More details in the [CCA Handbook](https://hvorragend.github.io/ha-blueprints/handbook/shading#shading_conditions_start_or)."
           default: []
           selector:
             select:
@@ -1219,7 +1224,13 @@ blueprint:
               sort: false
         shading_conditions_end_and:
           name: "\U0001F325️ Shading END - Required Conditions (AND)"
-          description: "**Conditions that MUST ALL become invalid to END shading**\n\U0001F4D6
+          description: "**Conditions that MUST ALL become invalid to END shading**\n⚠️
+            Unlike START, the two END lists are combined with **OR**: shading ends
+            as soon as **every** condition selected here has become invalid — **or**
+            as soon as **any single** condition from the optional (OR) list below
+            has. A condition placed here on its own is therefore a complete end condition
+            by itself, not an extra requirement for the OR list. To require several
+            conditions together, put them all in this list and leave the OR list empty.\n\U0001F4D6
             More details in the [CCA Handbook](https://hvorragend.github.io/ha-blueprints/handbook/shading#shading_conditions_end_and)."
           default: []
           selector:
@@ -1249,7 +1260,10 @@ blueprint:
         shading_conditions_end_or:
           name: "\U0001F325️ Shading END - Optional Conditions (OR)"
           description: "**Conditions where AT LEAST ONE must become invalid to END
-            shading**\n\U0001F4D6 More details in the [CCA Handbook](https://hvorragend.github.io/ha-blueprints/handbook/shading#shading_conditions_end_or)."
+            shading**\nCombined with the required (AND) list above using **OR**: shading
+            ends when any one of the conditions selected here becomes invalid, **or**
+            when all conditions of the AND list have. An empty list is ignored.\n\U0001F4D6
+            More details in the [CCA Handbook](https://hvorragend.github.io/ha-blueprints/handbook/shading#shading_conditions_end_or)."
           default:
           - cond_azimuth
           - cond_elevation
@@ -1704,10 +1718,14 @@ blueprint:
               mode: slider
         shading_waitingtime_end:
           name: "\U0001F975 Sun Shading - End Waiting Time"
-          description: To avoid excessive load on the motor, a waiting time can be
+          description: 'To avoid excessive load on the motor, a waiting time can be
             defined here before the shading is ended. Shading ends if one of the conditions
-            is not fulfilled for the entire waiting time. This waiting time is also
-            used for the periodic condition checks within the retry loop.
+            is not fulfilled for the entire waiting time <strong>without interruption</strong>:
+            if a sensor value (brightness, temperature, forecast, weather, custom
+            sensor) recovers in between, the waiting time starts over. For the sun
+            position (azimuth/elevation) the waiting time starts once the sun has
+            left the configured range. This waiting time is also used for the periodic
+            condition checks within the retry loop.'
           default: 300
           selector:
             number:
@@ -2050,8 +2068,13 @@ blueprint:
             of the cover. You can use this, for example, if the covers normally don't
             open, but you really want to do it on vacation. <br /><br /> If the result
             of this condition is <ins>true</ins>, the automation will continue.<br
-            /> The result of the conditions must be <ins>false</ins>, for the automation
-            to stop in this sequence.
+            /> If it is <ins>false</ins>, CCA does not send the opening movement —
+            neither at the opening time nor as a later return to the open position
+            (e.g. when sun shading ends, a window closes or after a restart). The
+            internal day state still advances at the opening time, so a cover you
+            open by hand is treated as open for the rest of the day instead of being
+            closed again by the next automatic event. Sun shading and ventilation
+            keep their own conditions and are not affected.
           default: []
           selector:
             condition: {}
@@ -2061,8 +2084,13 @@ blueprint:
             of the cover. You can use this, for example, at Christmas time or if you
             want the covers to behave differently while on vacation. <br /><br />
             If the result of this condition is <ins>true</ins>, the automation will
-            continue.<br /> The result of the conditions must be <ins>false</ins>,
-            for the automation to stop in this sequence.
+            continue.<br /> If it is <ins>false</ins>, CCA does not send the closing
+            movement — neither at the closing time nor as a later return to the closed
+            position (e.g. when sun shading ends, a window closes, a resident arrives
+            or after a restart). The internal night state still advances at the closing
+            time, so a cover you close by hand is treated as closed for the night
+            instead of being reopened by the next automatic event. Sun shading and
+            ventilation keep their own conditions and are not affected.
           default: []
           selector:
             condition: {}
@@ -2568,7 +2596,7 @@ trigger_variables:
     }}"
   automation_entity: '{{ this.entity_id | default('''') }}'
 variables:
-  version: 2026.09.12
+  version: 2026.09.29 V3
   is_paused: '{{ force_pause != [] and states(force_pause) in [''on'', ''true''] }}'
   blind_entities: '{{ expand(blind) | map(attribute=''entity_id'') | list }}'
   current_position: "{% set source = position_source %} {% if source == 'current_position_attr'
@@ -3244,23 +3272,31 @@ triggers:
   value_template: '{{ states(shading_temperatur_sensor1) not in invalid_states and
     states(shading_temperatur_sensor1) | float(default=shading_min_temperatur1) <
     (shading_min_temperatur1 - shading_temperature_hysteresis1) }}'
+  for:
+    seconds: !input shading_waitingtime_end
   enabled: '{{ is_shading_enabled and shading_temperatur_sensor1 != [] }}'
   id: t_shading_end_pending_1
 - trigger: template
   value_template: '{{ states(shading_temperatur_sensor2) not in invalid_states and
     states(shading_temperatur_sensor2) | float(default=shading_min_temperatur2) <
     (shading_min_temperatur2 - shading_temperature_hysteresis2) }}'
+  for:
+    seconds: !input shading_waitingtime_end
   enabled: '{{ is_shading_enabled and shading_temperatur_sensor2 != [] }}'
   id: t_shading_end_pending_2
 - trigger: template
   value_template: '{{ states(shading_brightness_sensor) not in invalid_states and
     states(shading_brightness_sensor) | float(default=shading_sun_brightness_end)
     < (shading_sun_brightness_end - shading_sun_brightness_hysteresis) }}'
+  for:
+    seconds: !input shading_waitingtime_end
   enabled: '{{ is_shading_enabled and shading_brightness_sensor != [] }}'
   id: t_shading_end_pending_3
 - trigger: template
   value_template: '{{ states(shading_forecast_sensor) not in shading_weather_conditions
     }}'
+  for:
+    seconds: !input shading_waitingtime_end
   enabled: '{{ is_shading_enabled and shading_weather_conditions != [] and shading_forecast_sensor
     != [] }}'
   id: t_shading_end_pending_4
@@ -3280,12 +3316,16 @@ triggers:
   value_template: '{{ states(shading_forecast_temp_sensor) not in invalid_states and
     states(shading_forecast_temp_sensor) | float(default=shading_forecast_temp) <
     (shading_forecast_temp - shading_forecast_temp_hysteresis) }}'
+  for:
+    seconds: !input shading_waitingtime_end
   enabled: '{{ is_shading_enabled and shading_forecast_temp_sensor != [] and shading_forecast_temp
     != [] }}'
   id: t_shading_end_pending_6
 - trigger: template
   value_template: '{{ states(shading_custom_sensor) not in invalid_states and states(shading_custom_sensor)
     in [''off'', ''false''] }}'
+  for:
+    seconds: !input shading_waitingtime_end
   enabled: '{{ is_shading_enabled and shading_custom_sensor != [] }}'
   id: t_shading_end_pending_8
 - trigger: template
@@ -4535,11 +4575,31 @@ actions:
         in [''true'', ''on''] %} {{ ''opn'' if s_opn else ''tlt'' if s_tlt else helper_state_window
         if (contact_window_opened == [] and contact_window_tilted == []) else ''cls''
         }}'
+  - alias: 'Recovery: the user''s opening condition decides the opening drive'
+    if:
+    - &id011
+      condition: !input auto_up_condition
+    then:
+    - variables:
+        recovered_up_ok: true
+    else:
+    - variables:
+        recovered_up_ok: false
+  - alias: 'Recovery: the user''s closing condition decides the closing drive'
+    if:
+    - &id013
+      condition: !input auto_down_condition
+    then:
+    - variables:
+        recovered_down_ok: true
+    else:
+    - variables:
+        recovered_down_ok: false
   - alias: 'Recovery: the user''s ventilation condition decides the ventilation floor'
     choose:
     - alias: 'Recovery: ventilation floor allowed'
       conditions:
-      - &id011
+      - &id012
         condition: !input auto_ventilate_condition
       sequence:
       - variables:
@@ -4553,8 +4613,6 @@ actions:
             != ''opn'' }}'
           - '{{ base_gates.opening.schedule_ok }}'
           - '{{ base_gates.opening.once_ok }}'
-          - &id010
-            condition: !input auto_up_condition
           sequence:
           - variables:
               new_base: opn
@@ -4630,6 +4688,10 @@ actions:
                   != 'lock' }}"
                 recovery_vent_condition_hold: '{{ recovered_state in [''lock'', ''vnt'']
                   and not recovered_vent_ok }}'
+                recovery_up_condition_hold: "{{ recovered_state == 'opn' and not recovered_up_ok
+                  and\n   live_force == 'non' }}"
+                recovery_down_condition_hold: "{{ recovered_state == 'cls' and not
+                  recovered_down_ok and\n   live_force == 'non' }}"
                 recovery_allowed: "{{ not defer_to_shading and\n   not defer_to_shading_end
                   and\n   not manual_holds_reposition and\n   (force_allows_ventilate
                   if recovered_state in ['lock', 'vnt']\n    else force_allows_open
@@ -4638,8 +4700,8 @@ actions:
                 caught_up_closing_hold: "{{ caught_up_closing and (\n     (recovered_state
                   == 'cls' and closing_position_hold) or\n     (is_ventilation_enabled
                   and lockout_tilted_when_closing and recovered_window == 'tlt') or\n
-                  \    (recovered_state == 'vnt' and not is_down_enabled and live_force
-                  == 'non')) }}"
+                  \    (recovered_state == 'vnt' and not (is_down_enabled and recovered_down_ok)
+                  and live_force == 'non')) }}"
                 caught_up_opening_hold: "{{ caught_up_opening and recovered_state
                   == 'opn' and\n   not is_up_enabled and live_force == 'non' }}"
                 transition_manual_allows: "{{ true if override_expired or recovered_state
@@ -4680,6 +4742,8 @@ actions:
                   '', drive withheld (morning opening disabled)'' if caught_up_opening_hold
                   else '''' }}{{ '', drive withheld (manual override)'' if not transition_manual_allows
                   else '''' }}{{ '', drive withheld (ventilation condition)'' if recovery_vent_condition_hold
+                  else '''' }}{{ '', drive withheld (opening condition)'' if recovery_up_condition_hold
+                  else '''' }}{{ '', drive withheld (closing condition)'' if recovery_down_condition_hold
                   else '''' }}{{ '', drive withheld (manual reset return-to-target
                   disabled)'' if manual_reset_event and not is_manual_reset_recovery_enabled
                   else '''' }}{{ '', drive withheld (no opening automation configured)''
@@ -4691,7 +4755,8 @@ actions:
                 will_drive: "{{ recovery_catch_up and not is_paused and recovery_allowed
                   and\n   not caught_up_closing_hold and not caught_up_opening_hold
                   and\n   not closing_ownership_hold and transition_manual_allows
-                  and\n   not recovery_vent_condition_hold and not manual_reset_recovery_hold
+                  and\n   not recovery_vent_condition_hold and not recovery_up_condition_hold
+                  and\n   not recovery_down_condition_hold and not manual_reset_recovery_hold
                   }}"
             - variables:
                 drive_plan:
@@ -4734,8 +4799,6 @@ actions:
             != ''cls'' }}'
           - '{{ not is_evening_phase or base_gates.closing.schedule_ok }}'
           - '{{ base_gates.closing.once_ok }}'
-          - &id012
-            condition: !input auto_down_condition
           sequence:
           - variables:
               new_base: cls
@@ -4763,7 +4826,6 @@ actions:
     conditions:
     - '{{ trigger.id is defined }}'
     - '{{ trigger.id | regex_match(''^(t_open|t_calendar_event)'') }}'
-    - *id010
     - '{{ base_gates.opening.once_ok }}'
     - '{{ base_gates.opening.schedule_ok }}'
     sequence:
@@ -4772,6 +4834,8 @@ actions:
         conditions:
         - '{{ is_shading_enabled }}'
         - '{{ shading_start_warranted }}'
+        - &id010
+          condition: !input auto_shading_start_condition
         - '{{ is_shading_allowed_window }}'
         - '{{ not (is_ventilation_enabled and lockout_now.shading_start) }}'
         - '{{ not helper_state_is_shaded }}'
@@ -4848,6 +4912,7 @@ actions:
         conditions:
         - '{{ helper_state_pending_start }}'
         - '{{ shading_start_warranted }}'
+        - *id010
         - '{{ not (is_ventilation_enabled and lockout_now.shading_start) }}'
         sequence:
         - variables:
@@ -4862,18 +4927,27 @@ actions:
         conditions:
         - '{{ not in_shading_position or not helper_state_shade }}'
         sequence:
+        - alias: 'Opening: evaluate the user''s opening condition'
+          if:
+          - *id011
+          then:
+          - variables:
+              up_condition_ok: true
+          else:
+          - variables:
+              up_condition_ok: false
         - choose:
           - alias: 'Opening reconciliation: full-window lockout allowed'
             conditions:
             - '{{ effective_state == ''lock'' }}'
-            - *id011
+            - *id012
             sequence:
             - variables:
                 will_drive: '{{ not is_paused and force_allows_ventilate }}'
           default:
           - variables:
               will_drive: "{{ effective_state != 'lock' and not is_paused and\n   is_up_enabled
-                and\n   base_gates.opening.override_ok and resident_flags.allow_open
+                and up_condition_ok and\n   base_gates.opening.override_ok and resident_flags.allow_open
                 and\n   (force_allows_open or trigger.id is match('^t_force_')) }}"
         - variables:
             log_user: '{{ ''opening as scheduled'' if will_drive else ''opening time
@@ -4908,10 +4982,18 @@ actions:
     conditions:
     - '{{ trigger.id is defined }}'
     - '{{ trigger.id | regex_match(''^(t_close|t_calendar_event)'') }}'
-    - *id012
     - '{{ base_gates.closing.once_ok }}'
     - '{{ base_gates.closing.schedule_ok }}'
     sequence:
+    - alias: 'Closing: evaluate the user''s closing condition'
+      if:
+      - *id013
+      then:
+      - variables:
+          down_condition_ok: true
+      else:
+      - variables:
+          down_condition_ok: false
     - choose:
       - alias: Lockout protection when closing
         conditions:
@@ -4936,14 +5018,14 @@ actions:
         conditions:
         - '{{ is_ventilation_enabled }}'
         - '{{ resident_flags.allow_ventilate }}'
-        - *id011
+        - *id012
         - '{{ window_tilted_now }}'
         - '{{ not lockout_tilted_when_closing }}'
         - '{{ not window_opened_now }}'
         sequence:
         - variables:
-            will_drive: '{{ is_down_enabled and base_gates.closing.override_ok and
-              state_gates.vnt }}'
+            will_drive: '{{ is_down_enabled and down_condition_ok and base_gates.closing.override_ok
+              and state_gates.vnt }}'
             log_user: the window is tilted, going to the ventilation position instead
               of closing
             drive_plan:
@@ -5002,8 +5084,8 @@ actions:
         - stop: 'Closing skipped: Cover is shaded and lowering blocked by settings'
       default:
       - variables:
-          will_drive: '{{ not is_paused and is_down_enabled and base_gates.closing.override_ok
-            and force_allows_close }}'
+          will_drive: '{{ not is_paused and is_down_enabled and down_condition_ok
+            and base_gates.closing.override_ok and force_allows_close }}'
           log_user: '{{ ''closing as scheduled'' if will_drive else ''closing time
             reached'' }}'
           drive_plan:
@@ -5109,8 +5191,7 @@ actions:
           - '{{ helper_state_pending_start }}'
           sequence:
           - if:
-            - &id014
-              condition: !input auto_shading_start_condition
+            - *id010
             then:
             - choose:
               - alias: Consider lockout protection when shading starts
@@ -5233,7 +5314,7 @@ actions:
             else:
             - variables:
                 shading_start_retry_reason: blocked by=auto_shading_start_condition
-            - &id013
+            - &id014
               choose:
               - alias: Shading start retry - waiting for time window
                 conditions:
@@ -5274,14 +5355,36 @@ actions:
                 - *id007
                 - stop: 'Shading Start Pending: Continue waiting'
               default:
+              - alias: 'Shading start abort: evaluate the user''s opening condition'
+                if:
+                - *id011
+                then:
+                - variables:
+                    abort_up_condition_ok: true
+                else:
+                - variables:
+                    abort_up_condition_ok: false
               - variables:
-                  log_user: sun shading did not start ({{ 'the time window has passed'
-                    if not is_shading_allowed_window else 'the conditions never held'
-                    }})
+                  will_drive: "{{ effective_state == 'opn' and not in_open_position
+                    and\n   not is_paused and is_up_enabled and abort_up_condition_ok
+                    and\n   base_gates.opening.override_ok and\n   base_gates.opening.once_ok
+                    and\n   base_gates.opening.schedule_ok and\n   resident_flags.allow_open
+                    and force_allows_open }}"
+                  log_user: '{{ ''sun shading did not start ('' ~ (''the time window
+                    has passed'' if not is_shading_allowed_window else ''the conditions
+                    never held'') ~ '')'' ~ ('', opening the cover instead'' if will_drive
+                    else '''') }}'
                   log_extra: 'abort: {{ shading_start_retry_reason | default('''')
                     }}; elapsed={{ (as_timestamp(now()) - helper_ts_pending_arm) |
                     int }}s; max_duration={{ shading_start_max_duration | int }}s;
-                    in_window={{ is_shading_allowed_window }}'
+                    in_window={{ is_shading_allowed_window }}; reconcile_open={{ will_drive
+                    }}'
+                  drive_plan:
+                    run: '{{ will_drive }}'
+                    action_set: '{{ state_targets.opn.action_set }}'
+                    target: '{{ state_targets.opn.target | int }}'
+                    target_tilt: '{{ state_targets.opn.target_tilt | int }}'
+                    delay_s: '{{ drive_delay_standard }}'
                   update_values:
                     shd: 0
                     pnd: non
@@ -5298,7 +5401,7 @@ actions:
         then:
         - variables:
             shading_start_retry_reason: shading_start_conditions_met=false
-        - *id013
+        - *id014
         else:
         - stop: 'Shading start skipped: Pending trigger fired but combined start conditions
             evaluated false.'
@@ -5388,15 +5491,14 @@ actions:
           - '{{ not helper_state_pending_start }}'
           sequence:
           - variables:
-              local_waitingtime_end: '{% set local_waitingtime_end = shading_waitingtime_end
-                | int %} {% if (is_shading_end_immediate_by_sun_position | default(false))
-                | bool and trigger.id in [''t_shading_end_pending_5'', ''t_shading_end_pending_7'']
-                %} {% set local_waitingtime_end = 20 %} {% endif %} {{ local_waitingtime_end
-                }}
-
-                '
+              local_waitingtime_end: "{% if trigger.id in ['t_shading_end_pending_5',
+                't_shading_end_pending_7'] %}\n  {{ 20 if (is_shading_end_immediate_by_sun_position
+                | default(false)) | bool else shading_waitingtime_end | int }}\n{%
+                else %}\n  0\n{% endif %}\n"
               log_extra: shading end pending armed; wait={{ local_waitingtime_end
-                | int }}s; immediate_by_sun={{ (is_shading_end_immediate_by_sun_position
+                | int }}s{{ ' (waiting time already held by the trigger)' if trigger.id
+                not in ['t_shading_end_pending_5', 't_shading_end_pending_7'] else
+                '' }}; immediate_by_sun={{ (is_shading_end_immediate_by_sun_position
                 | default(false)) | bool }}
               update_values:
                 shd: 1
@@ -5436,7 +5538,7 @@ actions:
           - '{{ is_ventilation_enabled }}'
           - '{{ ventilation_flags.after_shading_end }}'
           - '{{ resident_flags.allow_ventilate }}'
-          - *id011
+          - *id012
           - '{{ window_tilted_now }}'
           - '{{ not window_opened_now }}'
           - or:
@@ -5515,13 +5617,28 @@ actions:
             - alias: 'Shading end reconciliation: ventilation target allowed'
               conditions:
               - '{{ shading_end_state in [''lock'', ''vnt''] }}'
+              - *id012
+              sequence:
+              - variables:
+                  shading_end_target_condition_ok: true
+            - alias: 'Shading end reconciliation: opening target allowed'
+              conditions:
+              - '{{ shading_end_state == ''opn'' }}'
               - *id011
               sequence:
               - variables:
                   shading_end_target_condition_ok: true
-            - alias: 'Shading end reconciliation: non-ventilation target'
+            - alias: 'Shading end reconciliation: closing target allowed'
               conditions:
-              - '{{ shading_end_state not in [''lock'', ''vnt''] }}'
+              - '{{ shading_end_state == ''cls'' }}'
+              - *id013
+              sequence:
+              - variables:
+                  shading_end_target_condition_ok: true
+            - alias: 'Shading end reconciliation: shading target'
+              conditions:
+              - '{{ shading_end_state not in [''lock'', ''vnt'', ''opn'', ''cls'']
+                }}'
               sequence:
               - variables:
                   shading_end_target_condition_ok: true
@@ -5649,7 +5766,7 @@ actions:
         - '{{ not in_lockout_position }}'
         sequence:
         - if:
-          - *id011
+          - *id012
           then:
           - variables:
               will_drive: '{{ state_gates.lock }}'
@@ -5724,9 +5841,10 @@ actions:
             - '{{ position_comparisons.current_above_ventilate }}'
             - '{{ effective_state == ''cls'' }}'
             - '{{ closing_target_owned }}'
+            - *id013
         sequence:
         - if:
-          - *id011
+          - *id012
           then:
           - variables:
               will_drive: '{{ not is_paused and manual_allows_event.vnt and force_allows_ventilate
@@ -5775,16 +5893,43 @@ actions:
         - '{{ was_ventilating }}'
         - condition: !input auto_ventilate_end_condition
         sequence:
+        - alias: 'Window closed: evaluate the return target''s condition'
+          choose:
+          - alias: 'Return condition: opening target allowed'
+            conditions:
+            - '{{ return_target == ''opn'' }}'
+            - *id011
+            sequence:
+            - variables:
+                return_condition_ok: true
+          - alias: 'Return condition: closing target allowed'
+            conditions:
+            - '{{ return_target == ''cls'' }}'
+            - *id013
+            sequence:
+            - variables:
+                return_condition_ok: true
+          - alias: 'Return condition: shading target'
+            conditions:
+            - '{{ return_target not in [''opn'', ''cls''] }}'
+            sequence:
+            - variables:
+                return_condition_ok: true
+          default:
+          - variables:
+              return_condition_ok: false
         - variables:
-            will_drive: "{{ not is_paused and manual_allows_event.vnt and\n   {'shd':
-              force_allows_shade,\n    'opn': not prevent_flags.opening_after_ventilation_end
+            will_drive: "{{ return_condition_ok and not is_paused and manual_allows_event.vnt
+              and\n   {'shd': force_allows_shade,\n    'opn': not prevent_flags.opening_after_ventilation_end
               and force_allows_open,\n    'cls': force_allows_close and\n           (is_closing_scheduled
               or resident_blocks_open or\n            in_ventilate_position)}[return_target]
               }}"
             drive_plan: '{{ dict(state_targets[return_target], run=will_drive, delay_s=drive_delay_standard
               if ventilation_flags.delay_enabled else 0) }}'
-            log_user: 'the window was closed again, back to: {{ state_labels[return_target]
-              }}'
+            log_user: '{{ ''the window was closed again, back to: '' ~ state_labels[return_target]
+              if return_condition_ok else ''the window was closed again, but the ''
+              ~ (''opening'' if return_target == ''opn'' else ''closing'') ~ '' condition
+              refused movement'' }}'
             log_extra: window closed; return_target={{ return_target }}
             update_values: '{% set base = {''win'': ''cls''} %} {{ dict(base, shd=1)
               if return_target == ''shd'' else base }}'
@@ -5811,7 +5956,7 @@ actions:
             conditions:
             - '{{ window_opened_now }}'
             - '{{ is_ventilation_enabled }}'
-            - *id011
+            - *id012
             sequence:
             - variables:
                 will_drive: '{{ state_gates.lock }}'
@@ -5830,7 +5975,7 @@ actions:
             - '{{ effective_state == ''vnt'' }}'
             - '{{ resident_flags.allow_ventilate }}'
             - '{{ is_ventilation_enabled }}'
-            - *id011
+            - *id012
             sequence:
             - variables:
                 will_drive: '{{ state_gates.vnt }}'
@@ -5848,7 +5993,33 @@ actions:
                 %}shd {% elif helper_state_base == ''opn'' and resident_flags.opening_trigger
                 and is_up_enabled %}opn {% elif helper_state_base == ''cls'' and is_down_enabled
                 %}cls {% else %}non{% endif %}'
-              will_drive: '{{ leave_target != ''non'' and state_gates[leave_target]
+          - alias: 'Resident leaving: evaluate the target''s condition'
+            choose:
+            - alias: 'Leave condition: opening target allowed'
+              conditions:
+              - '{{ leave_target == ''opn'' }}'
+              - *id011
+              sequence:
+              - variables:
+                  leave_condition_ok: true
+            - alias: 'Leave condition: closing target allowed'
+              conditions:
+              - '{{ leave_target == ''cls'' }}'
+              - *id013
+              sequence:
+              - variables:
+                  leave_condition_ok: true
+            - alias: 'Leave condition: shading target or none'
+              conditions:
+              - '{{ leave_target not in [''opn'', ''cls''] }}'
+              sequence:
+              - variables:
+                  leave_condition_ok: true
+            default:
+            - variables:
+                leave_condition_ok: false
+          - variables:
+              will_drive: '{{ leave_target != ''non'' and leave_condition_ok and state_gates[leave_target]
                 }}'
               drive_plan: '{{ dict(state_targets[leave_target], run=will_drive, delay_s=drive_delay_standard)
                 if leave_target != ''non'' else {''run'': false} }}'
@@ -5872,7 +6043,7 @@ actions:
             - '{{ effective_state == ''vnt'' }}'
             - '{{ ''resident_allow_ventilation'' in resident_config }}'
             - '{{ is_ventilation_enabled }}'
-            - *id011
+            - *id012
             sequence:
             - variables:
                 will_drive: '{{ state_gates.vnt }}'
@@ -5887,7 +6058,27 @@ actions:
               arrive_target: '{% if not (is_ventilation_enabled and window_opened_now)
                 and is_down_enabled and resident_flags.closing_trigger %}cls {% else
                 %}non{% endif %}'
-              will_drive: '{{ arrive_target == ''cls'' and state_gates.cls }}'
+          - alias: 'Resident arriving: evaluate the closing condition'
+            choose:
+            - alias: 'Arrive condition: closing target allowed'
+              conditions:
+              - '{{ arrive_target == ''cls'' }}'
+              - *id013
+              sequence:
+              - variables:
+                  arrive_condition_ok: true
+            - alias: 'Arrive condition: no target'
+              conditions:
+              - '{{ arrive_target != ''cls'' }}'
+              sequence:
+              - variables:
+                  arrive_condition_ok: true
+            default:
+            - variables:
+                arrive_condition_ok: false
+          - variables:
+              will_drive: '{{ arrive_target == ''cls'' and arrive_condition_ok and
+                state_gates.cls }}'
               drive_plan: '{{ dict(state_targets.cls, run=will_drive, delay_s=drive_delay_standard)
                 if arrive_target == ''cls'' else {''run'': false} }}'
               log_user: '{{ ''the resident is present, closing for privacy'' if arrive_target
@@ -5938,7 +6129,6 @@ actions:
         resume_state: '{{ effective_state if effective_state in [''lock'', ''vnt'',
           ''shd'', ''cls''] else ''opn'' }}'
         reconcile_state: '{{ resume_state }}'
-        log_user: 'force pause is over, back to: {{ state_labels[resume_state] }}'
         log_extra: force pause disabled; resuming to {{ resume_state }}
     - &id015
       alias: 'Reconciliation: evaluate the target''s additional condition'
@@ -5946,28 +6136,28 @@ actions:
       - alias: 'Reconciliation condition: ventilation or lockout'
         conditions:
         - '{{ reconcile_state in [''lock'', ''vnt''] }}'
-        - *id011
+        - *id012
         sequence:
         - variables:
             target_condition_ok: true
       - alias: 'Reconciliation condition: opening'
         conditions:
         - '{{ reconcile_state == ''opn'' }}'
-        - *id010
+        - *id011
         sequence:
         - variables:
             target_condition_ok: true
       - alias: 'Reconciliation condition: closing'
         conditions:
         - '{{ reconcile_state == ''cls'' }}'
-        - *id012
+        - *id013
         sequence:
         - variables:
             target_condition_ok: true
       - alias: 'Reconciliation condition: shading'
         conditions:
         - '{{ reconcile_state == ''shd'' }}'
-        - *id014
+        - *id010
         sequence:
         - variables:
             target_condition_ok: true
@@ -5976,7 +6166,12 @@ actions:
           target_condition_ok: false
     - variables:
         will_drive: "{{ target_condition_ok and not is_paused and\n   (resume_state
-          != 'cls' or closing_target_owned or\n    helper_state_force == 'cls') }}"
+          != 'cls' or closing_target_owned or\n    helper_state_force == 'cls') and\n
+          \  (resume_state != 'opn' or is_opening_scheduled or\n    helper_state_force
+          == 'opn') }}"
+        log_user: '{{ ''force pause is over, back to: '' ~ state_labels[resume_state]
+          if will_drive else ''force pause is over, the cover stays where it is''
+          }}'
         drive_plan:
           run: '{{ will_drive }}'
           action_set: '{{ state_targets[resume_state].action_set }}'
@@ -6059,8 +6254,8 @@ actions:
               - variables:
                   will_drive: "{{ not is_paused and\n   {'cls': force_allows_close
                     and closing_target_owned,\n    'shd': force_allows_shade,\n    'lock':
-                    force_allows_ventilate,\n    'opn': force_allows_open}[recovery_target]
-                    }}"
+                    force_allows_ventilate,\n    'opn': force_allows_open and\n           (is_opening_scheduled
+                    or shading_ended_during_force)}[recovery_target] }}"
                   drive_plan: '{{ dict(state_targets[recovery_target], run=will_drive)
                     }}'
                   log_user: 'force function switched off, back to: {{ state_labels[recovery_target]
@@ -6262,7 +6457,8 @@ actions:
     - variables:
         reset_will_drive: "{{ target_condition_ok and not is_paused and reset_force_allows
           and\n   (reset_state != 'cls' or closing_target_owned or\n    helper_state_force
-          == 'cls') }}"
+          == 'cls') and\n   (reset_state != 'opn' or is_opening_scheduled or\n    helper_state_force
+          == 'opn') }}"
         drive_plan: '{{ dict(state_targets[reset_state], run=reset_will_drive, delay_s=drive_delay_standard)
           }}'
         update_values:
@@ -6314,6 +6510,17 @@ actions:
             control?'' - the Early/Late time fields are the schedule. Configurations
             saved before ~2026.05 must re-enable this checkbox once (breaking change
             2026.07.12)'
+        - condition: "{{\n  (is_up_enabled or is_down_enabled) and\n  is_time_control_disabled
+            and\n  (\n    (is_brightness_enabled and default_brightness_sensor !=
+            []) or\n    (is_sun_elevation_enabled and default_sun_sensor != [])\n
+            \ )\n}}"
+          message: 'Brightness / Sun Elevation triggers are active WITHOUT time windows:
+            the ''⏲️ Time Control'' checkbox in ''What should CCA control?'' is unchecked,
+            so the Early/Late times are ignored - the cover opens as soon as the brightness/sun
+            threshold is crossed (typically around sunrise) and closes at the evening
+            threshold. If time windows are wanted, check ''⏲️ Time Control'' and save.
+            Configurations saved before ~2026.05 must re-enable this checkbox once
+            (breaking change 2026.07.12)'
         - condition: '{{ check_status_helper_length is not none and check_status_helper_length
             | int < 225 }}'
           message: 'CRITICAL: Cover Status Helper max length is {{ check_status_helper_length
