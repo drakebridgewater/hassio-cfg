@@ -235,55 +235,6 @@
       # This attribute helps the UI update more reliably
       attributes:
         target_time: "{{ states('input_datetime.ethan_s_alarm_clock') }}"
-    # Entity counting sensors
-    - name: "Count Automations"
-      icon: mdi:autorenew
-      state: "{{ states.automation | count }}"
-
-    - name: "Count Scripts"
-      icon: mdi:script-text-outline
-      state: "{{ states.script | count }}"
-
-    - name: "Count Device Trackers"
-      icon: mdi:map-marker
-      state: "{{ states.device_tracker | count }}"
-
-    - name: "Count Binary Sensors"
-      icon: mdi:unfold-more-horizontal
-      state: "{{ states.binary_sensor | count }}"
-
-    - name: "Count Sensors"
-      icon: mdi:resistor
-      state: "{{ states.sensor | count }}"
-
-    - name: "Count Switches"
-      icon: mdi:light-switch
-      state: "{{ states.switch | count }}"
-
-    - name: "Count Zones"
-      icon: mdi:map-marker-radius
-      state: "{{ states.zone | count }}"
-
-    - name: "Count Input Booleans"
-      icon: mdi:toggle-switch
-      state: "{{ states.input_boolean | count }}"
-
-    - name: "Count Input Numbers"
-      icon: mdi:numeric
-      state: "{{ states.input_number | count }}"
-
-    - name: "Count Input Texts"
-      icon: mdi:alphabetical
-      state: "{{ states.input_text | count }}"
-
-    - name: "Count Input Selects"
-      icon: mdi:view-list
-      state: "{{ states.input_select | count }}"
-
-    - name: "Count Input Datetimes"
-      icon: mdi:calendar-clock
-      state: "{{ states.input_datetime | count }}"
-
     # Timestamp sensors
     - name: "Timestamp Start of Today"
       state: "{{ today_at().isoformat() }}"
@@ -528,14 +479,23 @@
       - action: rest_command.yeesite_turn_on
         data:
           brightness: "{{ brightness | default(255) }}"
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.yeesite_bar_state
 
     turn_off:
       - action: rest_command.yeesite_turn_off
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.yeesite_bar_state
 
     set_level:
       - action: rest_command.yeesite_set_brightness
         data:
           value: "{{ brightness }}"
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.yeesite_bar_state
 
     set_rgb:
       - action: rest_command.yeesite_set_color
@@ -544,12 +504,18 @@
           g: "{{ g }}"
           b: "{{ b }}"
           w: 0
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.yeesite_bar_state
 
     set_effect:
       - action: rest_command.yeesite_set_effect
         data:
           effect: "{{ effect }}"
           speed: 1.0
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.yeesite_bar_state
 
 # ===== 2. WHITE LIGHT =====
 - light:
@@ -604,6 +570,9 @@
           g: 0
           b: 0
           w: "{{ brightness | default(255) }}"
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.yeesite_bar_state
 
     turn_off:
       # Set white to 0 (don't blackout the entire fixture)
@@ -613,6 +582,9 @@
           g: 0
           b: 0
           w: 0
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.yeesite_bar_state
 
     set_level:
       - action: rest_command.yeesite_set_color
@@ -621,12 +593,18 @@
           g: 0
           b: 0
           w: "{{ brightness }}"
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.yeesite_bar_state
 
     set_effect:
       - action: rest_command.yeesite_set_effect
         data:
           effect: "{{ effect }}"
           speed: 1.0
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.yeesite_bar_state
 
 # Dashboard ambient edge glow (palette logic in custom_templates/dashboard_glow.jinja).
 # Read by the glow card at the bottom of the /lovelace-mushroom/dashboard view.
@@ -641,3 +619,69 @@
           {% from 'dashboard_glow.jinja' import glow_key, glow_colors %}{{ glow_colors(glow_key()) }}
         opacity: >
           {% from 'dashboard_glow.jinja' import glow_key, glow_opacity %}{{ glow_opacity(glow_key()) }}
+
+# Entity counts for the admin view. A domain-wide template (states.sensor | count)
+# re-renders on every state change in that domain, so refresh these on a timer instead.
+- trigger:
+    - trigger: time_pattern
+      minutes: "/15"
+    - trigger: homeassistant
+      event: start
+  sensor:
+    - name: "Count Automations"
+      icon: mdi:autorenew
+      state: "{{ states.automation | count }}"
+
+    - name: "Count Scripts"
+      icon: mdi:script-text-outline
+      state: "{{ states.script | count }}"
+
+    - name: "Count Device Trackers"
+      icon: mdi:map-marker
+      state: "{{ states.device_tracker | count }}"
+
+    - name: "Count Binary Sensors"
+      icon: mdi:unfold-more-horizontal
+      state: "{{ states.binary_sensor | count }}"
+
+    - name: "Count Sensors"
+      icon: mdi:resistor
+      state: "{{ states.sensor | count }}"
+
+    - name: "Count Switches"
+      icon: mdi:light-switch
+      state: "{{ states.switch | count }}"
+
+    - name: "Count Zones"
+      icon: mdi:map-marker-radius
+      state: "{{ states.zone | count }}"
+
+    - name: "Count Input Booleans"
+      icon: mdi:toggle-switch
+      state: "{{ states.input_boolean | count }}"
+
+    - name: "Count Input Numbers"
+      icon: mdi:numeric
+      state: "{{ states.input_number | count }}"
+
+    - name: "Count Input Texts"
+      icon: mdi:alphabetical
+      state: "{{ states.input_text | count }}"
+
+    - name: "Count Input Selects"
+      icon: mdi:view-list
+      state: "{{ states.input_select | count }}"
+
+    - name: "Count Input Datetimes"
+      icon: mdi:calendar-clock
+      state: "{{ states.input_datetime | count }}"
+
+# Lights on, excluding groups. The status chips read this instead of scanning every
+# entity in the browser on each state change.
+- sensor:
+    - name: "Lights On Count"
+      unique_id: lights_on_count
+      icon: mdi:lightbulb-multiple
+      state: >
+        {{ states.light | rejectattr('entity_id', 'search', 'group')
+           | selectattr('state', 'eq', 'on') | list | count }}

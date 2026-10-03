@@ -135,8 +135,8 @@ styles: |-
     const hvac = hass.states['climate.thermostat']?.state;
     setIcon(7, {heat: 'mdi:fire', cool: 'mdi:air-conditioner', heat_cool: 'mdi:hvac'}[hvac] || 'mdi:hvac-off');
 
-    const lightsOn = Object.keys(hass.states).filter((id) =>
-      id.startsWith('light.') && !id.includes('group') && hass.states[id].state === 'on').length;
+    // Counted server-side (configs/templates.yaml); scanning hass.states here ran on every update.
+    const lightsOn = parseInt(hass.states['sensor.lights_on_count']?.state) || 0;
     setIcon(9, lightsOn ? 'mdi:lightbulb-multiple' : 'mdi:lightbulb-multiple-off');
     setText(9, lightsOn ? lightsOn + ' On' : 'All Off');
 
@@ -170,7 +170,7 @@ styles: |-
     color: ${{heat: 'var(--red-color)', cool: 'var(--blue-color)', heat_cool: 'var(--green-color)'}[hass.states['climate.thermostat']?.state] || 'var(--disabled-text-color)'} !important;
   }
   .bubble-sub-button-9 .bubble-sub-button-icon {
-    color: ${Object.keys(hass.states).some((id) => id.startsWith('light.') && !id.includes('group') && hass.states[id].state === 'on') ? 'var(--amber-color)' : 'var(--disabled-text-color)'} !important;
+    color: ${(parseInt(hass.states['sensor.lights_on_count']?.state) || 0) > 0 ? 'var(--amber-color)' : 'var(--disabled-text-color)'} !important;
   }
   .bubble-sub-button-10 .bubble-sub-button-icon {
     color: ${(() => {

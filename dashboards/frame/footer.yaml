@@ -1,4 +1,5 @@
-# Shared view frame: room button bar and pop-ups on every view.
+# Shared view frame: room button bar and the pop-ups every view can open
+# (room bar, navbar rooms, banner chips). Home uses footer-home.yaml.
 type: vertical-stack
 view_layout:
   grid-area: footer
