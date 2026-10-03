@@ -1,0 +1,12 @@
+# Home's frame footer: the shared footer plus pop-ups only Home links to
+# (room cards, notification URLs). Kept off other views so each view only
+# builds the pop-ups it can open.
+type: vertical-stack
+view_layout:
+  grid-area: footer
+cards:
+  - !include ../sections/footer/99-ambient-glow.yaml
+  - !include ../sections/footer/button-bar.yaml
+  - !include ../sections/footer/popups.yaml
+  - type: vertical-stack
+    cards: !include_dir_list ../popup_home

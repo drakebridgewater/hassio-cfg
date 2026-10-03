@@ -8,7 +8,7 @@ layout: !include ../../layouts/grid.yaml
 cards:
   - !include ../../frame/banner.yaml
   - !include ../../frame/sidebar.yaml
-  - !include ../../frame/footer.yaml
+  - !include ../../frame/footer-home.yaml
   - !include ../../navigation/home.yaml
 
   # Rooms, grouped like the GUI dashboard: a Bubble separator and a 2-wide grid per floor

@@ -12,6 +12,8 @@ Guiding rules:
   A view file only adds its content areas.
 - **Like controls look alike**: switches and lights render through shared decluttering templates.
 - **Small files**: use `!include_dir_list` directories instead of long lists; one card per file.
+- **Pop-ups only where they can open**: the whole dashboard is sent to the browser at once, so a
+  card in the shared frame is paid for once per view (19×). See [Pop-up placement](#pop-up-placement).
 
 ## Folder structure
 
@@ -19,8 +21,8 @@ Guiding rules:
 dashboards/
 ├── lovelace-main.yaml          # Entry point: templates + views
 ├── lovelace-admin.yaml         # Admin dashboard (views/admin)
-├── lovelace_resources.yaml     # Frontend resources
-├── decluttering-templates/     # Shared card templates (controls, navbar, air quality)
+├── lovelace_resources.yaml     # Frontend resources (shared with the GUI dashboards)
+├── decluttering-templates/     # Shared card templates (controls, navbar, air quality, TV remote)
 ├── frame/                      # banner / sidebar / footer cards included by every view
 ├── navigation/                 # navbar route set per page group
 ├── layouts/                    # grid-layout definitions (grid.yaml, grid_wide.yaml)
@@ -28,12 +30,13 @@ dashboards/
 ├── sections/
 │   ├── banner/                 # Status message markdown + status chips
 │   ├── sidebar/                # Sidebar cards (reactive cards first)
-│   ├── footer/                 # Room button bar + all pop-ups
+│   ├── footer/                 # Room button bar + popup/ (every view)
 │   ├── spaces-cards/           # Room cards on Home: upstairs/, downstairs/, other/
 │   ├── rooms/<room>/           # Room content, used by room pop-ups (and future subviews)
 │   ├── pages/<page>/colN/      # Content for pages ported from the GUI
 │   └── climate/                # Air quality, spaces, trends (Climate page + room pop-ups)
-├── popup/                      # Bubble pop-ups (hash navigation)
+├── popup/                      # Bubble pop-ups on every view (hash navigation)
+├── popup_home/                 # Bubble pop-ups on Home only (frame/footer-home.yaml)
 ├── cards/                      # Standalone cards
 ├── visibility/                 # Reusable visibility conditions
 ├── button-card-templates/      # Legacy button-card templates (not loaded)
@@ -207,6 +210,18 @@ cards: !include_dir_list ../sections/rooms/master-bedroom
 
 Rooms with pop-ups: `#kitchen`, `#dining`, `#living-room`, `#master`, `#family`, `#ethan`, `#office`,
 `#outdoors`, `#holiday`. Ethan's pop-up links to the fuller `/lovelace-main/ethan` subview.
+
+### Pop-up placement
+
+A pop-up only opens on a view that contains it, and every card in the shared footer is repeated in
+all 19 views of the config the browser downloads. Place each pop-up by where its hash is linked from:
+
+| Linked from | Folder | Included by |
+|---|---|---|
+| Room bar, navbar rooms pop-up, banner chips, sidebar, room pop-ups | `popup/` | `frame/footer.yaml` (every view) |
+| Home only (room cards, notification URLs like `home#main_floor_security`), or nothing yet | `popup_home/` | `frame/footer-home.yaml` (Home) |
+
+The TV remotes (`#living_room_remote`, `#family_room_remote`) share `decluttering-templates/tv_remote.yaml`.
 
 ### Porting GUI room pages
 
