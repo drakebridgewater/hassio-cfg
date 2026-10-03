@@ -66,7 +66,8 @@ rest_command: !include configs/rest_command.yaml
 #     track_new_devices: false
 
 logger:
-  default: info
+  # warning keeps disk writes down; raise single integrations here when debugging
+  default: warning
   # logs:
   #   homeassistant.core: debug
 

@@ -23,7 +23,7 @@
     - white_dimmer
     - color_strobe_rate
     - white_strobe_rate
-  scan_interval: 5
+  scan_interval: 30  # light actions refresh it immediately (homeassistant.update_entity)
 
 ###########################################
 # Next Holiday integration
