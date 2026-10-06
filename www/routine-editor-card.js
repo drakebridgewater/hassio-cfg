@@ -151,6 +151,23 @@ class RoutineEditorCard extends HTMLElement {
     this._touch();
   }
 
+  // Swaps a step with its neighbour. Each step keeps its own gap, so the
+  // times are recomputed and the routine's total length stays the same.
+  _move(step, dir) {
+    const sorted = this._sorted();
+    const idx = sorted.indexOf(step);
+    const to = idx + dir;
+    if (to < 0 || to >= sorted.length) return;
+    const gaps = sorted.map((s) => this._gap(s));
+    [sorted[idx], sorted[to]] = [sorted[to], sorted[idx]];
+    [gaps[idx], gaps[to]] = [gaps[to], gaps[idx]];
+    let at = 0;
+    sorted.forEach((s, i) => (s.at = at += gaps[i]));
+    // Array order breaks ties between steps at the same minute.
+    this._draft.steps = sorted;
+    this._touch();
+  }
+
   _touch() {
     this._dirty = true;
     this._error = "";
@@ -183,6 +200,9 @@ class RoutineEditorCard extends HTMLElement {
       }
       case "gap":
         this._setGap(step, Number(el.dataset.gap));
+        break;
+      case "move":
+        this._move(step, Number(el.dataset.dir));
         break;
       case "gap-step":
         this._setGap(step, this._gap(step) + Number(el.dataset.delta));
@@ -406,6 +426,9 @@ class RoutineEditorCard extends HTMLElement {
   _renderStep(s, start) {
     const type = STEP_TYPES[s.type] || { icon: "mdi:help-circle-outline", text: () => s.type, editable: false };
     const open = this._open === s.id;
+    const sorted = this._sorted();
+    const idx = sorted.indexOf(s);
+    const count = sorted.length;
     const off = s.enabled === false;
     const notToday = !s.days.includes(DAYS[this._day]);
     const head = `
@@ -441,6 +464,8 @@ class RoutineEditorCard extends HTMLElement {
         <div class="field"><span>Days</span><div class="chips">${dayChips}</div></div>
         <label class="field"><span>On</span><input type="checkbox" data-field="enabled" data-id="${s.id}" ${off ? "" : "checked"}></label>
         <div class="actions">
+          <button class="ghost" data-action="move" data-id="${s.id}" data-dir="-1" ${idx === 0 ? "disabled" : ""}><ha-icon icon="mdi:arrow-up"></ha-icon>Move up</button>
+          <button class="ghost" data-action="move" data-id="${s.id}" data-dir="1" ${idx === count - 1 ? "disabled" : ""}><ha-icon icon="mdi:arrow-down"></ha-icon>Move down</button>
           <button class="ghost" data-action="play" data-id="${s.id}"><ha-icon icon="mdi:play"></ha-icon>Play now</button>
           <button class="ghost danger" data-action="delete" data-id="${s.id}"><ha-icon icon="mdi:delete-outline"></ha-icon>Delete</button>
         </div>
