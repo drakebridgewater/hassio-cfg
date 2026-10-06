@@ -2294,6 +2294,8 @@
         data: {}
 - id: '1728395631624'
   alias: Ethan's Morning Routine
+  # Replaced by Ethan's Morning/Bedtime Schedule (packages/ethan_routines.yaml); kept as a fallback.
+  initial_state: false
   description: This is a morning routine that takes place over 30 minutes.
   triggers:
   - at: input_datetime.ethan_s_alarm_clock
@@ -2512,6 +2514,8 @@
   mode: single
 - id: '1736262664324'
   alias: Ethan's Bedtime Routine
+  # Replaced by Ethan's Morning/Bedtime Schedule (packages/ethan_routines.yaml); kept as a fallback.
+  initial_state: false
   description: "This automation is set to start at a specific time we've chosen for
     Ethan's bedtime. It only runs if our alarm system is disarmed and Ethan's bedroom
     light is off.\nHere's the step-by-step flow:\n1. Initial Warning (5 min before
