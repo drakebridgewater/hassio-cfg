@@ -74,5 +74,5 @@
 - url: /hacsfiles/mass-player-card/mass-player-card.js
   type: module
 
-- url: /local/routine-editor-card.js?v=1
+- url: /local/routine-editor-card.js?v=2
   type: module

@@ -12,6 +12,9 @@
  * Steps are stored as minutes after the start time, so moving the start time
  * moves every alert. The editor shows and accepts clock times.
  *
+ * After editing this file, bump ?v= in dashboards/lovelace_resources.yaml and
+ *  restart HA: /local is served with a 31-day cache, so a refresh is not enough.
+ *
  * Adding a step type: add an entry to STEP_TYPES (how it is labelled and
  * whether the message is editable), plus the hooks listed in
  * pyscript/routines.py.
