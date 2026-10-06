@@ -13,6 +13,18 @@ cards:
   - !include ../../frame/footer.yaml
   - !include ../../navigation/rooms.yaml
 
+  - type: custom:routine-editor-card
+    routine: morning
+    note: Only runs on workdays, and stops once everyone has left.
+    view_layout:
+      grid-area: section1
+
+  - type: custom:routine-editor-card
+    routine: bedtime
+    note: Only starts when the alarm is disarmed and the bathroom light is off.
+    view_layout:
+      grid-area: section2
+
   - type: custom:stack-in-card
     view_layout:
       grid-area: section3

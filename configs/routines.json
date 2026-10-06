@@ -1,0 +1,220 @@
+{
+  "version": 1,
+  "routines": {
+    "morning": {
+      "name": "Morning",
+      "icon": "mdi:weather-sunset-up",
+      "start_entity": "input_datetime.ethan_s_alarm_clock",
+      "automation": "automation.ethan_s_morning_schedule",
+      "steps": [
+        {
+          "id": "m-hello",
+          "at": 0,
+          "type": "announce",
+          "message": "Good morning! The time is {time};",
+          "days": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "m-dressed",
+          "at": 10,
+          "type": "announce",
+          "message": "Good morning, Ethan, let's get dressed and brush our teeth. Then we can enjoy some TV with breakfast",
+          "days": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "m-breakfast",
+          "at": 25,
+          "type": "announce",
+          "message": "Ethan, the time is {time}. Let's finish our breakfast and enjoy a little TV",
+          "days": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "m-goodbye",
+          "at": 29,
+          "type": "announce",
+          "message": "Goodbye and have a great day!",
+          "days": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "m-10min",
+          "at": 30,
+          "type": "announce",
+          "message": "Ethan, the time is {time}. 10 more minutes of Breakfast time",
+          "days": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "m-tv-warning",
+          "at": 38,
+          "type": "announce",
+          "message": "Let's turn off the TV and get ready to leave",
+          "days": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "m-tv-off",
+          "at": 39,
+          "type": "turn_off",
+          "label": "Turn off the TVs",
+          "entity_id": [
+            "media_player.kitchen_display",
+            "media_player.living_room",
+            "media_player.kitchen_google"
+          ],
+          "days": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri"
+          ],
+          "enabled": true
+        }
+      ]
+    },
+    "bedtime": {
+      "name": "Bedtime",
+      "icon": "mdi:weather-night",
+      "start_entity": "input_datetime.ethan_s_bedtime",
+      "automation": "automation.ethan_s_bedtime_schedule",
+      "steps": [
+        {
+          "id": "b-cleanup",
+          "at": 0,
+          "type": "announce",
+          "message": "Time to clean up. Let's make sure all our toys are put in our room or in the bins. Then we can decide if we'll take a bath today",
+          "days": [
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "b-bath",
+          "at": 5,
+          "type": "announce",
+          "message": "It's now bath time if you'd like to take a bath.",
+          "days": [
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "b-10min",
+          "at": 15,
+          "type": "announce",
+          "message": "Ethan, 10 minutes until it's pajamas and a book time! Would you like a snack while we read?",
+          "days": [
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "b-book",
+          "at": 25,
+          "type": "announce",
+          "message": "Ethan, Let's get ready for bed with a book",
+          "days": [
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "b-2min",
+          "at": 38,
+          "type": "announce",
+          "message": "2 more minutes of books until we head to bed.",
+          "days": [
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "b-goodnight",
+          "at": 40,
+          "type": "announce",
+          "message": "Goodnight Ethan! Don't forget to brush your teeth",
+          "days": [
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat"
+          ],
+          "enabled": true
+        }
+      ]
+    }
+  }
+}
