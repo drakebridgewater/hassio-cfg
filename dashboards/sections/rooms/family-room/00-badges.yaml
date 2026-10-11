@@ -34,3 +34,5 @@ variables:
         show_name: true
         show_state: true
         fill_width: false
+view_layout:
+  grid-column: 1 / -1

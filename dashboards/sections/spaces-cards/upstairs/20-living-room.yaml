@@ -5,7 +5,7 @@ variables:
   - name: Living Room
   - icon: mdi:sofa-outline
   - color: 33, 150, 243
-  - popup: '#living-room'
+  - popup: /lovelace-main/living-room
   - entity: binary_sensor.living_room_presence_sensor_occupancy
   - temp: sensor.living_room_temperature_sensor_temperature
   - humid: sensor.wirelesstag_main_freezer_humidity

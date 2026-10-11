@@ -5,7 +5,7 @@ variables:
   - name: Office
   - icon: mdi:chair-rolling
   - color: 96, 125, 139
-  - popup: '#office'
+  - popup: /lovelace-main/office
   - entity: binary_sensor.office_multi_sensor_home_security_motion_detection
   - temp: sensor.office_temperature_sensor_temperature
   - humid: sensor.office_temperature_sensor_humidity

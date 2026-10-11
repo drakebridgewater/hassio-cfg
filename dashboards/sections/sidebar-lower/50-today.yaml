@@ -1,8 +1,5 @@
-# Today's events (tablet and up). The clock lives in 15-weather.yaml.
+# Today's events. The clock lives in sections/sidebar/15-weather.yaml.
 type: vertical-stack
-visibility:
-  - condition: screen
-    media_query: "(min-width: 768px)"
 cards:
   - type: custom:calendar-card-pro
     entities:

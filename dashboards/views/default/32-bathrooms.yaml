@@ -4,14 +4,19 @@ icon: mdi:toilet
 subview: true
 back_path: /lovelace-main/home
 type: custom:grid-layout
-layout: !include ../../layouts/grid.yaml
+layout: !include ../../layouts/frame.yaml
 cards:
   - !include ../../frame/banner.yaml
   - !include ../../frame/sidebar.yaml
+  - !include ../../frame/sidebar-lower.yaml
   - !include ../../frame/footer.yaml
   - !include ../../navigation/rooms.yaml
 
-  - type: vertical-stack
+  - type: custom:layout-card
+    layout_type: custom:grid-layout
     view_layout:
-      grid-area: section1
-    cards: !include_dir_list ../../sections/pages/bathrooms/col1
+      grid-area: main
+    layout: !include ../../layouts/main.yaml
+    cards:
+      - type: vertical-stack
+        cards: !include_dir_list ../../sections/pages/bathrooms/col1

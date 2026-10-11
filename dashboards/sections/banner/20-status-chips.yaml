@@ -147,6 +147,22 @@ styles: |-
     setText(10, '↓ ' + watts(using) + (solar > 20 ? '  ☀ ' + watts(solar) : ''));
     return '';
   })()}
+  /* Wrap chips onto more lines on narrow screens; one nowrap row is wider
+     than a phone and scrolled the whole page sideways. */
+  .bubble-sub-button-alignment-lane,
+  .bubble-sub-button-group {
+    flex-wrap: wrap !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  /* Bubble pins the chip row absolutely in a fixed-height card; let it flow
+     so the card grows with a second line instead of overlapping the banner. */
+  .bubble-sub-buttons-container,
+  .bubble-sub-button-bottom-container {
+    position: static !important;
+    height: auto !important;
+  }
   .bubble-sub-button-2 .bubble-sub-button-icon {
     color: ${hass.states['alarm_control_panel.default']?.state === 'disarmed' ? 'var(--blue-color)'
       : ['arming', 'pending'].includes(hass.states['alarm_control_panel.default']?.state) ? 'var(--amber-color)' : 'var(--red-color)'} !important;

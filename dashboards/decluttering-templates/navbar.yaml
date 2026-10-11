@@ -1,11 +1,12 @@
-# Fixed navigation bar: bottom bar on phones, right-side rail from 768px up.
+# Fixed navigation bar along the bottom of the screen on every device
+# (phones get the full-width bar, wider screens a floating one).
 # Views include their page group's bar from dashboards/navigation/, which only
 # passes `routes`, so the bar's look is defined once here.
 navbar:
   card:
     type: custom:navbar-card
     desktop:
-      position: right
+      position: bottom
       min_width: 768
       show_labels: true
       show_popup_label_backgrounds: true

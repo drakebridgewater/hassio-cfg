@@ -37,3 +37,5 @@ variables:
         show_state: true
         state_background: true
         fill_width: false
+view_layout:
+  grid-column: 1 / -1

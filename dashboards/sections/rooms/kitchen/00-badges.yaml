@@ -41,3 +41,5 @@ variables:
         fill_width: false
         tap_action:
           action: toggle
+view_layout:
+  grid-column: 1 / -1

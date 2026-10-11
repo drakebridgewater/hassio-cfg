@@ -5,7 +5,7 @@ variables:
   - name: Dining Room
   - icon: mdi:table-furniture
   - color: 255, 193, 7
-  - popup: '#dining'
+  - popup: /lovelace-main/dining
   - entity: binary_sensor.kitchen_motion_sensor_occupancy
   - temp: sensor.dining_room_temperature_sensor_temperature
   - humid: sensor.dining_room_temperature_sensor_humidity

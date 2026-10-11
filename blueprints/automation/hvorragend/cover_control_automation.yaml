@@ -4,8 +4,8 @@ blueprint:
     a comprehensive Home Assistant blueprint which automatically manages your window
     coverings (such as roller shutters and blinds) based on time, the position of
     the sun, and weather conditions. It adapts intelligently to your preferences,
-    largely eliminating the need for manual adjustments.\n\n**Version**: 2026.09.29
-    V3\n\n### \U0001F517 Resources & Support\n\U0001F4E2 **Latest Changes**: [Changelog](https://hvorragend.github.io/ha-blueprints/CHANGELOG)
+    largely eliminating the need for manual adjustments.\n\n**Version**: 2026.10.04\n\n###
+    \U0001F517 Resources & Support\n\U0001F4E2 **Latest Changes**: [Changelog](https://hvorragend.github.io/ha-blueprints/CHANGELOG)
     | ✨ **Highlights**: [Key Features](https://hvorragend.github.io/ha-blueprints/#key-features)\n\U0001F680
     **Setup**: [Quick Start Guide](https://hvorragend.github.io/ha-blueprints/#quick-start-5-steps)
     | [Prerequisites](https://hvorragend.github.io/ha-blueprints/#essential-prerequisites)\n\U0001F4DA
@@ -1665,14 +1665,20 @@ blueprint:
               unit_of_measurement: °C
         shading_waitingtime_start:
           name: "\U0001F975 Sun Shading - Start Waiting Time"
-          description: Waiting time between the initial shading trigger and the actual
+          description: 'Waiting time between the initial shading trigger and the actual
             cover movement. After this time expires, <ins>all</ins> configured start
             conditions (AND + OR) are re-checked. The cover only moves if conditions
             are <strong>still valid</strong> at execution time. This waiting time
             is also used for the periodic condition checks within the retry loop.
-            <br /><br /> <strong>If shading stays at "pending" and never executes:</strong>
-            The conditions were no longer met after the waiting time expired. Check
-            the automation trace for <em>t_shading_start_execution</em>.
+            <br /><br /> For the <strong>brightness</strong> start condition the waiting
+            time runs inside the trigger: the brightness has to stay above the start
+            threshold for the whole waiting time <strong>without interruption</strong>
+            (a dip in between restarts it), and the cover then moves right away. Shading
+            starts armed by the sun position, the temperatures, the forecast or the
+            1-hour pre-opening check keep the waiting time in the pending and re-check
+            the brightness when it expires. <br /><br /> <strong>If shading stays
+            at "pending" and never executes:</strong> The conditions were no longer
+            met after the waiting time expired. Check the automation trace for <em>t_shading_start_execution</em>.'
           default: 300
           selector:
             number:
@@ -2596,7 +2602,7 @@ trigger_variables:
     }}"
   automation_entity: '{{ this.entity_id | default('''') }}'
 variables:
-  version: 2026.09.29 V3
+  version: 2026.10.04
   is_paused: '{{ force_pause != [] and states(force_pause) in [''on'', ''true''] }}'
   blind_entities: '{{ expand(blind) | map(attribute=''entity_id'') | list }}'
   current_position: "{% set source = position_source %} {% if source == 'current_position_attr'
@@ -3164,6 +3170,8 @@ triggers:
   value_template: '{{ states(shading_brightness_sensor) not in invalid_states and
     states(shading_brightness_sensor) | float(default=shading_sun_brightness_start)
     > (shading_sun_brightness_start + shading_sun_brightness_hysteresis) }}'
+  for:
+    seconds: !input shading_waitingtime_start
   enabled: '{{ is_shading_enabled and shading_brightness_sensor != [] }}'
   id: t_shading_start_pending_2
 - trigger: template
@@ -5159,7 +5167,9 @@ actions:
           - '{{ not helper_state_shade }}'
           sequence:
           - variables:
-              shading_start_due: "{% set wait_due = (as_timestamp(now()) + shading_waitingtime_start
+              shading_start_wait: '{{ 0 if trigger.id == ''t_shading_start_pending_2''
+                else shading_waitingtime_start | int }}'
+              shading_start_due: "{% set wait_due = (as_timestamp(now()) + shading_start_wait
                 | int) | int %} {% if is_time_control_disabled or is_shading_allowed_window
                 %}\n  {{ wait_due }}\n{% elif is_time_field_enabled %}\n  {{ [wait_due,
                 as_timestamp(today_at(time_up_early_today)) | int + 1] | max }}\n{%
@@ -5172,10 +5182,11 @@ actions:
                 max }}\n{% elif is_calendar_enabled and calendar_open_start is not
                 none %}\n  {{ [ts, calendar_open_start | int] | max }}\n{% else %}\n
                 \ {{ ts }}\n{% endif %}"
-              log_extra: shading start pending armed; wait={{ shading_waitingtime_start
-                | int }}s; due_in={{ (shading_start_due | int - as_timestamp(now())
-                | int) }}s; max_duration={{ shading_start_max_duration | int }}s;
-                budget_from={{ shading_start_arm | int }}
+              log_extra: shading start pending armed; wait={{ shading_start_wait |
+                int }}s{{ ' (waiting time already held by the trigger)' if trigger.id
+                == 't_shading_start_pending_2' else '' }}; due_in={{ (shading_start_due
+                | int - as_timestamp(now()) | int) }}s; max_duration={{ shading_start_max_duration
+                | int }}s; budget_from={{ shading_start_arm | int }}
               update_values:
                 shd: 0
                 pnd: beg

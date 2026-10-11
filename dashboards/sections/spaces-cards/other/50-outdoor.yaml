@@ -5,7 +5,7 @@ variables:
   - name: Outdoor
   - icon: mdi:balcony
   - color: 76, 175, 80
-  - popup: '#outdoors'
+  - popup: /lovelace-main/outdoors
   - entity: binary_sensor.porch_motion_motion_detection
   - temp: sensor.wirelesstag_outdoor_temperature
   - humid: sensor.wirelesstag_outdoor_humidity

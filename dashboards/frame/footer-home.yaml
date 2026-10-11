@@ -6,7 +6,6 @@ view_layout:
   grid-area: footer
 cards:
   - !include ../sections/footer/99-ambient-glow.yaml
-  - !include ../sections/footer/button-bar.yaml
   - !include ../sections/footer/popups.yaml
   - type: vertical-stack
     cards: !include_dir_list ../popup_home

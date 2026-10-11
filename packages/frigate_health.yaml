@@ -1,0 +1,249 @@
+# Frigate camera health check.
+#
+# A camera counts as down when Frigate reports < 1 fps for 2 minutes. Each camera
+# also gets a ping sensor so the alert can say which failure it is:
+#   - camera doesn't answer ping   -> power / PoE / Wi-Fi / IP changed
+#   - camera pings, but no frames  -> camera RTSP server hung (reboot the camera)
+#                                     or go2rtc/ffmpeg stuck in Frigate (restart Frigate)
+#   - Frigate itself unavailable   -> container down (Coral, NGINX, etc.)
+#
+# Alerts go to the Ticker "Camera Health" category, and also to a persistent
+# notification that clears itself on recovery.
+#
+# dining is left out on purpose: it is `enabled: false` in Frigate.
+
+frigate_health:
+  command_line:
+    - binary_sensor:
+        name: Camera Backyard Ping
+        unique_id: frigate_health_backyard_ping
+        command: "ping -c 2 -W 1 10.0.68.18 >/dev/null 2>&1 && echo on || echo off"
+        device_class: connectivity
+        payload_on: "on"
+        payload_off: "off"
+        scan_interval: 60
+    - binary_sensor:
+        name: Camera Driveway Ping
+        unique_id: frigate_health_driveway_ping
+        command: "ping -c 2 -W 1 10.0.5.21 >/dev/null 2>&1 && echo on || echo off"
+        device_class: connectivity
+        payload_on: "on"
+        payload_off: "off"
+        scan_interval: 60
+    - binary_sensor:
+        name: Camera Garage Ping
+        unique_id: frigate_health_garage_ping
+        command: "ping -c 2 -W 1 10.0.0.12 >/dev/null 2>&1 && echo on || echo off"
+        device_class: connectivity
+        payload_on: "on"
+        payload_off: "off"
+        scan_interval: 60
+    - binary_sensor:
+        name: Camera Entryway Ping
+        unique_id: frigate_health_entryway_ping
+        command: "ping -c 2 -W 1 10.0.17.199 >/dev/null 2>&1 && echo on || echo off"
+        device_class: connectivity
+        payload_on: "on"
+        payload_off: "off"
+        scan_interval: 60
+    - binary_sensor:
+        name: Camera Frontdoor Ping
+        unique_id: frigate_health_frontdoor_ping
+        command: "ping -c 2 -W 1 192.168.6.14 >/dev/null 2>&1 && echo on || echo off"
+        device_class: connectivity
+        payload_on: "on"
+        payload_off: "off"
+        scan_interval: 60
+
+  template:
+    - binary_sensor:
+        - name: Frigate Service Problem
+          unique_id: frigate_health_service_problem
+          device_class: problem
+          state: "{{ states('sensor.frigate_camera_fps') in ['unavailable', 'unknown'] }}"
+          delay_on: "00:03:00"
+          delay_off: "00:00:30"
+
+        # Per-camera stream sensors stay off while Frigate itself is down, so a
+        # Frigate outage produces one alert instead of five.
+        - name: Frigate Backyard Stream Problem
+          unique_id: frigate_health_backyard_stream
+          device_class: problem
+          # now() forces a re-render every minute; a stuck camera sits at a
+          # constant 0 fps, which would otherwise never re-evaluate the template.
+          state: >-
+            {% set _ = now() %}
+            {% set fps = states('sensor.backyard_camera_fps') %}
+            {{ fps not in ['unavailable', 'unknown'] and fps | float(0) < 1 }}
+          delay_on: "00:02:00"
+          delay_off: "00:01:00"
+          attributes:
+            camera: backyard
+            ping_entity: binary_sensor.camera_backyard_ping
+        - name: Frigate Driveway Stream Problem
+          unique_id: frigate_health_driveway_stream
+          device_class: problem
+          state: >-
+            {% set _ = now() %}
+            {% set fps = states('sensor.driveway_camera_fps') %}
+            {{ fps not in ['unavailable', 'unknown'] and fps | float(0) < 1 }}
+          delay_on: "00:02:00"
+          delay_off: "00:01:00"
+          attributes:
+            camera: driveway
+            ping_entity: binary_sensor.camera_driveway_ping
+        - name: Frigate Garage Stream Problem
+          unique_id: frigate_health_garage_stream
+          device_class: problem
+          state: >-
+            {% set _ = now() %}
+            {% set fps = states('sensor.garage_camera_fps') %}
+            {{ fps not in ['unavailable', 'unknown'] and fps | float(0) < 1 }}
+          delay_on: "00:02:00"
+          delay_off: "00:01:00"
+          attributes:
+            camera: garage
+            ping_entity: binary_sensor.camera_garage_ping
+        - name: Frigate Entryway Stream Problem
+          unique_id: frigate_health_entryway_stream
+          device_class: problem
+          state: >-
+            {% set _ = now() %}
+            {% set fps = states('sensor.entryway_camera_fps') %}
+            {{ fps not in ['unavailable', 'unknown'] and fps | float(0) < 1 }}
+          delay_on: "00:02:00"
+          delay_off: "00:01:00"
+          attributes:
+            camera: entryway
+            ping_entity: binary_sensor.camera_entryway_ping
+        - name: Frigate Frontdoor Stream Problem
+          unique_id: frigate_health_frontdoor_stream
+          device_class: problem
+          state: >-
+            {% set _ = now() %}
+            {% set fps = states('sensor.frontdoor_camera_fps') %}
+            {{ fps not in ['unavailable', 'unknown'] and fps | float(0) < 1 }}
+          delay_on: "00:02:00"
+          delay_off: "00:01:00"
+          attributes:
+            camera: frontdoor
+            ping_entity: binary_sensor.camera_frontdoor_ping
+
+  automation:
+    - id: frigate_health_camera_alerts
+      alias: Notification - Frigate Camera Health
+      description: Alerts when a Frigate camera stream or Frigate itself goes down,
+        with a hint at the cause, confirms recovery with the outage length, and
+        reminds every morning about anything still down.
+      mode: queued
+      triggers:
+        - trigger: state
+          entity_id:
+            - binary_sensor.frigate_service_problem
+            - binary_sensor.frigate_backyard_stream_problem
+            - binary_sensor.frigate_driveway_stream_problem
+            - binary_sensor.frigate_garage_stream_problem
+            - binary_sensor.frigate_entryway_stream_problem
+            - binary_sensor.frigate_frontdoor_stream_problem
+          from: ["off", "unknown"]
+          to: "on"
+          id: down
+        - trigger: state
+          entity_id:
+            - binary_sensor.frigate_service_problem
+            - binary_sensor.frigate_backyard_stream_problem
+            - binary_sensor.frigate_driveway_stream_problem
+            - binary_sensor.frigate_garage_stream_problem
+            - binary_sensor.frigate_entryway_stream_problem
+            - binary_sensor.frigate_frontdoor_stream_problem
+          from: "on"
+          to: "off"
+          id: up
+        - trigger: time
+          at: "09:00:00"
+          id: reminder
+      variables:
+        problem_sensors:
+          - binary_sensor.frigate_service_problem
+          - binary_sensor.frigate_backyard_stream_problem
+          - binary_sensor.frigate_driveway_stream_problem
+          - binary_sensor.frigate_garage_stream_problem
+          - binary_sensor.frigate_entryway_stream_problem
+          - binary_sensor.frigate_frontdoor_stream_problem
+      actions:
+        - choose:
+            - conditions:
+                - condition: trigger
+                  id: down
+              sequence:
+                - variables:
+                    camera: "{{ state_attr(trigger.entity_id, 'camera') or 'Frigate' }}"
+                    ping_entity: "{{ state_attr(trigger.entity_id, 'ping_entity') }}"
+                    since: "{{ (now() - timedelta(minutes=2)).strftime('%-I:%M%p') }}"
+                    cause: >-
+                      {% if not ping_entity %}
+                      Frigate is unavailable. Check the container logs (Coral unplugged? NGINX cert mount?).
+                      {% elif is_state(ping_entity, 'off') %}
+                      Camera does not answer ping: power, PoE, Wi-Fi or IP change.
+                      {% elif not is_state(ping_entity, 'on') %}
+                      Camera reachability unknown (ping sensor unavailable).
+                      {% else %}
+                      Camera answers ping but Frigate gets no frames. The camera's RTSP server is
+                      probably hung (reboot the camera); if a reboot doesn't help, restart Frigate.
+                      {% endif %}
+                - action: persistent_notification.create
+                  data:
+                    notification_id: "frigate_health_{{ camera }}"
+                    title: "Camera down - {{ camera | title }}"
+                    message: "No frames since about {{ since }}. {{ cause | trim }}"
+                - action: logbook.log
+                  data:
+                    name: "Frigate {{ camera }}"
+                    message: "went down ({{ cause | trim }})"
+                    entity_id: "{{ trigger.entity_id }}"
+                - action: ticker.notify
+                  continue_on_error: true
+                  data:
+                    category: Camera Health
+                    title: "Camera down - {{ camera | title }}"
+                    message: "No frames since about {{ since }}. {{ cause | trim }}"
+
+            - conditions:
+                - condition: trigger
+                  id: up
+              sequence:
+                - variables:
+                    camera: "{{ state_attr(trigger.entity_id, 'camera') or 'Frigate' }}"
+                    minutes: >-
+                      {{ ((now() - trigger.from_state.last_changed).total_seconds() / 60) | round(0) | int + 2 }}
+                    duration: >-
+                      {% if minutes >= 120 %}{{ (minutes / 60) | round(1) }} hours{% else %}{{ minutes }} minutes{% endif %}
+                - action: persistent_notification.dismiss
+                  data:
+                    notification_id: "frigate_health_{{ camera }}"
+                - action: logbook.log
+                  data:
+                    name: "Frigate {{ camera }}"
+                    message: "recovered after about {{ duration }}"
+                    entity_id: "{{ trigger.entity_id }}"
+                - action: ticker.notify
+                  continue_on_error: true
+                  data:
+                    category: Camera Health
+                    title: "Camera recovered - {{ camera | title }}"
+                    message: "Back after about {{ duration }}."
+
+            - conditions:
+                - condition: trigger
+                  id: reminder
+                - condition: template
+                  value_template: "{{ problem_sensors | select('is_state', 'on') | list | count > 0 }}"
+              sequence:
+                - action: ticker.notify
+                  data:
+                    category: Camera Health
+                    title: Cameras still down
+                    message: >-
+                      {% for s in problem_sensors | select('is_state', 'on') %}
+                      {{ state_attr(s, 'camera') or 'Frigate' }}: down {{ relative_time(states[s].last_changed) }}
+                      {% endfor %}

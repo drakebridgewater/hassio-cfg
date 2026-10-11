@@ -7,13 +7,16 @@ dashboards under `.storage/lovelace.*` are where UI ideas are prototyped; they a
 the other way around, and are never edited from YAML work.
 
 Guiding rules:
-- **Every view shares one frame**: status banner, chips, sidebar, room bar and pop-ups, a navbar, and
-  the ambient edge glow (`cards/ambient-glow.yaml`, included from `sections/footer/`; desktop only).
+- **Every view shares one frame**: a banner on top (status message, chips, room bar), general cards on
+  the left (sidebar), the page's own content on the right (`main`), and a footer (pop-ups, the ambient
+  edge glow from `cards/ambient-glow.yaml`, desktop only). The navbar floats at the bottom.
+- **No sideways scrolling, nothing spilling out of its box**, on phone, tablet or desktop. Size text
+  inside a card with container units (`cqi`), never `vw`.
   A view file only adds its content areas.
 - **Like controls look alike**: switches and lights render through shared decluttering templates.
 - **Small files**: use `!include_dir_list` directories instead of long lists; one card per file.
 - **Pop-ups only where they can open**: the whole dashboard is sent to the browser at once, so a
-  card in the shared frame is paid for once per view (19×). See [Pop-up placement](#pop-up-placement).
+  card in the shared frame is paid for once per view (once per view). See [Pop-up placement](#pop-up-placement).
 
 ## Folder structure
 
@@ -25,16 +28,17 @@ dashboards/
 ├── decluttering-templates/     # Shared card templates (controls, navbar, air quality, TV remote)
 ├── frame/                      # banner / sidebar / footer cards included by every view
 ├── navigation/                 # navbar route set per page group
-├── layouts/                    # grid-layout definitions (grid.yaml, grid_wide.yaml)
+├── layouts/                    # frame.yaml (every view) + main.yaml (the `main` area's columns)
 ├── views/default/              # One file per view, NN-name.yaml
 ├── sections/
-│   ├── banner/                 # Status message markdown + status chips
-│   ├── sidebar/                # Sidebar cards (reactive cards first)
-│   ├── footer/                 # Room button bar + popup/ (every view)
+│   ├── banner/                 # Alert ticker, status chips, room bar
+│   ├── sidebar/                # Top of the sidebar: status, weather, warnings (above content on phones)
+│   ├── sidebar-lower/          # Rest of the sidebar: calendars, chores, media (below content on phones)
+│   ├── footer/                 # Ambient glow + popup/ (every view)
 │   ├── spaces-cards/           # Room cards on Home: upstairs/, downstairs/, other/
-│   ├── rooms/<room>/           # Room content, used by room pop-ups (and future subviews)
+│   ├── rooms/<room>/           # Room content, one card per GUI section; shown by the room pages
 │   ├── pages/<page>/colN/      # Content for pages ported from the GUI
-│   └── climate/                # Air quality, spaces, trends (Climate page + room pop-ups)
+│   └── climate/                # Air quality, spaces, trends (Climate page + room pages)
 ├── popup/                      # Bubble pop-ups on every view (hash navigation)
 ├── popup_home/                 # Bubble pop-ups on Home only (frame/footer-home.yaml)
 ├── cards/                      # Standalone cards
@@ -54,21 +58,37 @@ path: security
 subview: true
 back_path: /lovelace-main/home
 type: custom:grid-layout
-layout: !include ../../layouts/grid.yaml
+layout: !include ../../layouts/frame.yaml
 cards:
   - !include ../../frame/banner.yaml       # grid-area: banner
   - !include ../../frame/sidebar.yaml      # grid-area: sidebar
+  - !include ../../frame/sidebar-lower.yaml  # grid-area: lower
   - !include ../../frame/footer.yaml       # grid-area: footer
   - !include ../../navigation/security.yaml
-  - type: vertical-stack
+  - type: custom:layout-card               # grid-area: main
+    layout_type: custom:grid-layout
     view_layout:
-      grid-area: section1
-    cards: !include_dir_list ../../sections/pages/security/col1
+      grid-area: main
+    layout: !include ../../layouts/main.yaml
+    cards:
+      - type: vertical-stack
+        cards: !include_dir_list ../../sections/pages/security/col1
+      - type: vertical-stack
+        cards: !include_dir_list ../../sections/pages/security/col2
 ```
 
 Layouts:
-- `layouts/grid.yaml`: sidebar + banner + `section1`–`section9` + footer, with phone/tablet/desktop breakpoints.
-- `layouts/grid_wide.yaml`: the same frame with one wide `main` area (cameras, calendar, music).
+- `layouts/frame.yaml`: banner across the top, sidebar left (two areas, `sidebar` then `lower`, that
+  read as one column), `main` right, footer. Phone (<768px): one column (banner, sidebar, main,
+  lower, footer), so calendars and chores drop below the page content. Tablet: sidebar 1fr (min 300px) / main 2fr. Desktop:
+  1fr (min 340px) / 3fr; ≥2100px: 1fr / 4fr. The sidebar has a minimum width so its cards fit;
+  `main` is `minmax(0, …)` so wide cards shrink instead of scrolling the page sideways.
+- `layouts/main.yaml`: the nested grid in `main`. Each card (usually a column stack) gets a column of
+  at least 300px; columns stretch to fill and wrap one at a time, down to one on a phone. A card can
+  span every column with `view_layout: {grid-column: 1 / -1}` (room badges do).
+- Full-width pages (calendar, music, camera events, doorbell) put a single card in `main` instead.
+- Masonry is only used where the cards are single cards, not stacks (Climate): it sorts by estimated
+  card size, and stacks of Bubble cards report 0 while loading, so they all land in column one.
 
 ### Adding a page
 
@@ -78,10 +98,10 @@ Layouts:
 
 ## Navigation
 
-| Screen | Room bar (`sections/footer/button-bar.yaml`) | Navbar (`navigation/`) |
+| Screen | Room bar (`sections/banner/30-room-bar.yaml`) | Navbar (`navigation/`) |
 |---|---|---|
 | Phone (<768px) | hidden | fixed bottom bar |
-| Tablet / desktop (≥768px) | shown | fixed rail on the right |
+| Tablet / desktop (≥768px) | under the status chips; buttons wrap | floating bar at the bottom |
 
 The navbar is `decluttering-templates/navbar.yaml`; each view includes the bar for its page group,
 which only supplies `routes`. On Home the bar lists the groups; on every other page it shows Home
@@ -89,13 +109,13 @@ first, then the pages in that group.
 
 | Group file | Pages |
 |---|---|
-| `home.yaml` | Security, Rooms (pop-up of room hashes), Planning, House |
+| `home.yaml` | Security, Rooms (menu of room pages), Planning, House |
 | `security.yaml` | Overview, Events, Outdoor (`cameras`), Doorbell, Armed |
-| `rooms.yaml` | Ethan, Garage, Greenhouse, Bathrooms, Rooms pop-up |
+| `rooms.yaml` | Ethan, Garage, Greenhouse, Bathrooms, Rooms menu |
 | `planning.yaml` | Calendar, Scheduling, Automations, Gardening (`planting`) |
 | `house.yaml` | Cleaning, Climate, Music, Misc, Help |
 
-Room hash links shared by two bars live in `navigation/rooms-popup.yaml`.
+Room page links shared by two bars live in `navigation/rooms-popup.yaml`.
 
 ## Control templates
 
@@ -157,9 +177,13 @@ color, only `color_temp` → temp, `brightness` → light, `onoff` → switch.
 - `sections/banner/10-status-message.yaml`: weather, daycare pickup, commute and night door checks (Jinja markdown).
 - `sections/banner/20-status-chips.yaml`: presence, Alarmo, garage, doors/windows (only while open),
   motion, thermostat, lights on, power usage, solar (only while producing).
-- `sections/sidebar/`: reactive cards (who's away, guest mode, upcoming reminders, warnings) show on
-  every screen; static cards (weather, calendars, media, reports) use
-  `visibility: [{condition: screen, media_query: "(min-width: 768px)"}]`.
+- `sections/banner/30-room-bar.yaml`: room page buttons (tablet and up), wrapping under the chips.
+- `sections/sidebar/`: top of the sidebar, above the content on every screen: packages, who's away,
+  guest mode, daycare message, weather, timers, warnings. Weather is a compact one-row card on phones
+  (`14-weather-compact.yaml`) and the full clock/tiles/forecast stack from 768px (`15-weather.yaml`).
+- `sections/sidebar-lower/`: chores, today, upcoming/birthdays, media, batteries. Under the top part
+  on tablet and desktop, below the page content on phones. Media and batteries stay tablet-and-up
+  (`visibility: [{condition: screen, media_query: "(min-width: 768px)"}]`).
 
 ## Rooms
 
@@ -167,17 +191,17 @@ color, only `color_temp` → temp, `brightness` → light, `onoff` → switch.
 
 Home groups the rooms like the GUI dashboard: a Bubble separator and a two-column grid for each of
 `upstairs/`, `downstairs/` and `other/` (one card per file, `NN-name.yaml` sets the order). Spaces
-without a pop-up (attic, crawl space, greenhouses, entries) set `popup` to a page path instead.
+set `popup` to their room page (`/lovelace-main/<room>`), a related page, or a pop-up hash (holiday).
 
 Every room card is one `custom:decluttering-card` using `room_card`: a single Bubble button row per
 room, modelled on the stock area card, so all rooms look and behave alike. There is no collapsed or
-expanded state; tapping anywhere opens the room pop-up, where the room's controls live. A room file
+expanded state; tapping anywhere opens the room page, where the room's controls live. A room file
 only supplies data:
 
 | Variable | Use |
 |---|---|
 | `name`, `icon`, `color` | Header; `color` is the `r, g, b` card tint |
-| `popup` | Room pop-up hash opened by a tap |
+| `popup` | Room page path (or pop-up hash) opened by a tap |
 | `entity` | Occupancy sensor |
 | `temp`, `humid`, `extra` | Readings shown under the name (`temp · humid`); use the area's sensors |
 | `blocker` | `input_boolean.lighting_automation_blocker_<room>`: ring around the icon, amber while blocked |
@@ -194,38 +218,32 @@ Badges go in this order and style so every card reads the same way (only four sh
 | Too warm / too cold (> 72 / < 69 indoors) | `mdi:fire` / `mdi:snowflake-alert` | orange / cyan | glow |
 | Occupied | `mdi:motion-sensor` | green | none |
 
-### Room pop-ups
+### Room pages
+
+Each room is a subview (`views/default/21-living-room.yaml` … `27-outdoors.yaml`, plus `20-ethan.yaml`)
+on the shared frame. `main` holds the room's main-light Bubble button (the old pop-up header) above a
+`layouts/main.yaml` grid of `!include_dir_list ../../sections/rooms/<room>`, so each GUI section is a
+column and `00-badges.yaml` spans the top. Paths: `living-room`, `kitchen`, `dining`,
+`master-bedroom`, `family-room`, `office`, `outdoors`, `ethan`. Holiday is still a pop-up (`#holiday`).
 
 Pop-ups use Bubble Card's standalone format (v3.2+): the `pop-up` card is the top-level card and
 holds its content in `cards:`. Never wrap a pop-up in a `vertical-stack`; Bubble treats that as legacy.
 
-```yaml
-type: custom:bubble-card
-card_type: pop-up
-hash: '#master'
-name: Master Bedroom
-...
-cards: !include_dir_list ../sections/rooms/master-bedroom
-```
-
-Rooms with pop-ups: `#kitchen`, `#dining`, `#living-room`, `#master`, `#family`, `#ethan`, `#office`,
-`#outdoors`, `#holiday`. Ethan's pop-up links to the fuller `/lovelace-main/ethan` subview.
-
 ### Pop-up placement
 
 A pop-up only opens on a view that contains it, and every card in the shared footer is repeated in
-all 19 views of the config the browser downloads. Place each pop-up by where its hash is linked from:
+every view of the config the browser downloads. Place each pop-up by where its hash is linked from:
 
 | Linked from | Folder | Included by |
 |---|---|---|
-| Room bar, navbar rooms pop-up, banner chips, sidebar, room pop-ups | `popup/` | `frame/footer.yaml` (every view) |
+| Banner chips, sidebar, room pages | `popup/` | `frame/footer.yaml` (every view) |
 | Home only (room cards, notification URLs like `home#main_floor_security`), or nothing yet | `popup_home/` | `frame/footer-home.yaml` (Home) |
 
 The TV remotes (`#living_room_remote`, `#family_room_remote`) share `decluttering-templates/tv_remote.yaml`.
 
 ### Porting GUI room pages
 
-Room pop-up content is generated from the GUI dashboard's room pages (the GUI is where rooms are
+Room page content is generated from the GUI dashboard's room pages (the GUI is where rooms are
 designed). Edit the room in the GUI, then run:
 
 ```
@@ -246,18 +264,17 @@ A room's air-quality card is pulled in by a one-line file in its room directory,
 e.g. `sections/rooms/master-bedroom/90-air-quality.yaml`:
 `!include ../../climate/air-quality/30-master-bedroom.yaml`.
 
-The room content in `sections/rooms/<room>/` is container-independent, so a room can later become a
-subview by adding a thin view file that includes the same directory.
+Ethan's GUI page is not re-ported: `views/default/20-ethan.yaml` is hand-built.
 
 ## Climate
 
-`views/default/40-climate.yaml` uses `layouts/grid_wide.yaml` with one `custom:layout-card`
+`views/default/40-climate.yaml` puts one `custom:layout-card`
 (`layout_type: masonry`) in `main`. Masonry fills the shortest column, so a tall card doesn't leave
 empty rows beside short ones. Each card is included on its own line (not `!include_dir_list`) so the
 cards balance individually; list order is the fill order.
 - `sections/climate/thermostat/thermostat.yaml`: Bubble climate card, first on the page.
 - `sections/climate/air-quality/`: one card per room (Living Room / Ecobee, Family Room / View Plus,
-  Master Bedroom / Apollo AIR-1). The same files are included in the room pop-ups.
+  Master Bedroom / Apollo AIR-1). The same files are included in the room pages.
 - `sections/climate/spaces/`: attic, crawl space, outdoor AQI (also used by `#aqi-overview`).
 - `sections/climate/trends/`: temperature and humidity graphs.
 

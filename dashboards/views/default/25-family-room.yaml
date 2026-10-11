@@ -1,0 +1,43 @@
+title: Family Room
+path: family-room
+icon: mdi:theater
+subview: true
+back_path: /lovelace-main/home
+type: custom:grid-layout
+layout: !include ../../layouts/frame.yaml
+
+# Room page: the room's main light up top, then its sections from
+# sections/rooms/family-room/ (ported from the GUI by tools/port_gui_rooms.py) in columns.
+cards:
+  - !include ../../frame/banner.yaml
+  - !include ../../frame/sidebar.yaml
+  - !include ../../frame/sidebar-lower.yaml
+  - !include ../../frame/footer.yaml
+  - !include ../../navigation/rooms.yaml
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: main
+    cards:
+      - type: custom:bubble-card
+        card_type: button
+        button_type: switch
+        name: Family Room
+        entity: light.family_room_wall_switch
+        force_icon: false
+        show_state: true
+        show_last_changed: false
+        tap_action:
+          action: more-info
+        sub_button:
+          - entity: light.family_room_wall_switch
+            icon: mdi:light-switch
+            tap_action:
+              action: more-info
+          - icon: mdi:power
+            tap_action:
+              action: toggle
+      - type: custom:layout-card
+        layout_type: custom:grid-layout
+        layout: !include ../../layouts/main.yaml
+        cards: !include_dir_list ../../sections/rooms/family-room

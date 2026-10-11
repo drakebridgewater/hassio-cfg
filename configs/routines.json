@@ -50,24 +50,10 @@
           "enabled": true
         },
         {
-          "id": "m-goodbye",
-          "at": 29,
-          "type": "announce",
-          "message": "Goodbye and have a great day!",
-          "days": [
-            "mon",
-            "tue",
-            "wed",
-            "thu",
-            "fri"
-          ],
-          "enabled": true
-        },
-        {
           "id": "m-10min",
-          "at": 30,
+          "at": 26,
           "type": "announce",
-          "message": "Ethan, the time is {time}. 10 more minutes of Breakfast time",
+          "message": "Ethan, the time is {time}. 15 more minutes of Breakfast time",
           "days": [
             "mon",
             "tue",
@@ -79,7 +65,7 @@
         },
         {
           "id": "m-tv-warning",
-          "at": 38,
+          "at": 39,
           "type": "announce",
           "message": "Let's turn off the TV and get ready to leave",
           "days": [
@@ -93,7 +79,7 @@
         },
         {
           "id": "m-tv-off",
-          "at": 39,
+          "at": 40,
           "type": "turn_off",
           "label": "Turn off the TVs",
           "entity_id": [
@@ -101,6 +87,20 @@
             "media_player.living_room",
             "media_player.kitchen_google"
           ],
+          "days": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri"
+          ],
+          "enabled": true
+        },
+        {
+          "id": "m-goodbye",
+          "at": 41,
+          "type": "announce",
+          "message": "Goodbye and have a great day!",
           "days": [
             "mon",
             "tue",

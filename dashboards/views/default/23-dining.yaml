@@ -1,0 +1,46 @@
+title: Dining Room
+path: dining
+icon: mdi:table-furniture
+subview: true
+back_path: /lovelace-main/home
+type: custom:grid-layout
+layout: !include ../../layouts/frame.yaml
+
+# Room page: the room's main light up top, then its sections from
+# sections/rooms/dining/ (ported from the GUI by tools/port_gui_rooms.py) in columns.
+cards:
+  - !include ../../frame/banner.yaml
+  - !include ../../frame/sidebar.yaml
+  - !include ../../frame/sidebar-lower.yaml
+  - !include ../../frame/footer.yaml
+  - !include ../../navigation/rooms.yaml
+
+  - type: vertical-stack
+    view_layout:
+      grid-area: main
+    cards:
+      - type: custom:bubble-card
+        card_type: button
+        button_type: switch
+        name: Dining Room
+        icon: mdi:table-furniture
+        entity: light.vaulted_light
+        force_icon: true
+        show_state: true
+        show_last_changed: false
+        button_action:
+          tap_action:
+            action: none
+        tap_action:
+          action: toggle
+        sub_button:
+          - entity: fan.ceiling_fan
+            icon: mdi:ceiling-fan
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+      - type: custom:layout-card
+        layout_type: custom:grid-layout
+        layout: !include ../../layouts/main.yaml
+        cards: !include_dir_list ../../sections/rooms/dining

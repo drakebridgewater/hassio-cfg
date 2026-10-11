@@ -3,9 +3,9 @@
 # icon and name, "temperature · humidity" under the name, and Bubble badges on the icon for
 # anything out of range (see ARCHITECTURE.md). A ring around the icon shows the room's
 # lighting-automation blocker: amber while automations are blocked, faint while they run.
-# Tapping anywhere opens the room pop-up.
+# Tapping anywhere opens the room page (or a pop-up, for `popup` hashes).
 # Variables:
-#   name, icon, color ("r, g, b" tint), popup (hash), entity (occupancy sensor)
+#   name, icon, color ("r, g, b" tint), popup (room page path or pop-up hash), entity (occupancy sensor)
 #   temp, humid, extra (optional reading entities), blocker (input_boolean), badges (list)
 room_card:
   default:

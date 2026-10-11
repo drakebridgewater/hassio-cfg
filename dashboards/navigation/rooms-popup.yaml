@@ -1,31 +1,36 @@
-# Room pop-ups (hash links), shared by the Home and Rooms bars.
+# Room pages, shared by the Home and Rooms bars.
 - label: Living Room
   icon: mdi:sofa
   tap_action:
     action: navigate
-    navigation_path: "#living-room"
+    navigation_path: /lovelace-main/living-room
 - label: Kitchen
   icon: mdi:fridge
   tap_action:
     action: navigate
-    navigation_path: "#kitchen"
+    navigation_path: /lovelace-main/kitchen
 - label: Family Room
   icon: mdi:theater
   tap_action:
     action: navigate
-    navigation_path: "#family"
+    navigation_path: /lovelace-main/family-room
+- label: Ethan's Bedroom
+  icon: mdi:bed
+  tap_action:
+    action: navigate
+    navigation_path: /lovelace-main/ethan
 - label: Master
   icon: mdi:bed-king-outline
   tap_action:
     action: navigate
-    navigation_path: "#master"
+    navigation_path: /lovelace-main/master-bedroom
 - label: Office
   icon: mdi:desk
   tap_action:
     action: navigate
-    navigation_path: "#office"
+    navigation_path: /lovelace-main/office
 - label: Outdoors
   icon: hue:room-outdoors
   tap_action:
     action: navigate
-    navigation_path: "#outdoors"
+    navigation_path: /lovelace-main/outdoors

@@ -5,7 +5,7 @@ variables:
   - name: Kitchen
   - icon: mdi:countertop-outline
   - color: 139, 195, 74
-  - popup: '#kitchen'
+  - popup: /lovelace-main/kitchen
   - entity: binary_sensor.athom_presence_sensor_9bd3a3_occupancy
   - temp: sensor.living_room_temperature_sensor_temperature
   - humid: sensor.thermostat_humidity

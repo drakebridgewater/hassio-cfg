@@ -2294,7 +2294,6 @@
         data: {}
 - id: '1728395631624'
   alias: Ethan's Morning Routine
-  # Replaced by Ethan's Morning/Bedtime Schedule (packages/ethan_routines.yaml); kept as a fallback.
   initial_state: false
   description: This is a morning routine that takes place over 30 minutes.
   triggers:
@@ -2514,7 +2513,6 @@
   mode: single
 - id: '1736262664324'
   alias: Ethan's Bedtime Routine
-  # Replaced by Ethan's Morning/Bedtime Schedule (packages/ethan_routines.yaml); kept as a fallback.
   initial_state: false
   description: "This automation is set to start at a specific time we've chosen for
     Ethan's bedtime. It only runs if our alarm system is disarmed and Ethan's bedroom
@@ -5249,3 +5247,168 @@
       brightness: '{{ brightness }}'
   mode: queued
   max: 5
+- id: '1791043579525'
+  alias: Update OpenUV
+  description: ''
+  triggers:
+  - trigger: time_pattern
+    minutes: /20
+    id: 20M
+  - trigger: time
+    at: '11:59:00'
+    id: Noon
+  conditions:
+  - condition: numeric_state
+    entity_id: sun.sun
+    value_template: '{{ state.attributes.elevation }}'
+    above: 10
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - 20M
+      sequence:
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.openuv_current_uv_index
+    - conditions:
+      - condition: trigger
+        id:
+        - Noon
+      sequence:
+      - action: homeassistant.update_entity
+        target:
+          entity_id: binary_sensor.openuv_protection_window
+  mode: single
+- id: '1791468965573'
+  alias: Ethan's Morning Schedule
+  description: Plays the morning steps from configs/routines.json on workdays.
+  triggers:
+  - trigger: time
+    at: input_datetime.ethan_s_alarm_clock
+  conditions:
+  - condition: state
+    entity_id: binary_sensor.workday_sensor
+    state: 'on'
+  actions:
+  - action: script.routine_run
+    data:
+      routine: morning
+      while_entity: binary_sensor.home_occupied
+      while_state: 'on'
+  mode: single
+- id: '1791471918911'
+  alias: Notification - Frigate Camera Health
+  description: Alerts when a Frigate camera stream or Frigate itself goes down, with
+    a hint at the cause, confirms recovery with the outage length, and reminds every
+    morning about anything still down.
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.frigate_service_problem
+    - binary_sensor.frigate_backyard_stream_problem
+    - binary_sensor.frigate_driveway_stream_problem
+    - binary_sensor.frigate_garage_stream_problem
+    - binary_sensor.frigate_entryway_stream_problem
+    - binary_sensor.frigate_frontdoor_stream_problem
+    from:
+    - 'off'
+    - unknown
+    to: 'on'
+    id: down
+  - trigger: state
+    entity_id:
+    - binary_sensor.frigate_service_problem
+    - binary_sensor.frigate_backyard_stream_problem
+    - binary_sensor.frigate_driveway_stream_problem
+    - binary_sensor.frigate_garage_stream_problem
+    - binary_sensor.frigate_entryway_stream_problem
+    - binary_sensor.frigate_frontdoor_stream_problem
+    from: 'on'
+    to: 'off'
+    id: up
+  - trigger: time
+    at: 09:00:00
+    id: reminder
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: down
+      sequence:
+      - variables:
+          camera: '{{ state_attr(trigger.entity_id, ''camera'') or ''Frigate'' }}'
+          ping_entity: '{{ state_attr(trigger.entity_id, ''ping_entity'') }}'
+          since: '{{ (now() - timedelta(minutes=2)).strftime(''%-I:%M%p'') }}'
+          cause: '{% if not ping_entity %} Frigate is unavailable. Check the container
+            logs (Coral unplugged? NGINX cert mount?). {% elif is_state(ping_entity,
+            ''off'') %} Camera does not answer ping: power, PoE, Wi-Fi or IP change.
+            {% elif not is_state(ping_entity, ''on'') %} Camera reachability unknown
+            (ping sensor unavailable). {% else %} Camera answers ping but Frigate
+            gets no frames. The camera''s RTSP server is probably hung (reboot the
+            camera); if a reboot doesn''t help, restart Frigate. {% endif %}'
+      - action: persistent_notification.create
+        data:
+          notification_id: frigate_health_{{ camera }}
+          title: Camera down - {{ camera | title }}
+          message: No frames since about {{ since }}. {{ cause | trim }}
+      - action: logbook.log
+        data:
+          name: Frigate {{ camera }}
+          message: went down ({{ cause | trim }})
+          entity_id: '{{ trigger.entity_id }}'
+      - action: ticker.notify
+        continue_on_error: true
+        data:
+          category: Camera Health
+          title: Camera down - {{ camera | title }}
+          message: No frames since about {{ since }}. {{ cause | trim }}
+    - conditions:
+      - condition: trigger
+        id: up
+      sequence:
+      - variables:
+          camera: '{{ state_attr(trigger.entity_id, ''camera'') or ''Frigate'' }}'
+          minutes: '{{ ((now() - trigger.from_state.last_changed).total_seconds()
+            / 60) | round(0) | int + 2 }}'
+          duration: '{% if minutes >= 120 %}{{ (minutes / 60) | round(1) }} hours{%
+            else %}{{ minutes }} minutes{% endif %}'
+      - action: persistent_notification.dismiss
+        data:
+          notification_id: frigate_health_{{ camera }}
+      - action: logbook.log
+        data:
+          name: Frigate {{ camera }}
+          message: recovered after about {{ duration }}
+          entity_id: '{{ trigger.entity_id }}'
+      - action: ticker.notify
+        continue_on_error: true
+        data:
+          category: Camera Health
+          title: Camera recovered - {{ camera | title }}
+          message: Back after about {{ duration }}.
+    - conditions:
+      - condition: trigger
+        id: reminder
+      - condition: template
+        value_template: '{{ problem_sensors | select(''is_state'', ''on'') | list
+          | count > 0 }}'
+      sequence:
+      - action: ticker.notify
+        data:
+          category: Camera Health
+          title: Cameras still down
+          message: '{% for s in problem_sensors | select(''is_state'', ''on'') %}
+            {{ state_attr(s, ''camera'') or ''Frigate'' }}: down {{ relative_time(states[s].last_changed)
+            }} {% endfor %}'
+  mode: queued
+  variables:
+    problem_sensors:
+    - binary_sensor.frigate_service_problem
+    - binary_sensor.frigate_backyard_stream_problem
+    - binary_sensor.frigate_driveway_stream_problem
+    - binary_sensor.frigate_garage_stream_problem
+    - binary_sensor.frigate_entryway_stream_problem
+    - binary_sensor.frigate_frontdoor_stream_problem

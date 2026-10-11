@@ -4,10 +4,11 @@ icon: mdi:thermometer
 subview: true
 back_path: /lovelace-main/home
 type: custom:grid-layout
-layout: !include ../../layouts/grid_wide.yaml
+layout: !include ../../layouts/frame.yaml
 cards:
   - !include ../../frame/banner.yaml
   - !include ../../frame/sidebar.yaml
+  - !include ../../frame/sidebar-lower.yaml
   - !include ../../frame/footer.yaml
   - !include ../../navigation/house.yaml
 

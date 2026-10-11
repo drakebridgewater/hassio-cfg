@@ -5,7 +5,7 @@ variables:
   - name: Family Room
   - icon: mdi:theater
   - color: 233, 30, 99
-  - popup: '#family'
+  - popup: /lovelace-main/family-room
   - entity: binary_sensor.athom_family_room_presence_sensor_occupancy
   - temp: sensor.view_plus_temperature
   - humid: sensor.view_plus_humidity

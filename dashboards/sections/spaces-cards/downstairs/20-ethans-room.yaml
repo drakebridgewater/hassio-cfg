@@ -5,7 +5,7 @@ variables:
   - name: Ethan's Bedroom
   - icon: mdi:teddy-bear
   - color: 0, 188, 212
-  - popup: '#ethan'
+  - popup: /lovelace-main/ethan
   - entity: binary_sensor.ethans_bedroom_presence_sensor_occupancy
   - temp: sensor.ethan_bedroom_temperature
   - blocker: input_boolean.lighting_automation_blocker_ethan_s_room

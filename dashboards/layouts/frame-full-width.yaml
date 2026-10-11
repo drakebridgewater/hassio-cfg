@@ -1,0 +1,17 @@
+# Shared frame for every view: banner across the top, general (sidebar) on the
+# left, page-specific `main` on the right, footer across the bottom.
+# `main` holds one nested grid layout-card (layouts/main.yaml) that adds columns
+# as the space grows, so no view leaves empty section slots.
+# Breakpoints match the cards: 768px is where the navbar becomes a right rail,
+# the room bar appears and the sidebar's calendar/weather/media cards show.
+# The first matching media query wins, so they run narrowest first.
+# The sidebar column keeps a minimum width so its cards fit their boxes; `main`
+# is minmax(0, ...) so wide cards (camera, calendar) shrink instead of pushing
+# the page into sideways scrolling.
+grid-gap: calc(var(--custom-layout-card-padding) * 1.7)
+grid-template-columns: minmax(0, 1fr)
+grid-template-rows: auto 100% auto
+grid-template-areas: |
+  "banner "
+  "main   "
+  "footer "

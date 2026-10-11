@@ -896,8 +896,8 @@ panic_fire:
     data:
       category: Safety
       title: "\U0001F525 FIRE PANIC TRIGGERED"
-      message: Fire panic pressed at {{ now().strftime('%I:%M %p') }}. HVAC off,
-        doors unlocked, garage open, lights on. Evacuate now.
+      message: Fire panic pressed at {{ now().strftime('%I:%M %p') }}. HVAC off, doors
+        unlocked, garage open, lights on. Evacuate now.
 panic_medical:
   alias: Panic - Medical
   description: 'Medical panic button: alerts family with last camera snapshot, TTS
@@ -959,8 +959,8 @@ panic_medical:
     data:
       category: Safety
       title: "\U0001F3E5 MEDICAL PANIC TRIGGERED"
-      message: Medical panic pressed at {{ now().strftime('%I:%M %p') }}. Front
-        door unlocked, path lights on. Check on family immediately.
+      message: Medical panic pressed at {{ now().strftime('%I:%M %p') }}. Front door
+        unlocked, path lights on. Check on family immediately.
 panic_stand_down:
   alias: Panic - Stand Down
   description: Cleans up after a panic event. Turns off sirens/strobes, stops TTS,
@@ -1044,10 +1044,10 @@ panic_stand_down:
       category: Safety
       critical: false
       title: ✅ Stand Down
-      message: '{{ states(''input_text.last_panic_type'') | title }} panic stood
-        down at {{ now().strftime(''%I:%M %p'') }}. Sirens off, lights restored,
-        alarm returned to {{ states(''input_text.pre_panic_alarm_state'') }}. Garage
-        and locks left as-is — reset manually if needed.'
+      message: '{{ states(''input_text.last_panic_type'') | title }} panic stood down
+        at {{ now().strftime(''%I:%M %p'') }}. Sirens off, lights restored, alarm
+        returned to {{ states(''input_text.pre_panic_alarm_state'') }}. Garage and
+        locks left as-is — reset manually if needed.'
   - action: input_boolean.turn_off
     target:
       entity_id: input_boolean.panic_active
@@ -1058,8 +1058,8 @@ panic_stand_down:
       entity_id: input_text.last_panic_type
 security_critical_alert:
   alias: Security - Critical Alarm Alert
-  description: Critical actionable push for Alarmo via Ticker. pending = Security category;
-    triggered = Safety category. Camera + Disarm button.
+  description: Critical actionable push for Alarmo via Ticker. pending = Security
+    category; triggered = Safety category. Camera + Disarm button.
   icon: mdi:shield-alert
   mode: restart
   fields:
@@ -1079,11 +1079,9 @@ security_critical_alert:
       body: '{% if phase == ''triggered'' %}Alarm is sounding — tripped by {{ sensor_name
         }}.{% else %}{{ sensor_name }} tripped. {{ state_attr(''alarm_control_panel.default'',''delay'')
         or 60 }}s to disarm.{% endif %}'
-  # triggered → Safety (locked-on phone recipients + Pushover); pending → Security
-  # (per-person subscription). Both categories are critical.
   - action: ticker.notify
     data:
-      category: "{{ 'Safety' if phase == 'triggered' else 'Security' }}"
+      category: '{{ ''Safety'' if phase == ''triggered'' else ''Security'' }}'
       title: '{{ title }}'
       message: '{{ body }}'
       navigate_to: /lovelace-security/main-floor-security
@@ -1594,3 +1592,53 @@ ticker_notify_schedules:
       category: Schedules
       title: '{{ title | default(''Schedule'') }}'
       message: '{{ message }}'
+routine_run_schedule:
+  sequence:
+  - variables:
+      started: '{{ now().timestamp() }}'
+      today: '{{ now().strftime(''%a'') | lower }}'
+      steps: "{% set cfg = (state_attr('pyscript.ethan_routines', 'routines') or {}).get(routine,
+        {}) %} {{ cfg.get('steps', [])\n   | selectattr('enabled')\n   | selectattr('days',
+        'contains', today)\n   | sort(attribute='at')\n   | list }}"
+  - if:
+    - condition: template
+      value_template: '{{ steps | count == 0 }}'
+    then:
+    - stop: No steps scheduled today
+  - repeat:
+      for_each: '{{ steps }}'
+      sequence:
+      - delay:
+          seconds: '{{ [0, started + repeat.item.at * 60 - now().timestamp()] | max
+            | round(0) | int }}'
+      - if:
+        - condition: template
+          value_template: '{{ while_entity is defined and while_entity and not is_state(while_entity,
+            while_state) }}'
+        then:
+        - stop: '{{ while_entity }} left {{ while_state }}'
+      - action: script.routine_step
+        data:
+          step: '{{ repeat.item }}'
+  alias: Routine - Run schedule
+  description: Plays today's enabled steps of a routine from pyscript.ethan_routines,
+    timed from now.
+  icon: mdi:playlist-play
+  mode: parallel
+  max: 4
+  fields:
+    routine:
+      description: Routine key in configs/routines.json
+      required: true
+      example: bedtime
+      selector:
+        text:
+    while_entity:
+      description: Optional. Stop before any step once this entity leaves while_state.
+      selector:
+        entity:
+    while_state:
+      description: State while_entity must be in for the routine to continue.
+      example: 'on'
+      selector:
+        text:

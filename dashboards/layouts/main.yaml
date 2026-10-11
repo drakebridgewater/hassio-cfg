@@ -1,0 +1,11 @@
+# Layout for the `main` area of layouts/frame.yaml, used by a nested
+# `custom:layout-card` with `layout_type: custom:grid-layout`. Each card (usually
+# a page's column stack) gets a column at least 300px wide; columns stretch to
+# fill the area, and wrap one at a time as it narrows, down to one on a phone.
+# auto-fit drops unused tracks, so a page with fewer cards than fit still fills
+# the width. (Masonry was tried: it sorts stacks by estimated size, which is 0
+# while Bubble cards load, so every stack landed in the first column.)
+grid-gap: var(--custom-layout-card-padding)
+grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr))
+# layout-card only applies grid-*, place-items and place-content keys.
+place-items: start stretch

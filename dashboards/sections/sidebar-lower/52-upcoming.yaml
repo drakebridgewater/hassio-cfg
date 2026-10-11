@@ -1,4 +1,4 @@
-# Upcoming: goodnight scene at night, birthdays (tablet and up). Garbage/Ridwell
+# Upcoming: goodnight scene at night, birthdays. Garbage/Ridwell
 # take-out reminders live in the AlertTicker banner (dashboards/cards/alert-ticker.yaml).
 type: vertical-stack
 cards:
@@ -29,9 +29,6 @@ cards:
         before: "05:00:00"
 
   - type: custom:calendar-card-pro
-    visibility:
-      - condition: screen
-        media_query: "(min-width: 768px)"
     entities:
       - entity: calendar.birthdays
     days_to_show: 30

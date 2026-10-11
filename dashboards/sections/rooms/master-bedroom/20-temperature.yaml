@@ -30,6 +30,35 @@ cards:
         color: '#de9e00'
       - value: 74
         color: '#d43400'
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    entity: light.apollo_air_1_f8b340_rgb_light
+    name: Air Quality Indicator
+    icon: mdi:molecule-co2
+    sub_button:
+      main:
+        - entity: light.apollo_air_1_f8b340_rgb_light
+          icon: mdi:power
+          tap_action:
+            action: toggle
+      bottom:
+        - entity: sensor.apollo_air_1_f8b340_co2
+          show_state: true
+          show_name: false
+          show_background: false
+          fill_width: false
+        - entity: sensor.apollo_air_1_f8b340_pm_2_5mm_weight_concentration
+          show_state: true
+          show_background: false
+          fill_width: false
+        - entity: sensor.apollo_air_1_f8b340_sen55_voc
+          show_state: true
+          show_background: false
+          fill_width: false
+    rows: 1.719
+    show_last_changed: false
+    show_last_updated: false
   - type: custom:mini-graph-card
     name: CO2 Levels
     icon: mdi:molecule-co2

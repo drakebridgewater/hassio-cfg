@@ -1,0 +1,7 @@
+# Shared view frame: lower part of the left sidebar (calendars, chores, media,
+# batteries). Sits right under frame/sidebar.yaml on tablet and desktop, so the
+# two read as one column; on phones it drops below the page content.
+type: vertical-stack
+view_layout:
+  grid-area: lower
+cards: !include_dir_list ../sections/sidebar-lower
