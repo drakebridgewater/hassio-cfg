@@ -1,0 +1,103 @@
+# =============================================================================
+# Work and school today - one sensor per person
+# =============================================================================
+# The daily "Working" and "Elementary School" events are hidden from the
+# calendars (tablet hero, calendar page); these sensors carry that information
+# instead. Each sensor's state is working, school or off, with attributes:
+#   expected  true on a day this person normally works or has school
+#   start/end today's event times (none when there's no timed event)
+#   reason    why they're off, from a calendar event when there is one
+#   summary   one line for cards: "Work until 5 PM", "Off today · PTO"
+# The tablet hero shows a notice only when someone is off on a day they'd
+# normally be at work or school (expected and off).
+#
+# Rules:
+#   Drake   working when calendar.drake_s_google has an event named "Working".
+#   Shawna  works Monday-Thursday on workdays; off when her calendar has an event
+#           with off, PTO, vacation, sick or holiday in the title.
+#   Ethan   school when calendar.ethans_calendar has "Elementary School".
+# Workdays come from binary_sensor.workday_sensor (weekends and US holidays off).
+# =============================================================================
+
+work_school:
+  template:
+    - triggers:
+        - trigger: homeassistant
+          event: start
+        - trigger: event
+          event_type: event_template_reloaded
+        - trigger: time_pattern
+          minutes: /15
+      actions:
+        - action: calendar.get_events
+          target:
+            entity_id:
+              - calendar.drake_s_google
+              - calendar.shawna_s_gmail
+              - calendar.ethans_calendar
+          data:
+            start_date_time: "{{ today_at() }}"
+            end_date_time: "{{ today_at() + timedelta(days=1) }}"
+          response_variable: cal
+        # Regex backslashes are doubled: Jinja unescapes string literals, so a
+        # single \b would reach the regex as a backspace.
+        - variables:
+            workday: "{{ is_state('binary_sensor.workday_sensor', 'on') }}"
+            drake: >-
+              {{ (cal['calendar.drake_s_google'].events if 'calendar.drake_s_google' in cal else [])
+                 | selectattr('summary', 'search', '(?i)^\\s*working\\b') | list }}
+            shawna_off: >-
+              {{ (cal['calendar.shawna_s_gmail'].events if 'calendar.shawna_s_gmail' in cal else [])
+                 | selectattr('summary', 'search', '(?i)\\b(off|pto|vacation|sick|holiday)\\b') | list }}
+            ethan_events: "{{ cal['calendar.ethans_calendar'].events if 'calendar.ethans_calendar' in cal else [] }}"
+            ethan: "{{ ethan_events | selectattr('summary', 'search', '(?i)elementary school') | list }}"
+            ethan_off: >-
+              {{ ethan_events | selectattr('summary', 'search', '(?i)no school|in.?service|conference|break|holiday') | list }}
+      sensor:
+        - name: Drake work today
+          unique_id: drake_work_today
+          state: "{{ 'working' if drake else 'off' }}"
+          icon: "{{ 'mdi:briefcase-outline' if drake else 'mdi:briefcase-off' }}"
+          attributes:
+            expected: "{{ workday }}"
+            start: "{{ drake[0].start if drake else none }}"
+            end: "{{ drake[0].end if drake else none }}"
+            reason: "{{ none }}"
+            summary: >-
+              {% if drake and 'T' in drake[0].end %}
+                {% set t = as_datetime(drake[0].end) | as_local %}
+                Work until {{ t.strftime('%-I') ~ (t.strftime(':%M') if t.minute else '') ~ ' ' ~ t.strftime('%p') }}
+              {%- elif drake %}Working today{% else %}Off today{% endif %}
+
+        - name: Shawna work today
+          unique_id: shawna_work_today
+          state: >-
+            {{ 'working' if workday and now().isoweekday() <= 4 and not shawna_off else 'off' }}
+          icon: >-
+            {{ 'mdi:briefcase-outline' if workday and now().isoweekday() <= 4 and not shawna_off else 'mdi:briefcase-off' }}
+          attributes:
+            expected: "{{ workday and now().isoweekday() <= 4 }}"
+            start: "{{ none }}"
+            end: "{{ none }}"
+            reason: "{{ shawna_off[0].summary if shawna_off else none }}"
+            summary: >-
+              {% if workday and now().isoweekday() <= 4 and not shawna_off %}Working today
+              {%- elif shawna_off %}Off today · {{ shawna_off[0].summary }}
+              {%- else %}Off today{% endif %}
+
+        - name: Ethan school today
+          unique_id: ethan_school_today
+          state: "{{ 'school' if ethan else 'off' }}"
+          icon: "{{ 'mdi:school-outline' if ethan else 'mdi:home-account' }}"
+          attributes:
+            expected: "{{ workday }}"
+            start: "{{ ethan[0].start if ethan else none }}"
+            end: "{{ ethan[0].end if ethan else none }}"
+            reason: "{{ ethan_off[0].summary if ethan_off else none }}"
+            summary: >-
+              {% if ethan and 'T' in ethan[0].end %}
+                {% set t = as_datetime(ethan[0].end) | as_local %}
+                School until {{ t.strftime('%-I') ~ (t.strftime(':%M') if t.minute else '') ~ ' ' ~ t.strftime('%p') }}
+              {%- elif ethan %}School today
+              {%- elif ethan_off %}No school · {{ ethan_off[0].summary }}
+              {%- else %}No school today{% endif %}

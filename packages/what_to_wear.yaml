@@ -1,0 +1,319 @@
+# =============================================================================
+# What to wear - "does today need an umbrella / a coat / ..." as sensors
+# =============================================================================
+# Reads the daily forecast (sensor.daily_weather_forecast, configs/templates.yaml)
+# and the hourly one (sensor.hourly_weather_forecast, below) and works out what
+# it needs right now, so the outfit changes through the day. Coats, the sweater
+# and the tank top go by how it feels now: the hourly forecast's feels-like
+# temperature, interpolated to the minute (the current reading when there's no
+# hourly forecast). Rain, umbrella and snow look at the next 3 hours; sunglasses
+# at the day's high, while the sun is up. All in °F; rain chance is %; wind is mph.
+#
+# The cutoffs are the input_numbers below (Settings > Devices & services >
+# Helpers). They start at these values on every restart, so change the
+# `initial:` here to make an edit permanent.
+#
+#   binary_sensor.needs_umbrella      rain chance (next 3 hours) at or over the umbrella cutoff
+#   binary_sensor.needs_boots         rain chance (next 3 hours) at or over the rain cutoff, or snow
+#                                     (attribute `kind`: rain or snow)
+#   binary_sensor.needs_sweater       feeling under the sweater cutoff, but not coat weather
+#   binary_sensor.needs_light_coat    feeling under the light-coat cutoff (or windy), no heavy coat
+#   binary_sensor.needs_heavy_coat    feeling under the heavy-coat cutoff, or snow
+#
+# Warm layers step up as it gets colder: a sweater first, then a light coat
+# instead, then a heavy coat (the kid wears long sleeves under either coat).
+#   binary_sensor.needs_tank_top      feeling at or over the tank-top cutoff
+#   binary_sensor.needs_sunglasses    day's high at or over the sunglasses cutoff, sun up
+#
+# Each item answers to its own slider and nothing else, so any mix can happen at once
+# (sunglasses with an umbrella, a tank top in the rain). Only cutoffs that have to stay
+# in order are tied together: rain gear <= umbrella, and heavy coat <= light coat <=
+# sweater <= tank top. Moving one pushes the others along (the automation at the bottom).
+#
+# Their icons are the wear: set (www/wear-icons.js, loaded from frontend.extra_module_url).
+# dashboards/decluttering-templates/what_to_wear.yaml draws the kid from these.
+# =============================================================================
+
+what_to_wear:
+  input_number:
+    wear_rain_chance:
+      name: Wear - rain gear from rain chance
+      icon: wear:boots
+      unit_of_measurement: "%"
+      min: 0
+      max: 100
+      step: 5
+      initial: 40
+    wear_umbrella_chance:
+      name: Wear - umbrella from rain chance
+      icon: wear:umbrella
+      unit_of_measurement: "%"
+      min: 0
+      max: 100
+      step: 5
+      initial: 60
+    wear_light_coat_below:
+      name: Wear - light coat below
+      icon: wear:light-coat
+      unit_of_measurement: "°F"
+      min: 0
+      max: 110
+      step: 1
+      initial: 52
+    wear_heavy_coat_below:
+      name: Wear - heavy coat below
+      icon: wear:heavy-coat
+      unit_of_measurement: "°F"
+      min: 0
+      max: 110
+      step: 1
+      initial: 45
+    wear_sweater_below:
+      name: Wear - sweater below
+      icon: wear:sweater
+      unit_of_measurement: "°F"
+      min: 0
+      max: 110
+      step: 1
+      initial: 60
+    wear_tank_top_from:
+      name: Wear - tank top from
+      icon: wear:tank-top
+      unit_of_measurement: "°F"
+      min: 0
+      max: 110
+      step: 1
+      initial: 80
+    wear_sunglasses_high:
+      name: Wear - sunglasses when the high reaches
+      icon: wear:sunglasses
+      unit_of_measurement: "°F"
+      min: 40
+      max: 110
+      step: 1
+      initial: 75
+    wear_windy_from:
+      name: Wear - windy from
+      icon: mdi:weather-windy
+      unit_of_measurement: mph
+      min: 0
+      max: 60
+      step: 1
+      initial: 15
+
+  template:
+    # The hourly forecast for the next day and a half, trimmed to what the
+    # current temperature and the weather card's graph need (the full one is
+    # too big for an attribute).
+    - triggers:
+        - trigger: homeassistant
+          event: start
+        - trigger: time_pattern
+          hours: "/1"
+        - trigger: state
+          entity_id: weather.pirateweather
+      actions:
+        - action: weather.get_forecasts
+          target:
+            entity_id: weather.pirateweather
+          data:
+            type: hourly
+          response_variable: hourly
+      sensor:
+        - name: Hourly weather forecast
+          unique_id: hourly_weather_forecast
+          icon: mdi:clock-time-eight-outline
+          state: "{{ states('weather.pirateweather') }}"
+          attributes:
+            forecast: >
+              {% set ns = namespace(out=[]) %}
+              {% for f in (hourly['weather.pirateweather'].forecast or [])[:36] %}
+                {% set ns.out = ns.out + [{'datetime': f.datetime, 'temperature': f.temperature,
+                   'apparent_temperature': f.apparent_temperature | default(f.temperature, true),
+                   'precipitation_probability': f.precipitation_probability | default(0, true),
+                   'wind_speed': f.wind_speed | default(0, true), 'wind_bearing': f.wind_bearing,
+                   'condition': f.condition}] %}
+              {% endfor %}
+              {{ ns.out }}
+    - triggers:
+        - trigger: homeassistant
+          event: start
+        - trigger: time_pattern
+          minutes: "/5"
+        - trigger: state
+          entity_id:
+            - sensor.daily_weather_forecast
+            - sensor.hourly_weather_forecast
+            - input_number.wear_rain_chance
+            - input_number.wear_umbrella_chance
+            - input_number.wear_light_coat_below
+            - input_number.wear_heavy_coat_below
+            - input_number.wear_sweater_below
+            - input_number.wear_tank_top_from
+            - input_number.wear_sunglasses_high
+            - input_number.wear_windy_from
+      variables:
+        fc: "{{ state_attr('sensor.daily_weather_forecast', 'forecast') or [] }}"
+        day: "{{ fc[0] if fc else none }}"
+        imperial: "{{ state_attr('weather.pirateweather', 'temperature_unit') in [none, '°F'] }}"
+        hi: >
+          {{ ((day.temperature | float(0)) * (1 if imperial else 1.8) + (0 if imperial else 32)) if day else 0 }}
+        lo: >
+          {{ ((day.templow | default(day.temperature, true) | float(0)) * (1 if imperial else 1.8) + (0 if imperial else 32)) if day else 0 }}
+        # The next 3 hours (the current hour's entry through 3 hours ahead), and how
+        # it feels now: the hourly feels-like temperature interpolated to the
+        # minute. With no hourly forecast, the current reading.
+        now_ts: "{{ now().timestamp() }}"
+        hours: >
+          {% set ns = namespace(out=[]) %}
+          {% for f in state_attr('sensor.hourly_weather_forecast', 'forecast') or [] %}
+            {% set ft = as_timestamp(f.datetime) %}
+            {% if now_ts - 3600 < ft <= now_ts + 10800 %}{% set ns.out = ns.out + [f] %}{% endif %}
+          {% endfor %}
+          {{ ns.out }}
+        feels_fc: >
+          {% set ns = namespace(prev=none, val=none) %}
+          {% for f in state_attr('sensor.hourly_weather_forecast', 'forecast') or [] %}
+            {% set ft = as_timestamp(f.datetime) %}
+            {% set fv = f.apparent_temperature | float(none) %}
+            {% if ns.val is none and fv is not none and ft >= now_ts %}
+              {% if ns.prev is not none and ft > now_ts %}
+                {% set ns.val = ns.prev[1] + (fv - ns.prev[1]) * (now_ts - ns.prev[0]) / (ft - ns.prev[0]) %}
+              {% else %}
+                {% set ns.val = fv %}
+              {% endif %}
+            {% endif %}
+            {% if fv is not none %}{% set ns.prev = [ft, fv] %}{% endif %}
+          {% endfor %}
+          {{ none if ns.val is none else ns.val * (1 if imperial else 1.8) + (0 if imperial else 32) }}
+        current: >
+          {% set t = state_attr('weather.pirateweather', 'apparent_temperature') | default(state_attr('weather.pirateweather', 'temperature'), true) | float(none) %}
+          {{ none if t is none else t * (1 if imperial else 1.8) + (0 if imperial else 32) }}
+        feels: >
+          {{ feels_fc | float(current | float(lo)) if feels_fc not in [none, 'None', ''] else (current | float(lo) if current not in [none, 'None', ''] else lo) }}
+        pop: >
+          {% if hours %}{{ hours | map(attribute='precipitation_probability') | map('float', 0) | max }}
+          {%- else %}{{ day.precipitation_probability | float(0) if day else 0 }}{% endif %}
+        wind: >
+          {% set w = (hours | map(attribute='wind_speed') | map('float', 0) | max) if hours else (day.wind_speed | float(0) if day else 0) %}
+          {{ w * {'km/h': 0.6214, 'm/s': 2.237, 'kn': 1.151}.get(state_attr('weather.pirateweather', 'wind_speed_unit'), 1) }}
+        cond: "{{ hours[0].condition if hours else (day.condition if day else '') }}"
+        snowy: >
+          {% set bad = ['snowy', 'snowy-rainy', 'hail'] %}
+          {{ (hours | map(attribute='condition') | select('in', bad) | list | count > 0) if hours else cond in bad }}
+        wet: "{{ pop >= states('input_number.wear_rain_chance') | float(40) }}"
+        windy: "{{ wind >= states('input_number.wear_windy_from') | float(15) }}"
+        heavy: >
+          {{ snowy or feels < states('input_number.wear_heavy_coat_below') | float(45) }}
+      sensor:
+        - name: Wear day
+          unique_id: wear_day
+          icon: mdi:calendar-today
+          availability: "{{ day is not none }}"
+          state: today
+          attributes:
+            high: "{{ hi | round(0) }}"
+            low: "{{ lo | round(0) }}"
+            feels_temp: "{{ feels | round(0) }}"
+            feels_from: "{{ 'hourly' if feels_fc not in [none, 'None', ''] else 'current' }}"
+            rain_chance: "{{ pop | round(0) }}"
+            wind: "{{ wind | round(0) }}"
+            condition: "{{ cond }}"
+            windy: "{{ windy }}"
+      binary_sensor:
+        - name: Needs umbrella
+          unique_id: needs_umbrella
+          icon: wear:umbrella
+          availability: "{{ day is not none }}"
+          state: "{{ pop >= states('input_number.wear_umbrella_chance') | float(60) }}"
+        - name: Needs boots
+          unique_id: needs_boots
+          icon: wear:boots
+          availability: "{{ day is not none }}"
+          state: "{{ wet or snowy }}"
+          attributes:
+            kind: "{{ 'snow' if snowy else ('rain' if wet else 'none') }}"
+        - name: Needs light coat
+          unique_id: needs_light_coat
+          icon: wear:light-coat
+          availability: "{{ day is not none }}"
+          state: >
+            {{ not heavy
+               and (feels < states('input_number.wear_light_coat_below') | float(52) or windy) }}
+        - name: Needs heavy coat
+          unique_id: needs_heavy_coat
+          icon: wear:heavy-coat
+          availability: "{{ day is not none }}"
+          state: "{{ heavy }}"
+        - name: Needs sweater
+          unique_id: needs_sweater
+          icon: wear:sweater
+          availability: "{{ day is not none }}"
+          state: >
+            {{ not heavy
+               and feels >= states('input_number.wear_light_coat_below') | float(52)
+               and feels < states('input_number.wear_sweater_below') | float(60) }}
+        - name: Needs tank top
+          unique_id: needs_tank_top
+          icon: wear:tank-top
+          availability: "{{ day is not none }}"
+          state: "{{ feels >= states('input_number.wear_tank_top_from') | float(80) }}"
+        - name: Needs sunglasses
+          unique_id: needs_sunglasses
+          icon: wear:sunglasses
+          availability: "{{ day is not none }}"
+          state: "{{ is_state('sun.sun', 'above_horizon') and hi >= states('input_number.wear_sunglasses_high') | float(75) }}"
+
+  automation:
+    - id: wear_keep_cutoffs_in_order
+      alias: What to wear - keep cutoffs in order
+      description: >
+        Sliders that have to stay in order push their neighbours along: rain gear
+        <= umbrella, and heavy coat <= light coat <= sweater <= tank top.
+      mode: queued
+      max: 20
+      max_exceeded: silent
+      triggers:
+        - trigger: state
+          entity_id:
+            - input_number.wear_rain_chance
+            - input_number.wear_umbrella_chance
+            - input_number.wear_heavy_coat_below
+            - input_number.wear_sweater_below
+            - input_number.wear_light_coat_below
+            - input_number.wear_tank_top_from
+      conditions:
+        - condition: template
+          value_template: "{{ trigger.to_state.state | is_number }}"
+      actions:
+        - variables:
+            rain_pair:
+              - input_number.wear_rain_chance
+              - input_number.wear_umbrella_chance
+            temps:
+              - input_number.wear_heavy_coat_below
+              - input_number.wear_light_coat_below
+              - input_number.wear_sweater_below
+              - input_number.wear_tank_top_from
+            group: "{{ rain_pair if trigger.entity_id in rain_pair else temps }}"
+            moved: "{{ group.index(trigger.entity_id) }}"
+            v: "{{ trigger.to_state.state | float }}"
+        - repeat:
+            for_each: "{{ group }}"
+            sequence:
+              - variables:
+                  pos: "{{ group.index(repeat.item) }}"
+                  cur: "{{ states(repeat.item) | float(0) }}"
+                  want: >
+                    {% if pos > moved %}{{ [cur, v] | max }}
+                    {%- elif pos < moved %}{{ [cur, v] | min }}
+                    {%- else %}{{ cur }}{% endif %}
+              - if:
+                  - condition: template
+                    value_template: "{{ want | float != cur }}"
+                then:
+                  - action: input_number.set_value
+                    target:
+                      entity_id: "{{ repeat.item }}"
+                    data:
+                      value: "{{ want | float }}"

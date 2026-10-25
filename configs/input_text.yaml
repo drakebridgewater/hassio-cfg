@@ -1,3 +1,11 @@
 parameter_description:
   name: Parameter Description
   initial: Select a parameter to see its description
+
+# Alarmo code for automated arm/disarm (automations.yaml, scripts.yaml). Set the value once
+# from Developer tools > States or an entity dialog; it is restored across restarts.
+alarmo_code_system:
+  name: Alarmo code (system)
+  mode: password
+  min: 0
+  max: 32

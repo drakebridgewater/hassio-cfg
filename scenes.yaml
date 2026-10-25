@@ -26,63 +26,6 @@
       friendly_name: 'Entertainment Center Strip '
       supported_features: 32
       state: 'on'
-    light.yeelight_pulley_lamp:
-      min_color_temp_kelvin: 1700
-      max_color_temp_kelvin: 6500
-      min_mireds: 153
-      max_mireds: 588
-      effect_list:
-      - Strobe color
-      - Police
-      - Christmas
-      - RGB
-      - Random Loop
-      - Fast Random Loop
-      - LSD
-      - Slowdown
-      - Night Mode
-      - Date Night
-      - Movie
-      - Sunrise
-      - Sunset
-      - Romance
-      - Happy Birthday
-      - Disco
-      - Strobe epilepsy!
-      - Alarm
-      - Police2
-      - WhatsApp
-      - Facebook
-      - Twitter
-      - Home
-      - Candle Flicker
-      - Tea Time
-      - Slow Temp
-      - Stop
-      supported_color_modes:
-      - color_temp
-      - hs
-      - rgb
-      effect:
-      color_mode: rgb
-      brightness: 3
-      color_temp_kelvin:
-      color_temp:
-      hs_color:
-      - 307.016
-      - 97.255
-      rgb_color:
-      - 255
-      - 7
-      - 226
-      xy_color:
-      - 0.424
-      - 0.173
-      flowing: false
-      music_mode: false
-      friendly_name: Pulley Lamp
-      supported_features: 44
-      state: 'on'
     light.yeelight_theater_left:
       min_color_temp_kelvin: 1700
       max_color_temp_kelvin: 6500
@@ -236,56 +179,6 @@
       xy_color:
       friendly_name: 'Entertainment Center Strip '
       supported_features: 32
-      state: 'off'
-    light.yeelight_pulley_lamp:
-      min_color_temp_kelvin: 1700
-      max_color_temp_kelvin: 6500
-      min_mireds: 153
-      max_mireds: 588
-      effect_list:
-      - Strobe color
-      - Police
-      - Christmas
-      - RGB
-      - Random Loop
-      - Fast Random Loop
-      - LSD
-      - Slowdown
-      - Night Mode
-      - Date Night
-      - Movie
-      - Sunrise
-      - Sunset
-      - Romance
-      - Happy Birthday
-      - Disco
-      - Strobe epilepsy!
-      - Alarm
-      - Police2
-      - WhatsApp
-      - Facebook
-      - Twitter
-      - Home
-      - Candle Flicker
-      - Tea Time
-      - Slow Temp
-      - Stop
-      supported_color_modes:
-      - color_temp
-      - hs
-      - rgb
-      effect:
-      color_mode:
-      brightness:
-      color_temp_kelvin:
-      color_temp:
-      hs_color:
-      rgb_color:
-      xy_color:
-      flowing: false
-      music_mode: false
-      friendly_name: Pulley Lamp
-      supported_features: 44
       state: 'off'
     light.yeelight_theater_left:
       min_color_temp_kelvin: 1700
@@ -905,53 +798,6 @@
       rgb_color:
       xy_color:
       friendly_name: Living Room TV Right Lamp
-      supported_features: 44
-      state: 'off'
-    light.yeelight_pulley_lamp:
-      min_color_temp_kelvin: 1700
-      max_color_temp_kelvin: 6500
-      effect_list:
-      - Strobe color
-      - Police
-      - Christmas
-      - RGB
-      - Random Loop
-      - Fast Random Loop
-      - LSD
-      - Slowdown
-      - Night Mode
-      - Date Night
-      - Movie
-      - Sunrise
-      - Sunset
-      - Romance
-      - Happy Birthday
-      - Disco
-      - Strobe epilepsy!
-      - Alarm
-      - Police2
-      - WhatsApp
-      - Facebook
-      - Twitter
-      - Home
-      - Candle Flicker
-      - Tea Time
-      - Slow Temp
-      - Stop
-      supported_color_modes:
-      - color_temp
-      - hs
-      - rgb
-      effect:
-      color_mode:
-      brightness:
-      color_temp_kelvin:
-      hs_color:
-      rgb_color:
-      xy_color:
-      flowing: false
-      music_mode: false
-      friendly_name: Pulley Lamp
       supported_features: 44
       state: 'off'
     light.yeelight_theater_left:
@@ -2741,9 +2587,6 @@
       brightness: 43
       friendly_name: Stairs Wall Switch
       supported_features: 40
-      state: 'on'
-    switch.basement_bathroom_holiday:
-      friendly_name: Basement Bathroom Holiday
       state: 'on'
     light.kitchen_wall_switch:
       supported_color_modes:

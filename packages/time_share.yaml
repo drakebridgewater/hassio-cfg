@@ -1,0 +1,118 @@
+# =============================================================================
+# Share of the year at work, school and daycare
+# =============================================================================
+# Drake and Shawna at work, Ethan at school, Abby at daycare. The recorder only
+# keeps 30 days (configuration.yaml), so history_stats can't span a year. Each
+# place gets a 1/0 "there now" sensor, an integration sensor that adds up the
+# hours, and a yearly utility meter that restarts on 1 January.
+#
+#   sensor.<name>_share_of_year_at_<place>   year to date hours there / hours
+#                                            elapsed, in %
+#
+# The percentage counts from 1 January, or from the date in the template when
+# that is later, so this first year is a share of the days tracked (since
+# 22 October 2026), not of the whole year. From 2027 it is the whole year.
+
+time_share:
+  template:
+    - sensor:
+        - name: Drake at work flag
+          unique_id: drake_at_work_flag
+          state: "{{ 1 if is_state('person.drake', 'Work') else 0 }}"
+        - name: Shawna at work flag
+          unique_id: shawna_at_work_flag
+          state: "{{ 1 if is_state('person.shawna', 'Work') else 0 }}"
+        - name: Ethan at school flag
+          unique_id: ethan_at_school_flag
+          state: "{{ 1 if is_state('binary_sensor.ethan_at_school', 'on') else 0 }}"
+        - name: Abby at daycare flag
+          unique_id: abby_at_daycare_flag
+          state: "{{ 1 if is_state('binary_sensor.abby_at_daycare', 'on') else 0 }}"
+        - name: Drake share of year at work
+          unique_id: drake_share_of_year_at_work
+          unit_of_measurement: "%"
+          state: >
+            {% set tracked_since = today_at().replace(year=2026, month=10, day=22) %}
+            {% set year_start = today_at().replace(month=1, day=1) %}
+            {% set since = [tracked_since, year_start] | max %}
+            {% set elapsed = (now() - since).total_seconds() / 3600 %}
+            {% set hours = states('sensor.drake_hours_at_work_this_year') | float(0) %}
+            {{ ((hours / elapsed) * 100) | round(1) if elapsed >= 1 else 0 }}
+        - name: Shawna share of year at work
+          unique_id: shawna_share_of_year_at_work
+          unit_of_measurement: "%"
+          state: >
+            {% set tracked_since = today_at().replace(year=2026, month=10, day=22) %}
+            {% set year_start = today_at().replace(month=1, day=1) %}
+            {% set since = [tracked_since, year_start] | max %}
+            {% set elapsed = (now() - since).total_seconds() / 3600 %}
+            {% set hours = states('sensor.shawna_hours_at_work_this_year') | float(0) %}
+            {{ ((hours / elapsed) * 100) | round(1) if elapsed >= 1 else 0 }}
+        - name: Ethan share of year at school
+          unique_id: ethan_share_of_year_at_school
+          unit_of_measurement: "%"
+          state: >
+            {% set tracked_since = today_at().replace(year=2026, month=10, day=22) %}
+            {% set year_start = today_at().replace(month=1, day=1) %}
+            {% set since = [tracked_since, year_start] | max %}
+            {% set elapsed = (now() - since).total_seconds() / 3600 %}
+            {% set hours = states('sensor.ethan_hours_at_school_this_year') | float(0) %}
+            {{ ((hours / elapsed) * 100) | round(1) if elapsed >= 1 else 0 }}
+        - name: Abby share of year at daycare
+          unique_id: abby_share_of_year_at_daycare
+          unit_of_measurement: "%"
+          state: >
+            {% set tracked_since = today_at().replace(year=2026, month=10, day=22) %}
+            {% set year_start = today_at().replace(month=1, day=1) %}
+            {% set since = [tracked_since, year_start] | max %}
+            {% set elapsed = (now() - since).total_seconds() / 3600 %}
+            {% set hours = states('sensor.abby_hours_at_daycare_this_year') | float(0) %}
+            {{ ((hours / elapsed) * 100) | round(1) if elapsed >= 1 else 0 }}
+
+  sensor:
+    - platform: integration
+      source: sensor.drake_at_work_flag
+      name: Drake hours at work total
+      unique_id: drake_hours_at_work_total
+      unit_time: h
+      method: left
+      round: 3
+    - platform: integration
+      source: sensor.shawna_at_work_flag
+      name: Shawna hours at work total
+      unique_id: shawna_hours_at_work_total
+      unit_time: h
+      method: left
+      round: 3
+    - platform: integration
+      source: sensor.ethan_at_school_flag
+      name: Ethan hours at school total
+      unique_id: ethan_hours_at_school_total
+      unit_time: h
+      method: left
+      round: 3
+    - platform: integration
+      source: sensor.abby_at_daycare_flag
+      name: Abby hours at daycare total
+      unique_id: abby_hours_at_daycare_total
+      unit_time: h
+      method: left
+      round: 3
+
+  utility_meter:
+    drake_hours_at_work_this_year:
+      name: Drake hours at work this year
+      source: sensor.drake_hours_at_work_total
+      cycle: yearly
+    shawna_hours_at_work_this_year:
+      name: Shawna hours at work this year
+      source: sensor.shawna_hours_at_work_total
+      cycle: yearly
+    ethan_hours_at_school_this_year:
+      name: Ethan hours at school this year
+      source: sensor.ethan_hours_at_school_total
+      cycle: yearly
+    abby_hours_at_daycare_this_year:
+      name: Abby hours at daycare this year
+      source: sensor.abby_hours_at_daycare_total
+      cycle: yearly

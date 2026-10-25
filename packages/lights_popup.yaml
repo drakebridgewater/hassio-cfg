@@ -1,0 +1,21 @@
+# The #lights pop-up (dashboards/popup/light.yaml) lists only the lights that are on
+# until you show the rest. Shared by every screen; back to hidden after 10 minutes.
+lights_popup:
+  input_boolean:
+    lights_popup_show_off:
+      name: Lights pop-up shows lights that are off
+      icon: mdi:lightbulb-outline
+
+  automation:
+    - id: lights_popup_hide_off_again
+      alias: "Lights pop-up: hide the lights that are off again"
+      mode: restart
+      triggers:
+        - trigger: state
+          entity_id: input_boolean.lights_popup_show_off
+          to: "on"
+          for: "00:10:00"
+      actions:
+        - action: input_boolean.turn_off
+          target:
+            entity_id: input_boolean.lights_popup_show_off

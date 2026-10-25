@@ -22,18 +22,11 @@ lovelace:
   resource_mode: yaml
   resources: !include dashboards/lovelace_resources.yaml
   dashboards:
-    lovelace-admin: 
-      mode: yaml
-      filename: dashboards/lovelace-admin.yaml
-      title: Admin
-      icon: mdi:shield-key
-      show_in_sidebar: false
-      require_admin: false
     lovelace-main: 
       mode: yaml
       filename: dashboards/lovelace-main.yaml
       title: My Home
-      show_in_sidebar: false
+      show_in_sidebar: true
       require_admin: false
 
 frontend:
@@ -41,6 +34,7 @@ frontend:
   extra_module_url:
     - /hacsfiles/hass-hue-icons/hass-hue-icons.js
     - /local/community/custom-brand-icons/custom-brand-icons.js
+    - /local/wear-icons.js
 
 browser:
 powercalc:
