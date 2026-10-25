@@ -1,0 +1,37 @@
+# The Climate page's three tabs: Temperatures (/climate), HVAC (/climate-hvac: the
+# thermostat, pausing and the schedule's bands) and Air quality (/climate-aqi). Each
+# tab is its own subview, so the address says which one you're on; the tab for the
+# current address is underlined. Shared by 40-, 41- and 42-climate*.yaml.
+type: grid
+columns: 3
+square: false
+grid_options:
+  columns: full
+cards:
+  - type: custom:button-card
+    template: page_tab
+    name: Temperatures
+    icon: mdi:thermometer
+    variables:
+      path: climate
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-main/climate
+  - type: custom:button-card
+    template: page_tab
+    name: HVAC
+    icon: mdi:hvac
+    variables:
+      path: climate-hvac
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-main/climate-hvac
+  - type: custom:button-card
+    template: page_tab
+    name: Air quality
+    icon: mdi:air-filter
+    variables:
+      path: climate-aqi
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-main/climate-aqi

@@ -4,8 +4,8 @@ blueprint:
     a comprehensive Home Assistant blueprint which automatically manages your window
     coverings (such as roller shutters and blinds) based on time, the position of
     the sun, and weather conditions. It adapts intelligently to your preferences,
-    largely eliminating the need for manual adjustments.\n\n**Version**: 2026.09.29
-    V3\n\n### \U0001F517 Resources & Support\n\U0001F4E2 **Latest Changes**: [Changelog](https://hvorragend.github.io/ha-blueprints/CHANGELOG)
+    largely eliminating the need for manual adjustments.\n\n**Version**: 2026.10.12
+    V2\n\n### \U0001F517 Resources & Support\n\U0001F4E2 **Latest Changes**: [Changelog](https://hvorragend.github.io/ha-blueprints/CHANGELOG)
     | ✨ **Highlights**: [Key Features](https://hvorragend.github.io/ha-blueprints/#key-features)\n\U0001F680
     **Setup**: [Quick Start Guide](https://hvorragend.github.io/ha-blueprints/#quick-start-5-steps)
     | [Prerequisites](https://hvorragend.github.io/ha-blueprints/#essential-prerequisites)\n\U0001F4DA
@@ -1665,14 +1665,20 @@ blueprint:
               unit_of_measurement: °C
         shading_waitingtime_start:
           name: "\U0001F975 Sun Shading - Start Waiting Time"
-          description: Waiting time between the initial shading trigger and the actual
+          description: 'Waiting time between the initial shading trigger and the actual
             cover movement. After this time expires, <ins>all</ins> configured start
             conditions (AND + OR) are re-checked. The cover only moves if conditions
             are <strong>still valid</strong> at execution time. This waiting time
             is also used for the periodic condition checks within the retry loop.
-            <br /><br /> <strong>If shading stays at "pending" and never executes:</strong>
-            The conditions were no longer met after the waiting time expired. Check
-            the automation trace for <em>t_shading_start_execution</em>.
+            <br /><br /> For the <strong>brightness</strong> start condition the waiting
+            time runs inside the trigger: the brightness has to stay above the start
+            threshold for the whole waiting time <strong>without interruption</strong>
+            (a dip in between restarts it), and the cover then moves right away. Shading
+            starts armed by the sun position, the temperatures, the forecast or the
+            1-hour pre-opening check keep the waiting time in the pending and re-check
+            the brightness when it expires. <br /><br /> <strong>If shading stays
+            at "pending" and never executes:</strong> The conditions were no longer
+            met after the waiting time expired. Check the automation trace for <em>t_shading_start_execution</em>.'
           default: 300
           selector:
             number:
@@ -2596,7 +2602,7 @@ trigger_variables:
     }}"
   automation_entity: '{{ this.entity_id | default('''') }}'
 variables:
-  version: 2026.09.29 V3
+  version: 2026.10.12 V2
   is_paused: '{{ force_pause != [] and states(force_pause) in [''on'', ''true''] }}'
   blind_entities: '{{ expand(blind) | map(attribute=''entity_id'') | list }}'
   current_position: "{% set source = position_source %} {% if source == 'current_position_attr'
@@ -3164,6 +3170,8 @@ triggers:
   value_template: '{{ states(shading_brightness_sensor) not in invalid_states and
     states(shading_brightness_sensor) | float(default=shading_sun_brightness_start)
     > (shading_sun_brightness_start + shading_sun_brightness_hysteresis) }}'
+  for:
+    seconds: !input shading_waitingtime_start
   enabled: '{{ is_shading_enabled and shading_brightness_sensor != [] }}'
   id: t_shading_start_pending_2
 - trigger: template
@@ -3444,14 +3452,6 @@ triggers:
   id: t_recovery
   for: *id002
   enabled: '{{ is_recovery_enabled and is_shading_enabled and shading_forecast_sensor
-    != [] }}'
-- trigger: state
-  entity_id: !input shading_custom_sensor
-  from: *id001
-  not_to: *id001
-  id: t_recovery
-  for: *id002
-  enabled: '{{ is_recovery_enabled and is_shading_enabled and shading_custom_sensor
     != [] }}'
 - trigger: state
   entity_id: !input calendar_entity
@@ -4102,6 +4102,12 @@ actions:
     window_tilted_now: '{{ contact_window_tilted != [] and states(contact_window_tilted)
       in [''true'', ''on''] }}'
     window_any_now: '{{ window_opened_now or window_tilted_now }}'
+    vent_tilt_floor_binds: "{{ is_ventilation_enabled and not shading_over_ventilation
+      and\n   window_tilted_now and not window_opened_now and\n   force_allows_ventilate
+      and resident_flags.allow_ventilate and\n   is_cover_tilt_enabled_and_possible
+      and\n   shading_tilt_position | int < ventilate_tilt_position | int }}"
+    shading_tilt_target: '{{ ventilate_tilt_position | int if vent_tilt_floor_binds
+      else shading_tilt_position | int }}'
     lockout_now:
       closing: '{{ window_opened_now or (lockout_tilted_when_closing and window_tilted_now)
         }}'
@@ -4713,51 +4719,57 @@ actions:
                   and not is_opening_scheduled and\n      live_force == 'non')) }}"
                 closing_ownership_hold: "{{ recovered_state == 'cls' and not closing_target_owned
                   and\n   live_force == 'non' }}"
-                log_user: '{{ (''manual override reset, control returned to automation''
-                  if manual_reset_recovery_hold else ''manual override reset, back
-                  to: '' ~ state_labels[recovered_state]) if manual_reset_event and
-                  override_expired else ''manual override kept, it has not expired
-                  yet'' if manual_reset_event else (''this automation took charge
-                  of the cover'' if instance_activated else ''catching up after a
-                  restart or an outage'') ~ '', target: '' ~ state_labels[recovered_state]
-                  }}'
-                log_extra: '{{ ''Manual override reset reconciliation'' if manual_reset_event
-                  else ''Recovery'' }}{{ '' (hygiene only, no catch-up)'' if not recovery_catch_up
-                  else '''' }}{{ '' (instance activated)'' if instance_activated else
-                  '''' }}{{ '' (automation resumed)'' if automation_resumed else ''''
-                  }}{{ '' (restart)'' if is_restart_run else '''' }}{{ '' (new day)''
-                  if stale_day else '''' }}{{ '' (missed midnight reset)'' if midnight_reset_missed
-                  else '''' }}: base {{ helper_state_base }}->{{ new_base }}{{ ''
-                  (schedule says '' ~ recovered_base ~ '', a live opening/closing
-                  gate refused the flip)'' if recovery_catch_up and recovered_base
-                  != new_base else '''' }}, frc {{ helper_state_force }}->{{ live_force
-                  }}, shd {{ 1 if helper_state_shade else 0 }}->{{ 1 if recovered_shade
-                  else 0 }}, pnd {{ helper_state_pending }}->{{ new_pending }}{{ ''
-                  (stale cleared)'' if pending_is_stale else '''' }}, state {{ recovered_state
-                  }}, target {{ target_position }}{{ '', expired manual override cleared''
-                  if override_expired else '''' }}{{ '', opening deferred to shading''
-                  if defer_to_shading else '''' }}{{ '', shading drive withheld (end
-                  pending armed)'' if defer_to_shading_end else '''' }}{{ '', drive
-                  withheld (closing hold)'' if caught_up_closing_hold else '''' }}{{
-                  '', drive withheld (morning opening disabled)'' if caught_up_opening_hold
-                  else '''' }}{{ '', drive withheld (manual override)'' if not transition_manual_allows
-                  else '''' }}{{ '', drive withheld (ventilation condition)'' if recovery_vent_condition_hold
-                  else '''' }}{{ '', drive withheld (opening condition)'' if recovery_up_condition_hold
-                  else '''' }}{{ '', drive withheld (closing condition)'' if recovery_down_condition_hold
-                  else '''' }}{{ '', drive withheld (manual reset return-to-target
-                  disabled)'' if manual_reset_event and not is_manual_reset_recovery_enabled
-                  else '''' }}{{ '', drive withheld (no opening automation configured)''
-                  if manual_reset_event and is_manual_reset_recovery_enabled and recovered_state
-                  == ''opn'' and not is_opening_scheduled else '''' }}{{ '', drive
-                  withheld (no closing automation configured)'' if closing_ownership_hold
-                  else '''' }}'
+                opening_ownership_hold: "{{ recovered_state == 'opn' and not is_opening_scheduled
+                  and\n   live_force == 'non' }}"
+                recovery_verdict: "{%- set target = state_labels[recovered_state]
+                  -%} {%- if manual_reset_event and not override_expired -%}\n  manual
+                  override kept, it has not expired yet\n{%- elif manual_reset_event
+                  and manual_reset_recovery_hold -%}\n  manual override reset, control
+                  returned to automation\n{%- elif manual_reset_event -%}\n  manual
+                  override reset, back to: {{ target }}\n{%- elif instance_activated
+                  -%}\n  this automation took charge of the cover, target: {{ target
+                  }}\n{%- else -%}\n  catching up after a restart or an outage, target:
+                  {{ target }}\n{%- endif -%}"
+                log_user: '{{ recovery_verdict }}'
+                log_extra: "{%- set ns = namespace(tags=[], notes=[]) -%} {%- for
+                  flag, tag in [\n      (not recovery_catch_up, 'hygiene only, no
+                  catch-up'),\n      (instance_activated, 'instance activated'),\n
+                  \     (automation_resumed, 'automation resumed'),\n      (is_restart_run,
+                  'restart'),\n      (stale_day, 'new day'),\n      (midnight_reset_missed,
+                  'missed midnight reset'),\n    ] if flag -%}\n  {%- set ns.tags
+                  = ns.tags + [tag] -%}\n{%- endfor -%} {%- for flag, note in [\n
+                  \     (override_expired, 'expired manual override cleared'),\n      (defer_to_shading,
+                  'opening deferred to shading'),\n      (defer_to_shading_end, 'shading
+                  drive withheld (end pending armed)'),\n      (caught_up_closing_hold,
+                  'drive withheld (closing hold)'),\n      (caught_up_opening_hold,
+                  'drive withheld (morning opening disabled)'),\n      (not transition_manual_allows,
+                  'drive withheld (manual override)'),\n      (recovery_vent_condition_hold,
+                  'drive withheld (ventilation condition)'),\n      (recovery_up_condition_hold,
+                  'drive withheld (opening condition)'),\n      (recovery_down_condition_hold,
+                  'drive withheld (closing condition)'),\n      (manual_reset_event
+                  and not is_manual_reset_recovery_enabled,\n       'drive withheld
+                  (manual reset return-to-target disabled)'),\n      (opening_ownership_hold,
+                  'drive withheld (no opening automation configured)'),\n      (closing_ownership_hold,
+                  'drive withheld (no closing automation configured)'),\n    ] if
+                  flag -%}\n  {%- set ns.notes = ns.notes + [note] -%}\n{%- endfor
+                  -%} {%- set flip_note = ' (schedule says ' ~ recovered_base ~ ',
+                  a live opening/closing gate refused the flip)'\n      if recovery_catch_up
+                  and recovered_base != new_base else '' -%}\n{%- set hold_notes =
+                  (', ' ~ ns.notes | join(', ')) if ns.notes else '' -%} {{ 'Manual
+                  override reset reconciliation' if manual_reset_event else 'Recovery'
+                  }} {%- for tag in ns.tags %} ({{ tag }}){% endfor %}: base {{ helper_state_base
+                  }}->{{ new_base }}{{ flip_note }}, frc {{ helper_state_force }}->{{
+                  live_force }}, shd {{ 1 if helper_state_shade else 0 }}->{{ 1 if
+                  recovered_shade else 0 }}, pnd {{ helper_state_pending }}->{{ new_pending
+                  }}{{ ' (stale cleared)' if pending_is_stale else '' }}, state {{
+                  recovered_state }}, target {{ target_position }}{{ hold_notes }}"
             - variables:
                 will_drive: "{{ recovery_catch_up and not is_paused and recovery_allowed
                   and\n   not caught_up_closing_hold and not caught_up_opening_hold
-                  and\n   not closing_ownership_hold and transition_manual_allows
-                  and\n   not recovery_vent_condition_hold and not recovery_up_condition_hold
-                  and\n   not recovery_down_condition_hold and not manual_reset_recovery_hold
-                  }}"
+                  and\n   not closing_ownership_hold and not opening_ownership_hold
+                  and\n   transition_manual_allows and\n   not recovery_vent_condition_hold
+                  and not recovery_up_condition_hold and\n   not recovery_down_condition_hold
+                  and not manual_reset_recovery_hold }}"
             - variables:
                 drive_plan:
                   run: '{{ will_drive }}'
@@ -5159,7 +5171,9 @@ actions:
           - '{{ not helper_state_shade }}'
           sequence:
           - variables:
-              shading_start_due: "{% set wait_due = (as_timestamp(now()) + shading_waitingtime_start
+              shading_start_wait: '{{ 0 if trigger.id == ''t_shading_start_pending_2''
+                else shading_waitingtime_start | int }}'
+              shading_start_due: "{% set wait_due = (as_timestamp(now()) + shading_start_wait
                 | int) | int %} {% if is_time_control_disabled or is_shading_allowed_window
                 %}\n  {{ wait_due }}\n{% elif is_time_field_enabled %}\n  {{ [wait_due,
                 as_timestamp(today_at(time_up_early_today)) | int + 1] | max }}\n{%
@@ -5172,10 +5186,11 @@ actions:
                 max }}\n{% elif is_calendar_enabled and calendar_open_start is not
                 none %}\n  {{ [ts, calendar_open_start | int] | max }}\n{% else %}\n
                 \ {{ ts }}\n{% endif %}"
-              log_extra: shading start pending armed; wait={{ shading_waitingtime_start
-                | int }}s; due_in={{ (shading_start_due | int - as_timestamp(now())
-                | int) }}s; max_duration={{ shading_start_max_duration | int }}s;
-                budget_from={{ shading_start_arm | int }}
+              log_extra: shading start pending armed; wait={{ shading_start_wait |
+                int }}s{{ ' (waiting time already held by the trigger)' if trigger.id
+                == 't_shading_start_pending_2' else '' }}; due_in={{ (shading_start_due
+                | int - as_timestamp(now()) | int) }}s; max_duration={{ shading_start_max_duration
+                | int }}s; budget_from={{ shading_start_arm | int }}
               update_values:
                 shd: 0
                 pnd: beg
@@ -5264,12 +5279,14 @@ actions:
                 - variables:
                     will_drive: "{{ not is_paused and manual_allows_event.shd and\n
                       \  force_allows_shade }}"
-                    log_user: sun shading started
+                    log_user: '{{ ''sun shading started, the tilted window keeps the
+                      slats at the ventilation angle'' if vent_tilt_floor_binds else
+                      ''sun shading started'' }}'
                     drive_plan:
                       run: '{{ will_drive }}'
                       action_set: shading_start
                       target: '{{ effective_shading_position | int }}'
-                      target_tilt: '{{ shading_tilt_position | int }}'
+                      target_tilt: '{{ shading_tilt_target | int }}'
                       delay_s: '{{ drive_delay_standard }}'
                     update_values:
                       shd: 1
@@ -5420,13 +5437,16 @@ actions:
         will_drive: "{{ not is_paused and manual_allows_event.shd and force_allows_shade
           and\n   resident_flags.allow_shade and\n   not (is_ventilation_enabled and
           window_opened_now) and\n   (not (is_ventilation_enabled and window_tilted_now)
-          or shading_over_ventilation) and\n   cover_status_helper != [] and\n   states(cover_status_helper)
-          | regex_search('\"shd\"\\s*:\\s*1\\s*[,}]') }}"
-        log_user: 'sun shading: slat angle re-checked'
+          or shading_over_ventilation or vent_tilt_floor_binds) and\n   cover_status_helper
+          != [] and\n   states(cover_status_helper) | regex_search('\"shd\"\\s*:\\s*1\\s*[,}]')
+          }}"
+        log_user: '{{ ''sun shading: slat angle re-checked, the tilted window keeps
+          the slats at the ventilation angle'' if vent_tilt_floor_binds else ''sun
+          shading: slat angle re-checked'' }}'
         drive_plan:
           run: '{{ will_drive }}'
           move: tilt
-          target_tilt: '{{ shading_tilt_position | int }}'
+          target_tilt: '{{ shading_tilt_target | int }}'
           tilt_first: '{{ is_cover_tilt_reposition_enabled | bool }}'
         update_values: {}
     - *id007
@@ -5651,11 +5671,18 @@ actions:
                 and\n   (shading_end_state == 'lock' or manual_allows_event.shd) and\n
                 \  (shading_end_state != 'cls' or closing_target_owned or\n    helper_state_force
                 == 'cls') }}"
+              shading_end_condition_word: '{{ ''opening'' if shading_end_state ==
+                ''opn'' else ''closing'' if shading_end_state == ''cls'' else ''ventilation''
+                }}'
               log_user: '{{ ''sun shading is over, back to: '' ~ state_labels[shading_end_state]
-                if will_drive else ''sun shading is over, but the cover stays where
-                it is'' }}'
+                if will_drive else ''sun shading is over, but the additional '' ~
+                shading_end_condition_word ~ '' condition holds the cover'' if not
+                shading_end_target_condition_ok else ''sun shading is over, but the
+                cover stays where it is'' }}'
               log_extra: shading end; target={{ shading_end_state }}{{ '; opening_after_shading_end
-                prevented' if prevent_flags.opening_after_shading_end else '' }}
+                prevented' if prevent_flags.opening_after_shading_end else '' }}{{
+                '; drive withheld (' ~ shading_end_condition_word ~ ' condition)'
+                if not shading_end_target_condition_ok else '' }}
               drive_plan: "{{ dict(state_targets[shading_end_state], run=will_drive,\n
                 \       action_set='shading_end',\n        delay_s=range(0, 2) | random
                 if (is_shading_end_immediate_by_sun_position | default(false)) | bool

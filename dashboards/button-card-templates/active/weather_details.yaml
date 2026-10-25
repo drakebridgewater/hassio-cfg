@@ -1,0 +1,318 @@
+# Weather details: everything the tablet hero's sky and weather block use, and
+# what's coming, in one dense card:
+#   headline   the Wireless Tag's temperature, the condition, Pirate Weather's
+#              feels-like and its own temperature
+#   graph      48 hours: the tag's last 24 (solid, from the recorder) running into
+#              the hourly forecast's next 24 (dashed, feels-like dotted), coloured
+#              by temperature, with a "now" line, rain-chance bars and wind
+#              arrows (pointing downwind, bigger and amber as it picks up)
+#   days       the daily forecast: icon, rain chance, and the low-to-high range as
+#              a coloured bar across the week's span, with wind
+#   readings   small cells under thin headings (Outside, Sky, Wind and air, Moon):
+#              icon and label, value, one word of detail
+# Tapping a cell, the graph or a day opens its entity. Built on the shared `sky`
+# template (sky.yaml), so the numbers match the hero exactly. The tag's history
+# is fetched once every 10 minutes and kept on the card (this._wxGraph). Used by
+# the weather pop-up (popup/weather.yaml):
+#   type: custom:button-card
+#   template: weather_details
+weather_details:
+  template: sky
+  entity: weather.pirateweather
+  show_name: false
+  show_icon: false
+  show_state: false
+  tap_action:
+    action: none
+  triggers_update:
+    - sensor.time
+    - sun.sun
+    - weather.pirateweather
+    - sensor.airnow_aqi
+    - sensor.wirelesstag_outdoor_temperature
+    - sensor.wirelesstag_outdoor_humidity
+    - sensor.daily_weather_forecast
+    - sensor.hourly_weather_forecast
+    - sensor.moon_phase
+  custom_fields:
+    details: |
+      [[[
+        const sky = variables.sky, moon = sky.moon;
+        const w = hass.states['weather.pirateweather'];
+        const a = w?.attributes || {};
+        const num = (id) => { const n = parseFloat(hass.states[id]?.state); return isNaN(n) ? null : n; };
+        const has = (v) => v !== undefined && v !== null && v !== '' && !isNaN(v);
+        const deg = (v) => (has(v) ? Math.round(v) + '°' : '—');
+        const clock = (t) => new Date(t).toLocaleTimeString(hass.locale?.language, { hour: 'numeric', minute: '2-digit' });
+        const compass = (b) => ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'][Math.round(b / 22.5) % 16];
+        const open = (id) => `event.stopPropagation(); this.dispatchEvent(new CustomEvent('hass-more-info', { bubbles: true, composed: true,`
+          + ` detail: { entityId: '${id}' } }))`;
+        // A cell: icon, label and source on top, the value, and an optional detail.
+        const cell = (icon, label, source, value, detail, id, dot) =>
+          `<button type="button" class="cell" onpointerup="${open(id)}">`
+          + `<span class="top"><ha-icon icon="${icon}"></ha-icon>${label}${source ? `<i>${source}</i>` : ''}</span>`
+          + `<b>${dot ? `<span class="dot" style="background:${dot}"></span>` : ''}${value}</b>`
+          + (detail ? `<span class="detail">${detail}</span>` : '') + `</button>`;
+        const group = (title, cells) => {
+          const c = cells.filter(Boolean);
+          return c.length ? `<h3>${title}</h3><div class="grid">${c.join('')}</div>` : '';
+        };
+
+        // Headline: the tag on the house, then what Pirate Weather says.
+        const tag = num('sensor.wirelesstag_outdoor_temperature');
+        const outT = tag ?? a.temperature;
+        const feelsT = has(a.apparent_temperature) && has(a.temperature) ? outT + a.apparent_temperature - a.temperature : null;
+        const cond = w ? (hass.formatEntityState ? hass.formatEntityState(w) : w.state) : '';
+        const condIcon = {
+          'clear-night': 'mdi:weather-night', cloudy: 'mdi:weather-cloudy', fog: 'mdi:weather-fog', hail: 'mdi:weather-hail',
+          lightning: 'mdi:weather-lightning', 'lightning-rainy': 'mdi:weather-lightning-rainy', pouring: 'mdi:weather-pouring',
+          partlycloudy: sky.night ? 'mdi:weather-night-partly-cloudy' : 'mdi:weather-partly-cloudy', rainy: 'mdi:weather-rainy',
+          snowy: 'mdi:weather-snowy', 'snowy-rainy': 'mdi:weather-snowy-rainy', sunny: sky.night ? 'mdi:weather-night' : 'mdi:weather-sunny',
+          windy: 'mdi:weather-windy', 'windy-variant': 'mdi:weather-windy-variant',
+        }[w?.state] || 'mdi:weather-partly-cloudy';
+        const head = `<div class="head">`
+          + `<button type="button" class="now" onpointerup="${open(tag !== null ? 'sensor.wirelesstag_outdoor_temperature' : 'weather.pirateweather')}">`
+          + `<b>${deg(outT)}</b><small>${tag !== null ? 'Wireless Tag' : 'Pirate Weather'}</small></button>`
+          + `<button type="button" class="cond" onpointerup="${open('weather.pirateweather')}">`
+          + `<span><ha-icon icon="${condIcon}"></ha-icon>${cond}</span>`
+          + `<small>${[feelsT !== null ? 'feels ' + deg(feelsT) : '', tag !== null && has(a.temperature) ? 'forecast ' + deg(a.temperature) : ''].filter(Boolean).join(' · ')}</small>`
+          + `</button></div>`;
+
+        // Outside
+        const tagHum = num('sensor.wirelesstag_outdoor_humidity');
+        const outside = [
+          tagHum !== null ? cell('mdi:water-percent', 'Humidity', '', Math.round(tagHum) + '%', 'Wireless Tag', 'sensor.wirelesstag_outdoor_humidity') : '',
+          has(a.humidity) ? cell('mdi:water-percent', 'Humidity', '', Math.round(a.humidity) + '%', tagHum !== null ? 'forecast' : '', 'weather.pirateweather') : '',
+          has(a.dew_point) ? cell('mdi:water-thermometer-outline', 'Dew point', '', deg(a.dew_point), '', 'weather.pirateweather') : '',
+          has(a.pressure) ? cell('mdi:gauge', 'Pressure', '', a.pressure + ' ' + (a.pressure_unit || ''), '', 'weather.pirateweather') : '',
+        ];
+
+        // Sky
+        const today = hass.states['sensor.daily_weather_forecast']?.attributes?.forecast?.[0] || {};
+        const rainNow = Number(a.precipitation_probability), rainDay = Number(today.precipitation_probability);
+        const sunEl = hass.states['sun.sun']?.attributes?.elevation;
+        const skyCells = [
+          cell('mdi:cloud-outline', 'Clouds', has(a.cloud_coverage) ? '' : 'guess', Math.round(sky.cover * 100) + '%', '', 'weather.pirateweather'),
+          cell(sky.night ? 'mdi:weather-sunset-down' : 'mdi:white-balance-sunny', 'Sun', '', has(sunEl) ? Math.round(sunEl) + '°' : '—',
+            sky.night ? 'down' : sky.golden ? 'golden hour' : 'up', 'sun.sun'),
+          has(rainNow) || has(rainDay) ? cell('mdi:umbrella-outline', 'Rain', '', Math.round(has(rainNow) ? rainNow : rainDay) + '%',
+            has(rainNow) ? (has(rainDay) ? Math.round(rainDay) + '% today' : 'now') : 'today', has(rainDay) ? 'sensor.daily_weather_forecast' : 'weather.pirateweather') : '',
+          has(a.visibility) ? cell('mdi:eye-outline', 'Visibility', '', Math.round(a.visibility * 10) / 10 + ' ' + (a.visibility_unit || 'mi'), '', 'weather.pirateweather') : '',
+        ];
+
+        // Wind and air
+        const bearing = Number(a.wind_bearing);
+        const aqi = sky.aqi;
+        const aqiBand = !Number.isFinite(aqi) ? null
+          : aqi <= 50 ? ['#81c784', 'good'] : aqi <= 100 ? ['#ffd54f', 'moderate'] : aqi <= 150 ? ['#ffb74d', 'unhealthy for some']
+          : aqi <= 200 ? ['#e57373', 'unhealthy'] : ['#ba68c8', 'very unhealthy'];
+        const windAir = [
+          cell('mdi:weather-windy', 'Wind', '', Math.round(sky.mph) + ' mph', has(bearing) && sky.mph >= 1 ? 'from the ' + compass(bearing) : 'calm', 'weather.pirateweather'),
+          sky.gust > sky.mph ? cell('mdi:weather-windy-variant', 'Gusts', '', Math.round(sky.gust) + ' mph', '', 'weather.pirateweather') : '',
+          aqiBand ? cell('mdi:air-filter', 'AQI', 'AirNow', Math.round(aqi), aqiBand[1] + (sky.haze ? ', hazy' : ''), 'sensor.airnow_aqi', aqiBand[0]) : '',
+        ];
+
+        // Moon, worked out for home (sky.yaml)
+        const moonId = hass.states['sensor.moon_phase'] ? 'sensor.moon_phase' : 'sun.sun';
+        const moonCells = [
+          cell('mdi:moon-' + moon.key, 'Phase', '', Math.round(moon.illum * 100) + '%', moon.name.toLowerCase(), moonId),
+          cell('mdi:compass-outline', 'Position', '', moon.up ? Math.round(moon.alt) + '°' : 'Down', moon.up ? 'in the ' + compass(moon.az) : 'below the horizon', moonId),
+          moon.next ? cell(moon.next.rise ? 'mdi:arrow-up-thin' : 'mdi:arrow-down-thin', moon.next.rise ? 'Rises' : 'Sets', '', clock(moon.next.at), '', moonId) : '',
+        ];
+
+        // Temperature colours (°F): purple cold through blue, teal, green and
+        // yellow to red hot, shared by the graph and the day bars.
+        const stops = [[15, '#8e7dbe'], [32, '#5c8fe6'], [45, '#3fb6c9'], [58, '#6cc070'], [70, '#f2c94c'], [82, '#f2994a'], [95, '#eb5757']];
+        const tempColor = (t) => {
+          if (t <= stops[0][0]) return stops[0][1];
+          for (let i = 1; i < stops.length; i++) if (t <= stops[i][0]) {
+            const [t0, c0] = stops[i - 1], [t1, c1] = stops[i], k = (t - t0) / (t1 - t0);
+            const mix = (h0, h1) => Math.round(parseInt(h0, 16) + (parseInt(h1, 16) - parseInt(h0, 16)) * k).toString(16).padStart(2, '0');
+            return '#' + [1, 3, 5].map((j) => mix(c0.slice(j, j + 2), c1.slice(j, j + 2))).join('');
+          }
+          return stops[stops.length - 1][1];
+        };
+        const arrow = (bearing, size, color) => `<svg viewBox="-6 -6 12 12" width="${size}" height="${size}" style="transform:rotate(${bearing + 180}deg)">`
+          + `<path d="M0 -5 L4 4 L0 2 L-4 4 Z" fill="${color}"/></svg>`;
+
+        // Graph: past 24 hours of the tag, next 24 of the hourly forecast.
+        const card = this, now = Date.now(), H = 3600000;
+        const tagId = 'sensor.wirelesstag_outdoor_temperature';
+        const g = (card._wxGraph = card._wxGraph || {});
+        const hourly = (hass.states['sensor.hourly_weather_forecast']?.attributes?.forecast || [])
+          .map((f) => ({ t: Date.parse(f.datetime), temp: Number(f.temperature), feels: Number(f.apparent_temperature),
+            rain: Number(f.precipitation_probability) || 0, wind: Number(f.wind_speed) || 0, bearing: Number(f.wind_bearing) }))
+          .filter((f) => f.t >= now - H && f.t <= now + 24 * H && Number.isFinite(f.temp));
+        const draw = () => {
+          const W = 400, top = 14, plotH = 92, rainY = 120, windY = 136, Hh = 162;
+          const x = (t) => ((t - (now - 24 * H)) / (48 * H)) * W;
+          // The tag in 15-minute steps (averaged), so the line is smooth.
+          const past = [];
+          for (const [t, v] of g.hist || []) {
+            const b = Math.floor(t / (H / 4));
+            const last = past[past.length - 1];
+            if (last && last.b === b) { last.sum += v; last.n += 1; } else past.push({ b, sum: v, n: 1, t });
+          }
+          const pastPts = past.map((p) => [p.t, p.sum / p.n]);
+          const tagNow = num(tagId);
+          if (tagNow !== null) pastPts.push([now, tagNow]);
+          const futPts = hourly.filter((f) => f.t >= now).map((f) => [f.t, f.temp]);
+          if (pastPts.length && futPts.length) futPts.unshift(pastPts[pastPts.length - 1]);
+          const feelPts = hourly.filter((f) => f.t >= now && Number.isFinite(f.feels)).map((f) => [f.t, f.feels]);
+          const all = [...pastPts, ...futPts, ...feelPts].map((p) => p[1]);
+          if (!all.length) return `<div class="graph-empty">Loading the last day…</div>`;
+          const lo = Math.floor(Math.min(...all) - 2), hi = Math.ceil(Math.max(...all) + 2);
+          const y = (v) => top + (1 - (v - lo) / (hi - lo)) * plotH;
+          const path = (pts) => pts.map((p, i) => `${i ? 'L' : 'M'}${x(p[0]).toFixed(1)} ${y(p[1]).toFixed(1)}`).join(' ');
+          // Vertical gradient: each colour stop at the height of its temperature.
+          const grad = stops.map(([t, c]) => `<stop offset="${Math.min(1, Math.max(0, (y(t) - top) / plotH)).toFixed(3)}" stop-color="${c}"/>`).reverse().join('');
+          // Hour ticks every 6 hours, and two temperature guides.
+          const ticks = [];
+          const first = new Date(now - 24 * H); first.setMinutes(0, 0, 0);
+          for (let t = first.getTime(); t <= now + 24 * H; t += H) {
+            const h = new Date(t).getHours();
+            if (h % 6 || t < now - 23 * H) continue;
+            const label = h === 0 ? new Date(t).toLocaleDateString(hass.locale?.language, { weekday: 'short' })
+              : new Date(t).toLocaleTimeString(hass.locale?.language, { hour: 'numeric' });
+            ticks.push(`<line x1="${x(t)}" x2="${x(t)}" y1="${top}" y2="${top + plotH}" class="tick"/>`
+              + `<text x="${x(t)}" y="${Hh - 2}" text-anchor="middle">${label}</text>`);
+          }
+          const guides = [lo + 2, hi - 2].map((v) => `<line x1="0" x2="${W}" y1="${y(v)}" y2="${y(v)}" class="guide"/>`
+            + `<text x="2" y="${y(v) - 3}" class="axis">${Math.round(v)}°</text>`).join('');
+          // Extremes of the last day, labelled on the line.
+          const ext = pastPts.length ? [pastPts.reduce((m, p) => (p[1] < m[1] ? p : m)), pastPts.reduce((m, p) => (p[1] > m[1] ? p : m))] : [];
+          const extLabels = ext.map((p, i) => `<text x="${Math.min(W - 14, Math.max(14, x(p[0])))}" y="${y(p[1]) + (i ? -6 : 13)}" text-anchor="middle" class="ext">${Math.round(p[1])}°</text>`).join('');
+          // Rain chance bars and wind arrows for the forecast hours.
+          const bw = W / 48;
+          const rain = hourly.filter((f) => f.t >= now && f.rain >= 5).map((f) =>
+            `<rect x="${(x(f.t) - bw / 2 + 0.5).toFixed(1)}" y="${(rainY - f.rain / 100 * 14).toFixed(1)}" width="${(bw - 1).toFixed(1)}" height="${(f.rain / 100 * 14).toFixed(1)}" rx="1" fill="#81d4fa" opacity="${(0.35 + f.rain / 160).toFixed(2)}"/>`).join('');
+          const winds = hourly.filter((f) => f.t >= now && new Date(f.t).getHours() % 3 === 0 && Number.isFinite(f.bearing)).map((f) => {
+            const size = 9 + Math.min(f.wind, 30) / 30 * 7;
+            return `<g transform="translate(${x(f.t)} ${windY})"><g transform="rotate(${f.bearing + 180})"><path d="M0 ${-size / 2} L${size * 0.38} ${size / 2} L0 ${size * 0.25} L${-size * 0.38} ${size / 2} Z" fill="${f.wind >= 20 ? '#ffb74d' : 'currentColor'}" opacity="${f.wind >= 20 ? 1 : 0.55 + Math.min(f.wind, 20) / 50}"/></g>`
+              + (new Date(f.t).getHours() % 6 === 0 ? `<text y="15" text-anchor="middle" class="axis">${Math.round(f.wind)}</text>` : '') + `</g>`;
+          }).join('');
+          return `<svg viewBox="0 0 ${W} ${Hh}" class="graph" role="img" aria-label="Outside temperature, last day and next day">`
+            + `<defs><linearGradient id="wx-temp" gradientUnits="userSpaceOnUse" x1="0" y1="${top}" x2="0" y2="${top + plotH}">${grad}</linearGradient>`
+            + `<linearGradient id="wx-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity="0.10"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>`
+            + guides + ticks.join('')
+            + (pastPts.length > 1 ? `<path d="${path(pastPts)} L${x(pastPts[pastPts.length - 1][0])} ${top + plotH} L${x(pastPts[0][0])} ${top + plotH} Z" fill="url(#wx-fill)"/>` : '')
+            + (feelPts.length > 1 ? `<path d="${path(feelPts)}" fill="none" stroke="url(#wx-temp)" stroke-width="1.5" stroke-dasharray="1 3" stroke-linecap="round" opacity="0.8"/>` : '')
+            + (futPts.length > 1 ? `<path d="${path(futPts)}" fill="none" stroke="url(#wx-temp)" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round"/>` : '')
+            + (pastPts.length > 1 ? `<path d="${path(pastPts)}" fill="none" stroke="url(#wx-temp)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>` : '')
+            + `<line x1="${x(now)}" x2="${x(now)}" y1="${top - 6}" y2="${windY + 8}" class="now"/>`
+            + (tagNow !== null ? `<circle cx="${x(now)}" cy="${y(tagNow)}" r="4" fill="${tempColor(tagNow)}" stroke="var(--card-background-color, #1c1c1c)" stroke-width="2"/>` : '')
+            + `<text x="${x(now) + 4}" y="${top - 4}" class="axis">now</text>`
+            + extLabels + rain
+            + `<text x="${W - 2}" y="${rainY - 2}" text-anchor="end" class="axis">${rain ? 'rain' : ''}</text>`
+            + winds + `</svg>`;
+        };
+        if (!g.busy && (!g.at || now - g.at > 600000)) {
+          g.busy = true;
+          hass.callWS({ type: 'history/history_during_period', entity_ids: [tagId], minimal_response: true, no_attributes: true,
+            significant_changes_only: false, start_time: new Date(now - 24 * H).toISOString(), end_time: new Date(now).toISOString() })
+            .then((r) => {
+              g.hist = (r[tagId] || []).map((p) => [(p.lu ?? p.lc) * 1000, parseFloat(p.s)]).filter((p) => Number.isFinite(p[1]));
+              g.at = Date.now();
+            })
+            .catch(() => { g.at = Date.now(); })
+            .finally(() => {
+              g.busy = false;
+              const slot = card.shadowRoot?.querySelector('#wx-graph');
+              if (slot) slot.innerHTML = draw();
+            });
+        }
+        const graph = `<button type="button" id="wx-graph" class="graph-wrap" onpointerup="${open(tagId)}">${draw()}</button>`
+          + `<div class="legend"><span><i class="solid"></i>Wireless Tag</span><span><i class="dash"></i>forecast</span><span><i class="dot-line"></i>feels like</span></div>`;
+
+        // Days: the daily forecast, one dense row each.
+        const daily = (hass.states['sensor.daily_weather_forecast']?.attributes?.forecast || []).slice(0, 7);
+        const wkLo = Math.min(...daily.map((d) => Number(d.templow ?? d.temperature)));
+        const wkHi = Math.max(...daily.map((d) => Number(d.temperature)));
+        const span = Math.max(1, wkHi - wkLo);
+        const dayIcon = (c) => ({ 'clear-night': 'mdi:weather-night', cloudy: 'mdi:weather-cloudy', fog: 'mdi:weather-fog', hail: 'mdi:weather-hail',
+          lightning: 'mdi:weather-lightning', 'lightning-rainy': 'mdi:weather-lightning-rainy', partlycloudy: 'mdi:weather-partly-cloudy',
+          pouring: 'mdi:weather-pouring', rainy: 'mdi:weather-rainy', snowy: 'mdi:weather-snowy', 'snowy-rainy': 'mdi:weather-snowy-rainy',
+          sunny: 'mdi:weather-sunny', windy: 'mdi:weather-windy', 'windy-variant': 'mdi:weather-windy-variant' }[c] || 'mdi:weather-partly-cloudy');
+        const toMph = { 'km/h': 0.6214, 'm/s': 2.237, kn: 1.151 }[a.wind_speed_unit] ?? 1;
+        const days = daily.map((d, i) => {
+          const dlo = Number(d.templow ?? d.temperature), dhi = Number(d.temperature);
+          const l = ((dlo - wkLo) / span * 100).toFixed(1), wdt = (Math.max(2, (dhi - dlo) / span * 100)).toFixed(1);
+          const name = i === 0 ? 'Today' : new Date(d.datetime).toLocaleDateString(hass.locale?.language, { weekday: 'short' });
+          const pop = Number(d.precipitation_probability) || 0;
+          const mph = (Number(d.wind_speed) || 0) * toMph, b = Number(d.wind_bearing);
+          const nowDot = i === 0 && outT !== null && has(outT) && outT >= dlo && outT <= dhi
+            ? `<span class="nowdot" style="left:${((outT - dlo) / Math.max(1, dhi - dlo) * 100).toFixed(1)}%"></span>` : '';
+          return `<button type="button" class="day" onpointerup="${open('weather.pirateweather')}">`
+            + `<span class="dname">${name}</span><ha-icon icon="${dayIcon(d.condition)}"></ha-icon>`
+            + `<span class="pop${pop >= 10 ? ' wet' : ''}">${pop >= 10 ? Math.round(pop) + '%' : ''}</span>`
+            + `<span class="lo">${deg(dlo)}</span>`
+            + `<span class="bar"><span class="fill" style="left:${l}%;width:${wdt}%;background:linear-gradient(90deg, ${tempColor(dlo)}, ${tempColor(dhi)})">${nowDot}</span></span>`
+            + `<span class="hi">${deg(dhi)}</span>`
+            + `<span class="wind">${Number.isFinite(b) && mph >= 1 ? arrow(b, 12, mph >= 20 ? '#ffb74d' : 'currentColor') : ''}${Math.round(mph)}</span>`
+            + `</button>`;
+        }).join('');
+
+        return head + graph + (days ? `<div class="days">${days}</div>` : '')
+          + group('Outside', outside) + group('Sky', skyCells) + group('Wind and air', windAir) + group('Moon', moonCells);
+      ]]]
+  styles:
+    card:
+      - padding: 12px 16px 14px
+    grid:
+      - grid-template-areas: '"details"'
+      - grid-template-columns: 1fr
+    custom_fields:
+      details:
+        - text-align: start
+        - min-width: 0
+  extra_styles: |
+    button { border: 0; background: none; padding: 0; color: var(--primary-text-color); font: inherit; text-align: start;
+      cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    button:active { opacity: 0.7; }
+    button:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; border-radius: 4px; }
+    .head { display: flex; align-items: center; gap: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--divider-color); }
+    .now { display: flex; flex-direction: column; flex: none; }
+    .now b { font-size: 2.6em; font-weight: 400; line-height: 1; font-variant-numeric: tabular-nums; }
+    .now small, .cond small { color: var(--secondary-text-color); font-size: 0.8em; }
+    .cond { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .cond span { display: flex; align-items: center; gap: 6px; font-size: 1.05em; }
+    .cond ha-icon { --mdc-icon-size: 22px; flex: none; margin: 0; }
+    h3 { margin: 10px 0 4px; font-size: 0.8em; font-weight: 500; color: var(--secondary-text-color); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px 12px; }
+    .cell { display: flex; flex-direction: column; gap: 1px; min-width: 0; padding: 2px 0; }
+    .top { display: flex; align-items: center; gap: 4px; font-size: 0.75em; color: var(--secondary-text-color);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .top ha-icon { --mdc-icon-size: 14px; flex: none; margin: 0; }
+    /* button-card centres its icons with margin: auto; these sit in line. */
+    .top i { font-style: normal; margin-left: 2px; }
+    .top i::before { content: '· '; }
+    .cell b { display: flex; align-items: center; gap: 5px; font-size: 1.05em; font-weight: 500; font-variant-numeric: tabular-nums;
+      white-space: nowrap; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+    .detail { font-size: 0.75em; color: var(--secondary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .graph-wrap { display: block; width: 100%; margin-top: 8px; }
+    .graph { display: block; width: 100%; height: auto; overflow: visible; color: var(--primary-text-color); }
+    .graph text { font-size: 9px; fill: var(--secondary-text-color); }
+    .graph .ext { font-size: 10px; font-weight: 500; fill: var(--primary-text-color); }
+    .graph .tick { stroke: var(--divider-color); stroke-width: 1; }
+    .graph .guide { stroke: var(--divider-color); stroke-width: 1; stroke-dasharray: 2 3; }
+    .graph .now { stroke: var(--primary-text-color); stroke-width: 1; opacity: 0.5; }
+    .graph-empty { height: 120px; display: grid; place-items: center; color: var(--secondary-text-color); font-size: 0.85em; }
+    .legend { display: flex; gap: 14px; margin: 2px 0 4px; font-size: 0.72em; color: var(--secondary-text-color); }
+    .legend span { display: flex; align-items: center; gap: 5px; }
+    .legend i { display: inline-block; width: 16px; height: 0; border-top: 3px solid var(--secondary-text-color); }
+    .legend i.dash { border-top: 2px dashed var(--secondary-text-color); }
+    .legend i.dot-line { border-top: 2px dotted var(--secondary-text-color); }
+    .days { display: flex; flex-direction: column; border-top: 1px solid var(--divider-color); margin-top: 6px; padding-top: 4px; }
+    .day { display: grid; grid-template-columns: 44px 22px 34px 30px minmax(40px, 1fr) 30px 40px; align-items: center; gap: 6px;
+      padding: 4px 0; font-size: 0.9em; font-variant-numeric: tabular-nums; }
+    .day ha-icon { --mdc-icon-size: 20px; margin: 0; }
+    .dname { font-weight: 500; }
+    .pop { font-size: 0.85em; color: #81d4fa; text-align: end; }
+    .lo { color: var(--secondary-text-color); text-align: end; }
+    .hi { text-align: start; }
+    .bar { position: relative; height: 6px; border-radius: 3px; background: var(--divider-color); }
+    .fill { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
+    .nowdot { position: absolute; top: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%;
+      background: var(--primary-text-color); border: 2px solid var(--card-background-color, #1c1c1c); box-sizing: content-box; }
+    .wind { display: flex; align-items: center; justify-content: flex-end; gap: 3px; font-size: 0.85em; color: var(--secondary-text-color); }

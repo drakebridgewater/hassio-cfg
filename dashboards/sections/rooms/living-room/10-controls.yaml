@@ -6,15 +6,6 @@ cards:
     template: bubble_chips
     variables:
       - chips:
-          - entity: input_boolean.lighting_automation_blocker_living_room
-            name: Automation
-            icon: mdi:auto-mode
-            show_name: true
-            show_state: false
-            state_background: true
-            fill_width: false
-            tap_action:
-              action: toggle
           - entity: binary_sensor.living_room_presence_sensor_occupancy
             icon: mdi:motion-sensor
             show_name: true

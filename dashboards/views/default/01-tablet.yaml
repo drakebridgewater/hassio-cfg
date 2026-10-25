@@ -1,0 +1,20 @@
+# Tablet landing page (point wall tablets / kiosks at /lovelace-main/tablet).
+# Everything, the alert ticker included, is inside the one hero card
+# (sections/tablet/10-hero.yaml). A panel view, so the hero's sky fills the
+# page edge to edge under the header; the background behind it (and behind the
+# header, when it shows) is plain black, and this page leaves out the ambient
+# edge glow.
+title: Tablet
+icon: mdi:tablet-dashboard
+path: tablet
+type: panel
+background: '#000'
+cards:
+  - type: vertical-stack
+    cards:
+      - !include ../../sections/tablet/10-hero.yaml
+      # Pop-ups and the navbar (render nothing in place): footer-home.yaml
+      # minus the ambient glow.
+      - !include ../../sections/footer/popups.yaml
+      - !include ../../navigation/home.yaml
+      - !include ../../cards/scroll-lock.yaml

@@ -1,4 +1,10 @@
 # Living Room air quality (Ecobee thermostat). Also shown in the #living-room and #aqi-overview pop-ups.
+# The Ecobee reports a 0-500 IAQ index (lower is better, Bosch BSEC scale) and derives
+# eCO2 (about 10 x the index) and VOC from it. Bands match the Ecobee app, checked
+# against it on 2026-10-22 (IAQ 87 = Clean, CO2 878 = Moderate, VOC 1180 = Low):
+#   IAQ   clean <= 100, fair <= 200, poor above (the card says Clean/Fair/Poor)
+#   CO2   low <= 800, moderate <= 1200, high <= 2000
+#   VOC   low <= 1500, moderate <= 5000, high <= 10000
 type: custom:decluttering-card
 template: aq_room
 variables:
@@ -6,21 +12,22 @@ variables:
   - temp: sensor.thermostat_temperature
   - humid: sensor.thermostat_humidity
   - score:
+      iaq: sensor.thermostat_air_quality_index
       voc: sensor.thermostat_voc
-      voc_max: 660
+      voc_max: 5000
       co2: sensor.thermostat_co2
   - tiles:
       - name: AQI
         entity: sensor.thermostat_air_quality_index
         unit: index
-        good: 50
-        mod: 100
-        high: 150
+        good: 100
+        mod: 200
+        high: 300
       - name: VOC
         entity: sensor.thermostat_voc
-        good: 220
-        mod: 660
-        high: 1430
+        good: 1500
+        mod: 5000
+        high: 10000
       - name: CO₂
         entity: sensor.thermostat_co2
         good: 800

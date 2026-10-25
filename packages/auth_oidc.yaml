@@ -1,0 +1,22 @@
+# Sign-in through Authelia (lldap accounts) via hass-oidc-auth v1.2.1,
+# vendored in custom_components/auth_oidc. Authelia client: 'home-assistant'.
+# HA's own login stays on for the tablet accounts (welcome screen, other login).
+sso:
+  auth_oidc:
+    client_id: home-assistant
+    discovery_url: https://authelia.bridgewater.digital/.well-known/openid-configuration
+    display_name: Bridgewater
+    features:
+      # Links an lldap user to the existing HA user with the same username
+      # (drake, shawna). Turn off once everyone has signed in once.
+      automatic_user_linking: true
+      automatic_person_creation: true
+      # Traefik talks to HA over plain http, so callback URLs would say http.
+      force_https: true
+    claims:
+      username: preferred_username
+      display_name: name
+      groups: groups
+    roles:
+      admin: homelab-admin
+      user: home-automations

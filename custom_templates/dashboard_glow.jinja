@@ -1,52 +1,99 @@
 {#- Dashboard ambient edge glow.
-    glow_key()        -> palette name: off | spring/summer/autumn/winter | freezing/cold/cool/warm/hot/scorching
+    glow_key()        -> palette name: off | temperature | spring/summer/autumn/winter
     glow_colors(key)  -> CSS color stops for a seamless conic-gradient (first color repeated at the end)
     glow_opacity(key) -> layer opacity; temperature extremes glow stronger
     Mode comes from input_select.dashboard_glow_mode:
-      Auto        season palette, but outdoor temp takes over at the extremes (<=32F or >=90F)
+      Auto        follows the outdoor temperature; the season palette only while there is no reading
       Season      season palette only
-      Temperature outdoor temp palette only
-      Off         no glow -#}
+      Temperature outdoor temperature only
+      Off         no glow
+    The temperature palette is a smooth ramp, deep indigo (below 0F) through blue, cyan, teal,
+    green, lime, yellow and orange to red (over 100F), so every few degrees is a different color.
+    The glow shows the current temperature's color with its neighbours 4 and 8 degrees either
+    side, so a cold night is blue with a hint of violet and a hot day is red with hints of orange
+    -#}
+
+{%- macro outdoor_temp() -%}
+{%- set raw = states('sensor.wirelesstag_outdoor_temperature') -%}
+{{- (raw | float | round(0)) if is_number(raw) else '' -}}
+{%- endmacro -%}
 
 {%- macro glow_key() -%}
 {%- set mode = states('input_select.dashboard_glow_mode') -%}
 {%- set season = states('sensor.season') -%}
-{%- set raw = states('sensor.wirelesstag_outdoor_temperature') -%}
-{%- set t = raw | float if is_number(raw) else none -%}
-{%- set band = none if t is none
-      else 'freezing' if t <= 32
-      else 'cold' if t < 50
-      else 'cool' if t < 68
-      else 'warm' if t < 80
-      else 'hot' if t < 90
-      else 'scorching' -%}
+{%- set has_temp = is_number(states('sensor.wirelesstag_outdoor_temperature')) -%}
 {%- set has_season = season in ['spring', 'summer', 'autumn', 'winter'] -%}
 {%- if mode == 'Off' -%}off
-{%- elif mode == 'Temperature' -%}{{ band or 'off' }}
 {%- elif mode == 'Season' -%}{{ season if has_season else 'off' }}
-{%- elif band in ['freezing', 'scorching'] -%}{{ band }}
-{%- elif has_season -%}{{ season }}
-{%- else -%}{{ band or 'off' }}
+{%- elif has_temp -%}temperature
+{%- elif mode == 'Auto' and has_season -%}{{ season }}
+{%- else -%}off
 {%- endif -%}
 {%- endmacro -%}
 
+{#- Color of the temperature ramp at t (degrees F), blended between neighbouring stops. -#}
+{%- macro temp_color(t) -%}
+{%- set stops = [
+  [-10, 49, 46, 129],
+  [10, 79, 70, 229],
+  [22, 37, 99, 235],
+  [32, 14, 165, 233],
+  [40, 34, 211, 238],
+  [48, 45, 212, 191],
+  [56, 74, 222, 128],
+  [64, 163, 230, 53],
+  [70, 250, 204, 21],
+  [76, 251, 146, 60],
+  [84, 249, 115, 22],
+  [90, 239, 68, 68],
+  [97, 220, 38, 38],
+  [105, 185, 28, 28],
+  [115, 127, 29, 29],
+] -%}
+{%- set last = stops | length - 1 -%}
+{%- set ns = namespace(r=stops[last][1], g=stops[last][2], b=stops[last][3], done=false) -%}
+{%- if t <= stops[0][0] -%}
+  {%- set ns.r = stops[0][1] -%}{%- set ns.g = stops[0][2] -%}{%- set ns.b = stops[0][3] -%}
+{%- else -%}
+  {%- for i in range(1, stops | length) -%}
+    {%- if not ns.done and t <= stops[i][0] -%}
+      {%- set a = stops[i - 1] -%}
+      {%- set b = stops[i] -%}
+      {%- set f = (t - a[0]) / (b[0] - a[0]) -%}
+      {%- set ns.r = a[1] + (b[1] - a[1]) * f -%}
+      {%- set ns.g = a[2] + (b[2] - a[2]) * f -%}
+      {%- set ns.b = a[3] + (b[3] - a[3]) * f -%}
+      {%- set ns.done = true -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+{{- '#%02x%02x%02x' | format(ns.r | round(0) | int, ns.g | round(0) | int, ns.b | round(0) | int) -}}
+{%- endmacro -%}
+
 {%- macro glow_colors(key) -%}
-{%- set palettes = {
-  'winter':    ['#7dd3fc', '#a5b4fc', '#e0f2fe', '#c4b5fd'],
-  'spring':    ['#86efac', '#f9a8d4', '#fde68a', '#5eead4'],
-  'summer':    ['#fbbf24', '#fb7185', '#38bdf8', '#f97316'],
-  'autumn':    ['#f97316', '#b45309', '#dc2626', '#facc15'],
-  'freezing':  ['#60a5fa', '#a5f3fc', '#e0e7ff', '#818cf8'],
-  'cold':      ['#38bdf8', '#6366f1', '#22d3ee', '#a78bfa'],
-  'cool':      ['#2dd4bf', '#34d399', '#60a5fa', '#a3e635'],
-  'warm':      ['#facc15', '#fb923c', '#f472b6', '#fde047'],
-  'hot':       ['#f97316', '#ef4444', '#f59e0b', '#fb7185'],
-  'scorching': ['#dc2626', '#ea580c', '#b91c1c', '#f59e0b'],
-} -%}
-{%- set c = palettes.get(key, []) -%}
+{%- if key == 'temperature' -%}
+  {%- set t = outdoor_temp() | float(65) -%}
+  {#- Around the circle: t-8, t-4, t, t+4, t+8, then back down, so it loops without a seam. -#}
+  {%- set c = [temp_color(t - 8), temp_color(t - 4), temp_color(t), temp_color(t + 4), temp_color(t + 8),
+               temp_color(t + 4), temp_color(t), temp_color(t - 4)] | map('trim') | list -%}
+{%- else -%}
+  {%- set palettes = {
+    'winter': ['#7dd3fc', '#a5b4fc', '#e0f2fe', '#c4b5fd'],
+    'spring': ['#86efac', '#f9a8d4', '#fde68a', '#5eead4'],
+    'summer': ['#fbbf24', '#fb7185', '#38bdf8', '#f97316'],
+    'autumn': ['#f97316', '#b45309', '#dc2626', '#facc15'],
+  } -%}
+  {%- set c = palettes.get(key, []) -%}
+{%- endif -%}
 {{- (c + c[:1]) | join(', ') -}}
 {%- endmacro -%}
 
+{#- Mild days glow gently; the further from a comfortable 65F, the stronger (up to 0.85). -#}
 {%- macro glow_opacity(key) -%}
-{{- 0 if key == 'off' else 0.8 if key in ['freezing', 'scorching'] else 0.55 -}}
+{%- if key == 'off' -%}0
+{%- elif key == 'temperature' -%}
+  {%- set t = outdoor_temp() | float(65) -%}
+  {{- (0.45 + 0.4 * ([(t - 65) | abs / 35, 1] | min)) | round(2) -}}
+{%- else -%}0.55
+{%- endif -%}
 {%- endmacro -%}

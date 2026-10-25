@@ -1,0 +1,42 @@
+# Upstairs (HA floor "main") room temperatures. Same sensors as the room cards on Home.
+# One card: the floor header (button-card floor_temps) over a tile per room
+# (decluttering temp_tile: reading, comparison and 24-hour trend; tap for more-info).
+type: custom:stack-in-card
+cards:
+  - type: custom:button-card
+    template: floor_temps
+    triggers_update:
+      - sensor.thermostat_temperature
+      - sensor.living_room_temperature_sensor_temperature
+      - sensor.apollo_air_1_f8b340_sen55_temperature
+    variables:
+      title: Upstairs
+      icon: mdi:home-floor-1
+      rooms:
+        - sensor.thermostat_temperature
+        - sensor.living_room_temperature_sensor_temperature
+        - sensor.apollo_air_1_f8b340_sen55_temperature
+  - type: custom:layout-card
+    layout_type: custom:grid-layout
+    layout:
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr))
+      grid-gap: 8px
+      margin: 0
+      padding: 0 16px 16px
+      card_margin: 0
+    cards:
+      - type: custom:decluttering-card
+        template: temp_tile
+        variables:
+          - entity: sensor.thermostat_temperature
+          - name: Thermostat
+      - type: custom:decluttering-card
+        template: temp_tile
+        variables:
+          - entity: sensor.living_room_temperature_sensor_temperature
+          - name: Living Room
+      - type: custom:decluttering-card
+        template: temp_tile
+        variables:
+          - entity: sensor.apollo_air_1_f8b340_sen55_temperature
+          - name: Master Bedroom

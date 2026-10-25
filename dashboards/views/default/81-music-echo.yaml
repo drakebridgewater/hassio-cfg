@@ -1,0 +1,28 @@
+# Music, Echo tab: Spotify on the Echos. Left, what Spotify is playing (with search);
+# right, which Echo it plays on and each Echo's volume. The tabs across the top
+# switch to Music Assistant (80-music.yaml).
+title: Music
+path: music-echo
+icon: mdi:spotify
+subview: true
+back_path: /lovelace-main/home
+type: sections
+max_columns: 3
+sections:
+  - type: grid
+    column_span: 3
+    cards:
+      - !include ../../cards/music-tabs.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/pages/music/echo/10-spotify.yaml
+  - type: grid
+    column_span: 2
+    cards:
+      - !include ../../sections/pages/music/echo/20-play-on.yaml
+      - !include ../../sections/pages/music/echo/30-volume.yaml
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../popup/spotify_search.yaml
+      - !include ../../navigation/house.yaml

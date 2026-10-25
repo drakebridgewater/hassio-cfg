@@ -17,12 +17,12 @@ cards:
   - type: custom:bubble-card
     card_type: button
     button_type: name
-    name: All climate readings
+    name: All air quality readings
     icon: mdi:thermometer
     tap_action:
       action: navigate
-      navigation_path: /lovelace-main/climate
+      navigation_path: /lovelace-main/climate-aqi
     button_action:
       tap_action:
         action: navigate
-        navigation_path: /lovelace-main/climate
+        navigation_path: /lovelace-main/climate-aqi

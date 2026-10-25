@@ -1,25 +1,19 @@
+# Security: the alarm, cameras, doors and the smoke and CO alarms, nothing else.
+# The events feed is on Camera Events; sensor and Frigate health are on Maintenance.
 title: Security
 path: security
 icon: mdi:shield-home
 subview: true
 back_path: /lovelace-main/home
-type: custom:grid-layout
-layout: !include ../../layouts/grid.yaml
-cards:
-  - !include ../../frame/banner.yaml
-  - !include ../../frame/sidebar.yaml
-  - !include ../../frame/footer.yaml
-  - !include ../../navigation/security.yaml
-
-  - type: vertical-stack
-    view_layout:
-      grid-area: section1
+type: sections
+max_columns: 2
+header: !include ../../header/alert-ticker.yaml
+sections:
+  - type: grid
     cards: !include_dir_list ../../sections/pages/security/col1
-  - type: vertical-stack
-    view_layout:
-      grid-area: section2
+  - type: grid
     cards: !include_dir_list ../../sections/pages/security/col2
-  - type: vertical-stack
-    view_layout:
-      grid-area: section3
-    cards: !include_dir_list ../../sections/pages/security/col3
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/security.yaml

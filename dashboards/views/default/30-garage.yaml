@@ -3,15 +3,18 @@ path: garage
 icon: mdi:garage
 subview: true
 back_path: /lovelace-main/home
-type: custom:grid-layout
-layout: !include ../../layouts/grid.yaml
-cards:
-  - !include ../../frame/banner.yaml
-  - !include ../../frame/sidebar.yaml
-  - !include ../../frame/footer.yaml
-  - !include ../../navigation/rooms.yaml
-
-  - type: vertical-stack
-    view_layout:
-      grid-area: section1
-    cards: !include_dir_list ../../sections/pages/garage/col1
+type: sections
+max_columns: 4
+header: !include ../../header/alert-ticker.yaml
+sections:
+  # Lighting mode first (cards/lighting-mode/), in the wall switch LED colours.
+  - type: grid
+    column_span: 4
+    cards:
+      - !include ../../cards/lighting-mode/garage.yaml
+  - type: grid
+    cards: !include_dir_list ../../sections/pages/garage
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/rooms.yaml

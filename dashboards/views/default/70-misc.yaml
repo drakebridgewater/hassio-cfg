@@ -1,217 +1,326 @@
 title: Misc
 path: misc
-type: custom:grid-layout
 subview: true
 back_path: /lovelace-main/home
-layout: !include ../../layouts/grid.yaml
-cards:
-  - !include ../../frame/banner.yaml
-  - !include ../../frame/sidebar.yaml
-  - !include ../../frame/footer.yaml
-  - !include ../../navigation/house.yaml
-  
-  - type: vertical-stack
-    view_layout:
-      grid-area: section1
+type: sections
+max_columns: 4
+header: !include ../../header/alert-ticker.yaml
+sections:
+  - type: grid
     cards:
-    - type: custom:bubble-card
-      card_type: separator
-      name: Bathrooms
-    - type: custom:decluttering-card
-      template: bubble_light
-      variables:
-        - entity: light.main_bathroom_wall_switch
-        - name: Main Bathroom
-        - icon: hue:friends-of-hue-iq-pendant
-    - type: custom:bubble-card
-      card_type: button
-      button_type: state
-      entity: light.basement_bathroom_wall_switch
-      icon: hue:friends-of-hue-iq-pendant
-      name: Basement Bathroom
-      show_state: true
-      sub_button:
-        - entity: sensor.flo_basement_bathroom_water_sensor_temperature
-          show_state: true
-          show_icon: true
-          show_background: false
-        - entity: sensor.flo_basement_bathroom_water_sensor_humidity
-          show_state: true
-          show_icon: true
-          show_background: false
-        - entity: sensor.flo_basement_bathroom_water_sensor_battery
-          show_state: true
-          show_icon: true
-          show_background: false
-        - name: Toggle button
-          icon: mdi:power
+      - type: custom:bubble-card
+        card_type: separator
+        name: Bathrooms
+      - type: custom:decluttering-card
+        template: bubble_light
+        variables:
+          - entity: light.main_bathroom_wall_switch
+          - name: Main Bathroom
+          - icon: hue:friends-of-hue-iq-pendant
+      - type: custom:bubble-card
+        card_type: button
+        button_type: state
+        entity: light.basement_bathroom_wall_switch
+        icon: hue:friends-of-hue-iq-pendant
+        name: Basement Bathroom
+        show_state: true
+        sub_button:
+          - entity: sensor.flo_basement_bathroom_water_sensor_temperature
+            show_state: true
+            show_icon: true
+            show_background: false
+          - entity: sensor.flo_basement_bathroom_water_sensor_humidity
+            show_state: true
+            show_icon: true
+            show_background: false
+          - entity: sensor.flo_basement_bathroom_water_sensor_battery
+            show_state: true
+            show_icon: true
+            show_background: false
+          - name: Toggle button
+            icon: mdi:power
+            tap_action:
+              action: toggle
+      - type: custom:bubble-card
+        card_type: button
+        button_type: state
+        entity: light.downstairs_hallway_wall_switch
+        icon: hue:friends-of-hue-iq-pendant
+        name: Downstairs Hallway
+        show_state: true
+        sub_button:
+          - entity: binary_sensor.downstairs_hallway_motion_occupancy
+            show_state: true
+            show_icon: true
+            show_background: false
+          - entity: light.basement_hallway_light
+            show_state: true
+            show_icon: true
+            show_background: false
+          - entity: sensor.flo_basement_bathroom_water_sensor_battery
+            show_state: true
+            show_icon: true
+            show_background: false
+          - name: Toggle button
+            icon: mdi:power
+            tap_action:
+              action: toggle
+  - type: grid
+    cards:
+      - type: custom:bubble-card
+        card_type: separator
+        name: Garage
+      - type: custom:bubble-card
+        card_type: button
+        button_type: state
+        entity: cover.garage_door
+        tap_action:
+          action: more-info
+        name: Garage
+        show_state: true
+        sub_button:
+          - entity: sensor.garage_temperature_sensor_temperature
+            show_state: true
+            show_icon: true
+            show_background: false
+          - entity: sensor.garage_temperature_sensor_humidity
+            show_state: true
+            show_icon: true
+            show_background: false
+          - entity: cover.garage_door
+            tap_action:
+              action: more-info
+            show_state: true
+            show_icon: true
+            show_background: false
+          - name: Toggle button
+            icon: mdi:power
+            tap_action:
+              action: toggle
+      - type: custom:decluttering-card
+        template: bubble_light
+        variables:
+          - entity: light.garage_wall_switch
+          - name: Garage
+      - type: custom:decluttering-card
+        template: bubble_switch
+        variables:
+          - entity: switch.workbench_light
+          - name: Workbench
+  - type: grid
+    cards:
+      - type: custom:bubble-card
+        card_type: separator
+        name: Water Leak Sensors
+      - type: custom:bubble-card
+        card_type: button
+        button_type: state
+        entity: sensor.flo_laundry_temperature
+        name: Laundry Sink
+        show_state: false
+        sub_button:
+          - entity: sensor.flo_laundry_temperature
+            show_state: true
+            show_icon: true
+            show_background: false
+          - entity: sensor.flo_laundry_humidity
+            show_state: true
+            show_icon: true
+            show_background: false
+          - entity: sensor.flo_laundry_battery
+            show_state: true
+            show_icon: true
+            show_background: false
+      - type: custom:bubble-card
+        card_type: button
+        button_type: state
+        entity: sensor.flo_basement_bathroom_water_sensor_temperature
+        name: Basement Toilet
+        show_state: false
+        sub_button:
+          - entity: sensor.flo_basement_bathroom_water_sensor_temperature
+            show_state: true
+            show_icon: true
+            show_background: false
+          - entity: sensor.flo_basement_bathroom_water_sensor_humidity
+            show_state: true
+            show_icon: true
+            show_background: false
+          - entity: sensor.flo_basement_bathroom_water_sensor_battery
+            show_state: true
+            show_icon: true
+            show_background: false
+      - type: custom:bubble-card
+        card_type: button
+        button_type: state
+        entity: sensor.flo_under_kitchen_sink_temperature
+        name: Kitchen Sink
+        show_state: false
+        sub_button:
+          - entity: sensor.flo_under_kitchen_sink_temperature
+            show_state: true
+            show_icon: true
+            show_background: false
+          - entity: sensor.flo_under_kitchen_sink_humidity
+            show_state: true
+            show_icon: true
+            show_background: false
+          - entity: sensor.flo_under_kitchen_sink_battery
+            show_state: true
+            show_icon: true
+            show_background: false
+  - type: grid
+    cards:
+      - type: custom:bubble-card
+        card_type: separator
+        name: Attic
+      - type: custom:decluttering-card
+        template: bubble_chips
+        variables:
+          - chips:
+              - entity: sensor.acurite_tower_attic_sensor_temperature
+                show_state: true
+                fill_width: false
+              - entity: sensor.acurite_tower_attic_sensor_humidity
+                show_state: true
+                fill_width: false
+      - type: custom:bubble-card
+        card_type: separator
+        name: Crawl Space
+      - type: custom:decluttering-card
+        template: bubble_chips
+        variables:
+          - chips:
+              - entity: sensor.crawl_space_temperature_sensor_temperature
+                show_state: true
+                fill_width: false
+              - entity: sensor.crawl_space_temperature_sensor_humidity
+                show_state: true
+                fill_width: false
+  - type: grid
+    cards:
+      - type: custom:bubble-card
+        card_type: separator
+        name: Receipt Printer
+        sub_button:
+              - entity: binary_sensor.esc_pos_printer_10_0_16_62_9100_online
+                show_state: true
+                fill_width: false
+              - entity: sensor.esc_pos_printer_10_0_16_62_9100_paper_status
+                show_state: true
+                fill_width: false
+      # - type: grid
+      #   columns: 2
+      #   cards:
+      - type: custom:bubble-card
+        card_type: button
+        button_type: name
+        name: Grocery list
+        icon: mdi:cart-outline
+        tap_action:
+          action: perform-action
+          perform_action: script.turn_on
+          target:
+            entity_id: script.esc_pos_shopping_list
+          confirmation:
+            text: Print the grocery list?
+        button_action:
           tap_action:
-            action: toggle
+            action: perform-action
+            perform_action: script.turn_on
+            target:
+              entity_id: script.esc_pos_shopping_list
+            confirmation:
+              text: Print the grocery list?
 
-    - type: custom:bubble-card
-      card_type: button
-      button_type: state
-      entity: light.downstairs_hallway_wall_switch
-      icon: hue:friends-of-hue-iq-pendant
-      name: Downstairs Hallway
-      show_state: true
-      sub_button:
-        - entity: binary_sensor.downstairs_hallway_motion_occupancy
-          show_state: true
-          show_icon: true
-          show_background: false
-        - entity: light.basement_hallway_light
-          show_state: true
-          show_icon: true
-          show_background: false
-        - entity: sensor.flo_basement_bathroom_water_sensor_battery
-          show_state: true
-          show_icon: true
-          show_background: false
-        - name: Toggle button
-          icon: mdi:power
-          tap_action:
-            action: toggle
+      - type: horizontal-stack
+        cards: 
+          - type: custom:bubble-card
+            card_type: button
+            button_type: name
+            name: To-do list
+            icon: mdi:format-list-checks
+            button_action:
+              tap_action:
+                action: perform-action
+                perform_action: script.turn_on
+                target:
+                  entity_id: script.receipt_print_family_to_do_list
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.receipt_print_family_to_do_list
+          - type: custom:bubble-card
+            card_type: button
+            button_type: name
+            name: Weather
+            icon: mdi:weather-partly-cloudy
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.receipt_print_weather
+            button_action:
+              tap_action:
+                action: perform-action
+                perform_action: script.turn_on
+                target:
+                  entity_id: script.receipt_print_weather
+      - type: custom:bubble-card
+        card_type: button
+        button_type: name
+        name: Front door snapshot
+        icon: mdi:camera-outline
+        tap_action:
+          action: perform-action
+          perform_action: script.turn_on
+          target:
+            entity_id: script.receipt_print_snapshot
 
-  - type: vertical-stack
-    view_layout:
-      grid-area: section2
+      - type: horizontal-stack
+        cards: 
+          - type: custom:bubble-card
+            card_type: button
+            button_type: name
+            name: Feed paper
+            icon: mdi:arrow-collapse-down
+            tap_action:
+              action: perform-action
+              perform_action: button.press
+              target:
+                entity_id: button.office_esc_pos_printer_10_0_16_62_9100_feed_paper
+          - type: custom:bubble-card
+            card_type: button
+            button_type: name
+            name: Cut paper
+            icon: mdi:content-cut
+            tap_action:
+              action: perform-action
+              perform_action: button.press
+              target:
+                entity_id: button.office_esc_pos_printer_10_0_16_62_9100_cut_paper
+      
+      - type: custom:bubble-card
+        card_type: separator
+        name: Specific Message
+      - type: entities
+        state_color: false
+        entities:
+          - entity: input_text.receipt_message
+            name: Message
+            icon: mdi:message-text-outline
+      - type: custom:bubble-card
+        card_type: button
+        button_type: name
+        name: Print message
+        icon: mdi:printer-pos-outline
+        tap_action:
+          action: perform-action
+          perform_action: script.turn_on
+          target:
+            entity_id: script.receipt_print_message
+  - type: grid
     cards:
-    - type: custom:bubble-card
-      card_type: separator
-      name: Garage
-    - type: custom:bubble-card
-      card_type: button
-      button_type: state
-      entity: cover.garage_door
-      tap_action:
-        action: more-info
-      name: Garage
-      show_state: true
-      sub_button:
-        - entity: sensor.garage_temperature_sensor_temperature
-          show_state: true
-          show_icon: true
-          show_background: false
-        - entity: sensor.garage_temperature_sensor_humidity
-          show_state: true
-          show_icon: true
-          show_background: false
-        - entity: cover.garage_door
-          tap_action:
-            action: more-info
-          show_state: true
-          show_icon: true
-          show_background: false
-        - name: Toggle button
-          icon: mdi:power
-          tap_action:
-            action: toggle
-    - type: custom:decluttering-card
-      template: bubble_light
-      variables:
-        - entity: light.garage_wall_switch
-        - name: Garage
-    - type: custom:decluttering-card
-      template: bubble_switch
-      variables:
-        - entity: switch.workbench_light
-        - name: Workbench
-  - type: vertical-stack
-    view_layout:
-      grid-area: section3
-    cards:
-    - type: custom:bubble-card
-      card_type: separator
-      name: Water Leak Sensors
-    - type: custom:bubble-card
-      card_type: button
-      button_type: state
-      entity: sensor.flo_laundry_temperature
-      name: Laundry Sink
-      show_state: false
-      sub_button:
-        - entity: sensor.flo_laundry_temperature
-          show_state: true
-          show_icon: true
-          show_background: false
-        - entity: sensor.flo_laundry_humidity
-          show_state: true
-          show_icon: true
-          show_background: false
-        - entity: sensor.flo_laundry_battery
-          show_state: true
-          show_icon: true
-          show_background: false
-    - type: custom:bubble-card
-      card_type: button
-      button_type: state
-      entity: sensor.flo_basement_bathroom_water_sensor_temperature
-      name: Basement Toilet
-      show_state: false
-      sub_button:
-        - entity: sensor.flo_basement_bathroom_water_sensor_temperature
-          show_state: true
-          show_icon: true
-          show_background: false
-        - entity: sensor.flo_basement_bathroom_water_sensor_humidity
-          show_state: true
-          show_icon: true
-          show_background: false
-        - entity: sensor.flo_basement_bathroom_water_sensor_battery
-          show_state: true
-          show_icon: true
-          show_background: false
-    - type: custom:bubble-card
-      card_type: button
-      button_type: state
-      entity: sensor.flo_under_kitchen_sink_temperature
-      name:  Kitchen Sink
-      show_state: false
-      sub_button:
-        - entity: sensor.flo_under_kitchen_sink_temperature
-          show_state: true
-          show_icon: true
-          show_background: false
-        - entity: sensor.flo_under_kitchen_sink_humidity
-          show_state: true
-          show_icon: true
-          show_background: false
-        - entity: sensor.flo_under_kitchen_sink_battery
-          show_state: true
-          show_icon: true
-          show_background: false
-  - type: vertical-stack
-    view_layout:
-      grid-area: section4
-    cards:
-    - type: custom:bubble-card
-      card_type: separator
-      name: Attic
-    - type: custom:decluttering-card
-      template: bubble_chips
-      variables:
-        - chips:
-            - entity: sensor.acurite_tower_attic_sensor_temperature
-              show_state: true
-              fill_width: false
-            - entity: sensor.acurite_tower_attic_sensor_humidity
-              show_state: true
-              fill_width: false
-  - type: vertical-stack
-    view_layout:
-      grid-area: section5
-    cards:
-    - type: custom:bubble-card
-      card_type: separator
-      name: Crawl Space
-    - type: custom:decluttering-card
-      template: bubble_chips
-      variables:
-        - chips:
-            - entity: sensor.crawl_space_temperature_sensor_temperature
-              show_state: true
-              fill_width: false
-            - entity: sensor.crawl_space_temperature_sensor_humidity
-              show_state: true
-              fill_width: false
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/house.yaml

@@ -1,0 +1,35 @@
+# Lighting mode control on the room pages (button-card template lighting_mode).
+# One script sets a zone's mode: the same blockers the switch-button hold and the
+# cube flip, so the LED 4 colour (sensor.lighting_mode_<zone>) follows.
+
+lighting_mode:
+  script:
+    lighting_set_zone_mode:
+      alias: Lighting - Set zone mode
+      icon: mdi:lightbulb-auto-outline
+      mode: queued
+      fields:
+        mode:
+          description: auto or manual
+          example: auto
+        blockers:
+          description: The zone's blocker input_booleans
+          example: input_boolean.lighting_automation_blocker_office_room
+        automations:
+          description: The zone's motion automations, turned back on with auto
+          example: automation.lighting_office_sensor_light
+      sequence:
+        - if: "{{ mode == 'manual' }}"
+          then:
+            - action: input_boolean.turn_on
+              target:
+                entity_id: "{{ blockers }}"
+          else:
+            - action: input_boolean.turn_off
+              target:
+                entity_id: "{{ blockers }}"
+            - if: "{{ automations | default([]) | count > 0 }}"
+              then:
+                - action: automation.turn_on
+                  target:
+                    entity_id: "{{ automations }}"

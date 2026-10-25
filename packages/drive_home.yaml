@@ -1,0 +1,238 @@
+# =============================================================================
+# Drive home from work - one sensor per grown-up
+# =============================================================================
+# Waze Travel Time (UI config entries) gives the live drive from each work zone
+# to home. These sensors add whether the person is at work and how today's
+# drive compares with the usual one, for the Who's home pop-up and the status
+# card (dashboards/popup/people_overview.yaml, sections/banner/status-tiles.yaml).
+#
+#   sensor.drake_drive_home   Siemens -> Home (sensor.personal_drake_siemens_home)
+#                             while in zone.work
+#   sensor.shawna_drive_home  Aspire Dental -> Home (sensor.shawna_work_to_home once
+#                             it exists, until then sensor.waze_home_to_aspire,
+#                             which runs home -> Aspire) while in zone.shawna_s_work
+#   binary_sensor.shawna_leave_for_work
+#                             mornings: when to leave home to be at work by 7:20
+#
+# Both work zones are named "Work", so the person state alone can't tell them
+# apart; at_work reads the zone's persons list instead.
+#
+# State: minutes, rounded. Attributes:
+#   at_work   true while the person is in their work zone
+#   usual     median Waze time for this half hour on the last 10 workdays
+#   delay     minutes over usual (negative when faster)
+#   delayed   true when delay is at least 8 min and at least 30% of usual
+#   route     the first road of Waze's route
+#   summary   "41 min home via I-5 N"
+#
+# The usual sensors (sensor.*_usual_drive_home) record the Waze time every half
+# hour on workdays, keeping the last 10 per half-hour slot (attribute slots, keyed
+# by hour * 2 + 1 for :30), so the evening rush is compared with past evening
+# rushes rather than the midday drive. State: the median for the current slot,
+# unknown with fewer than 3 samples (no amber then). The seed holds 6 AM-8 PM
+# weekdays from the recorder, 2026-09-21 to 2026-10-20.
+# =============================================================================
+
+drive_home:
+  template:
+    - triggers:
+        - trigger: homeassistant
+          event: start
+        - trigger: event
+          event_type: event_template_reloaded
+        - trigger: time_pattern
+          minutes: /30
+          id: tick
+      variables:
+        slot: "{{ now().hour * 2 + (1 if now().minute >= 30 else 0) }}"
+        sample: >-
+          {% set w = states('sensor.personal_drake_siemens_home') %}
+          {{ w | float | round(0) | int if trigger.id == 'tick' and is_number(w)
+               and is_state('binary_sensor.workday_sensor', 'on') else 0 }}
+        seed: {
+          "12": [27, 25, 26, 26, 27, 27, 27, 27, 26, 27],
+          "13": [26, 26, 26, 26, 26, 26, 26, 26, 26, 26],
+          "14": [26, 26, 26, 27, 27, 27, 27, 26, 27, 27],
+          "15": [31, 27, 29, 29, 32, 31, 32, 27, 29, 32],
+          "16": [34, 29, 35, 31, 33, 32, 35, 29, 30, 34],
+          "17": [32, 27, 38, 31, 33, 33, 34, 29, 30, 35],
+          "18": [33, 28, 34, 28, 33, 32, 33, 28, 31, 33],
+          "19": [29, 28, 29, 28, 32, 29, 30, 27, 28, 31],
+          "20": [29, 28, 27, 28, 28, 28, 28, 30, 27, 28],
+          "21": [28, 28, 27, 27, 28, 28, 28, 28, 27, 28],
+          "22": [27, 28, 27, 27, 27, 28, 28, 28, 27, 28],
+          "23": [29, 29, 27, 27, 28, 29, 28, 28, 27, 29],
+          "24": [31, 28, 27, 28, 29, 28, 28, 29, 27, 28],
+          "25": [28, 28, 27, 28, 29, 29, 28, 28, 28, 28],
+          "26": [29, 29, 28, 27, 28, 29, 28, 29, 27, 28],
+          "27": [29, 30, 27, 28, 29, 29, 28, 30, 27, 28],
+          "28": [31, 32, 27, 27, 29, 29, 31, 31, 28, 28],
+          "29": [34, 32, 28, 29, 29, 31, 30, 32, 28, 28],
+          "30": [35, 35, 30, 30, 30, 31, 33, 34, 30, 30],
+          "31": [40, 37, 33, 33, 35, 35, 38, 37, 33, 35],
+          "32": [40, 37, 34, 34, 38, 40, 40, 37, 34, 38],
+          "33": [43, 35, 35, 32, 39, 42, 41, 35, 33, 39],
+          "34": [40, 35, 36, 30, 39, 42, 41, 33, 31, 38],
+          "35": [38, 34, 36, 32, 38, 39, 39, 34, 30, 37],
+          "36": [33, 31, 30, 28, 32, 35, 36, 30, 29, 34],
+          "37": [29, 28, 27, 27, 29, 30, 28, 28, 27, 28],
+          "38": [27, 26, 26, 26, 27, 27, 29, 27, 26, 27],
+          "39": [26, 27, 26, 26, 27, 26, 27, 28, 26, 27]
+          }
+      sensor:
+        - name: Drake usual drive home
+          unique_id: drake_usual_drive_home
+          unit_of_measurement: min
+          device_class: duration
+          icon: mdi:car-clock
+          state: >-
+            {% set old = this.attributes.get('slots', seed) %}
+            {% set s = (old.get(slot | string, []) + ([sample] if sample > 0 else []))[-10:] %}
+            {{ s | median | round(0) | int if s | length >= 3 else none }}
+          attributes:
+            slots: >-
+              {% set old = this.attributes.get('slots', seed) %}
+              {{ dict(old, **{slot | string: (old.get(slot | string, []) + [sample])[-10:]}) if sample > 0 else old }}
+
+    - triggers:
+        - trigger: homeassistant
+          event: start
+        - trigger: event
+          event_type: event_template_reloaded
+        - trigger: time_pattern
+          minutes: /30
+          id: tick
+      variables:
+        slot: "{{ now().hour * 2 + (1 if now().minute >= 30 else 0) }}"
+        sample: >-
+          {% set src = 'sensor.shawna_work_to_home' if has_value('sensor.shawna_work_to_home') else 'sensor.waze_home_to_aspire' %}
+          {% set w = states(src) %}
+          {{ w | float | round(0) | int if trigger.id == 'tick' and is_number(w)
+               and is_state('binary_sensor.workday_sensor', 'on') else 0 }}
+        seed: {
+          "12": [13, 14, 13, 13, 14, 14, 13, 13, 13, 14],
+          "13": [14, 15, 14, 14, 15, 14, 14, 14, 14, 15],
+          "14": [17, 15, 15, 15, 16, 16, 15, 14, 16, 16],
+          "15": [21, 18, 19, 18, 19, 19, 20, 16, 19, 19],
+          "16": [23, 25, 23, 19, 24, 25, 24, 18, 20, 26],
+          "17": [24, 26, 25, 18, 22, 22, 21, 17, 18, 22],
+          "18": [22, 23, 24, 18, 22, 21, 20, 18, 18, 24],
+          "19": [16, 22, 18, 15, 20, 17, 18, 17, 16, 18],
+          "20": [16, 17, 16, 15, 17, 17, 17, 16, 16, 17],
+          "21": [15, 16, 16, 15, 16, 17, 16, 16, 15, 16],
+          "22": [14, 15, 16, 15, 15, 17, 16, 16, 16, 15],
+          "23": [16, 15, 15, 15, 16, 15, 16, 16, 15, 15],
+          "24": [16, 15, 15, 15, 16, 15, 16, 17, 15, 15],
+          "25": [16, 15, 15, 15, 16, 16, 16, 16, 15, 16],
+          "26": [16, 15, 15, 16, 15, 16, 16, 16, 15, 16],
+          "27": [16, 15, 16, 15, 16, 15, 16, 17, 15, 16],
+          "28": [17, 15, 15, 15, 16, 16, 16, 17, 15, 15],
+          "29": [17, 15, 16, 15, 16, 16, 16, 17, 16, 16],
+          "30": [17, 15, 16, 15, 17, 16, 16, 18, 17, 16],
+          "31": [18, 16, 17, 16, 17, 17, 18, 18, 15, 16],
+          "32": [20, 16, 17, 16, 17, 17, 18, 19, 16, 18],
+          "33": [19, 16, 17, 16, 18, 17, 17, 18, 17, 17],
+          "34": [18, 16, 18, 16, 18, 18, 19, 18, 16, 18],
+          "35": [19, 16, 17, 16, 18, 18, 19, 17, 16, 18],
+          "36": [19, 16, 17, 16, 16, 17, 19, 17, 15, 16],
+          "37": [16, 15, 15, 15, 15, 16, 17, 17, 15, 16],
+          "38": [15, 14, 14, 14, 15, 15, 16, 16, 14, 15],
+          "39": [15, 14, 15, 14, 15, 14, 15, 16, 14, 15]
+          }
+      sensor:
+        - name: Shawna usual drive home
+          unique_id: shawna_usual_drive_home
+          unit_of_measurement: min
+          device_class: duration
+          icon: mdi:car-clock
+          state: >-
+            {% set old = this.attributes.get('slots', seed) %}
+            {% set s = (old.get(slot | string, []) + ([sample] if sample > 0 else []))[-10:] %}
+            {{ s | median | round(0) | int if s | length >= 3 else none }}
+          attributes:
+            slots: >-
+              {% set old = this.attributes.get('slots', seed) %}
+              {{ dict(old, **{slot | string: (old.get(slot | string, []) + [sample])[-10:]}) if sample > 0 else old }}
+
+    - sensor:
+        - name: Drake drive home
+          unique_id: drake_drive_home
+          unit_of_measurement: min
+          device_class: duration
+          icon: mdi:car-clock
+          availability: "{{ is_number(states('sensor.personal_drake_siemens_home')) }}"
+          state: "{{ states('sensor.personal_drake_siemens_home') | float | round(0) | int }}"
+          attributes:
+            at_work: "{{ 'person.drake' in (state_attr('zone.work', 'persons') or []) }}"
+            usual: "{{ states('sensor.drake_usual_drive_home') | int(0) }}"
+            delay: >-
+              {% set u = states('sensor.drake_usual_drive_home') | int(0) %}
+              {{ (states('sensor.personal_drake_siemens_home') | float(0) | round(0) | int) - u if u else 0 }}
+            delayed: >-
+              {% set u = states('sensor.drake_usual_drive_home') | int(0) %}
+              {% set d = (states('sensor.personal_drake_siemens_home') | float(0) | round(0) | int) - u %}
+              {{ u > 0 and d >= 8 and d >= u * 0.3 }}
+            route: >-
+              {{ (state_attr('sensor.personal_drake_siemens_home', 'route') or '') | regex_replace('[,;].*$', '') | trim }}
+            summary: >-
+              {% set r = (state_attr('sensor.personal_drake_siemens_home', 'route') or '') | regex_replace('[,;].*$', '') | trim %}
+              {{ states('sensor.personal_drake_siemens_home') | float | round(0) | int }} min home{{ ' via ' ~ r if r }}
+
+        # Shawna's Waze entry runs home -> Aspire Dental. Until a work -> home entry
+        # (sensor.shawna_work_to_home) exists, the drive home uses it reversed.
+        - name: Shawna drive home
+          unique_id: shawna_drive_home
+          unit_of_measurement: min
+          device_class: duration
+          icon: mdi:car-clock
+          availability: >-
+            {% set src = 'sensor.shawna_work_to_home' if has_value('sensor.shawna_work_to_home') else 'sensor.waze_home_to_aspire' %}
+            {{ is_number(states(src)) }}
+          state: >-
+            {% set src = 'sensor.shawna_work_to_home' if has_value('sensor.shawna_work_to_home') else 'sensor.waze_home_to_aspire' %}
+            {{ states(src) | float | round(0) | int }}
+          attributes:
+            at_work: "{{ 'person.shawna' in (state_attr('zone.shawna_s_work', 'persons') or []) }}"
+            usual: "{{ states('sensor.shawna_usual_drive_home') | int(0) }}"
+            delay: >-
+              {% set src = 'sensor.shawna_work_to_home' if has_value('sensor.shawna_work_to_home') else 'sensor.waze_home_to_aspire' %}
+              {% set u = states('sensor.shawna_usual_drive_home') | int(0) %}
+              {{ (states(src) | float(0) | round(0) | int) - u if u else 0 }}
+            delayed: >-
+              {% set src = 'sensor.shawna_work_to_home' if has_value('sensor.shawna_work_to_home') else 'sensor.waze_home_to_aspire' %}
+              {% set u = states('sensor.shawna_usual_drive_home') | int(0) %}
+              {% set d = (states(src) | float(0) | round(0) | int) - u %}
+              {{ u > 0 and d >= 8 and d >= u * 0.3 }}
+            route: >-
+              {% set src = 'sensor.shawna_work_to_home' if has_value('sensor.shawna_work_to_home') else 'sensor.waze_home_to_aspire' %}
+              {{ (state_attr(src, 'route') or '') | regex_replace('[,;].*$', '') | trim }}
+            summary: >-
+              {% set src = 'sensor.shawna_work_to_home' if has_value('sensor.shawna_work_to_home') else 'sensor.waze_home_to_aspire' %}
+              {% set r = (state_attr(src, 'route') or '') | regex_replace('[,;].*$', '') | trim %}
+              {{ states(src) | float | round(0) | int }} min home{{ ' via ' ~ r if r }}
+
+    # Morning: on while Shawna is home on a work day (sensor.shawna_work_today) from
+    # 5:30 until she has to be there at 7:30. Leave time = 7:30 minus the live Waze
+    # drive (home -> Aspire Dental). Amber from 10 minutes before the leave time.
+    - binary_sensor:
+        - name: Shawna leave for work
+          unique_id: shawna_leave_for_work
+          icon: mdi:car-clock
+          state: >-
+            {{ is_state('person.shawna', 'home') and is_state('sensor.shawna_work_today', 'working')
+               and today_at('05:30') <= now() < today_at('07:20')
+               and is_number(states('sensor.waze_home_to_aspire')) }}
+          attributes:
+            arrive_by: "{{ today_at('07:20').isoformat() }}"
+            drive: "{{ states('sensor.waze_home_to_aspire') | float(0) | round(0) | int }}"
+            leave: >-
+              {% set d = states('sensor.waze_home_to_aspire') | float(0) | round(0) | int %}
+              {{ (today_at('07:20') - timedelta(minutes=d)).isoformat() }}
+            amber: >-
+              {% set d = states('sensor.waze_home_to_aspire') | float(0) | round(0) | int %}
+              {{ now() >= today_at('07:20') - timedelta(minutes=d + 10) }}
+            summary: >-
+              {% set d = states('sensor.waze_home_to_aspire') | float(0) | round(0) | int %}
+              {% set leave = today_at('07:20') - timedelta(minutes=d) %}
+              {% if now() < leave %}Leave by {{ leave.strftime('%-I:%M') }} · {{ d }} min drive
+              {%- else %}{% set there = now() + timedelta(minutes=d) %}Leave now · there by {{ there.strftime('%-I:%M') }}{% endif %}

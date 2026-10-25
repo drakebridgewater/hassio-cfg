@@ -1,0 +1,132 @@
+# =============================================================================
+# Battery watch - tells you when a battery-powered sensor stops reporting
+# =============================================================================
+# Battery Notes (custom_components/battery_notes) already alerts on low batteries
+# (automations.yaml: "Battery Low Notification"). A dead or out-of-range battery
+# usually shows up differently: the device goes unavailable and its Battery+
+# sensor with it, so it never reports "low". This package catches that.
+#
+# sensor.batteries_not_reporting counts every Battery Notes Battery+ sensor that
+# is unavailable. The WirelessTag tags have no device in Home Assistant, so
+# Battery Notes tracks them by entity (Outdoor, Living Room and Master Bathroom
+# Tag) with a battery template reading each sensor's battery_level attribute.
+#
+# Alerts (ticker, category Batteries, like the low-battery ones):
+#   - each device once, when it has been silent for 2 hours
+#   - 7 AM: everything still silent, and anything Battery Notes hasn't heard a
+#     battery level from in over 2 days (check_battery_last_reported), which
+#     catches devices that stay "available" with a stale value
+# =============================================================================
+
+battery_watch:
+  template:
+    # Re-checked every 5 minutes, not on start: devices are briefly unavailable
+    # while Home Assistant starts. Only "unavailable" counts; sleepy devices can
+    # sit at "unknown" until their next check-in.
+    - triggers:
+        - trigger: event
+          event_type: event_template_reloaded
+        - trigger: time_pattern
+          minutes: /5
+      variables:
+        devices: >-
+          {% set ids = integration_entities('battery_notes')
+               | select('search', '^sensor\\..*_battery_plus(_\\d+)?$') | list %}
+          {% set ns = namespace(out=[], names=[]) %}
+          {% for id in ids if states[id] is not none and states(id) == 'unavailable' %}
+            {% set name = (state_attr(id, 'friendly_name') or id) | replace(' Battery+', '') | trim %}
+            {% if name not in ns.names %}
+              {% set ns.names = ns.names + [name] %}
+              {% set ns.out = ns.out + [{'name': name, 'entity_id': id,
+                   'since': states[id].last_changed.isoformat()}] %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.out | sort(attribute='since') }}
+      sensor:
+        - name: Batteries not reporting
+          unique_id: batteries_not_reporting
+          icon: mdi:battery-unknown
+          state: "{{ devices | count }}"
+          attributes:
+            devices: "{{ devices }}"
+
+  automation:
+    - id: battery_watch_silent
+      alias: Battery watch - device stopped reporting
+      description: >-
+        Each battery-powered device once, when it has been unavailable for 2 hours
+        (packages/battery_watch.yaml).
+      triggers:
+        - trigger: time_pattern
+          minutes: 0
+      variables:
+        newly: >-
+          {{ state_attr('sensor.batteries_not_reporting', 'devices') | default([], true)
+             | selectattr('since', 'le', (utcnow() - timedelta(hours=2)).isoformat())
+             | selectattr('since', 'gt', (utcnow() - timedelta(hours=3)).isoformat())
+             | list }}
+      conditions:
+        - condition: template
+          value_template: "{{ newly | count > 0 }}"
+      actions:
+        - repeat:
+            for_each: "{{ newly }}"
+            sequence:
+              - action: ticker.notify
+                data:
+                  category: Batteries
+                  title: "{{ repeat.item.name }} stopped reporting"
+                  message: >-
+                    Unavailable since {{ as_timestamp(repeat.item.since) | timestamp_custom('%-I:%M %p') }}.
+                    Check its battery or signal.
+      mode: single
+
+    - id: battery_watch_morning
+      alias: Battery watch - morning summary
+      description: >-
+        7 AM: devices still not reporting, and Battery Notes devices with no
+        battery reading in over 2 days (packages/battery_watch.yaml).
+      triggers:
+        - trigger: time
+          at: "07:00:00"
+      actions:
+        - variables:
+            silent: >-
+              {{ state_attr('sensor.batteries_not_reporting', 'devices') | default([], true)
+                 | selectattr('since', 'le', (utcnow() - timedelta(hours=2)).isoformat()) | list }}
+        - if:
+            - condition: template
+              value_template: "{{ silent | count > 0 }}"
+          then:
+            - action: ticker.notify
+              data:
+                category: Batteries
+                title: >-
+                  {{ silent | count }} {{ 'device isn' if silent | count == 1 else 'devices aren' }}'t reporting
+                message: >-
+                  {% for d in silent %}{{ d.name }} (since {{ as_timestamp(d.since) | timestamp_custom('%a %-I:%M %p') }}){{ '\n' if not loop.last }}{% endfor %}
+        - action: battery_notes.check_battery_last_reported
+          data:
+            days_last_reported: 2
+      mode: single
+
+    - id: battery_watch_not_reported
+      alias: Battery watch - no battery reading in days
+      description: >-
+        Battery Notes raises this for a device with no battery reading in over 2
+        days (packages/battery_watch.yaml).
+      triggers:
+        - trigger: event
+          event_type: battery_notes_battery_not_reported
+      actions:
+        - action: ticker.notify
+          data:
+            category: Batteries
+            title: "{{ trigger.event.data.device_name }} hasn't reported its battery"
+            message: >-
+              {% set d = trigger.event.data.battery_last_reported_days %}
+              No battery reading {{ 'ever' if d is none else 'in ' ~ d ~ ' days' }}
+              {%- if trigger.event.data.battery_last_reported_level is not none %}
+              (last {{ trigger.event.data.battery_last_reported_level | round(0) }}%){% endif %}.
+              It takes {{ trigger.event.data.battery_type_and_quantity }}.
+      mode: queued

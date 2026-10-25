@@ -1,0 +1,136 @@
+# Top of each room page: the room's lighting mode, in the colours its wall switch
+# LED 4 shows (custom_templates/led_status.jinja mode_table): Automatic green,
+# Manual orange, and yellow when the motion automation itself is off. Two segments;
+# the current one is filled in its colour. Both run script.lighting_set_zone_mode.
+# Cards set entity (sensor.lighting_mode_<zone>) and variables:
+#   blockers     the zone's blocker input_booleans
+#   automations  its motion automations (turned back on by Automatic)
+#   note         optional line, e.g. which rooms share the zone
+#   title        heading (default Lighting), for pages with more than one zone
+# The segments are nested button-cards; their templates run in this card's context,
+# so they read this card's `variables` (mode, blockers, automations).
+lighting_mode:
+  show_icon: false
+  show_name: false
+  show_state: false
+  tap_action:
+    action: none
+  triggers_update:
+    - input_boolean.lighting_automation_blocker_all
+  variables:
+    blockers: []
+    automations: []
+    note: ''
+    title: Lighting
+    mode: '[[[ return ["auto", "manual", "degraded"].includes(entity?.state) ? entity.state : "unknown" ]]]'
+    house: '[[[ return hass.states["input_boolean.lighting_automation_blocker_all"]?.state === "on" ]]]'
+  custom_fields:
+    head: >-
+      [[[
+        const m = variables.mode;
+        const color = { auto: 'var(--green-color)', manual: 'var(--orange-color)',
+                        degraded: 'var(--yellow-color)' }[m] ?? 'var(--secondary-text-color)';
+        const say = {
+          auto: 'Lights follow motion in here.',
+          manual: variables.house ? 'The whole house is on manual: motion leaves the lights alone.'
+            : 'Motion leaves the lights alone in here.',
+          degraded: 'The motion automation is switched off. Automatic turns it back on.',
+          unknown: 'The house can\'t tell which mode this room is in.',
+        }[m];
+        return `<div class="t">${variables.title}</div><div class="s"><span class="dot${m === 'degraded' ? ' blink' : ''}"
+          style="background:${color}"></span>${say}${variables.note ? ' ' + variables.note : ''}</div>`;
+      ]]]
+    auto:
+      card:
+        type: custom:button-card
+        name: Automatic
+        icon: mdi:motion-sensor
+        tap_action:
+          action: perform-action
+          perform_action: script.lighting_set_zone_mode
+          data:
+            mode: auto
+            blockers: '[[[ return variables.blockers ]]]'
+            automations: '[[[ return variables.automations ]]]'
+        styles:
+          card:
+            - border: none
+            - border-radius: 12px
+            - padding: 8px 12px
+            - background: >-
+                [[[ return variables.mode === 'auto' ? 'color-mix(in srgb, var(--green-color) 24%, transparent)'
+                  : 'color-mix(in srgb, var(--primary-text-color) 6%, transparent)' ]]]
+            - box-shadow: >-
+                [[[ return variables.mode === 'auto'
+                  ? 'inset 0 0 0 1.5px color-mix(in srgb, var(--green-color) 70%, transparent)' : 'none' ]]]
+          grid:
+            - grid-template-areas: '"i n"'
+            - grid-template-columns: 24px auto
+            - column-gap: 8px
+            - justify-content: center
+          icon:
+            - width: 20px
+            - color: '[[[ return variables.mode === "auto" ? "var(--green-color)" : "var(--secondary-text-color)" ]]]'
+          name:
+            - font-size: 14px
+            - font-weight: '[[[ return variables.mode === "auto" ? 500 : 400 ]]]'
+            - color: var(--primary-text-color)
+    manual:
+      card:
+        type: custom:button-card
+        name: Manual
+        icon: mdi:hand-back-right-outline
+        tap_action:
+          action: perform-action
+          perform_action: script.lighting_set_zone_mode
+          data:
+            mode: manual
+            blockers: '[[[ return variables.blockers ]]]'
+        styles:
+          card:
+            - border: none
+            - border-radius: 12px
+            - padding: 8px 12px
+            - background: >-
+                [[[ return variables.mode === 'manual' ? 'color-mix(in srgb, var(--orange-color) 24%, transparent)'
+                  : 'color-mix(in srgb, var(--primary-text-color) 6%, transparent)' ]]]
+            - box-shadow: >-
+                [[[ return variables.mode === 'manual'
+                  ? 'inset 0 0 0 1.5px color-mix(in srgb, var(--orange-color) 70%, transparent)' : 'none' ]]]
+          grid:
+            - grid-template-areas: '"i n"'
+            - grid-template-columns: 24px auto
+            - column-gap: 8px
+            - justify-content: center
+          icon:
+            - width: 20px
+            - color: '[[[ return variables.mode === "manual" ? "var(--orange-color)" : "var(--secondary-text-color)" ]]]'
+          name:
+            - font-size: 14px
+            - font-weight: '[[[ return variables.mode === "manual" ? 500 : 400 ]]]'
+            - color: var(--primary-text-color)
+  styles:
+    card:
+      - background: none
+      - box-shadow: none
+      - border: none
+      - padding: 4px 0
+    grid:
+      - grid-template-areas: '"head head" "auto manual"'
+      - grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)
+      - column-gap: 8px
+      - row-gap: 8px
+    custom_fields:
+      head:
+        - justify-self: start
+        - text-align: left
+      auto:
+        - width: 100%
+      manual:
+        - width: 100%
+  extra_styles: |
+    #head .t { font-size: 16px; font-weight: 500; color: var(--primary-text-color); }
+    #head .s { font-size: 13px; color: var(--secondary-text-color); white-space: normal; }
+    #head .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+    #head .dot.blink { animation: mode-blink 2s ease-in-out infinite; }
+    @keyframes mode-blink { 50% { opacity: 0.25; } }

@@ -1,0 +1,43 @@
+# AdGuard (moved from Help): protection on/off, speed and how much it blocks.
+type: custom:bubble-card
+card_type: button
+button_type: switch
+entity: switch.adguard_home_protection
+name: Internet protection
+icon: mdi:web
+show_attribute: false
+button_action:
+  tap_action:
+    action: none
+sub_button:
+  main:
+    - entity: sensor.adguard_home_average_processing_speed
+      show_state: true
+      show_icon: false
+      name: Speed
+      show_name: true
+      fill_width: false
+      content_layout: icon-top
+      show_background: false
+    - entity: switch.adguard_home_protection
+      name: ''
+      icon: mdi:power
+      tap_action:
+        action: toggle
+  bottom:
+    - entity: sensor.adguard_home_dns_queries_blocked_ratio
+      show_state: true
+      show_icon: false
+      name: Blocked
+      show_name: true
+      fill_width: false
+      content_layout: icon-top
+      show_background: false
+    - entity: sensor.adguard_home_dns_queries
+      show_state: true
+      show_icon: false
+      name: DNS queries
+      show_name: true
+      fill_width: false
+      content_layout: icon-top
+      show_background: false

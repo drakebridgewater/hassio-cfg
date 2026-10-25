@@ -1,0 +1,200 @@
+# Receipt printer buttons on the Misc page (dashboards/views/default/70-misc.yaml).
+# Prints through the escpos_printer integration; the old script.print_shopping_list
+# (scripts.yaml, HTTP print service) is left alone.
+
+receipt_printer:
+  input_text:
+    receipt_message:
+      name: Receipt message
+      icon: mdi:message-text-outline
+      max: 255
+
+  script:
+    receipt_print_shopping_list:
+      alias: Receipt - Print grocery list
+      icon: mdi:cart-outline
+      mode: queued
+      max_exceeded: silent
+      sequence:
+        - action: todo.get_items
+          target:
+            entity_id: todo.kitchen_mealie_grocery
+          data:
+            status: needs_action
+          response_variable: todo_response
+        - variables:
+            items: "{{ todo_response['todo.kitchen_mealie_grocery']['items'] | default([]) }}"
+        - action: escpos_printer.print_box
+          target:
+            entity_id: notify.esc_pos_printer_10_0_16_62_9100
+          data:
+            text: Grocery list
+            style: single
+            align: center
+            padding: 1
+        - choose:
+            - conditions: "{{ items | length > 0 }}"
+              sequence:
+                - action: escpos_printer.print_table
+                  target:
+                    entity_id: notify.esc_pos_printer_10_0_16_62_9100
+                  data:
+                    rows: >
+                      {% set ns = namespace(out=[]) %}
+                      {% for i in items %}
+                        {% set ns.out = ns.out + [[i.summary | replace('|', '/') | trim]] %}
+                      {% endfor %}
+                      {{ ns.out }}
+                    style: single
+                    header: false
+          default:
+            - action: escpos_printer.print_text
+              target:
+                entity_id: notify.esc_pos_printer_10_0_16_62_9100
+              data:
+                text: Nothing to buy
+                align: center
+        - action: escpos_printer.print_separator
+          target:
+            entity_id: notify.esc_pos_printer_10_0_16_62_9100
+          data:
+            char: "="
+        - action: escpos_printer.cut
+          target:
+            entity_id: notify.esc_pos_printer_10_0_16_62_9100
+          data:
+            mode: full
+
+    receipt_print_todo_list:
+      alias: Receipt - Print family to-do list
+      icon: mdi:format-list-checks
+      mode: queued
+      max_exceeded: silent
+      sequence:
+        - action: todo.get_items
+          target:
+            entity_id: todo.family
+          data:
+            status: needs_action
+          response_variable: todo_response
+        - variables:
+            items: "{{ todo_response['todo.family']['items'] | default([]) }}"
+        - action: escpos_printer.print_box
+          target:
+            entity_id: notify.esc_pos_printer_10_0_16_62_9100
+          data:
+            text: Family to-do
+            style: single
+            align: center
+            padding: 1
+        - choose:
+            - conditions: "{{ items | length > 0 }}"
+              sequence:
+                - action: escpos_printer.print_table
+                  target:
+                    entity_id: notify.esc_pos_printer_10_0_16_62_9100
+                  data:
+                    rows: >
+                      {% set ns = namespace(out=[]) %}
+                      {% for i in items %}
+                        {% set ns.out = ns.out + [[i.summary | replace('|', '/') | trim]] %}
+                      {% endfor %}
+                      {{ ns.out }}
+                    style: single
+                    header: false
+          default:
+            - action: escpos_printer.print_text
+              target:
+                entity_id: notify.esc_pos_printer_10_0_16_62_9100
+              data:
+                text: Nothing to do
+                align: center
+        - action: escpos_printer.print_separator
+          target:
+            entity_id: notify.esc_pos_printer_10_0_16_62_9100
+          data:
+            char: "="
+        - action: escpos_printer.cut
+          target:
+            entity_id: notify.esc_pos_printer_10_0_16_62_9100
+          data:
+            mode: full
+
+    receipt_print_weather:
+      alias: Receipt - Print weather forecast
+      icon: mdi:weather-partly-cloudy
+      mode: queued
+      max_exceeded: silent
+      sequence:
+        - action: weather.get_forecasts
+          target:
+            entity_id: weather.forecast_home
+          data:
+            type: daily
+          response_variable: forecast_response
+        - variables:
+            forecast: "{{ forecast_response['weather.forecast_home'].forecast | default([]) }}"
+        - action: escpos_printer.print_box
+          target:
+            entity_id: notify.esc_pos_printer_10_0_16_62_9100
+          data:
+            text: Weather forecast
+            style: double
+            align: center
+        - action: escpos_printer.print_table
+          target:
+            entity_id: notify.esc_pos_printer_10_0_16_62_9100
+          data:
+            rows: >
+              {% set ns = namespace(out=[['Day', 'Hi', 'Lo', 'Cond']]) %}
+              {% for f in forecast[:5] %}
+                {% set lo = (f.templow | round(0) | string) if f.templow is defined and f.templow is not none else '-' %}
+                {% set ns.out = ns.out + [[(f.datetime | as_datetime).strftime('%a'), f.temperature | round(0) | string, lo, (f.condition | string)[:10]]] %}
+              {% endfor %}
+              {{ ns.out }}
+            style: single
+            header: true
+            column_aligns: [left, right, right, left]
+        - action: escpos_printer.cut
+          target:
+            entity_id: notify.esc_pos_printer_10_0_16_62_9100
+          data:
+            mode: full
+
+    receipt_print_snapshot:
+      alias: Receipt - Print front door snapshot
+      icon: mdi:camera-outline
+      mode: queued
+      max_exceeded: silent
+      sequence:
+        - action: escpos_printer.print_camera_snapshot
+          target:
+            entity_id: notify.esc_pos_printer_10_0_16_62_9100
+          data:
+            camera_entity: camera.frontdoor
+            cut: full
+            feed: 2
+
+    receipt_print_message:
+      alias: Receipt - Print custom message
+      icon: mdi:message-text-outline
+      mode: queued
+      max_exceeded: silent
+      sequence:
+        - condition: template
+          value_template: "{{ states('input_text.receipt_message') | trim not in ['', 'unknown', 'unavailable'] }}"
+        - action: escpos_printer.print_text_utf8
+          target:
+            entity_id: notify.esc_pos_printer_10_0_16_62_9100
+          data:
+            text: "{{ states('input_text.receipt_message') | trim }}"
+            align: center
+            width: double
+            height: double
+            cut: full
+            feed: 2
+        - action: input_text.set_value
+          target:
+            entity_id: input_text.receipt_message
+          data:
+            value: ""

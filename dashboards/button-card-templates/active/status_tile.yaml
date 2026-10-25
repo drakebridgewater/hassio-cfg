@@ -1,0 +1,106 @@
+# One button in the status card (sections/banner/10-status-card.yaml): a tinted
+# rounded-square tile that fills its grid cell, icon and state inside. Cards set
+# entity, name, icon, label, actions and two variables:
+#   tone   ok | attention | failed | alarm | warm | heat | cool | info | neutral
+#   pulse  true to pulse the glow in the tile's tone, or a close_up.yaml rule's
+#          { a, b, k } to pulse between its colours, stronger and faster as k rises
+# ok and neutral sit flat; every other tone glows in its colour.
+#
+# Phones: icon over a one- or two-word state, `name` hidden. From 768px: icon left,
+# `name` above the state (up to two lines), and label spans with class "more" shown
+# (class "phone" hidden).
+status_tile:
+  show_name: true
+  show_state: false
+  show_label: true
+  variables:
+    tone: neutral
+    pulse: false
+  # stack-in-card strips child cards' background, shadow and radius, so they go through
+  # --tile-bg / --tile-glow and are re-applied here with !important; the pulse runs
+  # on ::after because an !important box-shadow would override the animation.
+  extra_styles: |
+    ha-card { background: var(--tile-bg) !important; box-shadow: var(--tile-glow) !important; border-radius: 16px !important; }
+    ha-card::after {
+      content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+      animation: var(--tile-pulse);
+    }
+    @keyframes status-pulse {
+      50% { box-shadow: 0 0 18px 4px color-mix(in srgb, var(--tone) 60%, transparent); }
+    }
+    @keyframes status-pulse-rule {
+      0%, 100% { box-shadow: 0 0 calc(8px + 8px * var(--pulse-k)) calc(1px + 2px * var(--pulse-k)) rgba(var(--pulse-a), calc(0.45 + 0.3 * var(--pulse-k))); }
+      50% { box-shadow: 0 0 calc(18px + 22px * var(--pulse-k)) calc(4px + 10px * var(--pulse-k)) rgba(var(--pulse-b), calc(0.6 + 0.3 * var(--pulse-k))); }
+    }
+    @media (prefers-reduced-motion: reduce) { ha-card::after { animation: none !important; } }
+    @media (max-width: 767px) {
+      #name, #label .more { display: none; }
+    }
+    @media (min-width: 768px) {
+      ha-card { min-height: 64px !important; padding: 10px 14px !important; }
+      #container {
+        grid-template-areas: "i n" "i l" !important;
+        grid-template-columns: 32px minmax(0, 1fr) !important;
+        column-gap: 12px;
+        row-gap: 0 !important;
+        justify-items: start !important;
+        align-items: center;
+      }
+      #name { font-size: 12px; color: var(--secondary-text-color); justify-self: start !important; text-align: left !important; }
+      #label { font-size: 15px !important; font-weight: 500; justify-self: start !important; text-align: left !important;
+        white-space: normal !important; display: -webkit-box !important; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+      #label .phone { display: none; }
+    }
+  styles:
+    card:
+      - '--tile-bg': >-
+          [[[ return variables.tone === 'neutral'
+            ? 'color-mix(in srgb, var(--primary-text-color) 7%, transparent)'
+            : 'color-mix(in srgb, var(--tone) 16%, transparent)' ]]]
+      - border: none
+      - border-radius: 16px
+      - min-height: 76px
+      - padding: 10px 4px
+      - overflow: visible
+      - '--tile-glow': >-
+          [[[ return ['ok', 'neutral'].includes(variables.tone) ? 'none'
+            : '0 0 12px 1px color-mix(in srgb, var(--tone) 45%, transparent)' ]]]
+      - '--tile-pulse': >-
+          [[[ const p = variables.pulse;
+              if (!p) return 'none';
+              if (typeof p !== 'object') return 'status-pulse 2s ease-in-out infinite';
+              const k = Math.max(0, Math.min(1, p.k || 0));
+              return `status-pulse-rule ${(2.8 - 1.6 * k).toFixed(2)}s ease-in-out infinite`; ]]]
+      - '--pulse-a': '[[[ return variables.pulse?.a || "255, 255, 255" ]]]'
+      - '--pulse-b': '[[[ return variables.pulse?.b || variables.pulse?.a || "255, 255, 255" ]]]'
+      - '--pulse-k': '[[[ return Math.max(0, Math.min(1, variables.pulse?.k || 0)) ]]]'
+      - '--tone': >-
+          [[[ return {
+            ok: 'var(--green-color)',
+            attention: 'var(--amber-color)',
+            failed: 'var(--orange-color)',
+            alarm: 'var(--red-color)',
+            warm: 'var(--yellow-color)',
+            heat: 'var(--deep-orange-color)',
+            cool: 'var(--blue-color)',
+            info: 'var(--teal-color)',
+          }[variables.tone] ?? 'var(--secondary-text-color)' ]]]
+    grid:
+      - grid-template-areas: '"i" "l"'
+      - row-gap: 6px
+      - justify-items: center
+      - align-content: center
+    img_cell:
+      - width: 32px
+      - height: 32px
+    icon:
+      - width: 28px
+      - color: var(--tone)
+    label:
+      - font-size: 13px
+      - line-height: 1.2
+      - color: var(--primary-text-color)
+      - white-space: nowrap
+      - overflow: hidden
+      - text-overflow: ellipsis
+      - max-width: 100%

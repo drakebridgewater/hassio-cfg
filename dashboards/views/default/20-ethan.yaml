@@ -1,109 +1,41 @@
-
-max_columns: 4
 title: Ethan
 path: ethan
-type: custom:grid-layout
 subview: true
 back_path: /lovelace-main/home
-layout: !include ../../layouts/grid.yaml
-
-cards:
-  - !include ../../frame/banner.yaml
-  - !include ../../frame/sidebar.yaml
-  - !include ../../frame/footer.yaml
-  - !include ../../navigation/rooms.yaml
-
-  - type: custom:stack-in-card
-    view_layout:
-      grid-area: section3
-    cards: 
-          - type: heading
-            heading_style: title
-            heading: Bedroom
-            icon: mdi:bed
-          - type: custom:decluttering-card
-            template: bubble_light
-            variables:
-              - entity: light.ethan_s_bedroom_wall_switch
-              - name: Wall Switch
-          - type: custom:decluttering-card
-            template: bubble_light_color
-            variables:
-              - entity: light.toy_chest_strip
-              - name: Bed Lights
-              - icon: mdi:bed-empty
-          - type: custom:decluttering-card
-            template: bubble_switch
-            variables:
-              - entity: switch.ethan_s_door_switch
-              - name: White Noise
-              - icon: mdi:sleep
-          - entity: fan.ethan_s_cribside
-            name: Fan
-            type: custom:bubble-card
-            card_type: button
-            button_type: switch
-            show_last_updated: true
-            sub_button:
-              - name: Toggle button
-                icon: mdi:power
-                tap_action:
-                  action: toggle
-          - type: custom:decluttering-card
-            template: bubble_switch
-            variables:
-              - entity: switch.ethan_s_door_switch
-              - name: White Noise
-              - icon: mdi:sleep
-          - type: custom:bubble-card
-            card_type: sub-buttons
-            sub_button:
-              main: []
-              bottom:
-                - entity: input_boolean.lighting_automation_blocker_ethan_s_room
-                  name: Automations
-                  icon: mdi:lightbulb-auto-outline
-                  show_name: true
-                  tap_action:
-                    action: toggle
-            rows: 0.938
-            styles: |-
-              .bubble-sub-button-1 {
-                background-color: ${hass.states['input_boolean.lighting_automation_blocker_ethan_s_room'].state === 'on' ? '' : 'red'} !important;
-              }
-              .bubble-sub-button-1 > ha-icon {
-                color: blue
-              }
-
-  - type: custom:stack-in-card
-    view_layout:
-      grid-area: section4
-    cards: 
+type: sections
+max_columns: 4
+header: !include ../../header/alert-ticker.yaml
+sections:
+  # Lighting mode first (cards/lighting-mode/), in the wall switch LED colours.
+  - type: grid
+    column_span: 4
+    cards:
+      - !include ../../cards/lighting-mode/ethan_s_room.yaml
+      - !include ../../sections/rooms/ethan/01-alerts.yaml
+  - type: grid
+    cards:
+      - type: heading
+        heading_style: title
+        heading: Bedroom
+        icon: mdi:bed
       - type: custom:decluttering-card
-        template: bubble_chips
+        template: bubble_light
         variables:
-          - chips:
-              - entity: input_boolean.lighting_automation_blocker_ethan_s_room
-                name: Automation
-                show_name: true
-                icon: mdi:auto-mode
-                show_state: false
-                state_background: true
-                fill_width: false
-                tap_action:
-                  action: toggle
-              - entity: binary_sensor.activity_in_the_ethan_s_bedroom
-                icon: mdi:motion-sensor
-                show_state: true
-                state_background: true
-                fill_width: false
-              - entity: binary_sensor.ethan_s_bedroom_window_sensor_contact
-                name: Window
-                show_name: true
-                icon: mdi:window-closed-variant
-                show_state: true
-                state_background: true
-                fill_width: false
+          - entity: light.ethan_s_bedroom_wall_switch
+          - name: Wall Switch
+      - type: custom:decluttering-card
+        template: bubble_light_color
+        variables:
+          - entity: light.toy_chest_strip
+          - name: Bed Lights
+          - icon: mdi:bed-empty
+      - type: custom:decluttering-card
+        template: bubble_switch
+        variables:
+          - entity: switch.ethan_s_door_switch
+          - name: White Noise
+          - icon: mdi:sleeps
+
       - type: custom:bubble-card
         card_type: sub-buttons
         sub_button:
@@ -152,24 +84,38 @@ cards:
                   content_layout: icon-top
           bottom_layout: rows
         rows: 2.325
+  - type: grid
+    cards:
+      - type: custom:routine-editor-card
+        routine: morning
+        note: Only runs on workdays, and stops once everyone has left.
+  - type: grid
+    cards:
+      - type: custom:routine-editor-card
+        routine: bedtime
+        note: Only starts when the alarm is disarmed and the bathroom light is off.
 
-  - type: custom:stack-in-card
-    view_layout:
-      grid-area: section5
-    cards: 
-    - type: entities
-      title: Scheduling
-      entities:
-        - type: custom:scheduler-card
-          tags: ethan
-          title: false
-          discover_existing: false
-          sort_by:
-            - state
-            - relative-time
-          display_options:
-            primary_info: default
-            secondary_info:
-              - relative-time
-            icon: action
-          show_header_toggle: false
+  - type: grid
+    cards:
+      - type: custom:stack-in-card
+        cards:
+          - type: entities
+            title: Scheduling
+            entities:
+              - type: custom:scheduler-card
+                tags: ethan
+                title: false
+                discover_existing: false
+                sort_by:
+                  - state
+                  - relative-time
+                display_options:
+                  primary_info: default
+                  secondary_info:
+                    - relative-time
+                  icon: action
+                show_header_toggle: false
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/rooms.yaml

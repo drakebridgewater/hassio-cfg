@@ -1,0 +1,145 @@
+# =============================================================================
+# Ethan's routines - data-driven morning and bedtime announcements
+# =============================================================================
+# The steps (when, what to say, which days) live in configs/routines.json and
+# are edited from the routine editor card (custom:routine-editor-card). The
+# automations below only decide WHETHER a routine starts and what stops it;
+# script.routine_run plays the steps; script.routine_step knows how to do each
+# step type. Adding a step type = a new branch in routine_step plus the hooks
+# listed at the top of pyscript/routines.py.
+#
+# The hand-built automations "Ethan's Morning Routine" and "Ethan's Bedtime
+# Routine" in automations.yaml are kept disabled as a fallback.
+# =============================================================================
+
+ethan_routines:
+  automation:
+    - id: ethan_morning_schedule
+      alias: Ethan's Morning Schedule
+      description: Plays the morning steps from configs/routines.json on workdays.
+      triggers:
+        - trigger: time
+          at: input_datetime.ethan_s_alarm_clock
+      conditions:
+        - condition: state
+          entity_id: binary_sensor.workday_sensor
+          state: "on"
+      actions:
+        - action: script.routine_run
+          data:
+            routine: morning
+            # Stop announcing once everyone has left for the day.
+            while_entity: binary_sensor.home_occupied
+            while_state: "on"
+      mode: single
+
+    - id: ethan_bedtime_schedule
+      alias: Ethan's Bedtime Schedule
+      description: >-
+        Plays the bedtime steps from configs/routines.json when the alarm is
+        disarmed and the basement bathroom light is off.
+      triggers:
+        - trigger: time
+          at: input_datetime.ethan_s_bedtime
+      conditions:
+        - condition: state
+          entity_id: alarm_control_panel.default
+          state: disarmed
+        - condition: state
+          entity_id: light.basement_bathroom_wall_switch
+          state: "off"
+      actions:
+        - action: script.routine_run
+          data:
+            routine: bedtime
+      mode: single
+
+  script:
+    routine_run:
+      alias: Routine - Run schedule
+      description: Plays today's enabled steps of a routine from pyscript.ethan_routines, timed from now.
+      icon: mdi:playlist-play
+      mode: parallel
+      max: 4
+      fields:
+        routine:
+          description: Routine key in configs/routines.json
+          required: true
+          example: bedtime
+          selector:
+            text:
+        while_entity:
+          description: Optional. Stop before any step once this entity leaves while_state.
+          selector:
+            entity:
+        while_state:
+          description: State while_entity must be in for the routine to continue.
+          example: "on"
+          selector:
+            text:
+      sequence:
+        - variables:
+            started: "{{ now().timestamp() }}"
+            today: "{{ now().strftime('%a') | lower }}"
+            steps: >-
+              {% set cfg = (state_attr('pyscript.ethan_routines', 'routines') or {}).get(routine, {}) %}
+              {{ cfg.get('steps', [])
+                 | selectattr('enabled')
+                 | selectattr('days', 'contains', today)
+                 | sort(attribute='at')
+                 | list }}
+        - if: "{{ steps | count == 0 }}"
+          then:
+            - stop: No steps scheduled today
+        - repeat:
+            for_each: "{{ steps }}"
+            sequence:
+              - delay:
+                  seconds: "{{ [0, started + repeat.item.at * 60 - now().timestamp()] | max | round(0) | int }}"
+              - if: "{{ while_entity is defined and while_entity and not is_state(while_entity, while_state) }}"
+                then:
+                  - stop: "{{ while_entity }} left {{ while_state }}"
+              - action: script.routine_step
+                data:
+                  step: "{{ repeat.item }}"
+
+    routine_step:
+      alias: Routine - Run one step
+      description: Performs a single routine step. Also used by the editor card's play button.
+      icon: mdi:play-circle-outline
+      mode: queued
+      max: 10
+      fields:
+        step:
+          description: Step object from configs/routines.json
+          required: true
+          selector:
+            object:
+      sequence:
+        - choose:
+            - alias: Announce
+              conditions: "{{ step.type == 'announce' }}"
+              sequence:
+                - variables:
+                    message: "{{ step.message | replace('{time}', now().strftime('%-I:%M')) }}"
+                # The broadcast automation fires on a state change, so clear an
+                # identical message first or a repeat would be silent.
+                - if: "{{ is_state('input_text.broadcast_message', message) }}"
+                  then:
+                    - action: input_text.set_value
+                      target:
+                        entity_id: input_text.broadcast_message
+                      data:
+                        value: ""
+                - action: input_text.set_value
+                  target:
+                    entity_id: input_text.broadcast_message
+                  data:
+                    value: "{{ message[:255] }}"
+            - alias: Turn off
+              conditions: "{{ step.type == 'turn_off' }}"
+              sequence:
+                - action: homeassistant.turn_off
+                  target:
+                    entity_id: "{{ step.entity_id }}"
+                  continue_on_error: true

@@ -1,0 +1,16 @@
+# Smoke and carbon monoxide: the alarms that matter at any hour. Water leaks are on
+# Maintenance (sections/pages/maintenance/col1/40-water-leaks.yaml).
+type: vertical-stack
+cards:
+  - type: heading
+    heading: Smoke and carbon monoxide
+    heading_style: title
+    icon: mdi:fire-alert
+  - type: tile
+    entity: binary_sensor.smoke_alarm_monitor
+    name: Smoke alarm
+    color: red
+  - type: tile
+    entity: sensor.apollo_air_1_f8b340_carbon_monoxide
+    name: Carbon monoxide
+    color: orange

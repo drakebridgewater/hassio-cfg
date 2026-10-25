@@ -1,0 +1,93 @@
+# WLED strip. Takes the WLED device prefix (the light's object id) and finds the
+# rest by WLED's own entity naming:
+#   light.<device>                brightness slider, effect as attribute
+#   select.<device>_color_palette / _preset
+#   number.<device>_speed / _intensity
+# Same tap model as bubble_control (icon -> more-info, power -> toggle), plus
+# two rows below: what it shows (effect, palette, preset) and how it moves
+# (color, speed, intensity).
+bubble_wled:
+  default:
+    - name: null
+    - icon: phu:light-strip
+  card:
+    type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    light_slider_type: brightness
+    # decluttering-card doesn't pass grid_options through, so size Bubble directly:
+    # tall enough for the strip plus the two sub-button rows.
+    rows: 2.4
+    entity: light.[[device]]
+    name: '[[name]]'
+    icon: '[[icon]]'
+    show_name: true
+    show_state: true
+    show_last_changed: false
+    show_attribute: true
+    attribute: effect
+    tap_action:
+      action: more-info
+    hold_action:
+      action: more-info
+    sub_button:
+      main:
+        - icon: mdi:power
+          tap_action:
+            action: toggle
+      bottom_layout: rows
+      bottom:
+        - name: Look
+          buttons_layout: inline
+          group:
+            - entity: light.[[device]]
+              name: Effect
+              icon: mdi:auto-fix
+              sub_button_type: select
+              select_attribute: effect_list
+              show_attribute: true
+              attribute: effect
+              show_arrow: false
+              hide_when_parent_unavailable: true
+            - entity: select.[[device]]_color_palette
+              name: Palette
+              icon: mdi:palette-swatch
+              sub_button_type: select
+              show_state: true
+              show_arrow: false
+              hide_when_parent_unavailable: true
+            - entity: select.[[device]]_preset
+              name: Preset
+              icon: mdi:playlist-star
+              sub_button_type: select
+              show_state: true
+              show_arrow: false
+              hide_when_parent_unavailable: true
+        - name: Motion
+          buttons_layout: inline
+          group:
+            - entity: light.[[device]]
+              name: Color
+              icon: mdi:palette
+              sub_button_type: slider
+              light_slider_type: hue
+              always_visible: true
+              show_background: false
+              use_accent_color: true
+              hide_when_parent_unavailable: true
+            - entity: number.[[device]]_speed
+              name: Speed
+              icon: mdi:speedometer
+              sub_button_type: slider
+              always_visible: true
+              show_background: false
+              use_accent_color: true
+              hide_when_parent_unavailable: true
+            - entity: number.[[device]]_intensity
+              name: Intensity
+              icon: mdi:tune-variant
+              sub_button_type: slider
+              always_visible: true
+              show_background: false
+              use_accent_color: true
+              hide_when_parent_unavailable: true

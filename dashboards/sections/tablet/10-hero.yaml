@@ -1,0 +1,1465 @@
+# Tablet landing page in one card, modelled on the satellite kiosk screensaver.
+# The whole page lives in this sky card and fills the screen without scrolling:
+#   one top row: alarm (left edge) · entry pills (centre) · notices (right edge,
+#   variables.notices)
+#   alert ticker in the space above the clock (fixed, so alerts never move anything)
+#   today's calendar (left) · clock, date, grocery button and what to wear (centre) · rooms (right, one
+#   scrolling column with a "More rooms" button while some are out of view)
+#   outside and inside readings along the bottom (the navbar floats in the gap between)
+# Smaller cards switch to two columns, then one scrolling column (extra_styles).
+# The sky follows weather.pirateweather and the sun (variables.sky, from the shared
+# `sky` template in button-card-templates/active/sky.yaml): its colours,
+# sun, stars, and drifting clouds, rain, snow, fog, wind or lightning (the
+# `fx` layer). The moon is worked out for the home's location, so it shows
+# only while it's up, where it is in the sky, at its real phase. Pale skies
+# (fog, snow) switch the glass to a darker tint for contrast; every pill reads
+# --hero-glass. The clock uses the
+# browser's time and re-renders every minute through sensor.time.
+# Templates inside custom_fields cards run in this card's context, so they
+# name their entity explicitly instead of using `entity`.
+# Text sizes use container units (cqi) so the hero fits any tablet width.
+type: custom:button-card
+entity: sensor.time
+show_name: false
+show_icon: false
+show_state: false
+show_label: false
+tap_action:
+  action: none
+hold_action:
+  action: none
+triggers_update:
+  - sensor.time
+  - sun.sun
+  - weather.pirateweather
+  - alarm_control_panel.default
+  - cover.garage_door
+  - binary_sensor.any_door_open_group
+  - binary_sensor.window_open_group
+  - lock.front_front_door
+  - binary_sensor.front_door
+  - sensor.airnow_aqi
+  # Outside and inside readings (custom_fields.weather)
+  - sensor.wirelesstag_outdoor_temperature
+  - sensor.wirelesstag_outdoor_humidity
+  - sensor.living_room_temperature_sensor_temperature
+  - sensor.thermostat_humidity
+  - climate.thermostat
+  - calendar.birthdays
+  - calendar.united_states_or
+  - todo.kitchen_mealie_grocery
+  - sensor.daily_weather_forecast
+  - sensor.moon_phase
+  # Radon notice (variables.notices)
+  - sensor.radon_status
+  # Work and school notices (variables.notices)
+  - sensor.drake_work_today
+  - sensor.shawna_work_today
+  - sensor.ethan_school_today
+  # Indoor air quality (variables.notices)
+  - sensor.thermostat_air_quality_index
+  - sensor.thermostat_voc
+  - sensor.thermostat_co2
+  - sensor.view_plus_pm2_5
+  - sensor.view_plus_volatile_organic_compounds_parts
+  - sensor.view_plus_carbon_dioxide
+  - sensor.apollo_air_1_f8b340_pm_2_5mm_weight_concentration
+  - sensor.apollo_air_1_f8b340_sen55_voc
+  - sensor.apollo_air_1_f8b340_co2
+grid_options:
+  columns: full
+# close_up: when the entry pills pulse (button-card-templates/active/close_up.yaml).
+template:
+  - sky
+  - close_up
+variables:
+  # Notices for the top-right corner (custom_fields.notices): things worth a
+  # glance that aren't alarms. Each is { icon, title, detail, level, go }:
+  #   level  'attention' (amber) · 'warn' (orange) · 'alert' (red); sorts the list
+  #   go     page path or pop-up hash to open on tap
+  # To add one, push it below and add its entities to triggers_update.
+  notices: |
+    [[[
+      const list = [];
+      const num = (id) => { const n = parseFloat(hass.states[id]?.state); return isNaN(n) ? null : n; };
+
+      // Air quality: the worst room, only when it isn't good. Same 0-100 score
+      // and bands as the room air cards (decluttering-templates/aq_room.yaml).
+      // The Ecobee derives its VOC and CO2 from one 0-500 IAQ index, so its
+      // room scores from `iaq` alone (IAQ 100 = 80, 150 = 60, 200 = 40), and it
+      // follows the Ecobee app: Clean up to 100, Fair to 200 (no notice; the
+      // app says no need for concern), Poor above 200.
+      const rooms = [
+        { name: 'Living Room', go: '/lovelace-main/living-room', iaq: 'sensor.thermostat_air_quality_index',
+          voc: 'sensor.thermostat_voc', voc_max: 5000, co2: 'sensor.thermostat_co2' },
+        { name: 'Family Room', go: '/lovelace-main/family-room', pm25: 'sensor.view_plus_pm2_5',
+          voc: 'sensor.view_plus_volatile_organic_compounds_parts', voc_max: 300, co2: 'sensor.view_plus_carbon_dioxide' },
+        { name: 'Master Bedroom', go: '/lovelace-main/master-bedroom',
+          pm25: 'sensor.apollo_air_1_f8b340_pm_2_5mm_weight_concentration',
+          voc: 'sensor.apollo_air_1_f8b340_sen55_voc', voc_max: 300, co2: 'sensor.apollo_air_1_f8b340_co2' },
+      ];
+      const air = rooms.map((r) => {
+        const pm25 = num(r.pm25), co2 = num(r.co2), voc = num(r.voc), iaq = num(r.iaq);
+        const parts = [];
+        if (iaq !== null) parts.push([100, Math.min(1, Math.max(0, (iaq - 50) / 250))]);
+        else {
+          if (pm25 !== null) parts.push([40, Math.min(1, Math.max(0, pm25 / 35))]);
+          if (co2 !== null) parts.push([35, Math.min(1, Math.max(0, (co2 - 400) / 1600))]);
+          if (voc !== null) parts.push([25, Math.min(1, Math.max(0, voc / r.voc_max))]);
+        }
+        const weight = parts.reduce((a, p) => a + p[0], 0);
+        if (!weight) return null;
+        const score = Math.max(0, Math.round(100 - parts.reduce((a, p) => a + p[0] * p[1], 0) * 100 / weight));
+        let why = '';
+        if (pm25 !== null && pm25 > 12) why = 'particles';
+        if (voc !== null && voc > r.voc_max * 0.66) why = 'VOCs';
+        if (co2 !== null && co2 > 1000) why = 'CO₂';
+        return { ...r, score, why, iaq, quiet: iaq !== null && iaq <= 200 };
+      }).filter((r) => r && !r.quiet).sort((a, b) => a.score - b.score)[0];
+      if (air && air.score < 80) {
+        const band = air.iaq !== null ? ['Poor', 'warn']
+          : air.score < 40 ? ['Bad', 'alert'] : air.score < 60 ? ['Poor', 'warn'] : ['Moderate', 'attention'];
+        list.push({
+          icon: 'mdi:air-filter', title: `${band[0]} air`, level: band[1], go: air.go,
+          detail: `${air.name} · ${air.score}/100${air.why ? ' · ' + air.why : ''}`,
+        });
+      }
+
+      // Radon (packages/radon.yaml): while the current level or the 24h max is at
+      // the EPA action level (4 pCi/L), with both numbers and the trend.
+      const rn = hass.states['sensor.radon_status'];
+      if (rn && (['high', 'very_high'].includes(rn.state) || ['high', 'very_high'].includes(rn.attributes.max_24h_band))) {
+        const very = rn.state === 'very_high' || rn.attributes.max_24h_band === 'very_high';
+        list.push({
+          icon: 'mdi:radioactive', title: very ? 'Radon very high' : 'Radon high', level: very ? 'alert' : 'warn',
+          go: '/lovelace-main/family-room', detail: rn.attributes.summary,
+        });
+      }
+
+      // Work and school: only when someone is off on a day they'd normally go
+      // (packages/work_school.yaml); a normal weekday shows nothing.
+      [
+        ['sensor.drake_work_today', 'mdi:briefcase-off', 'Drake is off today'],
+        ['sensor.shawna_work_today', 'mdi:briefcase-off', 'Shawna is off today'],
+        ['sensor.ethan_school_today', 'mdi:home-account', 'No school today'],
+      ].forEach(([id, icon, title]) => {
+        const s = hass.states[id];
+        if (s?.state !== 'off' || s.attributes.expected !== true) return;
+        list.push({ icon, title, level: 'attention', go: '#people_overview',
+          detail: s.attributes.reason || (id.includes('ethan') ? 'Ethan' : 'No work event today') });
+      });
+
+      const rank = { alert: 0, warn: 1, attention: 2 };
+      return list.sort((a, b) => rank[a.level] - rank[b.level]);
+    ]]]
+custom_fields:
+  # Weather effects behind everything. Clouds, fog, haze and lightning are CSS
+  # (extra_styles); rain, snow and wind streaks are drawn on a canvas by a small
+  # particle loop kept on the card element (this._heroFx). It reads the latest
+  # weather on every frame, so the markup below only changes with the classes.
+  fx: |
+    [[[
+      const sky = variables.sky;
+      const k = sky.kind;
+      const precip = sky.state === 'lightning' ? '' : {
+        rain: 'rain', pour: 'pour', storm: 'pour', snow: sky.state === 'snowy-rainy' ? 'mix' : 'snow',
+        wind: 'wind',
+      }[k] || '';
+      const fx = (this._heroFx = this._heroFx || {});
+      fx.p = { precip, push: sky.push, gust: sky.gust - sky.mph, mph: sky.mph };
+      const card = this;
+      if (!fx.running) {
+        fx.running = true;
+        fx.parts = [];
+        fx.splashes = [];
+        fx.last = performance.now();
+        const R = Math.random;
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const spawn = (p, w, h, top) => {
+          const z = 0.25 + R() * 0.75; // depth: far (small, slow, faint) to near
+          if (p.type === 'snow') {
+            return { type: 'snow', z, x: R() * w * 1.4 - w * 0.2, y: top ? -10 - R() * h * 0.3 : R() * h,
+              r: (0.7 + z * 2.6) * (0.6 + R() * 0.8), ph: R() * 6.28, sw: 8 + R() * 22, fr: 0.4 + R() * 1.2,
+              flat: 0.65 + R() * 0.35, rot: R() * 3.14 };
+          }
+          if (p.type === 'wind') {
+            return { type: 'wind', z, x: -300 - R() * w, y: R() * h, len: 80 + R() * 220,
+              amp: 4 + R() * 14, ph: R() * 6.28, a: 0.04 + z * 0.08 };
+          }
+          return { type: 'rain', z, x: R() * w * 1.6 - w * 0.3, y: top ? -40 - R() * h * 0.4 : R() * h,
+            len: (8 + z * 22) * (0.6 + R() * 0.8), sp: (0.85 + R() * 0.3), a: 0.1 + z * 0.35 * (0.6 + R() * 0.6) };
+        };
+        const step = (t) => {
+          if (!card.isConnected) { fx.running = false; return; }
+          const p = fx.p;
+          const canvas = card.shadowRoot && card.shadowRoot.querySelector('#fx canvas');
+          if (!canvas || !p.precip || reduce.matches) {
+            if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            fx.parts = [];
+            fx.last = t;
+            setTimeout(() => requestAnimationFrame(step), 1000);
+            return;
+          }
+          const dpr = Math.min(2, window.devicePixelRatio || 1);
+          const w = canvas.clientWidth, h = canvas.clientHeight;
+          if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+            canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+          }
+          const ctx = canvas.getContext('2d');
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          ctx.clearRect(0, 0, w, h);
+          const dt = Math.min(0.05, (t - fx.last) / 1000);
+          fx.last = t;
+          // Gusts: a slow wandering swell on top of the steady wind.
+          const gustNow = p.gust * (0.5 + 0.5 * Math.sin(t / 2300) * Math.sin(t / 830));
+          const wind = (p.push === 0 ? 1 : Math.sign(p.push)) * gustNow + p.push;
+          const area = w * h;
+          const want = {
+            rain: [['rain', area / 2600]], pour: [['rain', area / 900]],
+            snow: [['snow', area / 5200]], mix: [['snow', area / 9000], ['rain', area / 4200]],
+            wind: [['wind', area / 45000]],
+          }[p.precip] || [];
+          for (const [type, n] of want) {
+            const have = fx.parts.filter((q) => q.type === type).length;
+            const target = Math.min(1400, Math.round(n));
+            for (let i = have; i < target; i++) fx.parts.push(spawn({ type }, w, h, false));
+            if (have > target) {
+              let drop = have - target;
+              fx.parts = fx.parts.filter((q) => q.type !== type || drop-- <= 0);
+            }
+          }
+          fx.parts = fx.parts.filter((q) => want.some(([type]) => type === q.type));
+          ctx.lineCap = 'round';
+          for (const q of fx.parts) {
+            if (q.type === 'rain') {
+              const vy = (650 + 650 * q.z) * q.sp * (p.precip === 'pour' ? 1.25 : 1);
+              const vx = wind * 16 * (0.55 + 0.45 * q.z);
+              q.x += vx * dt; q.y += vy * dt;
+              const v = Math.hypot(vx, vy);
+              ctx.strokeStyle = `rgba(215, 228, 245, ${q.a})`;
+              ctx.lineWidth = 0.5 + q.z * 1.1;
+              ctx.beginPath();
+              ctx.moveTo(q.x, q.y);
+              ctx.lineTo(q.x - (vx / v) * q.len, q.y - (vy / v) * q.len);
+              ctx.stroke();
+              if (q.y > h) {
+                if (q.z > 0.7 && fx.splashes.length < 80) fx.splashes.push({ x: q.x, y: h - 2 - R() * 6, age: 0, s: q.z });
+                Object.assign(q, spawn({ type: 'rain' }, w, h, true));
+              } else if (q.x < -60 || q.x > w + 60) {
+                Object.assign(q, spawn({ type: 'rain' }, w, h, true));
+                q.x = vx > 0 ? -R() * 40 : w + R() * 40;
+                q.y = R() * h;
+              }
+            } else if (q.type === 'snow') {
+              const vy = (22 + 55 * q.z);
+              const sway = Math.sin(t / 1000 * q.fr + q.ph) * q.sw;
+              const vx = wind * 5 * (0.5 + 0.5 * q.z) + sway;
+              q.x += vx * dt; q.y += vy * dt; q.rot += dt * q.fr;
+              ctx.save();
+              ctx.translate(q.x, q.y); ctx.rotate(q.rot); ctx.scale(1, q.flat);
+              ctx.fillStyle = `rgba(255, 255, 255, ${0.08 + q.z * 0.12})`;
+              ctx.beginPath(); ctx.arc(0, 0, q.r * 2.2, 0, 6.283); ctx.fill();
+              ctx.fillStyle = `rgba(255, 255, 255, ${0.35 + q.z * 0.55})`;
+              ctx.beginPath(); ctx.arc(0, 0, q.r, 0, 6.283); ctx.fill();
+              ctx.restore();
+              if (q.y > h + 10 || q.x < -40 || q.x > w + 40) {
+                Object.assign(q, spawn({ type: 'snow' }, w, h, true));
+                if (Math.abs(wind) > 3 && R() < 0.5) { q.x = wind > 0 ? -10 : w + 10; q.y = R() * h; }
+              }
+            } else {
+              const dir = p.push === 0 ? 1 : Math.sign(p.push);
+              const vx = dir * (180 + p.mph * 22 + gustNow * 15) * (0.6 + 0.4 * q.z);
+              q.x += Math.abs(vx) * dt; // progress along the wind; drawn mirrored for a leftward wind
+              ctx.strokeStyle = `rgba(255, 255, 255, ${q.a})`;
+              ctx.lineWidth = 1 + q.z;
+              ctx.beginPath();
+              for (let i = 0; i <= 12; i++) {
+                const sx = dir > 0 ? q.x - (q.len * i) / 12 : w - q.x + (q.len * i) / 12;
+                const sy = q.y + Math.sin(sx / 60 + q.ph + t / 900) * q.amp;
+                i ? ctx.lineTo(sx, sy) : ctx.moveTo(sx, sy);
+              }
+              ctx.stroke();
+              if (q.x - q.len > w + 20) Object.assign(q, spawn({ type: 'wind' }, w, h, true));
+            }
+          }
+          // Splashes: tiny rings where near drops land.
+          for (const s of fx.splashes) {
+            s.age += dt;
+            const k2 = s.age / 0.28;
+            ctx.strokeStyle = `rgba(215, 228, 245, ${0.35 * (1 - k2) * s.s})`;
+            ctx.lineWidth = 0.8;
+            ctx.beginPath(); ctx.ellipse(s.x, s.y, 2 + k2 * 7 * s.s, 0.6 + k2 * 1.6, 0, 3.3, 6.1); ctx.stroke();
+          }
+          fx.splashes = fx.splashes.filter((s) => s.age < 0.28);
+          requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }
+      // Clouds come from cloud_coverage, whatever the condition says: more,
+      // bigger clouds as it rises, and a grey veil once it's mostly overcast.
+      // Each cloud is three overlapping puffs; positions are seeded by index so
+      // they don't jump around between renders.
+      const cover = Math.max(sky.cover, sky.wet ? 0.75 : 0);
+      const seed = (i, n) => { const x = Math.sin(i * 127.1 + n * 311.7) * 43758.5453; return x - Math.floor(x); };
+      const count = cover < 0.05 ? 0 : Math.round(2 + cover * 9);
+      const tone = sky.night ? '165, 175, 195' : ['rain', 'pour', 'storm'].includes(k) ? '205, 210, 220' : '255, 255, 255';
+      const alpha = sky.night ? 0.28 : 0.55;
+      const blobs = [];
+      for (let i = 0; i < count; i++) {
+        const x = seed(i, 1) * 100, y = 4 + seed(i, 2) * 58;
+        const cw = 12 + seed(i, 3) * 16 + cover * 12, ch = cw * (0.28 + seed(i, 5) * 0.14);
+        const a = (alpha * (0.55 + 0.45 * seed(i, 4))).toFixed(2);
+        for (const [dx, dy, sw, sh] of [[0, 0, 1, 1], [-0.38, 0.25, 0.62, 0.8], [0.34, 0.18, 0.58, 0.75]]) {
+          blobs.push(`radial-gradient(ellipse ${(cw * sw).toFixed(1)}% ${(ch * sh).toFixed(1)}% at ${(x + dx * cw).toFixed(1)}% ${(y + dy * ch).toFixed(1)}%,`
+            + ` rgba(${tone}, ${a}) 0%, rgba(${tone}, ${(a * 0.55).toFixed(2)}) 45%, transparent 72%)`);
+        }
+      }
+      if (cover > 0.6) {
+        const v = ((cover - 0.6) * 1.1).toFixed(2);
+        blobs.push(`linear-gradient(180deg, rgba(${tone}, ${v}) 0%, rgba(${tone}, ${(v * 0.5).toFixed(2)}) 70%, transparent 100%)`);
+      }
+      const cls = [
+        count ? 'clouds' : '',
+        ['pour', 'storm'].includes(k) ? 'dark' : '',
+        k === 'storm' ? 'storm' : '',
+        k === 'fog' ? 'fog' : '',
+        sky.haze && sky.aqi > 100 ? 'smoke' : '',
+      ].join(' ');
+      // Clouds drift with the wind: faster in a breeze, direction from the bearing.
+      const dur = Math.round(Math.max(18, 120 - sky.mph * 5));
+      return `<div class="fx ${cls}" style="--drift-dur:${dur}s; --drift-dir:${sky.push < 0 ? 'reverse' : 'normal'};`
+        + ` --haze:${sky.haze ? sky.haze.rgb : '0,0,0'}; --clouds:${blobs.join(', ') || 'none'}"><canvas></canvas></div>`;
+    ]]]
+  # The moon at its real phase while it's above the horizon, placed by its
+  # azimuth and altitude (styles.custom_fields.moon). Two turns: the lit shape
+  # so its bright side faces the sun, and the face (maria, rayed craters) so
+  # lunar north points the way it does in your sky. The disc darkens toward
+  # the limb, the terminator is soft, and the dark side shows a faint
+  # earthshine copy of the face. Clouds drift over it. By day it shows only
+  # when at least a sixth of it is lit, paler and without the glow.
+  moon: |
+    [[[
+      const { night, moon, cover, wet } = variables.sky;
+      if (!moon.up || wet || cover > 0.9 || moon.illum < (night ? 0.02 : 0.16)) return '';
+      const p = moon.phase;
+      // Drawn lit on the right while waxing (limb at -90°), the left while waning (+90°).
+      const turn = ((p < 0.5 ? -90 : 90) - moon.tilt).toFixed(1);
+      const face = moon.pa.toFixed(1);
+      const fade = night ? 1 : 0.55;
+      const waxing = p < 0.5, crescent = p < 0.25 || p > 0.75;
+      const rx = (Math.abs(Math.cos(2 * Math.PI * p)) * 50).toFixed(2);
+      const outer = waxing ? 1 : 0, inner = waxing ? (crescent ? 0 : 1) : (crescent ? 1 : 0);
+      const lit = `M50 0 A50 50 0 0 ${outer} 50 100 A${rx} 50 0 0 ${inner} 50 0 Z`;
+      const glow = night ? ((0.15 + moon.illum * 0.5) * (1 - cover * 0.8)).toFixed(2) : 0;
+      // The near side with north up as seen from the northern hemisphere
+      // (Crisium on the right, Tycho at the bottom), soft-edged.
+      const maria = [
+        [36, 30, 13, 11, -10], [58, 29, 8, 7.5, 0], [65, 44, 10, 7.5, -25], [81, 35, 5.5, 4.5, 0],
+        [75, 58, 5.5, 9, 15], [64, 62, 4.5, 4.5, 0], [21, 50, 12, 21, 12], [41, 66, 9, 6.5, 0],
+        [24, 67, 5, 5, 0], [47, 16, 20, 3.5, -4], [48, 40, 4.5, 3.5, 0], [30, 44, 7, 9, 0],
+      ].map(([cx, cy, ex, ey, r]) => `<ellipse cx="${cx}" cy="${cy}" rx="${ex}" ry="${ey}" transform="rotate(${r} ${cx} ${cy})"/>`).join('');
+      const rays = [0, 32, 75, 118, 160, 205, 248, 292, 330].map((a) => {
+        const t = a * Math.PI / 180, l = 14 + (a % 3) * 6;
+        return `<line x1="43" y1="84" x2="${(43 + Math.sin(t) * l).toFixed(1)}" y2="${(84 - Math.cos(t) * l).toFixed(1)}"/>`;
+      }).join('');
+      const spots = [[43, 84, 2.2, 0.95], [36, 47, 2, 0.8], [16, 38, 1.4, 0.9], [24, 46, 1.4, 0.6], [62, 73, 1.6, 0.5], [70, 18, 1.4, 0.45]]
+        .map(([cx, cy, r, a]) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="rgba(255,255,255,${a})"/>`).join('');
+      const pits = [[40, 17, 2.2], [57, 76, 3], [30, 82, 3.4], [72, 70, 2.6], [52, 90, 2.4], [84, 50, 2], [12, 60, 2.4]]
+        .map(([cx, cy, r]) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="rgba(110,120,148,0.25)"/>`
+          + `<path d="M${cx - r} ${cy} A${r} ${r} 0 0 0 ${cx + r} ${cy}" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="0.6"/>`).join('');
+      const faceGroup = (id) => `<g transform="rotate(${face} 50 50)">`
+        + `<g fill="rgba(112,124,156,0.42)" filter="url(#${id})">${maria}</g>`
+        + `<g stroke="rgba(255,255,255,0.22)" stroke-width="0.7" stroke-linecap="round">${rays}</g>${pits}${spots}</g>`;
+      return `<svg viewBox="0 0 100 100" style="width:100%;height:100%;overflow:visible;opacity:${((1 - cover * 0.6) * fade).toFixed(2)};`
+        + `filter:drop-shadow(0 0 ${Math.round(6 + moon.illum * 18)}px rgba(220,230,255,${glow}))">`
+        + `<defs>`
+        + `<radialGradient id="hero-moon-limb" cx="46%" cy="44%" r="56%">`
+        + `<stop offset="0" stop-color="#f8f9ff"/><stop offset="0.6" stop-color="#e8ecf8"/><stop offset="1" stop-color="#bfc7dc"/></radialGradient>`
+        + `<filter id="hero-moon-soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2.2"/></filter>`
+        + `<filter id="hero-moon-edge"><feGaussianBlur stdDeviation="1.1"/></filter>`
+        + `<clipPath id="hero-moon-disc"><circle cx="50" cy="50" r="50"/></clipPath>`
+        + `<mask id="hero-moon-lit" maskUnits="userSpaceOnUse" x="-5" y="-5" width="110" height="110">`
+        + `<path d="${lit}" fill="white" transform="rotate(${turn} 50 50)" filter="url(#hero-moon-edge)"/></mask></defs>`
+        + `<g clip-path="url(#hero-moon-disc)">`
+        // Earthshine: the dark side, faintly showing the same face.
+        + `<circle cx="50" cy="50" r="50" fill="rgba(190,202,232,0.12)"/>`
+        + `<g opacity="0.25">${faceGroup('hero-moon-soft')}</g>`
+        + `<g mask="url(#hero-moon-lit)"><circle cx="50" cy="50" r="50" fill="url(#hero-moon-limb)"/>${faceGroup('hero-moon-soft')}</g>`
+        + `</g></svg>`;
+    ]]]
+  alarm:
+    card:
+      type: custom:button-card
+      entity: alarm_control_panel.default
+      layout: icon_name_state2nd
+      show_state: true
+      name: |
+        [[[ const a = hass.states['alarm_control_panel.default'];
+            return a ? (hass.formatEntityState ? hass.formatEntityState(a) : a.state) : 'Alarm'; ]]]
+      state_display: Alarmo
+      tap_action:
+        action: navigate
+        navigation_path: /lovelace-main/security
+      hold_action:
+        action: more-info
+      # Anything but disarmed (arming, armed, entry delay, triggered): a solid
+      # red pill with a slow, wide glow pulse, readable from across the room.
+      styles:
+        card:
+          - background: >-
+              [[[ return hass.states['alarm_control_panel.default']?.state === 'disarmed'
+                ? 'none' : 'rgba(211, 47, 47, 0.92)' ]]]
+          - box-shadow: none
+          - border: none
+          - border-radius: 999px
+          - padding: >-
+              [[[ return hass.states['alarm_control_panel.default']?.state === 'disarmed'
+                ? '0' : '10px 28px 10px 16px' ]]]
+          - animation: >-
+              [[[ return hass.states['alarm_control_panel.default']?.state === 'disarmed'
+                ? 'none' : 'hero-alarm-pulse 2.6s ease-in-out infinite' ]]]
+          - width: auto
+          - overflow: visible
+        grid:
+          - grid-template-areas: '"i n" "i s"'
+          - grid-template-columns: auto auto
+          - column-gap: 12px
+        icon:
+          - width: clamp(28px, 4cqi, 44px)
+          - color: white
+        name:
+          - justify-self: start
+          - color: white
+          - font-size: clamp(1.4rem, 3.4cqi, 2.4rem)
+          - font-weight: 400
+        state:
+          - justify-self: start
+          - color: rgba(255, 255, 255, 0.8)
+          - font-size: clamp(0.8rem, 1.4cqi, 1rem)
+      state:
+        - value: disarmed
+          icon: mdi:shield-outline
+        - value: triggered
+          icon: mdi:bell-ring
+        - operator: template
+          value: '[[[ return (hass.states["alarm_control_panel.default"]?.state || "").startsWith("armed_") ]]]'
+          icon: mdi:shield-lock
+      extra_styles: |
+        @keyframes hero-alarm-pulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.85), 0 0 18px 4px rgba(244, 67, 54, 0.6);
+                     filter: brightness(1); }
+          50% { box-shadow: 0 0 0 26px rgba(244, 67, 54, 0), 0 0 60px 24px rgba(244, 67, 54, 0.75);
+                filter: brightness(1.25); }
+        }
+        @media (prefers-reduced-motion: reduce) { ha-card { animation: none !important; } }
+  # Buttons in these fields use onpointerup, not onclick: on touch screens (and
+  # Chrome's device mode) the card's tap handler cancels touchend, so the click
+  # never fires.
+  # Top-right notices (variables.notices) in one row, most urgent on the right.
+  # Styled like the alarm when it's armed, but quieter: tinted glass with a soft
+  # glow for warn and alert. One notice is open (icon, title and detail); the
+  # rest are icon circles, and tapping a circle opens it in place of the other.
+  # Tapping the open one goes to its page. The open one stays open across
+  # renders (this._heroNotice) while it's still listed.
+  # When the row doesn't fit (beside the entry pills in the wide layout, or
+  # across its own row in the smaller ones), the open one drops its text too
+  # (.compact) and every circle goes straight to its page. The fit is measured
+  # after each render and on resize (the slot's _heroFit).
+  notices: |
+    [[[
+      const list = variables.notices || [];
+      const card = this;
+      setTimeout(() => {
+        const root = card.shadowRoot;
+        const slot = root && root.querySelector('#notices');
+        if (!slot) return;
+        const pillsSlot = root.querySelector('#pills');
+        // The entry pills (button-cards inside layout-card's shadow roots).
+        const pills = (n, out) => {
+          if (n.shadowRoot) pills(n.shadowRoot, out);
+          for (const e of n.children) e.localName === 'button-card' ? out.push(e) : pills(e, out);
+          return out;
+        };
+        if (!slot._heroFit) {
+          // In the wide layout the pills and notices are one group, centred in
+          // the row: the pills move left by --pills-shift and the notices row
+          // (pinned to the right edge) is pulled in to sit just after them.
+          // The group slides right if it would reach the alarm.
+          slot._heroFit = () => {
+            const row = slot.querySelector('.notices');
+            const wide = row && getComputedStyle(row).position === 'absolute';
+            pillsSlot.style.setProperty('--pills-shift', '0px');
+            if (!row) return;
+            row.classList.remove('compact');
+            row.style.right = '';
+            // The row grows leftward (row-reverse), which scrollWidth doesn't count.
+            const need = [...row.children].reduce((sum, b) => sum + b.offsetWidth + 8, -8);
+            if (!wide) { row.classList.toggle('compact', need > slot.clientWidth); return; }
+            const boxes = pills(pillsSlot, []).map((e) => e.getBoundingClientRect()).filter((b) => b.width > 0);
+            const pillsL = boxes.length ? Math.min(...boxes.map((b) => b.left)) : 0;
+            const pillsW = boxes.length ? Math.max(...boxes.map((b) => b.right)) - pillsL : 0;
+            const alarm = root.querySelector('#alarm').getBoundingClientRect();
+            const right = slot.getBoundingClientRect().right;
+            const start = alarm.right + 24;
+            row.classList.toggle('compact', pillsW + 12 + need > right - start);
+            const rowW = row.offsetWidth;
+            const groupW = pillsW + 12 + rowW;
+            const left = Math.max(start, (alarm.left + right) / 2 - groupW / 2);
+            pillsSlot.style.setProperty('--pills-shift', left - pillsL + 'px');
+            row.style.right = Math.max(0, right - (left + groupW)) + 'px';
+          };
+          const ro = new ResizeObserver(() => slot._heroFit());
+          ro.observe(root.querySelector('#container'));
+          slot._heroObserve = (els) => els.forEach((e) => ro.observe(e));
+        }
+        // Pills grow when something opens; refit when they do.
+        slot._heroObserve(pills(pillsSlot, []));
+        slot._heroFit();
+      }, 0);
+      if (!list.length) return '';
+      const keyOf = (n) => encodeURIComponent(n.title);
+      const openKey = list.some((n) => keyOf(n) === card._heroNotice) ? card._heroNotice : keyOf(list[0]);
+      const go = (to) => (to.startsWith('#')
+        ? `history.pushState(null, '', location.pathname + '${to}')`
+        : `history.pushState(null, '', '${to}')`) + `; window.dispatchEvent(new CustomEvent('location-changed'))`;
+      const pick = `const row = this.parentNode;`
+        + ` if (!this.classList.contains('open') && !row.classList.contains('compact')) {`
+        + ` row.querySelectorAll('.notice').forEach((b) => b.classList.toggle('open', b === this));`
+        + ` this.getRootNode().host._heroNotice = this.dataset.key; this.closest('#notices')._heroFit(); return; }`;
+      return `<div class="notices">${list.map((n) =>
+        `<button type="button" class="notice ${n.level}${keyOf(n) === openKey ? ' open' : ''}" data-key="${keyOf(n)}"`
+        + ` aria-label="${n.title}" onpointerup="event.stopPropagation(); ${pick} ${go(n.go)}">`
+        + `<ha-icon icon="${n.icon}"></ha-icon><span><b>${n.title}</b><small>${n.detail}</small></span></button>`
+      ).join('')}</div>`;
+    ]]]
+  # AM/PM is its own span so smaller layouts can drop it and keep the digits big.
+  clock: |
+    [[[
+      const parts = new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit' }).formatToParts(new Date());
+      const time = parts.filter((p) => p.type !== 'dayPeriod').map((p) => p.value).join('').trim();
+      const ap = parts.find((p) => p.type === 'dayPeriod')?.value;
+      return time + (ap ? `<span class="ap">&nbsp;${ap}</span>` : '');
+    ]]]
+  date: |
+    [[[ return new Date().toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'}); ]]]
+  # Grocery list button under the date while Mealie's Grocery list has items;
+  # opens the #grocery pop-up (popup/grocery.yaml) on this page.
+  # It also places the what-to-wear card (wear) below itself in the wide layout.
+  grocery: |
+    [[[
+      const card = this;
+      setTimeout(() => {
+        const root = card.shadowRoot;
+        const slot = root && root.querySelector('#wear');
+        const groc = root && root.querySelector('#grocery');
+        const box = slot && slot.firstElementChild;
+        if (!slot || !groc || !box) return;
+        if (!slot._heroFit) {
+          slot._heroFit = () => {
+            const has = !!groc.querySelector('button');
+            const top = has ? groc.offsetTop - slot.offsetTop + groc.offsetHeight + 12 : 8;
+            slot.style.setProperty('--wear-top', Math.max(0, top) + 'px');
+            const cs = getComputedStyle(slot);
+            const room = slot.clientHeight - (parseFloat(cs.paddingTop) || 0) - (parseFloat(cs.paddingBottom) || 0);
+            slot.toggleAttribute('data-fit', box.offsetHeight > 0 && box.offsetHeight <= room + 1);
+          };
+          const ro = new ResizeObserver(() => slot._heroFit());
+          [slot, groc, box].forEach((el) => ro.observe(el));
+        }
+        slot._heroFit();
+      }, 0);
+      const n = parseInt(hass.states['todo.kitchen_mealie_grocery']?.state, 10);
+      if (!(n > 0)) return '';
+      return `<button type="button" class="grocery" onpointerup="event.stopPropagation();`
+        + ` history.pushState(null, '', location.pathname + '#grocery'); window.dispatchEvent(new CustomEvent('location-changed'))">`
+        + `<ha-icon icon="mdi:cart-outline"></ha-icon><b>Grocery list</b><span>${n} ${n === 1 ? 'item' : 'items'}</span></button>`;
+    ]]]
+  # What to wear (decluttering-templates/what_to_wear.yaml), under the grocery button.
+  # In the wide layout it shares the grocery area, pushed below the button
+  # (--wear-top), and shows only when it fits (data-fit), like Coming up; the
+  # grocery field above keeps that in step.
+  wear:
+    card:
+      type: custom:decluttering-card
+      template: what_to_wear
+      variables:
+        - tap: '#weather'
+  pills:
+    card:
+      type: custom:layout-card
+      layout_type: custom:grid-layout
+      # One row, each pill only as wide as it is: closed and locked pills are
+      # just their icon (hero_pill's `quiet`) and grow when something opens.
+      layout:
+        grid-template-columns: none
+        grid-auto-flow: column
+        grid-auto-columns: max-content
+        grid-gap: 12px
+        place-content: center
+      cards:
+        - type: custom:button-card
+          template: hero_pill
+          entity: cover.garage_door
+          variables:
+            quiet: '[[[ return hass.states["cover.garage_door"]?.state === "closed" ]]]'
+            pulse: '[[[ return variables.close_up.garage ]]]'
+          name: Garage
+          tap_action:
+            action: more-info
+          state:
+            - value: open
+              styles:
+                icon:
+                  - color: var(--amber-color)
+        - type: custom:button-card
+          template: hero_pill
+          entity: binary_sensor.any_door_open_group
+          variables:
+            quiet: '[[[ return hass.states["binary_sensor.any_door_open_group"]?.state === "off" ]]]'
+            pulse: '[[[ return variables.close_up.doors ]]]'
+          name: Doors
+          icon: mdi:door
+          state_display: '[[[ return hass.states["binary_sensor.any_door_open_group"]?.state === "on" ? "Open" : "Closed" ]]]'
+          tap_action:
+            action: navigate
+            navigation_path: '#door'
+          state:
+            - value: 'on'
+              icon: mdi:door-open
+              styles:
+                icon:
+                  - color: var(--amber-color)
+        - type: custom:button-card
+          template: hero_pill
+          entity: binary_sensor.window_open_group
+          variables:
+            quiet: '[[[ return hass.states["binary_sensor.window_open_group"]?.state === "off" ]]]'
+            pulse: '[[[ return variables.close_up.windows ]]]'
+          name: Windows
+          icon: mdi:window-closed-variant
+          state_display: '[[[ return hass.states["binary_sensor.window_open_group"]?.state === "on" ? "Open" : "Closed" ]]]'
+          tap_action:
+            action: navigate
+            navigation_path: '#window'
+          state:
+            - value: 'on'
+              icon: mdi:window-open-variant
+              styles:
+                icon:
+                  - color: var(--amber-color)
+        - type: custom:button-card
+          template: hero_pill
+          entity: lock.front_front_door
+          variables:
+            quiet: '[[[ return hass.states["lock.front_front_door"]?.state === "locked" ]]]'
+            pulse: '[[[ return variables.close_up.lock ]]]'
+          name: Front Door
+          icon: mdi:lock
+          tap_action:
+            action: more-info
+          state:
+            - value: unlocked
+              icon: mdi:lock-open-variant
+              styles:
+                icon:
+                  - color: var(--red-color)
+            - value: open
+              icon: mdi:lock-open-variant
+              styles:
+                icon:
+                  - color: var(--red-color)
+  ticker:
+    card: !include ../banner/01-alert-ticker.yaml
+  # Today: the next three days from the family calendars, drawn here (not
+  # calendar-card-pro) so it reads from across the room: big event titles, and
+  # start over end time on the right. Events are fetched every 15 minutes (and
+  # at midnight) and kept on the card (this._heroAgenda); a fetch redraws in
+  # place. Ended events drop off; up to 5 events show, each with its
+  # calendar's name in small text under the title. Tapping opens the
+  # calendar page. Daily work and school blocks are left out (`routine`);
+  # packages/work_school.yaml turns them into sensors and notices instead.
+  calendar: |
+    [[[
+      const card = this;
+      const cals = ['calendar.bridgewater_s_v2', 'calendar.drake_s_google', 'calendar.partiful_2','calendar.shawna_s_gmail','calendar.ethans_calendar',
+        'calendar.drake_fastmail_fm', 'calendar.birthdays'];
+      const routine = /^\s*(working|elementary school)\b/i;
+      // Calendar names under each event: friendly names, with short overrides.
+      const calName = { 'calendar.drake_fastmail_fm': 'Drake' };
+      const st = (card._heroAgenda = card._heroAgenda || { at: 0, day: null, events: null, busy: false });
+      const now = new Date();
+      const day0 = new Date(now); day0.setHours(0, 0, 0, 0);
+      const end = new Date(day0); end.setDate(end.getDate() + 3);
+      const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const time = (d) => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+      const render = () => {
+        const head = '<span class="ag-title">Today</span>';
+        if (!st.events) return head + '<span class="ag-empty">Loading…</span>';
+        const seen = new Set();
+        const evs = st.events.map((e) => {
+          const all = !!e.start?.date;
+          const s = all ? new Date(e.start.date + 'T00:00') : new Date(e.start?.dateTime);
+          const en = all ? new Date(e.end.date + 'T00:00') : new Date(e.end?.dateTime);
+          const cal = (calName[e._cal] || hass.states[e._cal]?.attributes?.friendly_name || '').trim();
+          return { title: e.summary || 'Busy', s, e: en, all, cal };
+        }).filter((e) => {
+          const k = e.title + '|' + e.s.getTime();
+          if (seen.has(k) || !(e.e > now) || routine.test(e.title)) return false;
+          seen.add(k); return true;
+        });
+        let left = 5, out = '';
+        for (let i = 0; i < 3 && left > 0; i++) {
+          const ds = new Date(day0); ds.setDate(ds.getDate() + i);
+          const de = new Date(ds); de.setDate(de.getDate() + 1);
+          const list = evs.filter((e) => e.s < de && e.e > ds)
+            .sort((a, b) => (b.all - a.all) || (a.s - b.s)).slice(0, left);
+          if (!list.length) continue;
+          left -= list.length;
+          const rows = list.map((e) => {
+            let top, bottom = '';
+            if (e.all) top = 'All day';
+            else {
+              top = e.s < ds ? 'Until' : time(e.s);
+              bottom = e.e <= de ? time(e.e) : e.e.toLocaleDateString([], { weekday: 'short' });
+              if (e.s < ds && e.e > de) { top = 'All day'; bottom = ''; }
+            }
+            const live = !e.all && e.s <= now && e.e > now;
+            return `<span class="ag-ev${live ? ' now' : ''}"><span class="ag-what"><span class="ag-name">${esc(e.title)}</span>`
+              + `${e.cal ? `<small class="ag-cal">${esc(e.cal)}</small>` : ''}</span>`
+              + `<span class="ag-time"><span>${top}</span>${bottom ? `<span>${bottom}</span>` : ''}</span></span>`;
+          }).join('');
+          out += `<span class="ag-day"><span class="ag-date"><small>${ds.toLocaleDateString([], { weekday: 'short' })}</small>`
+            + `<b>${ds.getDate()}</b><small>${ds.toLocaleDateString([], { month: 'short' })}</small></span>`
+            + `<span class="ag-events">${rows}</span></span>`;
+        }
+        return head + (out || '<span class="ag-empty">Nothing on the calendar</span>');
+      };
+
+      if (!st.busy && (Date.now() - st.at > 15 * 60000 || st.day !== day0.getTime())) {
+        st.busy = true;
+        const q = `?start=${encodeURIComponent(day0.toISOString())}&end=${encodeURIComponent(end.toISOString())}`;
+        Promise.all(cals.map((id) => hass.callApi('GET', `calendars/${id}${q}`).catch(() => [])))
+          .then((lists) => {
+            st.events = lists.flatMap((l, i) => l.map((e) => ({ ...e, _cal: cals[i] })));
+            st.at = Date.now(); st.day = day0.getTime();
+            const box = card.shadowRoot && card.shadowRoot.querySelector('#calendar .agenda');
+            if (box) box.innerHTML = render();
+          })
+          .finally(() => { st.busy = false; });
+      }
+      return `<button type="button" class="agenda" onpointerup="event.stopPropagation();`
+        + ` history.pushState(null, '', '/lovelace-main/calendar'); window.dispatchEvent(new CustomEvent('location-changed'))">`
+        + `${render()}</button>`;
+    ]]]
+  # Coming up, under Today: the next birthday and the next holiday with a day
+  # countdown, from each calendar's next event. The birthday row opens the
+  # birthdays pop-up (popup/birthdays.yaml), the holiday row the calendar page.
+  # In the wide layout it shares Today's grid area and is pushed down to just
+  # below the calendar (--up-top, from the calendar's height), so it stacks
+  # under Today whatever the calendar's length. Shown only when it fits (a size
+  # watcher sets data-fit).
+  upcoming: |
+    [[[
+      const card = this;
+      setTimeout(() => {
+        const root = card.shadowRoot;
+        const slot = root && root.querySelector('#upcoming');
+        const cal = root && root.querySelector('#calendar');
+        if (!slot || !cal) return;
+        if (!slot._heroFit) {
+          slot._heroFit = () => {
+            const top = cal.offsetTop - slot.offsetTop + cal.offsetHeight + 12;
+            slot.style.setProperty('--up-top', Math.max(0, top) + 'px');
+            const box = slot.querySelector('.up');
+            const cs = getComputedStyle(slot);
+            const room = slot.clientHeight - (parseFloat(cs.paddingTop) || 0) - (parseFloat(cs.paddingBottom) || 0);
+            slot.toggleAttribute('data-fit', !!box && box.offsetHeight <= room + 1);
+          };
+          new ResizeObserver(slot._heroFit).observe(slot);
+          new ResizeObserver(slot._heroFit).observe(cal);
+        }
+        slot._heroFit();
+      }, 0);
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const row = (entity, icon, color, to) => {
+        const st = hass.states[entity];
+        const at = st?.attributes || {};
+        if (!at.message || !at.start_time) return '';
+        const start = new Date(at.start_time.replace(' ', 'T'));
+        const day = new Date(start); day.setHours(0, 0, 0, 0);
+        const days = Math.round((day - today) / 86400000);
+        const when = days <= 0 ? 'Today' : days === 1 ? 'Tomorrow' : `${days} days`;
+        const date = start.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+        return `<button type="button" class="up-row" onpointerup="event.stopPropagation();`
+          + ` history.pushState(null, '', '${to}'); window.dispatchEvent(new CustomEvent('location-changed'))">`
+          + `<ha-icon icon="${icon}" style="color:${color}"></ha-icon>`
+          + `<span class="up-text"><b>${at.message}</b><small>${date}</small></span>`
+          + `<span class="up-when${days <= 0 ? ' now' : ''}">${when}</span></button>`;
+      };
+      const rows = row('calendar.birthdays', 'mdi:cake-variant-outline', '#f8bbd0', '/lovelace-main/tablet#birthdays')
+        + row('calendar.united_states_or', 'mdi:party-popper', '#ffe082', '/lovelace-main/calendar');
+      if (!rows) return '';
+      return `<div class="up"><div class="up-title">Coming up</div>${rows}</div>
+      <style>
+        .up { display: flex; flex-direction: column; gap: 4px; padding: 12px 12px 8px; border-radius: 24px; text-align: start;
+          background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(12px); }
+        .up-title { font-size: 18px; padding: 0 4px 4px; }
+        .up-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 4px; border: none;
+          border-top: 1px solid rgba(255, 255, 255, 0.25); background: none; color: white; font: inherit;
+          text-align: start; cursor: pointer; -webkit-tap-highlight-color: transparent; border-radius: 0; }
+        .up-row:active { background: rgba(255, 255, 255, 0.12); }
+        .up-row:focus-visible { outline: 2px solid white; outline-offset: 2px; }
+        .up-row ha-icon { --mdc-icon-size: 26px; flex: none; }
+        .up-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+        .up-text b { font-weight: 500; font-size: clamp(1rem, 1.5cqi, 1.15rem);
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .up-text small { font-size: 0.85rem; opacity: 0.85; }
+        .up-when { flex: none; font-size: clamp(1.1rem, 1.8cqi, 1.4rem); font-weight: 500; }
+        .up-when.now { color: #ffe082; }
+      </style>`;
+    ]]]
+  # One column of room cards that scrolls inside its slot, so it never runs into
+  # the pills above. The --room-card-* sizes are read by decluttering-templates/room_card.yaml.
+  rooms:
+    card:
+      type: vertical-stack
+      cards:
+        - type: vertical-stack
+          cards:
+            - !include ../../sections/spaces-cards/10-kitchen.yaml
+            - !include ../../sections/spaces-cards/20-living-room.yaml
+            - !include ../../sections/spaces-cards/30-dining.yaml
+            - !include ../../sections/spaces-cards/40-master-bedroom.yaml
+            - !include ../../sections/spaces-cards/20-ethans-room.yaml
+            - !include ../../sections/spaces-cards/10-office.yaml
+            - !include ../../sections/spaces-cards/30-family-room.yaml
+  # "More rooms" button over the bottom of the room list while there's more to
+  # scroll to; tapping it scrolls the list. A scroll watcher on #rooms sets
+  # data-more (cards below) and data-scrolled (cards above) on it, and data-show
+  # on #more, for the CSS.
+  more: |
+    [[[
+      const card = this;
+      setTimeout(() => {
+        const list = card.shadowRoot && card.shadowRoot.querySelector('#rooms');
+        if (!list) return;
+        if (!list._heroMore) {
+          list._heroMore = () => {
+            const rest = list.scrollHeight - list.clientHeight - list.scrollTop;
+            list.toggleAttribute('data-more', rest > 4);
+            list.toggleAttribute('data-scrolled', list.scrollTop > 4);
+            const more = card.shadowRoot.querySelector('#more');
+            if (more) more.toggleAttribute('data-show', rest > 4);
+          };
+          list.addEventListener('scroll', list._heroMore, { passive: true });
+          new ResizeObserver(list._heroMore).observe(list);
+          if (list.firstElementChild) new ResizeObserver(list._heroMore).observe(list.firstElementChild);
+        }
+        list._heroMore();
+      }, 0);
+      return `<button type="button" class="more" aria-label="Scroll to more rooms"
+        onpointerup="event.stopPropagation(); const l = this.getRootNode().querySelector('#rooms');
+          l.scrollBy({ top: l.clientHeight * 0.8, behavior: 'smooth' })">
+        <ha-icon icon="mdi:chevron-down"></ha-icon>More rooms</button>`;
+    ]]]
+  # Outside (left) and inside (right) along the bottom, one glass block each: a
+  # big icon and temperature, a line under it, and up to three small readings.
+  # Outside: sensor.wirelesstag_outdoor_temperature (Pirate Weather when the tag
+  # is unavailable), then wind, the moon after dark and humidity, with rain
+  # chance and low visibility taking their places on a wet or foggy day, and
+  # AirNow AQI always last. A clear night swaps the condition icon for the moon's phase.
+  # Inside: the living room sensor, Ecobee humidity, what the thermostat is doing,
+  # and the Ecobee air quality in the Ecobee app's words (clean up to 100, fair to
+  # 200, then poor). Outside opens the #weather pop-up (popup/weather.yaml), AQI
+  # the #aqi-overview pop-up; inside taps open the sensor or the thermostat.
+  # Each block takes a third of the row, leaving the middle third for the
+  # navbar; narrower cards stack the two blocks.
+  # Each block keeps one fixed height: the caption stays on one line, and when
+  # it doesn't fit, pieces marked data-drop are hidden lowest number first (the
+  # stats' small words, then "feels", then the condition) until it does. The
+  # fit is measured after each render and on resize (each block's _heroFit).
+  weather: |
+    [[[
+      const card = this;
+      setTimeout(() => {
+        const root = card.shadowRoot;
+        if (!root) return;
+        root.querySelectorAll('.wx-block').forEach((blk) => {
+          if (!blk._heroFit) {
+            blk._heroFit = () => {
+              const cap = blk.querySelector('.wx-temp small');
+              const drops = [...blk.querySelectorAll('[data-drop]')].sort((x, y) => x.dataset.drop - y.dataset.drop);
+              drops.forEach((d) => { d.hidden = false; });
+              for (const d of drops) {
+                if (cap.scrollWidth <= cap.clientWidth) break;
+                d.hidden = true;
+              }
+            };
+            new ResizeObserver(() => blk._heroFit()).observe(blk);
+          }
+          blk._heroFit();
+        });
+      }, 0);
+      const w = hass.states['weather.pirateweather'];
+      const a = w?.attributes || {};
+      const night = variables.sky.night;
+      const icons = {
+        'clear-night': 'mdi:weather-night', cloudy: 'mdi:weather-cloudy', fog: 'mdi:weather-fog',
+        hail: 'mdi:weather-hail', lightning: 'mdi:weather-lightning',
+        'lightning-rainy': 'mdi:weather-lightning-rainy',
+        partlycloudy: night ? 'mdi:weather-night-partly-cloudy' : 'mdi:weather-partly-cloudy',
+        pouring: 'mdi:weather-pouring', rainy: 'mdi:weather-rainy', snowy: 'mdi:weather-snowy',
+        'snowy-rainy': 'mdi:weather-snowy-rainy', sunny: night ? 'mdi:weather-night' : 'mdi:weather-sunny',
+        windy: 'mdi:weather-windy', 'windy-variant': 'mdi:weather-windy-variant',
+      };
+      // Icon colour follows the condition, like the sky behind it.
+      const tint = {
+        clear: night ? '#e6ecff' : '#ffd54f', partly: night ? '#e6ecff' : '#ffe082', wind: '#b3e5fc',
+        cloudy: '#eceff1', fog: '#eceff1', rain: '#81d4fa', pour: '#4fc3f7', storm: '#ffd740', snow: '#ffffff',
+      }[variables.sky.kind] || 'white';
+      const num = (id) => { const n = parseFloat(hass.states[id]?.state); return isNaN(n) ? null : n; };
+      const has = (v) => v !== undefined && v !== null && !isNaN(v);
+      const open = (id) => `this.dispatchEvent(new CustomEvent('hass-more-info', { bubbles: true, composed: true,`
+        + ` detail: { entityId: '${id}' } }))`;
+      const popup = (hash) => `history.pushState(null, '', location.pathname + '${hash}');`
+        + ` window.dispatchEvent(new CustomEvent('location-changed'))`;
+      const aqiPopup = popup('#aqi-overview'), weatherPopup = popup('#weather');
+      const stat = (icon, text, small, action, color) =>
+        `<button type="button" class="wx-stat" onpointerup="event.stopPropagation(); ${action}">`
+        + (icon.startsWith('#') ? `<span class="wx-dot" style="background:${icon}"></span>`
+          : `<ha-icon icon="${icon}"${color ? ` style="color:${color}"` : ''}></ha-icon>`)
+        + `<b>${text}</b>${small ? `<small data-drop="1">${small}</small>` : ''}</button>`;
+      const block = (cls, icon, color, temp, sub, stats, action) =>
+        `<div class="wx-block ${cls}"><button type="button" class="wx-main" onpointerup="event.stopPropagation(); ${action}">`
+        + `<span class="wx-icon"><ha-icon icon="${icon}" style="color:${color}"></ha-icon></span>`
+        + `<span class="wx-temp"><b>${temp}</b><small>${sub}</small></span></button>`
+        + `<span class="wx-stats">${stats.join('')}</span></div>`;
+      const deg = (v) => (has(v) ? Math.round(v) + '°' : '—');
+
+      // Outside
+      const tag = num('sensor.wirelesstag_outdoor_temperature');
+      const outT = tag ?? a.temperature;
+      const cond = w ? (hass.formatEntityState ? hass.formatEntityState(w) : w.state) : '';
+      // Feels-like keeps Pirate Weather's offset from its own temperature, applied to the tag's.
+      const feelsT = has(a.apparent_temperature) && has(a.temperature) ? outT + a.apparent_temperature - a.temperature : null;
+      const feels = feelsT !== null && Math.round(feelsT) !== Math.round(outT) ? 'feels ' + deg(feelsT) : '';
+      const outSub = 'Outside' + (cond ? `<span data-drop="3"> · ${cond}</span>` : '')
+        + (feels ? `<span data-drop="2"> · ${feels}</span>` : '');
+      const today = hass.states['sensor.daily_weather_forecast']?.attributes?.forecast?.[0] || {};
+      const rain = Math.max(Number(a.precipitation_probability) || 0, Number(today.precipitation_probability) || 0);
+      const vis = Number(a.visibility);
+      const wind = Number(a.wind_speed), gust = Number(a.wind_gust_speed);
+      const windUnit = a.wind_speed_unit || 'mph';
+      const hum = num('sensor.wirelesstag_outdoor_humidity') ?? a.humidity;
+      const aqi = variables.sky.aqi;
+      const aqiBand = !Number.isFinite(aqi) ? null
+        : aqi <= 50 ? ['#81c784', 'good'] : aqi <= 100 ? ['#ffd54f', 'moderate'] : aqi <= 150 ? ['#ffb74d', 'unhealthy for some']
+        : aqi <= 200 ? ['#e57373', 'unhealthy'] : ['#ba68c8', 'very unhealthy'];
+      // The moon after dark: how much is lit and the phase while it's up, the
+      // next moonrise while it's down.
+      const moon = variables.sky.moon;
+      const clock = (t) => new Date(t).toLocaleTimeString(hass.locale?.language, { hour: 'numeric', minute: '2-digit' });
+      const moonStat = !night ? ''
+        : moon.up ? stat('mdi:moon-' + moon.key, Math.round(moon.illum * 100) + '%', moon.name.toLowerCase(), weatherPopup, '#e6ecff')
+        : moon.next?.rise ? stat('mdi:moon-' + moon.key, clock(moon.next.at), 'moonrise', weatherPopup, '#e6ecff')
+        : '';
+      const outStats = [
+        rain >= 20 ? stat('mdi:umbrella-outline', Math.round(rain) + '%', 'rain', weatherPopup, '#81d4fa') : '',
+        has(vis) && vis < 3 ? stat('mdi:eye-outline', Math.round(vis * 10) / 10 + ' ' + (a.visibility_unit || 'mi'), 'visibility', weatherPopup) : '',
+        has(wind) ? stat('mdi:weather-windy', Math.round(wind) + ' ' + windUnit,
+          has(gust) && gust >= wind + 5 ? 'gusts ' + Math.round(gust) : '', weatherPopup) : '',
+        moonStat,
+        has(hum) ? stat('mdi:water-outline', Math.round(hum) + '%', 'humidity', weatherPopup) : '',
+      ].filter(Boolean).slice(0, aqiBand ? 2 : 3);
+      if (aqiBand) outStats.push(stat(aqiBand[0], 'AQI ' + Math.round(aqi), aqiBand[1], aqiPopup));
+
+      // Inside
+      const inT = num('sensor.living_room_temperature_sensor_temperature');
+      const inHum = num('sensor.thermostat_humidity');
+      const th = hass.states['climate.thermostat'];
+      const ta = th?.attributes || {};
+      const lo = ta.target_temp_low ?? ta.temperature, hi = ta.target_temp_high ?? ta.temperature;
+      const hvac = !th ? null
+        : ta.hvac_action === 'heating' ? ['mdi:fire', 'Heating to ' + deg(lo), '', '#ffb74d']
+        : ta.hvac_action === 'cooling' ? ['mdi:snowflake', 'Cooling to ' + deg(hi), '', '#81d4fa']
+        : th.state === 'off' ? ['mdi:power', 'Thermostat off', '', '']
+        : ['mdi:thermostat', has(lo) && has(hi) && Math.round(lo) !== Math.round(hi) ? deg(lo) + '–' + deg(hi) : 'Set ' + deg(lo),
+           ta.hvac_action === 'fan' ? 'fan on' : 'idle', ''];
+      const iaq = num('sensor.thermostat_air_quality_index');
+      const iaqBand = iaq === null ? null
+        : iaq <= 100 ? ['#81c784', 'clean'] : iaq <= 200 ? ['#ffd54f', 'fair'] : ['#ffb74d', 'poor'];
+      const inStats = [
+        inHum !== null ? stat('mdi:water-outline', Math.round(inHum) + '%', 'humidity', open('sensor.thermostat_humidity')) : '',
+        hvac ? stat(hvac[0], hvac[1], hvac[2], open('climate.thermostat'), hvac[3]) : '',
+        iaqBand ? stat(iaqBand[0], 'Air ' + iaqBand[1], 'IAQ ' + Math.round(iaq), aqiPopup) : '',
+      ].filter(Boolean);
+
+      // A clear night shows tonight's moon instead of the generic crescent.
+      const clearMoon = night && moon.up && moon.illum >= 0.02 && ['clear-night', 'sunny', 'exceptional'].includes(w?.state);
+      return `<div class="wx">`
+        + block('out', clearMoon ? 'mdi:moon-' + moon.key : icons[w?.state] || 'mdi:weather-partly-cloudy', tint, deg(outT), outSub, outStats, weatherPopup)
+        + block('in', 'mdi:home-thermometer-outline', 'white', deg(inT), 'Inside<span data-drop="2"> · Living room</span>', inStats,
+            open('sensor.living_room_temperature_sensor_temperature'))
+        + `</div>
+      <style>
+        /* Thirds: outside left, inside right, the middle left clear for the floating navbar. */
+        .wx { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px clamp(12px, 2cqi, 28px); }
+        .wx-block.out { grid-column: 1; }
+        .wx-block.in { grid-column: 3; }
+        .wx-block { display: flex; align-items: center; gap: clamp(12px, 2cqi, 24px); min-width: 0;
+          padding: 10px clamp(14px, 1.8cqi, 22px) 10px 10px; border-radius: 26px; background: var(--hero-glass);
+          border: 1px solid var(--hero-glass-border); backdrop-filter: blur(12px); }
+        .wx button { background: none; border: 0; color: white; font: inherit; text-align: start; cursor: pointer;
+          -webkit-tap-highlight-color: transparent; }
+        .wx button:active { opacity: 0.7; }
+        .wx button:focus-visible { outline: 2px solid white; outline-offset: 2px; }
+        .wx-main { display: flex; align-items: center; gap: 14px; padding: 0; flex: 0 1 auto; min-width: 0; border-radius: 18px; }
+        .wx-icon { width: clamp(56px, 5.5cqi, 76px); aspect-ratio: 1; border-radius: 50%; display: grid;
+          place-items: center; background: rgba(255, 255, 255, 0.2); flex: none; }
+        .wx-icon ha-icon { --mdc-icon-size: clamp(32px, 3.2cqi, 44px); }
+        .wx-temp { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .wx-temp b { font-size: clamp(2.2rem, 4.2cqi, 3.3rem); font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
+        /* One line; the weather field hides data-drop pieces until it fits (ellipsis as a last resort). */
+        .wx-temp small { font-size: clamp(0.85rem, 1.15cqi, 1.05rem); opacity: 0.88; line-height: 1.25;
+          overflow: hidden; text-overflow: ellipsis; }
+        .wx-stats { display: flex; flex-direction: column; gap: 2px; margin-left: auto; min-width: 0; flex: none; }
+        .wx-stat { display: flex; align-items: center; gap: 8px; padding: 2px 6px; border-radius: 10px; white-space: nowrap;
+          font-size: clamp(0.95rem, 1.4cqi, 1.2rem); min-width: 0; }
+        .wx-stat ha-icon { --mdc-icon-size: 20px; flex: none; }
+        .wx-stat b { font-weight: 500; }
+        .wx-stat small { font-size: 0.8em; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; }
+        .wx-dot { width: 11px; height: 11px; margin: 0 4.5px; border-radius: 50%; flex: none; }
+        @container (max-width: 899px) {
+          .wx { grid-template-columns: minmax(0, 1fr); }
+          .wx-block.out, .wx-block.in { grid-column: 1; }
+        }
+      </style>`;
+    ]]]
+styles:
+  card:
+    - container-type: inline-size
+    # Fill the whole panel view under the HA header (hidden by kiosk mode on wall
+    # tablets), edge to edge, so no page background shows around the sky.
+    - height: calc(100dvh - var(--header-height, 56px))
+    - min-height: 560px
+    - box-sizing: border-box
+    - padding: clamp(16px, 2.5cqi, 28px)
+    - border: none
+    - border-radius: 0
+    - overflow: hidden
+    - isolation: isolate
+    - color: white
+    - transition: background 2s ease
+    - '--hero-glass': '[[[ return variables.sky.light ? "rgba(20, 32, 52, 0.28)" : "rgba(255, 255, 255, 0.16)" ]]]'
+    - '--hero-glass-border': '[[[ return variables.sky.light ? "rgba(255, 255, 255, 0.45)" : "rgba(255, 255, 255, 0.35)" ]]]'
+    - background: |
+        [[[
+          const { kind, night, golden, haze, aqi, cover, wet } = variables.sky;
+          // Stars fade out as cloud cover rises; the moon is its own field (custom_fields.moon).
+          const starA = night && !wet ? 0.8 * (1 - cover) : 0;
+          const stars = starA > 0.08 ? [
+            [12, 18], [27, 9], [44, 14], [58, 30], [71, 8], [83, 40], [9, 55], [35, 60], [66, 70], [91, 82], [20, 80],
+            [50, 6], [76, 55], [4, 32], [39, 85], [62, 48],
+          ].map(([x, y]) => `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,${starA.toFixed(2)}) 0 1.5px, transparent 2.5px)`).join(', ') + ', ' : '';
+          // Sun: dimmed by cloud cover, gone when overcast or wet. Smoky air
+          // (AQI > 150) turns it into a dim orange disc.
+          const sunA = night || wet || cover > 0.85 ? 0 : 1 - cover * 0.75;
+          const smokySun = haze && aqi > 150;
+          const orb = !sunA ? '' : smokySun
+            ? `radial-gradient(circle at 84% 22%, rgba(255,170,90,${(0.95 * sunA).toFixed(2)}) 0 3%, rgba(255,140,70,${(0.3 * sunA).toFixed(2)}) 6%, transparent 14%), `
+            : golden
+              ? `radial-gradient(circle at 84% 30%, rgba(255,240,200,${sunA.toFixed(2)}) 0 4%, rgba(255,190,120,${(0.45 * sunA).toFixed(2)}) 8%, transparent 20%), `
+              : `radial-gradient(circle at 84% 22%, rgba(255,255,255,${sunA.toFixed(2)}) 0 3.5%, rgba(255,255,255,${(0.45 * sunA).toFixed(2)}) 6%, transparent 15%), `;
+          const [a, b, c] = variables.sky.colors;
+          // AQI haze over everything, thickest at the horizon.
+          const hazeLayer = haze
+            ? `linear-gradient(180deg, rgba(${haze.rgb}, ${haze.a * 0.5}) 0%, rgba(${haze.rgb}, ${haze.a}) 60%, rgba(${haze.rgb}, ${Math.min(0.8, haze.a * 1.7)}) 100%), `
+            : '';
+          return `${hazeLayer}${stars}${orb}linear-gradient(180deg, ${a} 0%, ${b} 55%, ${c} 100%)`;
+        ]]]
+  grid:
+    - grid-template-areas: |
+        "alarm    .       notices"
+        "calendar ticker  rooms"
+        "calendar clock   rooms"
+        "calendar date    rooms"
+        "calendar grocery rooms"
+        "weather  weather weather"
+    - grid-template-columns: minmax(260px, 1fr) minmax(0, 1.7fr) minmax(300px, 1.2fr)
+    # Row 1 is a fixed height: the pills span it (extra_styles) and extra notices
+    # hang below it, so neither moves the rest. Row 2 is the ticker's fixed slot
+    # (8px inset + card_height 94 + 8px), so the clock sits right under it whether
+    # or not an alert shows; the spare height goes to the grocery/what-to-wear row.
+    - grid-template-rows: 72px 110px auto auto 1fr auto
+    - gap: 12px clamp(12px, 2cqi, 28px)
+    - height: 100%
+  custom_fields:
+    moon:
+      - position: absolute
+      - left: '[[[ return variables.sky.moon.x.toFixed(1) + "%" ]]]'
+      - top: '[[[ return variables.sky.moon.y.toFixed(1) + "%" ]]]'
+      - transform: translate(-50%, -50%)
+      - width: clamp(52px, 7cqi, 112px)
+      - aspect-ratio: 1
+      - z-index: -1
+      - overflow: visible
+      - pointer-events: none
+    fx:
+      - position: absolute
+      - inset: 0
+      - z-index: 0
+      - pointer-events: none
+      - overflow: hidden
+    alarm:
+      - justify-self: start
+      - align-self: center
+      - overflow: visible
+      - z-index: 3
+    notices:
+      - justify-self: end
+      - align-self: stretch
+      - position: relative
+      - min-width: 0
+      - overflow: visible
+      - z-index: 3
+    ticker:
+      - justify-self: stretch
+      - align-self: stretch
+      - position: relative
+      - min-width: 0
+      - overflow: visible
+    pills:
+      - justify-self: stretch
+      - align-self: center
+      - min-width: 0
+      - z-index: 2
+    # Calendar top lines up with the room list's first card (the same 8px inset
+    # as the room list's padding); Coming up stacks under it.
+    calendar:
+      - align-self: start
+      - margin-top: 8px
+      - text-align: start
+      - min-width: 0
+      - min-height: 0
+      - max-height: calc(100% - 8px)
+      # Scrolls (no scrollbar) when there are more events than room.
+      - overflow-y: auto
+      - overscroll-behavior: contain
+      - scrollbar-width: none
+    upcoming:
+      - align-self: stretch
+      - display: flex
+      - flex-direction: column
+      - justify-content: flex-start
+      - padding-top: var(--up-top, 0px)
+      - box-sizing: border-box
+      # The slot overlays the calendar; only the Coming up box takes taps.
+      - pointer-events: none
+      - min-width: 0
+      - min-height: 0
+      - overflow: hidden
+    rooms:
+      - align-self: stretch
+      - min-width: 0
+      - min-height: 0
+      - overflow-y: auto
+      - overscroll-behavior: contain
+      - scrollbar-width: none
+      # Room for the badges that sit on the icons' top edge.
+      - padding: 8px 4px 8px 6px
+      - '--room-card-height': 72px
+      - '--room-card-icon-size': 54px
+      - '--room-card-glyph-size': 30px
+      - '--room-card-name-size': clamp(1.25rem, 2cqi, 1.6rem)
+      - '--room-card-name-line': '1.3'
+      - '--room-card-state-size': clamp(1rem, 1.4cqi, 1.15rem)
+      # Name on the left, readings stacked on the right (temperature over humidity).
+      - '--room-card-flow': row
+      - '--room-card-items': center
+      - '--room-card-justify': space-between
+      - '--room-card-gap': 12px
+      - '--room-card-name-flex': 1 1 auto
+      - '--room-card-name-align': start
+      - '--room-card-state-display': flex
+      - '--room-card-state-align': end
+      - '--room-card-sep': none
+      # Dark glass under each room's tint, so names stay readable on a bright sky.
+      - '--room-card-base': linear-gradient(rgba(12, 22, 40, 0.3), rgba(12, 22, 40, 0.3))
+    more:
+      - align-self: end
+      - justify-self: center
+      - margin-bottom: 4px
+      - z-index: 2
+    clock:
+      - justify-self: center
+      - font-size: clamp(3rem, 9cqi, 9rem)
+      - font-weight: 400
+      - line-height: 1
+      - letter-spacing: 0.02em
+      - white-space: nowrap
+      - text-shadow: 0 2px 24px rgba(0, 0, 0, 0.3)
+    date:
+      - justify-self: center
+      - font-size: clamp(1.1rem, 2.2cqi, 2.2rem)
+      - opacity: 0.95
+    grocery:
+      - justify-self: center
+      - align-self: start
+      - padding-top: 8px
+    wear:
+      - align-self: stretch
+      - justify-self: stretch
+      - display: flex
+      - flex-direction: column
+      - align-items: center
+      - padding-top: var(--wear-top, 0px)
+      - box-sizing: border-box
+      - min-width: 0
+      - min-height: 0
+      - overflow: hidden
+      # The slot overlays the grocery button; only the outfit card takes taps.
+      - pointer-events: none
+    weather:
+      - justify-self: stretch
+extra_styles: |
+  /* Top row: the alarm on the left; the entry pills and notices as one group
+     centred in the row, pills first. The notices field places both
+     (--pills-shift, and the notices row's right offset), and the notices drop
+     to icons only when the group would reach the alarm (.compact). */
+  #pills { grid-area: 1 / 1 / 2 / -1 !important; justify-self: center !important; transform: translateX(var(--pills-shift, 0px)); }
+  #notices .notices { position: absolute; top: 50%; right: 0; transform: translateY(-50%); }
+
+  /* The ticker floats in its fixed slot just above the clock: an alert
+     appearing, cycling or wrapping never moves anything. Its top lines up with
+     the calendar and the first room (the same 8px inset). */
+  #ticker > * { position: absolute; left: 0; right: 0; top: 8px; }
+
+  /* Everything sits above the weather effects layer. */
+  #container > :not(#fx):not(#moon) { position: relative; z-index: 1; }
+
+  /* Room list: fades out at an edge with more rooms past it, and the "More
+     rooms" button shows only while there are rooms below (data-* set by the
+     `more` field). */
+  #rooms::-webkit-scrollbar { display: none; }
+  #rooms[data-more] {
+    -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 88px), transparent 100%);
+    mask-image: linear-gradient(180deg, #000 calc(100% - 88px), transparent 100%);
+  }
+  #rooms[data-scrolled] {
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 40px);
+    mask-image: linear-gradient(180deg, transparent 0, #000 40px);
+  }
+  #rooms[data-more][data-scrolled] {
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 40px, #000 calc(100% - 88px), transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0, #000 40px, #000 calc(100% - 88px), transparent 100%);
+  }
+  /* Coming up: hidden until the size watcher says it fits under Today. */
+  #upcoming { grid-area: calendar !important; visibility: hidden; }
+  #upcoming[data-fit] { visibility: visible; }
+  #upcoming .up { pointer-events: auto; }
+
+  /* Top-right notices. Tints: attention amber, warn orange, alert red. */
+  .notices { display: flex; flex-direction: row-reverse; align-items: center; gap: 8px; }
+  .notice {
+    --tint: 255, 193, 7;
+    flex: none; display: inline-flex; align-items: center; gap: 12px; padding: 8px 20px 8px 8px; max-width: 100%;
+    border-radius: 999px; border: 1px solid rgba(var(--tint), 0.7); background: rgba(var(--tint), 0.3);
+    backdrop-filter: blur(12px); color: white; font: inherit; text-align: start; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .notice.warn { --tint: 255, 140, 40; animation: hero-notice-glow 3.2s ease-in-out infinite; }
+  .notice.alert { --tint: 229, 57, 53; background: rgba(var(--tint), 0.75); animation: hero-notice-glow 2.6s ease-in-out infinite; }
+  .notice:active { filter: brightness(1.2); }
+  .notice:focus-visible { outline: 2px solid white; outline-offset: 2px; }
+  .notice ha-icon { --mdc-icon-size: 24px; flex: none; margin: 0; width: 44px; height: 44px; display: grid; place-items: center;
+    border-radius: 50%; background: rgba(var(--tint), 0.55); }
+  .notice span { display: flex; flex-direction: column; min-width: 0; }
+  /* Closed notices, and every notice when the row doesn't fit: icon only. */
+  .notice:not(.open), .notices.compact .notice { padding: 8px; }
+  .notice:not(.open) span, .notices.compact .notice span { display: none; }
+  .notice b { font-weight: 500; font-size: clamp(1.1rem, 2cqi, 1.5rem); line-height: 1.2; white-space: nowrap; }
+  .notice small { font-size: clamp(0.85rem, 1.3cqi, 1rem); opacity: 0.9; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; line-height: 1.4; padding-bottom: 1px; }
+  @keyframes hero-notice-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(var(--tint), 0.5); }
+    50% { box-shadow: 0 0 22px 6px rgba(var(--tint), 0.45); }
+  }
+
+  /* Today (agenda): big titles, start over end time on the right. */
+  .agenda {
+    display: flex; flex-direction: column; gap: 4px; width: 100%; box-sizing: border-box;
+    padding: 14px 16px 10px; border-radius: 24px; background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(12px); color: white;
+    font: inherit; text-align: start; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .agenda:active { background: rgba(255, 255, 255, 0.22); }
+  .agenda:focus-visible { outline: 2px solid white; outline-offset: 2px; }
+  .ag-title { font-size: clamp(1.1rem, 1.6cqi, 1.35rem); padding-bottom: 2px; }
+  .ag-empty { font-size: 1rem; opacity: 0.85; padding: 6px 0; }
+  .ag-day { display: flex; gap: 14px; padding: 8px 0; border-top: 1px solid rgba(255, 255, 255, 0.3); }
+  .ag-date { display: flex; flex-direction: column; align-items: center; flex: none; width: 2.6em; line-height: 1.15; }
+  .ag-date small { font-size: 0.9rem; opacity: 0.9; }
+  .ag-date b { font-size: clamp(1.5rem, 2.2cqi, 1.9rem); font-weight: 500; line-height: 1.1; }
+  .ag-events { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0;
+    border-left: 2px solid rgba(255, 255, 255, 0.85); padding-left: 12px; }
+  .ag-ev { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .ag-name { font-weight: 500; font-size: clamp(1.15rem, 1.7cqi, 1.45rem); line-height: 1.2; min-width: 0; white-space: normal;
+    overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .ag-time { display: flex; flex-direction: column; align-items: flex-end; flex: none; text-align: end;
+    font-size: clamp(0.95rem, 1.3cqi, 1.1rem); line-height: 1.3; opacity: 0.9; font-variant-numeric: tabular-nums; }
+  .ag-ev.now .ag-name { color: #ffe082; }
+  .ag-what { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .ag-cal { font-size: clamp(0.8rem, 1.1cqi, 0.95rem); opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* What to wear: shares the grocery slot below the button (wide layout).
+     The card styles itself (decluttering-templates/what_to_wear.yaml). */
+  #wear { grid-area: grocery !important; visibility: hidden; }
+  #wear[data-fit] { visibility: visible; }
+
+  /* Grocery list button. */
+  .grocery {
+    display: inline-flex; align-items: center; gap: 12px; padding: 6px 20px 6px 6px;
+    border-radius: 999px; background: var(--hero-glass); border: 1px solid var(--hero-glass-border);
+    backdrop-filter: blur(12px); color: white; font: inherit; font-size: clamp(1rem, 1.6cqi, 1.25rem);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .grocery ha-icon { --mdc-icon-size: 22px; width: 40px; height: 40px; display: grid; place-items: center;
+    border-radius: 50%; background: rgba(255, 255, 255, 0.2); }
+  .grocery b { font-weight: 500; }
+  .grocery span { opacity: 0.85; }
+  .grocery:active { background: rgba(255, 255, 255, 0.3); }
+  .grocery:focus-visible { outline: 2px solid white; outline-offset: 2px; }
+
+  /* Shares the rooms slot (button-card would give it a grid area of its own). */
+  #more { grid-area: rooms !important; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+  #more[data-show] { opacity: 1; pointer-events: auto; }
+  #more .more {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px 8px 12px;
+    border-radius: 999px; background: var(--hero-glass); border: 1px solid var(--hero-glass-border);
+    backdrop-filter: blur(12px); color: white; font: inherit; font-size: clamp(0.95rem, 1.4cqi, 1.1rem);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  #more .more:active { background: rgba(255, 255, 255, 0.3); }
+  #more .more:focus-visible { outline: 2px solid white; outline-offset: 2px; }
+  #more ha-icon { --mdc-icon-size: 22px; animation: hero-nudge 2.4s ease-in-out infinite; }
+  @keyframes hero-nudge { 0%, 70%, 100% { transform: none; } 80% { transform: translateY(3px); } 90% { transform: translateY(-1px); } }
+
+  /* Weather effects (rain, snow and wind streaks are on the canvas). */
+  .fx { position: absolute; inset: 0; }
+  .fx::before, .fx::after { content: ''; position: absolute; inset: -10%; pointer-events: none; }
+  .fx canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .fx.clouds::before {
+    background: var(--clouds);
+    filter: blur(8px);
+    animation: hero-drift var(--drift-dur, 90s) ease-in-out infinite alternate var(--drift-dir, normal);
+  }
+  .fx.clouds.dark::before { filter: blur(12px) brightness(0.75); }
+  .fx.fog::before {
+    background:
+      linear-gradient(180deg, transparent 15%, rgba(255,255,255,0.35) 30%, transparent 45%,
+        rgba(255,255,255,0.3) 60%, transparent 75%, rgba(255,255,255,0.35) 90%);
+    filter: blur(14px);
+    animation: hero-drift 40s ease-in-out infinite alternate;
+  }
+  /* Unhealthy air (AQI > 100): slow bands of tinted smoke. */
+  .fx.smoke::after {
+    background:
+      radial-gradient(ellipse 60% 18% at 30% 70%, rgba(var(--haze), 0.35), transparent 70%),
+      radial-gradient(ellipse 55% 16% at 75% 40%, rgba(var(--haze), 0.3), transparent 70%),
+      radial-gradient(ellipse 50% 14% at 50% 90%, rgba(var(--haze), 0.4), transparent 70%);
+    filter: blur(16px);
+    animation: hero-drift 70s ease-in-out infinite alternate-reverse;
+  }
+  .fx.storm { animation: hero-flash 11s infinite; }
+  @keyframes hero-drift { from { transform: translateX(-4%); } to { transform: translateX(4%); } }
+  @keyframes hero-flash {
+    0%, 93%, 100% { background: transparent; }
+    94% { background: rgba(255,255,255,0.35); }
+    95% { background: transparent; }
+    96% { background: rgba(255,255,255,0.2); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fx, .fx::before, .fx::after, #more ha-icon, .notice { animation: none !important; }
+  }
+
+  #calendar::-webkit-scrollbar { display: none; }
+
+  /* Sizes go by the card's own width (container queries), so the HA sidebar
+     counts. Wide (1100px and up) is the three-column layout above. */
+
+  /* Below 1300px the clock drops AM/PM to keep its digits large. */
+  @container (max-width: 1299px) {
+    #clock .ap { display: none; }
+  }
+
+  /* Medium (640-1099px): two columns. Clock, date, calendar and Coming up on
+     the left, rooms on the right; the pills and then the ticker get their own
+     rows under the alarm and notices, and the bottom
+     is kept clear for the navbar. */
+  @container (min-width: 640px) and (max-width: 1099px) {
+    #container {
+      grid-template-areas:
+        "alarm    notices"
+        "pills    pills"
+        "ticker   ticker"
+        "clock    rooms"
+        "date     rooms"
+        "grocery  rooms"
+        "wear     rooms"
+        "calendar rooms"
+        "upcoming rooms"
+        "weather  weather" !important;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+      /* max-content, not auto: the field wrappers clip, so auto rows would
+         collapse to nothing when space runs short. */
+      grid-template-rows: repeat(7, max-content) minmax(180px, 1fr) minmax(0, 1fr) max-content !important;
+      box-sizing: border-box;
+      padding-bottom: 88px;
+      /* On a short screen the calendar keeps its minimum and the page scrolls
+         inside the card rather than squeezing it away. */
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: none;
+    }
+    #container::-webkit-scrollbar { display: none; }
+    #ticker > * { position: static; transform: none; }
+    #pills { grid-area: pills !important; justify-self: stretch !important; transform: none; }
+    #notices { justify-self: stretch !important; }
+    #notices .notices { position: static; transform: none; }
+    #calendar { align-self: stretch !important; margin-top: 0 !important; max-height: 100% !important; }
+    #upcoming { grid-area: upcoming !important; padding-top: 0 !important; }
+    #wear { grid-area: wear !important; padding-top: 0 !important; visibility: visible !important; }
+    #clock { font-size: clamp(3rem, 15cqi, 8rem) !important; }
+    #date { font-size: clamp(1.1rem, 3cqi, 1.8rem) !important; }
+  }
+
+  /* Narrow (under 640px: portrait tablet, phone): one column that scrolls
+     inside the card, with room at the end for the navbar. */
+  @container (max-width: 639px) {
+    #container {
+      grid-template-areas: "alarm" "notices" "pills" "ticker" "clock" "date" "grocery" "wear" "calendar" "upcoming" "rooms" "weather" !important;
+      grid-template-columns: minmax(0, 1fr) !important;
+      grid-template-rows: none !important;
+      grid-auto-rows: max-content;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: none;
+      box-sizing: border-box;
+      padding-bottom: 104px;
+    }
+    #container::-webkit-scrollbar { display: none; }
+    #ticker > * { position: static; transform: none; }
+    #pills { grid-area: pills !important; justify-self: stretch !important; transform: none; }
+    #notices .notices { position: static; transform: none; }
+    #alarm, #notices { justify-self: stretch !important; }
+    .notices:not(.compact) .notice.open { flex: 1 0 auto; justify-content: flex-start; }
+    /* Everything shows in full here. */
+    #calendar { align-self: stretch !important; max-height: none !important; overflow: visible !important; }
+    #rooms { overflow: visible !important; -webkit-mask-image: none !important; mask-image: none !important; }
+    #more { display: none; }
+    #upcoming { grid-area: upcoming !important; padding-top: 0 !important; visibility: visible !important; overflow: visible !important; }
+    #wear { grid-area: wear !important; padding-top: 0 !important; visibility: visible !important; overflow: visible !important; }
+    #clock { font-size: clamp(3rem, 24cqi, 8rem) !important; }
+    #date { font-size: clamp(1.1rem, 5cqi, 2rem) !important; }
+  }

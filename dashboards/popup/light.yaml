@@ -1,25 +1,35 @@
+# Lights pop-up (#lights, the Lights status tile): the lights that are on, grouped by
+# floor (upstairs, downstairs, outside, other) and room, with a button to show the
+# ones that are off (input_boolean.lights_popup_show_off, packages/lights_popup.yaml).
+# The card list comes from custom_templates/lights.jinja (lights_popup).
 type: custom:bubble-card
 card_type: pop-up
 hash: '#lights'
 button_type: name
 name: Lights
+icon: mdi:lightbulb-group
 cards:
+  - type: custom:button-card
+    template: action_tile
+    entity: input_boolean.lights_popup_show_off
+    triggers_update:
+      - sensor.lights_on_count
+    icon: >-
+      [[[ return entity?.state === 'on' ? 'mdi:eye-off-outline' : 'mdi:eye-outline' ]]]
+    name: >-
+      [[[ return entity?.state === 'on' ? 'Hide the lights that are off'
+                                        : 'Show the lights that are off' ]]]
+    label: >-
+      [[[ const c = states['sensor.lights_on_count'];
+          const on = Number(c?.state) || 0, off = Number(c?.attributes?.lights_off) || 0;
+          return `${on} on, ${off} off`; ]]]
+    tap_action:
+      action: toggle
   - type: custom:auto-entities
     card_param: cards
     card:
-      type: grid
-      columns: 1
-      square: false
+      type: vertical-stack
     filter:
-      include:
-        - domain: light
-          options:
-            type: custom:bubble-card
-            card_type: button
-            button_type: state
-      exclude: 
-        - state: unavailable
-        - state: unknown
-    sort:
-      method: state
-      reverse: true
+      template: >-
+        {% from 'lights.jinja' import lights_popup %}
+        {{ lights_popup(is_state('input_boolean.lights_popup_show_off', 'on')) }}

@@ -1,0 +1,50 @@
+# One tab in a row of tabs that switch between sibling subviews (cards/music-tabs.yaml).
+# Icon and name side by side over a hairline; the tab whose `path` matches the address
+# is underlined in the accent colour. Cards set name, icon, the navigate action and:
+#   path    the subview path this tab opens (music, music-echo, tv-garage, ...)
+#   entity  optional: a media player; a dot shows after the name while it plays
+page_tab:
+  show_name: true
+  show_icon: true
+  show_state: false
+  show_label: false
+  custom_fields:
+    dot: >-
+      [[[ return entity?.state === 'playing'
+            ? '<span style="display:block;width:6px;height:6px;border-radius:50%;background:var(--teal-color)"></span>'
+            : '' ]]]
+  variables:
+    path: ''
+    current: >-
+      [[[ return document.defaultView.location.pathname.replace(/\/$/, '')
+            .endsWith(`/${variables.path}`) ]]]
+  styles:
+    card:
+      - background: none
+      - box-shadow: none
+      - border: none
+      - border-radius: 0
+      - border-bottom: >-
+          [[[ return variables.current ? '2px solid var(--teal-color)'
+                : '1px solid var(--divider-color)' ]]]
+      - padding: 10px 8px
+      - height: 48px
+    grid:
+      - grid-template-areas: '"i n dot"'
+      - grid-template-columns: min-content min-content min-content
+      - justify-content: center
+      - column-gap: 8px
+      - align-items: center
+    img_cell:
+      - width: 22px
+      - height: 22px
+    icon:
+      - width: 22px
+      - color: >-
+          [[[ return variables.current ? 'var(--teal-color)' : 'var(--secondary-text-color)' ]]]
+    name:
+      - font-size: 15px
+      - font-weight: 500
+      - white-space: nowrap
+      - color: >-
+          [[[ return variables.current ? 'var(--primary-text-color)' : 'var(--secondary-text-color)' ]]]

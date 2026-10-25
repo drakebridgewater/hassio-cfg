@@ -1,0 +1,28 @@
+# The Music page's two tabs: Music Assistant (/music) and Echo (/music-echo, Spotify
+# on the Echos). Each tab is its own subview, so the address says which one you're
+# on; the tab for the current address is underlined. Shared by 80-music.yaml and
+# 81-music-echo.yaml.
+type: grid
+columns: 2
+square: false
+grid_options:
+  columns: full
+cards:
+  - type: custom:button-card
+    template: page_tab
+    name: Music Assistant
+    icon: mdi:music-box-multiple-outline
+    variables:
+      path: music
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-main/music
+  - type: custom:button-card
+    template: page_tab
+    name: Amazon Echo
+    icon: mdi:spotify
+    variables:
+      path: music-echo
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-main/music-echo

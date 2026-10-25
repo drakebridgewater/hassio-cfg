@@ -1,0 +1,120 @@
+# One person in the who's home pop-up (popup/people_overview.yaml): their picture
+# (green ring while home), where they are and since when, then a detail line:
+# today's work or school, the drive home while at work, the street when away,
+# moving or not, phone battery.
+# Tap for their details and map. Cards set entity (person.*) and variables:
+#   distance, direction  proximity sensors for Home (feet, direction of travel)
+#   place                the phone's geocoded location
+#   battery, charging    phone battery level and state
+#   activity             the phone's detected activity
+#   schedule             today's work or school sensor (packages/work_school.yaml)
+#   drive                drive home sensor (packages/drive_home.yaml); shown only
+#                        while at work, amber when it's well over the usual time
+#   year, year_place     share of the year at work, school or daycare (packages/time_share.yaml)
+#                        and the place phrase: "12.3% of the year at work"
+#   morning              leave-for-work binary sensor (packages/drive_home.yaml);
+#                        "Leave by 7:04 · 18 min drive" while on, amber when it's time
+# Ethan and Abby have no phones: they set `status` and `detail` themselves.
+# Each card lists its own triggers_update (the sensors above).
+person_tile:
+  show_name: true
+  show_label: true
+  show_state: false
+  show_entity_picture: true
+
+  variables:
+    distance: ''
+    direction: ''
+    place: ''
+    battery: ''
+    charging: ''
+    activity: ''
+    schedule: ''
+    drive: ''
+    morning: ''
+    year: ''
+    year_place: at work
+    home: '[[[ return entity?.state === "home" ]]]'
+    since: >-
+      [[[ const d = new Date(entity?.last_changed);
+          const today = new Date().toDateString() === d.toDateString();
+          return today ? d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+            : d.toLocaleDateString([], { weekday: 'long' }); ]]]
+    status: >-
+      [[[ const s = entity?.state;
+          if (s === 'home') return `Home since ${variables.since}`;
+          if (s && s !== 'not_home' && s !== 'unknown') return `At ${s.toLowerCase() === 'work' ? 'work' : s} since ${variables.since}`;
+          const mi = Number(hass.states[variables.distance]?.state) / 5280;
+          const dir = hass.states[variables.direction]?.state;
+          const far = mi >= 0.1 ? `${mi.toFixed(1)} mi from home` : 'Away';
+          return far + (dir === 'towards' ? ', heading home' : dir === 'away_from' ? ', heading away' : ''); ]]]
+    detail: >-
+      [[[ const st = (e) => e ? hass.states[e] : undefined;
+          const parts = [];
+          const w = st(variables.schedule);
+          if (w && w.attributes.expected && w.attributes.summary
+              && !(w.attributes.end && new Date(w.attributes.end) < new Date())) parts.push(w.attributes.summary);
+          const yr = st(variables.year);
+          if (yr && !['unknown', 'unavailable'].includes(yr.state)) parts.push(`${yr.state}% of the year ${variables.year_place}`);
+          const mo = st(variables.morning);
+          if (mo?.state === 'on' && mo.attributes.summary) {
+            parts.push(mo.attributes.amber ? `<span class="late">${mo.attributes.summary}</span>` : mo.attributes.summary);
+          }
+          const dr = st(variables.drive);
+          if (dr?.attributes?.at_work && !['unknown', 'unavailable'].includes(dr.state)) {
+            parts.push(dr.attributes.delayed
+              ? `<span class="late">${dr.attributes.summary}, ${dr.attributes.delay} min over usual</span>`
+              : dr.attributes.summary);
+          }
+          const place = (st(variables.place)?.state ?? '').split('\n')[0];
+          if (!variables.home && place && !['unknown', 'unavailable', entity?.state].includes(place)) parts.push(place);
+          const act = (st(variables.activity)?.state ?? '').toLowerCase();
+          const moving = { in_vehicle: 'Driving', automotive: 'Driving', driving: 'Driving', walking: 'Walking',
+                           on_foot: 'Walking', running: 'Running', on_bicycle: 'Cycling', cycling: 'Cycling' }[act];
+          if (moving) parts.push(moving);
+          const b = Number(st(variables.battery)?.state);
+          if (!Number.isNaN(b) && st(variables.battery)) {
+            const ch = /^(charging|full)$/i.test(st(variables.charging)?.state ?? '');
+            parts.push(`<span class="bat${b < 20 && !ch ? ' low' : ''}">Phone ${Math.round(b)}%${ch ? ', charging' : ''}</span>`);
+          }
+          return parts.join(' · '); ]]]
+  name: '[[[ return entity?.attributes?.friendly_name ?? "" ]]]'
+  label: '[[[ return `<span class="st">${variables.status}</span><span class="dt">${variables.detail}</span>` ]]]'
+  tap_action:
+    action: more-info
+  styles:
+    card:
+      - background: color-mix(in srgb, var(--primary-text-color) 7%, transparent)
+      - border: none
+      - border-radius: 16px
+      - padding: 12px 14px
+    grid:
+      - grid-template-areas: '"i n" "i l"'
+      - grid-template-columns: 52px minmax(0, 1fr)
+      - column-gap: 14px
+      - justify-items: start
+      - align-items: center
+    img_cell:
+      - width: 52px
+      - height: 52px
+    entity_picture:
+      - width: 48px
+      - height: 48px
+      - border-radius: 50%
+      - object-fit: cover
+      - box-shadow: >-
+          [[[ return variables.home ? '0 0 0 2px var(--green-color)'
+            : '0 0 0 2px color-mix(in srgb, var(--secondary-text-color) 45%, transparent)' ]]]
+    name:
+      - font-size: 15px
+      - font-weight: 500
+      - justify-self: start
+    label:
+      - justify-self: start
+      - text-align: left
+      - white-space: normal
+  extra_styles: |
+    #label .st { display: block; font-size: 14px; color: var(--primary-text-color); }
+    #label .dt { display: block; font-size: 12px; color: var(--secondary-text-color); margin-top: 2px; }
+    #label .dt:empty { display: none; }
+    #label .bat.low, #label .late { color: var(--amber-color); }

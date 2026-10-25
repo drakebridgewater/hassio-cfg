@@ -1,0 +1,35 @@
+# Climate, HVAC tab (/climate-hvac): the thermostat, pausing the schedule, and the
+# HVAC Schedule automation's bands, edited in place (custom:hvac-bands-card).
+# The thermostat tile in the status card opens this tab.
+title: Climate
+path: climate-hvac
+icon: mdi:hvac
+subview: true
+back_path: /lovelace-main/home
+type: sections
+max_columns: 4
+header: !include ../../header/alert-ticker.yaml
+sections:
+  - type: grid
+    column_span: 4
+    cards:
+      - !include ../../cards/climate-tabs.yaml
+      - type: vertical-stack
+        grid_options:
+          columns: full
+        cards:
+          - !include ../../sections/climate/hvac/10-thermostat.yaml
+      - !include ../../sections/climate/hvac/20-pause-schedule.yaml
+
+  - type: grid
+    column_span: 4
+    cards:
+      - type: heading
+        heading: Schedule bands
+        icon: mdi:thermometer-lines
+      - !include ../../sections/climate/hvac/30-bands.yaml
+
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/house.yaml

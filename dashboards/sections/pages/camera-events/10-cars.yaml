@@ -1,0 +1,42 @@
+# Cars on the driveway pad, from Frigate's driveway_cars model (packages/cars.yaml):
+# home or away and since when. Until the model is trained the tiles say so.
+# Tap for the driveway camera.
+type: custom:layout-card
+grid_options:
+  columns: full
+layout_type: custom:grid-layout
+layout:
+  grid-template-columns: repeat(2, minmax(0, 1fr))
+  grid-gap: 8px
+  margin: 0
+  padding: 0
+  card_margin: 0
+cards:
+  - type: custom:button-card
+    template: action_tile
+    entity: binary_sensor.prius_home
+    name: Prius
+    icon: mdi:car-side
+    variables: &car
+      'on': '[[[ return entity?.state === "on" ]]]'
+      tone: ok
+    label: &carlabel >-
+      [[[ const s = entity?.state;
+          if (!s || s === 'unavailable' || s === 'unknown')
+            return 'Not trained yet: sort the driveway snapshots in Frigate (Classification, driveway_cars).';
+          const d = new Date(entity.last_changed);
+          const today = new Date().toDateString() === d.toDateString();
+          const when = today ? d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+            : d.toLocaleDateString([], { weekday: 'long' });
+          return s === 'on' ? `Home, parked since ${when}` : `Away since ${when}`; ]]]
+    tap_action: &cam
+      action: more-info
+      entity: camera.driveway
+  - type: custom:button-card
+    template: action_tile
+    entity: binary_sensor.ford_home
+    name: Ford
+    icon: mdi:car-pickup
+    variables: *car
+    label: *carlabel
+    tap_action: *cam

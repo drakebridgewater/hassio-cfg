@@ -1,0 +1,60 @@
+# When the garage, doors, windows and front lock should be shut, in one place for
+# every view that shows them: the tablet hero's pills (sections/tablet/10-hero.yaml)
+# and the status bar tiles (sections/banner/status-tiles.yaml). Add `close_up` to a
+# button-card's templates and read `variables.close_up.<item>`: null while all is
+# well, otherwise a pulse { a, b, k }: the "r, g, b" colours to swing between and
+# how hard (0 to 1). hero_pill and status_tile both take that as variables.pulse.
+#   garage   open 30 minutes: amber, building to orange over the next 30
+#   doors    open while the outside air works against the house: 15°F or more
+#   windows  colder than inside is cool blue, 10°F or more warmer is yellow
+#            turning red, both stronger as the gap grows by another 10°F
+#   lock     unlocked with the front door shut, both for 5 minutes: strong red
+# sensor.time re-renders each minute, for the rules that build with time.
+close_up:
+  triggers_update:
+    - sensor.time
+    - cover.garage_door
+    - binary_sensor.any_door_open_group
+    - binary_sensor.window_open_group
+    - lock.front_front_door
+    - binary_sensor.front_door
+    - sensor.wirelesstag_outdoor_temperature
+    - sensor.living_room_temperature_sensor_temperature
+  variables:
+    close_up: |
+      [[[
+        const st = (id) => hass.states[id];
+        const num = (id, attr) => {
+          const s = st(id);
+          const v = Number(attr ? s?.attributes?.[attr] : s?.state);
+          return s && Number.isFinite(v) && (attr || !['unknown', 'unavailable'].includes(s.state)) ? v : null;
+        };
+        const mins = (...ids) => (Date.now() - Math.max(...ids.map((id) => new Date(st(id).last_changed)))) / 60000;
+        const ramp = (over, span) => Math.max(0, Math.min(1, over / span));
+
+        // Outside (the tag, else Pirate Weather) against inside (living room, else thermostat).
+        const out = num('sensor.wirelesstag_outdoor_temperature') ?? num('weather.pirateweather', 'temperature');
+        const inside = num('sensor.living_room_temperature_sensor_temperature') ?? num('climate.thermostat', 'current_temperature');
+        const gap = out === null || inside === null ? 0 : out - inside;
+        let air = null;
+        if (gap <= -15) air = { a: '79, 195, 247', b: '79, 195, 247', k: ramp(-gap - 15, 10) };
+        else if (gap >= 10) {
+          const k = ramp(gap - 10, 10);
+          // Yellow swinging to orange at the threshold, to red at the top.
+          const mix = (y, r) => Math.round(y + (r - y) * (0.4 + 0.6 * k));
+          air = { a: '255, 213, 79', b: `${mix(255, 244)}, ${mix(213, 67)}, ${mix(79, 54)}`, k };
+        }
+
+        const g = st('cover.garage_door')?.state;
+        const garageOpen = g && !['closed', 'unknown', 'unavailable'].includes(g) ? mins('cover.garage_door') : -1;
+        const lock = st('lock.front_front_door')?.state, door = st('binary_sensor.front_door')?.state;
+
+        return {
+          garage: garageOpen >= 30 ? { a: '255, 183, 77', b: '255, 112, 67', k: ramp(garageOpen - 30, 30) } : null,
+          doors: st('binary_sensor.any_door_open_group')?.state === 'on' ? air : null,
+          windows: st('binary_sensor.window_open_group')?.state === 'on' ? air : null,
+          lock: ['unlocked', 'open'].includes(lock) && door === 'off'
+            && mins('lock.front_front_door', 'binary_sensor.front_door') >= 5
+            ? { a: '244, 67, 54', b: '255, 82, 82', k: 1 } : null,
+        };
+      ]]]

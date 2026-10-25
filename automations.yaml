@@ -28,11 +28,10 @@
 - id: '1670179035186'
   alias: Guest Mode
   description: 'Reacts to input_boolean.guest_mode being toggled and to person.named_guest
-    entering/leaving zone.home. On enable: marks device_tracker.guest as home and
-    blocks lighting automations in the office (guest sleeping space) and basement
-    bathroom. On disable: reverses both. Goal: guest_mode is programmatically determined
-    (calendar today, future device-less detection like BLE/MAC/facial recognition);
-    no guest device should ever be required.'
+    entering/leaving zone.home. On enable: blocks lighting automations in the office
+    (guest sleeping space) and basement bathroom. On disable: reverses both. Goal:
+    guest_mode is programmatically determined (calendar today, future device-less
+    detection like BLE/MAC/facial recognition); no guest device should ever be required.'
   triggers:
   - id: enabled
     entity_id:
@@ -58,24 +57,6 @@
     platform: zone
   conditions: []
   actions:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id: enabled
-      sequence:
-      - data:
-          dev_id: guest
-          location_name: home
-        action: device_tracker.see
-    - conditions:
-      - condition: trigger
-        id: disabled
-      sequence:
-      - data:
-          dev_id: guest
-          location_name: not_home
-        enabled: true
-        action: device_tracker.see
   - choose:
     - conditions:
       - condition: trigger
@@ -327,33 +308,25 @@
         target:
           area_id: kitchen
       config_double:
-      - action: music_assistant.play_media
-        metadata: {}
+      - action: script.music_play_playlist
         data:
-          media_id: spotify:playlist:7iYXKlEsz2v16gTzjDq6cu
-        target:
-          device_id: 7faf1cd1556b1f9b6c25075f6469ac97
+          playlist: Engagement Party
+          room: Kitchen
       config_triple:
-      - action: music_assistant.play_media
-        metadata: {}
+      - action: script.music_play_playlist
         data:
-          media_id: spotify:playlist:37i9dQZF1E35s8KYiQEq6p
-        target:
-          device_id: 7faf1cd1556b1f9b6c25075f6469ac97
+          playlist: Daily Mix 1
+          room: Kitchen
       config_quadruple:
-      - action: music_assistant.play_media
-        metadata: {}
+      - action: script.music_play_playlist
         data:
-          media_id: spotify:playlist:37i9dQZF1E37uHtWv5GokZ
-        target:
-          device_id: 7faf1cd1556b1f9b6c25075f6469ac97
+          playlist: Daily Mix 2
+          room: Kitchen
       config_quintuple:
-      - action: music_assistant.play_media
-        metadata: {}
+      - action: script.music_play_playlist
         data:
-          media_id: spotify:playlist:2y9URNtkzZMfb2VXH3KXIr
-        target:
-          device_id: 7faf1cd1556b1f9b6c25075f6469ac97
+          playlist: Toddler Songs that Don't Suck
+          room: Kitchen
       up_double:
       - type: turn_on
         device_id: aabf2fd3626aa7cdea882013e3133f72
@@ -392,26 +365,9 @@
           device_id:
           - 68b9dba3950a2a7172ef7e3d5af98e8c
         action: switch.toggle
-      down_double:
-      - data: {}
-        target:
-          device_id:
-          - d4b2bdd13c16e548f70f0f1d1b9c4f99
-          - ca2270dd5a0563d902fb12f842e79223
-        enabled: false
-        action: switch.toggle
-      config_double:
-      - data: {}
-        target:
-          device_id: ca2270dd5a0563d902fb12f842e79223
-        enabled: false
-        action: fan.toggle
-      config_triple:
-      - data: {}
-        target:
-          device_id: d4b2bdd13c16e548f70f0f1d1b9c4f99
-        enabled: false
-        action: switch.toggle
+      down_double: []
+      config_double: []
+      config_triple: []
       down_quintuple:
       - data: {}
         target:
@@ -494,7 +450,8 @@
         data: {}
 - id: '1678677773928'
   alias: Inovelli - Master Bedroom Wall Switch
-  description: ''
+  description: Config-button music taps are off until there's an upstairs Music Assistant
+    speaker; add it to the rooms in packages/music.yaml and turn the taps back on.
   use_blueprint:
     path: starbuck93/z2m-inovelli-blue-series-2-in-1-switch-dimmer.yaml
     input:
@@ -505,30 +462,29 @@
           device_id: 1c57b1909d22a458e23e606a7c9ffd66
         action: media_player.media_stop
       config_double:
-      - target:
-          device_id: 480292e04c046ecee7cdd55e84c3cfc9
+      - action: script.music_play_playlist
         data:
-          media_id: spotify:playlist:7iYXKlEsz2v16gTzjDq6cu
-        action: mass.play_media
+          playlist: Engagement Party
+          room: Master bedroom
+        enabled: false
       config_triple:
-      - data:
-          enqueue_mode: play
-          player_id: media_player.master_bedroom_display_2
-          command: play_media
-          uri: spotify:playlist:37i9dQZF1E35s8KYiQEq6p
-        action: mass.queue_command
+      - action: script.music_play_playlist
+        data:
+          playlist: Daily Mix 1
+          room: Master bedroom
+        enabled: false
       config_quadruple:
-      - target:
-          device_id: 480292e04c046ecee7cdd55e84c3cfc9
+      - action: script.music_play_playlist
         data:
-          media_id: potify:playlist:37i9dQZF1E37uHtWv5GokZ
-        action: mass.play_media
+          playlist: Daily Mix 2
+          room: Master bedroom
+        enabled: false
       config_quintuple:
-      - target:
-          device_id: 480292e04c046ecee7cdd55e84c3cfc9
+      - action: script.music_play_playlist
         data:
-          media_id: spotify:playlist:2y9URNtkzZMfb2VXH3KXIr
-        action: mass.play_media
+          playlist: Toddler Songs that Don't Suck
+          room: Master bedroom
+        enabled: false
       down_double:
       - action: light.turn_off
         metadata: {}
@@ -542,7 +498,8 @@
           entity_id: input_boolean.lighting_automation_blocker_master_bedroom
 - id: '1678713705633'
   alias: Inovelli - Upstairs Wall Switch
-  description: ''
+  description: Config-button music taps are off until there's an upstairs Music Assistant
+    speaker; add it to the rooms in packages/music.yaml and turn the taps back on.
   use_blueprint:
     path: starbuck93/z2m-inovelli-blue-series-2-in-1-switch-dimmer.yaml
     input:
@@ -560,38 +517,29 @@
           entity_id: media_player.drake_s_echo
         data: {}
       config_double:
-      - data:
-          media_id: spotify:playlist:7iYXKlEsz2v16gTzjDq6cu
-          media_type: playlist
-        target:
-          device_id: 480292e04c046ecee7cdd55e84c3cfc9
-        action: mass.play_media
-      - action: music_assistant.play_media
-        metadata: {}
+      - action: script.music_play_playlist
         data:
-          media_id: fff
+          playlist: Engagement Party
+          room: Master bedroom
         enabled: false
       config_triple:
-      - data:
-          media_id: spotify:playlist:37i9dQZF1E35s8KYiQEq6p
-          media_type: playlist
-        target:
-          device_id: 480292e04c046ecee7cdd55e84c3cfc9
-        action: mass.play_media
+      - action: script.music_play_playlist
+        data:
+          playlist: Daily Mix 1
+          room: Master bedroom
+        enabled: false
       config_quadruple:
-      - data:
-          media_id: spotify:playlist:37i9dQZF1E37uHtWv5GokZ
-          media_type: playlist
-        target:
-          device_id: 480292e04c046ecee7cdd55e84c3cfc9
-        action: mass.play_media
+      - action: script.music_play_playlist
+        data:
+          playlist: Daily Mix 2
+          room: Master bedroom
+        enabled: false
       config_quintuple:
-      - data:
-          media_id: spotify:playlist:2y9URNtkzZMfb2VXH3KXIr
-          media_type: playlist
-        target:
-          device_id: 480292e04c046ecee7cdd55e84c3cfc9
-        action: mass.play_media
+      - action: script.music_play_playlist
+        data:
+          playlist: Toddler Songs that Don't Suck
+          room: Master bedroom
+        enabled: false
 - id: '1678714957294'
   alias: Inovelli - Upstairs Hallway Wall Switch
   description: ''
@@ -945,16 +893,6 @@
       message: '{{ states(''input_text.broadcast_message'') }}'
     action: notify.alexa_media_family_room_echo
     continue_on_error: true
-  - metadata: {}
-    data:
-      message: '{{ states(''input_text.broadcast_message'') }}'
-    action: notify.alexa_media_ethan_s_echo_show_5
-    continue_on_error: true
-  - action: notify.alexa_media_ethan_s_echo_show_5
-    metadata: {}
-    data:
-      message: '{{ states(''input_text.broadcast_message'') }}'
-    enabled: false
   - alias: Flash all switches yellow fast-blink for 20s (broadcast notification visual)
     action: script.led_set
     data:
@@ -1362,7 +1300,7 @@
         action: timer.start
       - data:
           cache: false
-          entity_id: media_player.fire_tablet
+          entity_id: media_player.kitchen_tablet
           message: '{{trigger.event.data.name}}'
         action: tts.google_translate_say
     - conditions:
@@ -2147,41 +2085,6 @@
       target_off_entity: light.family_room_ambiance_lights_group
       turn_off_blocker_entity: input_boolean.lighting_automation_blocker_family_room
       target_entity: light.family_room_ambiance_lights_group
-- id: '1701217263358'
-  alias: Apple TV - Enable Remote Access
-  description: Turns on the main apple tv remote to enable the reporting of the now
-    playing content on the apple tv
-  triggers:
-  - device_id: fb0679a16111763e77823394d6d0c22a
-    domain: media_player
-    entity_id: a11904279bece058a996acbcbb3aae42
-    type: turned_on
-    trigger: device
-  conditions:
-  - condition: or
-    conditions:
-    - condition: device
-      type: is_off
-      domain: media_player
-      device_id: 8b27845dce57d10e18cab1d75eaed237
-      entity_id: c89bf7e4e5929f6037770cbb0edf6343
-    - condition: device
-      domain: media_player
-      device_id: 8b27845dce57d10e18cab1d75eaed237
-      entity_id: c89bf7e4e5929f6037770cbb0edf6343
-      type: is_idle
-  actions:
-  - action: remote.turn_on
-    target:
-      device_id:
-      - 8b27845dce57d10e18cab1d75eaed237
-    data: {}
-  - action: media_player.turn_on
-    metadata: {}
-    data: {}
-    target:
-      device_id: 8b27845dce57d10e18cab1d75eaed237
-  mode: single
 - id: '1702588565375'
   alias: Lighting - auto off - Ethan's Bedroom Lights off after 30 minutes
   description: ''
@@ -2294,6 +2197,7 @@
         data: {}
 - id: '1728395631624'
   alias: Ethan's Morning Routine
+  initial_state: false
   description: This is a morning routine that takes place over 30 minutes.
   triggers:
   - at: input_datetime.ethan_s_alarm_clock
@@ -2512,6 +2416,7 @@
   mode: single
 - id: '1736262664324'
   alias: Ethan's Bedtime Routine
+  initial_state: false
   description: "This automation is set to start at a specific time we've chosen for
     Ethan's bedtime. It only runs if our alarm system is disarmed and Ethan's bedroom
     light is off.\nHere's the step-by-step flow:\n1. Initial Warning (5 min before
@@ -2823,7 +2728,6 @@
       light_switch:
         entity_id:
         - light.yeelight_theater_left
-        - light.yeelight_pulley_lamp
         - light.living_room_tv_left_lamp
         - light.living_room_tv_right_lamp
         - light.entertainment_center_backdrop
@@ -3626,7 +3530,6 @@
           - light.awning_right_lamp
           - light.living_room_tv_left_lamp
           - light.living_room_tv_right_lamp
-          - light.yeelight_pulley_lamp
           - light.yeelight_theater_left
           - light.entertainment_center_backdrop
           blockers:
@@ -3968,84 +3871,6 @@
       include_state_control: state_control_enabled
       state_control_entity: input_boolean.lighting_automation_blocker_kitchen
       time_delay: 10
-- id: '1769805937763'
-  alias: 'Synchronize states - Desk Lights '
-  description: ''
-  use_blueprint:
-    path: adchevrier/synchronize-the-on-off-state-of-2-entities.yaml
-    input:
-      entity_1: light.wled_candles
-      entity_2: light.big_glow
-- id: '1776891652745'
-  alias: Office YeeSite - Flash when Abby Garage
-  description: ''
-  triggers:
-  - type: occupied
-    device_id: f8a689ebae8a3a653a60c0b95f76b51f
-    entity_id: 46b26417625d9ef7f7042b34d2b2589a
-    domain: binary_sensor
-    trigger: device
-  conditions:
-  - condition: state
-    entity_id: input_boolean.dog_outside
-    state: []
-  - condition: state
-    entity_id: input_boolean.office_occupied
-    state:
-    - 'on'
-  actions:
-  - action: light.turn_on
-    metadata: {}
-    target:
-      entity_id: light.yeesite_bar_color
-    data:
-      effect: comet
-  - delay:
-      hours: 0
-      minutes: 0
-      seconds: 20
-      milliseconds: 0
-  - action: light.turn_off
-    metadata: {}
-    target:
-      entity_id: light.yeesite_bar_color
-    data: {}
-  mode: single
-- id: '1776891703303'
-  alias: Office YeeSite - Flash when Abby Garage
-  description: ''
-  triggers:
-  - type: occupied
-    device_id: f8a689ebae8a3a653a60c0b95f76b51f
-    entity_id: 46b26417625d9ef7f7042b34d2b2589a
-    domain: binary_sensor
-    trigger: device
-  conditions:
-  - condition: state
-    entity_id: input_boolean.dog_outside
-    state: []
-  - condition: state
-    entity_id: input_boolean.office_occupied
-    state:
-    - 'on'
-  actions:
-  - action: light.turn_on
-    metadata: {}
-    target:
-      entity_id: light.yeesite_bar_color
-    data:
-      effect: comet
-  - delay:
-      hours: 0
-      minutes: 0
-      seconds: 20
-      milliseconds: 0
-  - action: light.turn_off
-    metadata: {}
-    target:
-      entity_id: light.yeesite_bar_color
-    data: {}
-  mode: single
 - id: '1777173013844'
   alias: 'Notification: Apply Global LED on state change'
   description: 'Reacts to changes in sensor.active_global_notification (the global
@@ -4977,8 +4802,10 @@
 - id: '1782243414971'
   alias: HVAC Schedule
   description: Today's forecast high selects a band; the band supplies the HVAC mode
-    and the literal alarm state picks the setpoint column within it. Bands are [low,
-    high) — a high of exactly 80 uses the 80+ row. Off only when a window is open
+    and the literal alarm state picks the setpoint column within it. The bands live
+    in configs/hvac_bands.json (pyscript.hvac_bands, edited on the Climate page's HVAC
+    tab) and are [low, high) — a high of exactly 80 uses the band that starts at 80.
+    Saving the bands re-applies them. Off only when a window is open
     2+ min or a door 10+ min. Resumes when binary_sensor.house_sealed turns on (every
     door and window shut 20+ min), and re-checks on alarm transitions, HA start and
     a daily 04:30 refresh. The thermostat is only touched — and a notification only
@@ -5023,6 +4850,14 @@
     entity_id: binary_sensor.house_sealed
     from: 'off'
     to: 'on'
+  - id: occupancy
+    trigger: state
+    entity_id: input_boolean.hvac_schedule_paused
+    from: 'on'
+    to: 'off'
+  - id: occupancy
+    trigger: state
+    entity_id: pyscript.hvac_bands
   - id: manual_while_open
     trigger: state
     entity_id: climate.thermostat
@@ -5030,7 +4865,10 @@
     - heat
     - cool
     - heat_cool
-  conditions: []
+  conditions:
+  - condition: state
+    entity_id: input_boolean.hvac_schedule_paused
+    state: 'off'
   actions:
   - choose:
     - alias: Open long enough while the HVAC is running — shut it down
@@ -5061,6 +4899,8 @@
         id:
         - occupancy
         - sealed
+      - condition: template
+        value_template: '{{ bands | count > 0 }}'
       - condition: template
         value_template: '{{ not is_open }}'
       - condition: template
@@ -5093,7 +4933,7 @@
           title: Notification
           message: HVAC {{ target_mode }} / {{ occupancy }} — {{ (setpoint[0] ~ '–'
             ~ setpoint[1]) if target_mode == 'heat_cool' else setpoint }}°F (band
-            {{ row.label }}, forecast high {{ high }}°F). Was {{ prev_text }}.
+            {{ band_label }}, forecast high {{ high }}°F). Was {{ prev_text }}.
         action: ticker.notify
     - alias: Someone turned the HVAC on while the house is open
       conditions:
@@ -5122,62 +4962,15 @@
       %} {{ ns.t if ns.t is not none\n   else (fc[0].temperature if fc and fc[0].temperature
       is defined else none) }}"
     high: '{{ today_high | float(fallback_high) | round | int }}'
-    bands:
-    - label: <50
-      max: 50
-      mode: heat
-      disarmed: 71
-      armed_home: 71
-      armed_night: 66
-      armed_away: 63
-      armed_vacation: 58
-    - label: 50-60
-      max: 60
-      mode: heat
-      disarmed: 71
-      armed_home: 71
-      armed_night: 67
-      armed_away: 64
-      armed_vacation: 60
-    - label: 60-74
-      max: 74
-      mode: heat_cool
-      disarmed:
-      - 67
-      - 73
-      armed_home:
-      - 67
-      - 74
-      armed_night:
-      - 67
-      - 71
-      armed_away:
-      - 62
-      - 78
-      armed_vacation:
-      - 58
-      - 82
-    - label: 74-80
-      max: 80
-      mode: cool
-      disarmed: 71
-      armed_home: 71
-      armed_night: 69
-      armed_away: 75
-      armed_vacation: 80
-    - label: 80+
-      max: 999
-      mode: cool
-      disarmed: 71
-      armed_home: 71
-      armed_night: 69
-      armed_away: 76
-      armed_vacation: 83
-    band_index: "{{ [ bands | map(attribute='max') | select('le', high) | list | count,\n
-      \    bands | count - 1 ] | min }}"
-    row: '{{ bands[band_index] }}'
-    target_mode: '{{ row.mode }}'
-    setpoint: '{{ row.get(occupancy, row.disarmed) }}'
+    bands: '{{ state_attr(''pyscript.hvac_bands'', ''bands'') or [] }}'
+    band_index: "{{ [ bands | map(attribute='max') | reject('none') | select('le',
+      high) | list | count,\n     bands | count - 1 ] | min }}"
+    row: '{{ bands[band_index] if bands | count > 0 else {} }}'
+    band_label: "{% set lo = bands[band_index - 1].max if band_index > 0 else none
+      %} {% set hi = row.get('max') %} {{ (lo ~ '+') if hi is none else ('<' ~ hi)
+      if lo is none else (lo ~ '-' ~ hi) }}"
+    target_mode: '{{ row.get(''mode'', ''off'') }}'
+    setpoint: '{{ row.get(occupancy, row.get(''disarmed'')) }}'
     is_open: "{{ is_state('binary_sensor.window_open_group', 'on')\n   or is_state('binary_sensor.any_door_open_group',
       'on') }}"
     prev_mode: '{{ states(climate_entity) }}'
@@ -5245,3 +5038,235 @@
       brightness: '{{ brightness }}'
   mode: queued
   max: 5
+- id: '1791043579525'
+  alias: Update OpenUV
+  description: ''
+  triggers:
+  - trigger: time_pattern
+    minutes: /20
+    id: 20M
+  - trigger: time
+    at: '11:59:00'
+    id: Noon
+  conditions:
+  - condition: numeric_state
+    entity_id: sun.sun
+    value_template: '{{ state.attributes.elevation }}'
+    above: 10
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - 20M
+      sequence:
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.openuv_current_uv_index
+    - conditions:
+      - condition: trigger
+        id:
+        - Noon
+      sequence:
+      - action: homeassistant.update_entity
+        target:
+          entity_id: binary_sensor.openuv_protection_window
+  mode: single
+- id: '1791468965573'
+  alias: Ethan's Morning Schedule
+  description: Plays the morning steps from configs/routines.json on workdays.
+  triggers:
+  - trigger: time
+    at: input_datetime.ethan_s_alarm_clock
+  conditions:
+  - condition: state
+    entity_id: binary_sensor.workday_sensor
+    state: 'on'
+  actions:
+  - action: script.routine_run
+    data:
+      routine: morning
+      while_entity: binary_sensor.home_occupied
+      while_state: 'on'
+  mode: single
+- id: '1791471918911'
+  alias: Notification - Frigate Camera Health
+  description: Alerts when a Frigate camera stream or Frigate itself goes down, with
+    a hint at the cause, confirms recovery with the outage length, and reminds every
+    morning about anything still down.
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.frigate_service_problem
+    - binary_sensor.frigate_backyard_stream_problem
+    - binary_sensor.frigate_driveway_stream_problem
+    - binary_sensor.frigate_garage_stream_problem
+    - binary_sensor.frigate_entryway_stream_problem
+    - binary_sensor.frigate_frontdoor_stream_problem
+    from:
+    - 'off'
+    - unknown
+    to: 'on'
+    id: down
+  - trigger: state
+    entity_id:
+    - binary_sensor.frigate_service_problem
+    - binary_sensor.frigate_backyard_stream_problem
+    - binary_sensor.frigate_driveway_stream_problem
+    - binary_sensor.frigate_garage_stream_problem
+    - binary_sensor.frigate_entryway_stream_problem
+    - binary_sensor.frigate_frontdoor_stream_problem
+    from: 'on'
+    to: 'off'
+    id: up
+  - trigger: time
+    at: 09:00:00
+    id: reminder
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: down
+      sequence:
+      - variables:
+          camera: '{{ state_attr(trigger.entity_id, ''camera'') or ''Frigate'' }}'
+          ping_entity: '{{ state_attr(trigger.entity_id, ''ping_entity'') }}'
+          since: '{{ (now() - timedelta(minutes=2)).strftime(''%-I:%M%p'') }}'
+          cause: '{% if not ping_entity %} Frigate is unavailable. Check the container
+            logs (Coral unplugged? NGINX cert mount?). {% elif is_state(ping_entity,
+            ''off'') %} Camera does not answer ping: power, PoE, Wi-Fi or IP change.
+            {% elif not is_state(ping_entity, ''on'') %} Camera reachability unknown
+            (ping sensor unavailable). {% else %} Camera answers ping but Frigate
+            gets no frames. The camera''s RTSP server is probably hung (reboot the
+            camera); if a reboot doesn''t help, restart Frigate. {% endif %}'
+      - action: persistent_notification.create
+        data:
+          notification_id: frigate_health_{{ camera }}
+          title: Camera down - {{ camera | title }}
+          message: No frames since about {{ since }}. {{ cause | trim }}
+      - action: logbook.log
+        data:
+          name: Frigate {{ camera }}
+          message: went down ({{ cause | trim }})
+          entity_id: '{{ trigger.entity_id }}'
+      - action: ticker.notify
+        continue_on_error: true
+        data:
+          category: Camera Health
+          title: Camera down - {{ camera | title }}
+          message: No frames since about {{ since }}. {{ cause | trim }}
+    - conditions:
+      - condition: trigger
+        id: up
+      sequence:
+      - variables:
+          camera: '{{ state_attr(trigger.entity_id, ''camera'') or ''Frigate'' }}'
+          minutes: '{{ ((now() - trigger.from_state.last_changed).total_seconds()
+            / 60) | round(0) | int + 2 }}'
+          duration: '{% if minutes >= 120 %}{{ (minutes / 60) | round(1) }} hours{%
+            else %}{{ minutes }} minutes{% endif %}'
+      - action: persistent_notification.dismiss
+        data:
+          notification_id: frigate_health_{{ camera }}
+      - action: logbook.log
+        data:
+          name: Frigate {{ camera }}
+          message: recovered after about {{ duration }}
+          entity_id: '{{ trigger.entity_id }}'
+      - action: ticker.notify
+        continue_on_error: true
+        data:
+          category: Camera Health
+          title: Camera recovered - {{ camera | title }}
+          message: Back after about {{ duration }}.
+    - conditions:
+      - condition: trigger
+        id: reminder
+      - condition: template
+        value_template: '{{ problem_sensors | select(''is_state'', ''on'') | list
+          | count > 0 }}'
+      sequence:
+      - action: ticker.notify
+        data:
+          category: Camera Health
+          title: Cameras still down
+          message: '{% for s in problem_sensors | select(''is_state'', ''on'') %}
+            {{ state_attr(s, ''camera'') or ''Frigate'' }}: down {{ relative_time(states[s].last_changed)
+            }} {% endfor %}'
+  mode: queued
+  variables:
+    problem_sensors:
+    - binary_sensor.frigate_service_problem
+    - binary_sensor.frigate_backyard_stream_problem
+    - binary_sensor.frigate_driveway_stream_problem
+    - binary_sensor.frigate_garage_stream_problem
+    - binary_sensor.frigate_entryway_stream_problem
+    - binary_sensor.frigate_frontdoor_stream_problem
+- id: '1792119374697'
+  alias: Kiosk - Tablet screen follows motion
+  triggers:
+  - trigger: state
+    id: motion
+    entity_id:
+    - binary_sensor.kitchen_motion_sensor_occupancy
+    - binary_sensor.athom_presence_sensor_9bd3a3_occupancy
+    - binary_sensor.entry_motion_sensor
+    - binary_sensor.living_room_presence_sensor_occupancy
+    - binary_sensor.dining_motion
+    to: 'on'
+  - trigger: template
+    id: clear
+    value_template: "{{ [\n  'binary_sensor.kitchen_motion_sensor_occupancy',\n  'binary_sensor.athom_presence_sensor_9bd3a3_occupancy',\n
+      \ 'binary_sensor.entry_motion_sensor',\n  'binary_sensor.living_room_presence_sensor_occupancy',\n
+      \ 'binary_sensor.dining_motion'\n] | select('is_state', 'on') | list | count
+      == 0 }}\n"
+    for:
+      minutes: 5
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: motion
+      sequence:
+      - action: switch.turn_off
+        target:
+          entity_id: switch.dinng_room_kitchen_tablet_screensaver_active
+      - action: light.turn_on
+        target:
+          entity_id: light.dinng_room_kitchen_tablet_screen
+    - conditions:
+      - condition: trigger
+        id: clear
+      sequence:
+      - action: light.turn_off
+        target:
+          entity_id: light.dinng_room_kitchen_tablet_screen
+  mode: restart
+- id: '1792701810261'
+  alias: Battery watch - device stopped reporting
+  description: Each battery-powered device once, when it has been unavailable for
+    2 hours (packages/battery_watch.yaml).
+  triggers:
+  - trigger: time_pattern
+    minutes: 0
+    hours: /2
+  conditions:
+  - condition: template
+    value_template: '{{ newly | count > 0 }}'
+  actions:
+  - repeat:
+      for_each: '{{ newly }}'
+      sequence:
+      - action: ticker.notify
+        data:
+          category: Batteries
+          title: '{{ repeat.item.name }} stopped reporting'
+          message: Unavailable since {{ as_timestamp(repeat.item.since) | timestamp_custom('%-I:%M
+            %p') }}. Check its battery or signal.
+  mode: single
+  variables:
+    newly: "{{ state_attr('sensor.batteries_not_reporting', 'devices') | default([],
+      true)\n   | selectattr('since', 'le', (utcnow() - timedelta(hours=2)).isoformat())\n
+      \  | selectattr('since', 'gt', (utcnow() - timedelta(hours=3)).isoformat())\n
+      \  | list }}"

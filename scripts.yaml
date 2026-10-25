@@ -20,227 +20,6 @@
       confirm_text: 'Announce '
       dismiss_text: Close garage door
   mode: single
-new_script_2:
-  alias: Inovelli Red LED
-  mode: parallel
-  variables:
-    zwave_integration: zwave_js
-    model: "{% if model is string %}\n  {{ model }}\n{%- elif state_attr(entity_id,
-      'product_name') is string %}\n  {%- if 'LZW31' in state_attr(entity_id, 'product_name')
-      %}\n    dimmer\n  {%- elif 'LZW36' in state_attr(entity_id, 'product_name')
-      %}\n    combo_light\n  {%- else %}\n    switch\n  {%- endif %}\n{%- else %}\n
-      \ dimmer\n{%- endif %}\n"
-    parameters:
-      dimmer: 16
-      combo_light: 24
-      combo_fan: 25
-      switch: 8
-    node_id: '{{ state_attr(entity_id,"node_id") }}'
-    color: "{%- if color is not number %}\n  {{ color|default(\"Yellow\")|title }}\n{%-
-      else %}\n  {{ color|int }}\n{% endif %}\n"
-    level: '{{ level|default(4)|int }}'
-    duration: '{{ duration|default("Indefinitely")|title }}'
-    effect: '{{ effect|default("Blink")|title }}'
-    colors:
-      'Off': 0
-      Red: 1
-      Orange: 21
-      Yellow: 42
-      Green: 85
-      Cyan: 127
-      Teal: 145
-      Blue: 170
-      Purple: 195
-      Light Pink: 220
-      Pink: 234
-    durations:
-      'Off': 0
-      1 Second: 1
-      2 Seconds: 2
-      3 Seconds: 3
-      4 Seconds: 4
-      5 Seconds: 5
-      6 Seconds: 6
-      7 Seconds: 7
-      8 Seconds: 8
-      9 Seconds: 9
-      10 Seconds: 10
-      15 Seconds: 15
-      20 Seconds: 20
-      25 Seconds: 25
-      30 Seconds: 30
-      35 Seconds: 35
-      40 Seconds: 40
-      45 Seconds: 45
-      50 Seconds: 50
-      55 Seconds: 55
-      60 Seconds: 60
-      2 Minutes: 62
-      3 Minutes: 63
-      4 Minutes: 64
-      10 Minutes: 70
-      15 Minutes: 75
-      30 Minutes: 90
-      45 Minutes: 105
-      1 Hour: 120
-      2 Hours: 122
-      Indefinitely: 255
-    effects_dimmer:
-      'Off': 0
-      Solid: 1
-      Chase: 2
-      Fast Blink: 3
-      Slow Blink: 4
-      Blink: 4
-      Pulse: 5
-      Breath: 5
-    effects_switch:
-      'Off': 0
-      Solid: 1
-      Fast Blink: 2
-      Slow Blink: 3
-      Blink: 3
-      Pulse: 4
-      Breath: 4
-  sequence:
-  - variables:
-      parameter: '{{ parameters[model|lower] }}'
-      color: '{{ colors[color|title]|int }}'
-      duration: '{{ durations[duration|title] }}'
-      effect: "{% if model == \"switch\" %}\n  {{- effects_switch[effect|title] }}\n{%-
-        else %}\n  {{- effects_dimmer[effect|title] }}\n{% endif %}\n"
-      inovelli_math: "{%- if effect|int > 0 %}\n  {{ color|int + (level|int * 256)
-        + (duration|int * 65536) + (effect|int * 16777216) }}\n{%- else %}\n  0\n{%
-        endif %}\n"
-  - choose:
-    - conditions:
-      - '{{ zwave_integration == "zwave_js" }}'
-      sequence:
-      - service: zwave_js.bulk_set_partial_config_parameters
-        target:
-          entity_id: '{{ entity_id }}'
-        data:
-          parameter: '{{ parameter }}'
-          value: '16714410'
-      - choose:
-        - conditions:
-          - '{{ inovelli_math > 0 }}'
-          sequence:
-          - service: zwave_js.bulk_set_partial_config_parameters
-            target:
-              entity_id: '{{ entity_id }}'
-            data:
-              parameter: '{{ parameter }}'
-              value: '{{ inovelli_math }}'
-    - conditions:
-      - '{{ zwave_integration == "ozw" }}'
-      sequence:
-      - service: ozw.set_config_parameter
-        data:
-          node_id: '{{ node_id }}'
-          parameter: '{{ parameter }}'
-          value: 0
-      - service: ozw.set_config_parameter
-        data:
-          node_id: '{{ node_id }}'
-          parameter: '{{ parameter }}'
-          value: '{{ inovelli_math }}'
-    default:
-    - service: zwave.set_config_parameter
-      data:
-        node_id: '{{ node_id }}'
-        parameter: '{{ parameter }}'
-        size: 4
-        value: 0
-    - service: zwave.set_config_parameter
-      data:
-        node_id: '{{ node_id }}'
-        parameter: '{{ parameter }}'
-        size: 4
-        value: '{{ inovelli_math }}'
-  fields:
-    entity_id:
-      description: Light or switch which represents
-      example: light.family_room
-      selector:
-        entity:
-    model:
-      description: 'Device type: dimmer (default), switch, combo_light'
-      example: dimmer
-      selector:
-        select:
-          options:
-          - dimmer
-          - switch
-          - combo_light
-    color:
-      description: Choose a color.
-      example: purple
-      selector:
-        select:
-          options:
-          - 'Off'
-          - Red
-          - Orange
-          - Yellow
-          - Green
-          - Cyan
-          - Teal
-          - Blue
-          - Purple
-          - Light Pink
-          - Pink
-    effect:
-      description: Choose an effect.
-      example: blink
-      selector:
-        select:
-          options:
-          - 'Off'
-          - Solid
-          - Chase
-          - Fast Blink
-          - Slow Blink
-          - Blink
-          - Pulse
-          - Breath
-    duration:
-      description: How long should the effect run?
-      example: 10 seconds
-      selector:
-        select:
-          options:
-          - 'Off'
-          - 1 Second
-          - 2 Seconds
-          - 3 Seconds
-          - 4 Seconds
-          - 5 Seconds
-          - 6 Seconds
-          - 7 Seconds
-          - 8 Seconds
-          - 9 Seconds
-          - 10 Seconds
-          - 15 Seconds
-          - 20 Seconds
-          - 25 Seconds
-          - 30 Seconds
-          - 35 Seconds
-          - 40 Seconds
-          - 45 Seconds
-          - 50 Seconds
-          - 55 Seconds
-          - 60 Seconds
-          - 2 Minutes
-          - 3 Minutes
-          - 4 Minutes
-          - 10 Minutes
-          - 15 Minutes
-          - 30 Minutes
-          - 45 Minutes
-          - 1 Hour
-          - 2 Hours
-          - Indefinitely
 '1706890924831':
   alias: Lamp Wake Up
   sequence:
@@ -502,11 +281,11 @@ print_shopping_list:
   description: Formats the todo list and sends it to the printer API
   sequence:
   - action: todo.get_items
-    target:
-      entity_id: todo.default
     data:
       status: needs_action
     response_variable: my_list
+    target:
+      entity_id: todo.kitchen_mealie_grocery
   - action: simple_http_client.fetch
     data:
       method: POST
@@ -514,14 +293,14 @@ print_shopping_list:
       url: http://10.0.0.10:8000/api/print-shopping-list
       headers:
         Content-Type: application/json
-      body: "{% set todo_items = my_list['todo.default']['items'] if my_list['todo.default']
-        is defined else [] %} {% set ns = namespace(items=[]) %}\n{% for item in todo_items
-        %}\n  {% set parts = item.summary.split(' ', 1) %}\n  {% if parts|length >
-        1 and parts[0] | int(default=-1) != -1 %}\n    {% set ns.items = ns.items
-        + [{\"name\": parts[1], \"quantity\": parts[0]}] %}\n  {% else %}\n    {%
-        set ns.items = ns.items + [item.summary] %}\n  {% endif %}\n{% endfor %}\n{{
-        {\n  \"title\": \"Grocery Shopping\",\n  \"items\": ns.items\n} | to_json
-        }}"
+      body: "{% set todo_items = my_list['todo.kitchen_mealie_grocery']['items'] if
+        my_list['todo.kitchen_mealie_grocery'] is defined else [] %} {% set ns = namespace(items=[])
+        %}\n{% for item in todo_items %}\n  {% set parts = item.summary.split(' ',
+        1) %}\n  {% if parts|length > 1 and parts[0] | int(default=-1) != -1 %}\n
+        \   {% set ns.items = ns.items + [{\"name\": parts[1], \"quantity\": parts[0]}]
+        %}\n  {% else %}\n    {% set ns.items = ns.items + [item.summary] %}\n  {%
+        endif %}\n{% endfor %}\n{{ {\n  \"title\": \"Grocery Shopping\",\n  \"items\":
+        ns.items\n} | to_json }}"
     response_variable: api_response
   mode: single
 led_set:
@@ -738,7 +517,7 @@ led_set:
             {{ m[effect | default(''pulse'')] }}'
           led: '{% set m = {''mode'':''Led 4'',''spatial'':''Led 7'',''global'':''Led
             1'',''critical'':''All''} %}{{ m[tier] }}'
-          level: '{% set tdb = {''mode'':15,''spatial'':100,''global'':100,''critical'':100}
+          level: '{% set tdb = {''mode'':15,''spatial'':20,''global'':100,''critical'':100}
             %} {% set b = brightness | default(none) %} {{ (b if b is not none else
             tdb[tier]) | int }}'
           target: '{% set is_night = is_state(''sun.sun'', ''below_horizon'') %} {%
@@ -896,8 +675,8 @@ panic_fire:
     data:
       category: Safety
       title: "\U0001F525 FIRE PANIC TRIGGERED"
-      message: Fire panic pressed at {{ now().strftime('%I:%M %p') }}. HVAC off,
-        doors unlocked, garage open, lights on. Evacuate now.
+      message: Fire panic pressed at {{ now().strftime('%I:%M %p') }}. HVAC off, doors
+        unlocked, garage open, lights on. Evacuate now.
 panic_medical:
   alias: Panic - Medical
   description: 'Medical panic button: alerts family with last camera snapshot, TTS
@@ -959,8 +738,8 @@ panic_medical:
     data:
       category: Safety
       title: "\U0001F3E5 MEDICAL PANIC TRIGGERED"
-      message: Medical panic pressed at {{ now().strftime('%I:%M %p') }}. Front
-        door unlocked, path lights on. Check on family immediately.
+      message: Medical panic pressed at {{ now().strftime('%I:%M %p') }}. Front door
+        unlocked, path lights on. Check on family immediately.
 panic_stand_down:
   alias: Panic - Stand Down
   description: Cleans up after a panic event. Turns off sirens/strobes, stops TTS,
@@ -1044,10 +823,10 @@ panic_stand_down:
       category: Safety
       critical: false
       title: ✅ Stand Down
-      message: '{{ states(''input_text.last_panic_type'') | title }} panic stood
-        down at {{ now().strftime(''%I:%M %p'') }}. Sirens off, lights restored,
-        alarm returned to {{ states(''input_text.pre_panic_alarm_state'') }}. Garage
-        and locks left as-is — reset manually if needed.'
+      message: '{{ states(''input_text.last_panic_type'') | title }} panic stood down
+        at {{ now().strftime(''%I:%M %p'') }}. Sirens off, lights restored, alarm
+        returned to {{ states(''input_text.pre_panic_alarm_state'') }}. Garage and
+        locks left as-is — reset manually if needed.'
   - action: input_boolean.turn_off
     target:
       entity_id: input_boolean.panic_active
@@ -1058,8 +837,8 @@ panic_stand_down:
       entity_id: input_text.last_panic_type
 security_critical_alert:
   alias: Security - Critical Alarm Alert
-  description: Critical actionable push for Alarmo via Ticker. pending = Security category;
-    triggered = Safety category. Camera + Disarm button.
+  description: Critical actionable push for Alarmo via Ticker. pending = Security
+    category; triggered = Safety category. Camera + Disarm button.
   icon: mdi:shield-alert
   mode: restart
   fields:
@@ -1079,11 +858,9 @@ security_critical_alert:
       body: '{% if phase == ''triggered'' %}Alarm is sounding — tripped by {{ sensor_name
         }}.{% else %}{{ sensor_name }} tripped. {{ state_attr(''alarm_control_panel.default'',''delay'')
         or 60 }}s to disarm.{% endif %}'
-  # triggered → Safety (locked-on phone recipients + Pushover); pending → Security
-  # (per-person subscription). Both categories are critical.
   - action: ticker.notify
     data:
-      category: "{{ 'Safety' if phase == 'triggered' else 'Security' }}"
+      category: '{{ ''Safety'' if phase == ''triggered'' else ''Security'' }}'
       title: '{{ title }}'
       message: '{{ body }}'
       navigate_to: /lovelace-security/main-floor-security
@@ -1105,7 +882,7 @@ esc_pos_shopping_list:
     path: cognitivegears/shopping_list.yaml
     input:
       printer: eeab07468a12bbd4c0b900dad7d5acb4
-      todo_entity: todo.alexa_todo_shop
+      todo_entity: todo.kitchen_mealie_grocery
 cube_room_indicator:
   alias: Magic Cube - Room Indicator
   description: 'Blinks the spatial tier (LED 7) on the active cube room''s Inovelli
@@ -1594,3 +1371,269 @@ ticker_notify_schedules:
       category: Schedules
       title: '{{ title | default(''Schedule'') }}'
       message: '{{ message }}'
+routine_run_schedule:
+  sequence:
+  - variables:
+      started: '{{ now().timestamp() }}'
+      today: '{{ now().strftime(''%a'') | lower }}'
+      steps: "{% set cfg = (state_attr('pyscript.ethan_routines', 'routines') or {}).get(routine,
+        {}) %} {{ cfg.get('steps', [])\n   | selectattr('enabled')\n   | selectattr('days',
+        'contains', today)\n   | sort(attribute='at')\n   | list }}"
+  - if:
+    - condition: template
+      value_template: '{{ steps | count == 0 }}'
+    then:
+    - stop: No steps scheduled today
+  - repeat:
+      for_each: '{{ steps }}'
+      sequence:
+      - delay:
+          seconds: '{{ [0, started + repeat.item.at * 60 - now().timestamp()] | max
+            | round(0) | int }}'
+      - if:
+        - condition: template
+          value_template: '{{ while_entity is defined and while_entity and not is_state(while_entity,
+            while_state) }}'
+        then:
+        - stop: '{{ while_entity }} left {{ while_state }}'
+      - action: script.routine_step
+        data:
+          step: '{{ repeat.item }}'
+  alias: Routine - Run schedule
+  description: Plays today's enabled steps of a routine from pyscript.ethan_routines,
+    timed from now.
+  icon: mdi:playlist-play
+  mode: parallel
+  max: 4
+  fields:
+    routine:
+      description: Routine key in configs/routines.json
+      required: true
+      example: bedtime
+      selector:
+        text:
+    while_entity:
+      description: Optional. Stop before any step once this entity leaves while_state.
+      selector:
+        entity:
+    while_state:
+      description: State while_entity must be in for the routine to continue.
+      example: 'on'
+      selector:
+        text:
+receipt_print_shopping_list:
+  alias: Receipt - Print grocery list
+  icon: mdi:cart-outline
+  mode: queued
+  max_exceeded: silent
+  sequence:
+  - action: todo.get_items
+    target:
+      entity_id: todo.kitchen_mealie_grocery
+    data:
+      status: needs_action
+    response_variable: todo_response
+  - variables:
+      items: '{{ todo_response[''todo.kitchen_mealie_grocery''][''items''] | default([])
+        }}'
+  - action: escpos_printer.print_box
+    target:
+      entity_id: notify.esc_pos_printer_10_0_16_62_9100
+    data:
+      text: Grocery list
+      style: single
+      align: center
+      padding: 1
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ items | length > 0 }}'
+      sequence:
+      - action: escpos_printer.print_table
+        target:
+          entity_id: notify.esc_pos_printer_10_0_16_62_9100
+        data:
+          rows: "{% set ns = namespace(out=[]) %} {% for i in items %}\n  {% set ns.out
+            = ns.out + [[i.summary | replace('|', '/') | trim]] %}\n{% endfor %} {{
+            ns.out }}\n"
+          style: single
+          header: false
+    default:
+    - action: escpos_printer.print_text
+      target:
+        entity_id: notify.esc_pos_printer_10_0_16_62_9100
+      data:
+        text: Nothing to buy
+        align: center
+  - action: escpos_printer.print_separator
+    target:
+      entity_id: notify.esc_pos_printer_10_0_16_62_9100
+    data:
+      char: '='
+  - action: escpos_printer.cut
+    target:
+      entity_id: notify.esc_pos_printer_10_0_16_62_9100
+    data:
+      mode: full
+  description: ''
+receipt_print_grocery_list:
+  alias: Receipt - Print grocery list
+  icon: mdi:cart-outline
+  mode: queued
+  max_exceeded: silent
+  sequence:
+  - action: todo.get_items
+    target:
+      entity_id: todo.kitchen_mealie_grocery
+    data:
+      status: needs_action
+    response_variable: todo_response
+  - variables:
+      items: '{{ todo_response[''todo.kitchen_mealie_grocery''][''items''] | default([])
+        }}'
+  - action: escpos_printer.print_box
+    target:
+      entity_id: notify.esc_pos_printer_10_0_16_62_9100
+    data:
+      text: Grocery list
+      style: single
+      align: center
+      padding: 1
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ items | length > 0 }}'
+      sequence:
+      - action: escpos_printer.print_table
+        target:
+          entity_id: notify.esc_pos_printer_10_0_16_62_9100
+        data:
+          rows: "{% set ns = namespace(out=[]) %} {% for i in items %}\n  {% set ns.out
+            = ns.out + [[i.summary | replace('|', '/') | trim]] %}\n{% endfor %} {{
+            ns.out }}\n"
+          style: single
+          header: false
+    default:
+    - action: escpos_printer.print_text
+      target:
+        entity_id: notify.esc_pos_printer_10_0_16_62_9100
+      data:
+        text: Nothing to buy
+        align: center
+  - action: escpos_printer.print_separator
+    target:
+      entity_id: notify.esc_pos_printer_10_0_16_62_9100
+    data:
+      char: '='
+  - action: escpos_printer.cut
+    target:
+      entity_id: notify.esc_pos_printer_10_0_16_62_9100
+    data:
+      mode: full
+receipt_print_todo_list:
+  alias: Receipt - Print family to-do list
+  icon: mdi:format-list-checks
+  mode: queued
+  max_exceeded: silent
+  sequence:
+  - action: todo.get_items
+    target:
+      entity_id: todo.family
+    data:
+      status: needs_action
+    response_variable: todo_response
+  - variables:
+      items: '{{ todo_response[''todo.family''][''items''] | default([]) }}'
+  - action: escpos_printer.print_box
+    target:
+      entity_id: notify.esc_pos_printer_10_0_16_62_9100
+    data:
+      text: Family to-do
+      style: single
+      align: center
+      padding: 1
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ items | length > 0 }}'
+      sequence:
+      - action: escpos_printer.print_table
+        target:
+          entity_id: notify.esc_pos_printer_10_0_16_62_9100
+        data:
+          rows: "{% set ns = namespace(out=[]) %} {% for i in items %}\n  {% set ns.out
+            = ns.out + [[i.summary | replace('|', '/') | trim]] %}\n{% endfor %} {{
+            ns.out }}\n"
+          style: single
+          header: false
+    default:
+    - action: escpos_printer.print_text
+      target:
+        entity_id: notify.esc_pos_printer_10_0_16_62_9100
+      data:
+        text: Nothing to do
+        align: center
+  - action: escpos_printer.print_separator
+    target:
+      entity_id: notify.esc_pos_printer_10_0_16_62_9100
+    data:
+      char: '='
+  - action: escpos_printer.cut
+    target:
+      entity_id: notify.esc_pos_printer_10_0_16_62_9100
+    data:
+      mode: full
+  description: ''
+receipt_print_family_to_do_list:
+  alias: Receipt - Print family to-do list
+  icon: mdi:format-list-checks
+  mode: queued
+  max_exceeded: silent
+  sequence:
+  - action: todo.get_items
+    target:
+      entity_id: todo.family
+    data:
+      status: needs_action
+    response_variable: todo_response
+  - variables:
+      items: '{{ todo_response[''todo.family''][''items''] | default([]) }}'
+  - action: escpos_printer.print_box
+    target:
+      entity_id: notify.esc_pos_printer_10_0_16_62_9100
+    data:
+      text: Family to-do
+      style: single
+      align: center
+      padding: 1
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ items | length > 0 }}'
+      sequence:
+      - action: escpos_printer.print_table
+        target:
+          entity_id: notify.esc_pos_printer_10_0_16_62_9100
+        data:
+          rows: "{% set ns = namespace(out=[]) %} {% for i in items %}\n  {% set ns.out
+            = ns.out + [[i.summary | replace('|', '/') | trim]] %}\n{% endfor %} {{
+            ns.out }}\n"
+          style: single
+          header: false
+    default:
+    - action: escpos_printer.print_text
+      target:
+        entity_id: notify.esc_pos_printer_10_0_16_62_9100
+      data:
+        text: Nothing to do
+        align: center
+  - action: escpos_printer.print_separator
+    target:
+      entity_id: notify.esc_pos_printer_10_0_16_62_9100
+    data:
+      char: '='
+  - action: escpos_printer.cut
+    target:
+      entity_id: notify.esc_pos_printer_10_0_16_62_9100
+    data:
+      mode: full

@@ -1,0 +1,147 @@
+# Music: one script that starts a playlist in a room through Music Assistant,
+# used by the Quick play panel on the Music page (dashboards/views/default/80-music.yaml)
+# and the wall switches' config-button taps (automations.yaml, "Inovelli - ...").
+#
+# Playlists and rooms are named here once. To add one, add it to the dict in
+# music_play_playlist and the same name to the matching dropdown.
+# Rooms are Music Assistant players (media_player.* with a mass_player_type
+# attribute), not the cast/Apple TV entities, which don't play MA playlists.
+
+music:
+  template:
+    # On while Spotify plays and for 30 minutes after it stops or pauses, so the
+    # Music page keeps its Spotify controls up between songs and short breaks.
+    - binary_sensor:
+        - name: Spotify recently active
+          unique_id: music_spotify_recently_active
+          icon: mdi:spotify
+          state: "{{ is_state('media_player.spotify_thedrake', 'playing') }}"
+          delay_off: "00:30:00"
+
+  input_select:
+    music_playlist:
+      name: Playlist
+      icon: mdi:playlist-music
+      options:
+        - Engagement Party
+        - Daily Mix 1
+        - Daily Mix 2
+        - Daily Mix 3
+        - Discover Weekly
+        - Release Radar
+        - On Repeat
+        - daylist
+        - Morning Wake Up
+        - Your Favorite Coffeehouse
+        - Peaceful Piano
+        - Totally Stress Free
+        - Classic Road Trip Songs
+        - Ethan's Playlist
+        - Ethan's Pre-Bedtime Mix
+        - Toddler Songs that Don't Suck
+        - Disney Hits
+        - Nursery Rhymes
+        - Baby Sleep
+        - Christmas
+
+    music_room:
+      name: Room
+      icon: mdi:speaker
+      options:
+        - Kitchen
+        - Living room
+        - Family room
+        - Ethan's room
+        - Garage
+
+  script:
+    music_play_playlist:
+      alias: Music - Play a playlist in a room
+      icon: mdi:playlist-play
+      mode: parallel
+      fields:
+        playlist:
+          name: Playlist
+          description: A name from the playlists list in this script.
+          required: true
+          example: Daily Mix 1
+          selector:
+            text:
+        room:
+          name: Room
+          description: A name from the rooms list in this script.
+          required: true
+          example: Kitchen
+          selector:
+            text:
+      variables:
+        playlists:
+          Engagement Party: spotify:playlist:7iYXKlEsz2v16gTzjDq6cu
+          Daily Mix 1: spotify:playlist:37i9dQZF1E35s8KYiQEq6p
+          Daily Mix 2: spotify:playlist:37i9dQZF1E37uHtWv5GokZ
+          Daily Mix 3: spotify:playlist:37i9dQZF1E35rDN9ifuzZO
+          Discover Weekly: spotify:playlist:37i9dQZEVXcTh6mPICqgAa
+          Release Radar: spotify:playlist:37i9dQZEVXbh0yaoGozrkS
+          On Repeat: spotify:playlist:37i9dQZF1Epkgz1xHYKcmA
+          daylist: spotify:playlist:37i9dQZF1EP6YuccBxUcC1
+          Morning Wake Up: spotify:playlist:3PQGaMmWxDo3ZGV6BzJY69
+          Your Favorite Coffeehouse: spotify:playlist:37i9dQZF1DX6ziVCJnEm59
+          Peaceful Piano: spotify:playlist:37i9dQZF1DX4sWSpwq3LiO
+          Totally Stress Free: spotify:playlist:37i9dQZF1DWT7XSlwvR1ar
+          Classic Road Trip Songs: spotify:playlist:37i9dQZF1DX9wC1KY45plY
+          Ethan's Playlist: spotify:playlist:0p9lICJwFXwOp0OzJPYeWk
+          Ethan's Pre-Bedtime Mix: spotify:playlist:6a1PnMqtFmFaHBWzOGv8qT
+          Toddler Songs that Don't Suck: spotify:playlist:2y9URNtkzZMfb2VXH3KXIr
+          Disney Hits: spotify:playlist:37i9dQZF1DX8C9xQcOrE6T
+          Nursery Rhymes: spotify:playlist:37i9dQZF1DXbwjaKZ52hOt
+          Baby Sleep: spotify:playlist:37i9dQZF1DX0DxcHtn4Hwo
+          Christmas: spotify:playlist:6PerOYnIYBTdZ2mD5vFHoz
+        rooms:
+          Kitchen: media_player.kitchen_google
+          Living room: media_player.living_room_2
+          Family room: media_player.family_room_2
+          Ethan's room: media_player.ethan_s_bedroom_display
+          Garage: media_player.garage_2
+        uri: "{{ playlists.get(playlist, '') }}"
+        player: "{{ rooms.get(room, '') }}"
+      sequence:
+        - if: "{{ uri == '' or player == '' }}"
+          then:
+            - stop: "Unknown playlist or room: {{ playlist }} in {{ room }}"
+              error: true
+        - action: music_assistant.play_media
+          target:
+            entity_id: "{{ player }}"
+          data:
+            media_id: "{{ uri }}"
+            media_type: playlist
+            enqueue: replace
+
+    # The Music page's Play button: whatever the two dropdowns say.
+    music_play_picked:
+      alias: Music - Play the picked playlist
+      icon: mdi:play
+      mode: parallel
+      sequence:
+        - action: script.music_play_playlist
+          data:
+            playlist: "{{ states('input_select.music_playlist') }}"
+            room: "{{ states('input_select.music_room') }}"
+
+    # The Music page's Stop button: stops the picked room (same rooms as
+    # music_play_playlist).
+    music_stop_picked:
+      alias: Music - Stop the picked room
+      icon: mdi:stop
+      mode: parallel
+      variables:
+        rooms:
+          Kitchen: media_player.kitchen_google
+          Living room: media_player.living_room_2
+          Family room: media_player.family_room_2
+          Ethan's room: media_player.ethan_s_bedroom_display
+          Garage: media_player.garage_2
+      sequence:
+        - action: media_player.media_stop
+          target:
+            entity_id: "{{ rooms.get(states('input_select.music_room'), 'media_player.kitchen_google') }}"

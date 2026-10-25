@@ -1,0 +1,19 @@
+# Quick play: stops the picked room (script.music_stop_picked).
+type: custom:button-card
+template: action_tile
+entity: script.music_stop_picked
+name: Stop
+icon: mdi:stop
+label: "[[[ return `Stops the ${states['input_select.music_room'].state.toLowerCase()}` ]]]"
+triggers_update:
+  - input_select.music_room
+tap_action:
+  action: perform-action
+  perform_action: script.music_stop_picked
+styles:
+  card:
+    - min-height: 56px
+    - height: 100%
+grid_options:
+  columns: 12
+  rows: 1

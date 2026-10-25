@@ -1,0 +1,95 @@
+{#- =====================================================================
+    Room lights: which light.* entities count as lights, and the #lights
+    pop-up's card list.
+
+    WHO READS THIS FILE
+      sensor.lights_on_count   configs/templates.yaml (the Lights status tile)
+      #lights pop-up           dashboards/popup/light.yaml (auto-entities template)
+
+    After editing: reload custom templates (homeassistant.reload_custom_templates),
+    then template entities.
+    ===================================================================== -#}
+
+{#- Not room lights: groups, sensor status LEDs, voice/echo LED rings, tablet
+    screens, the tag reader and the air/holiday sensors' RGB rings. -#}
+{%- macro light_skip() -%}
+group|status_led|led_ring|_screen|atom_echo|info_light|tagreader|apollo_h_2|apollo_air_1
+{%- endmacro -%}
+
+{#- The #lights pop-up's cards, as a Python literal for auto-entities: a Bubble
+    separator per floor (upstairs, downstairs, outside, other), a heading per room,
+    then the room's lights two to a row, on first. With show_off false only the
+    lights that are on are listed, and rooms and floors with none are left out. -#}
+{%- macro lights_popup(show_off) -%}
+{%- set skip = light_skip() | trim -%}
+{%- set lights = states.light
+      | rejectattr('entity_id', 'search', skip)
+      | rejectattr('state', 'in', ['unavailable', 'unknown'])
+      | list -%}
+{%- set known = ['main', 'basement', 'outdoors'] -%}
+{%- set floors = [
+      ('main', 'Upstairs', 'mdi:home-floor-1'),
+      ('basement', 'Downstairs', 'mdi:home-floor-b'),
+      ('outdoors', 'Outside', 'mdi:tree-outline'),
+      (none, 'Other', 'mdi:home-outline')] -%}
+{%- set ns = namespace(cards=[]) -%}
+{%- for fid, fname, ficon in floors -%}
+  {%- set fl = namespace(rooms=[]) -%}
+  {%- for l in lights -%}
+    {%- set a = area_id(l.entity_id) -%}
+    {#- floor_id() looks areas up by name, so ask by entity. -#}
+    {%- set f = floor_id(l.entity_id) -%}
+    {%- if (fid and f == fid) or (not fid and f not in known) -%}
+      {%- set fl.rooms = fl.rooms + [{'id': a or '', 'name': area_name(a) if a else 'No room'}] -%}
+    {%- endif -%}
+  {%- endfor -%}
+  {%- set fc = namespace(cards=[]) -%}
+  {%- for r in fl.rooms | unique(attribute='id') | sort(attribute='name') -%}
+    {%- set a = r.id -%}
+    {%- set aname = r.name -%}
+    {%- set room = namespace(on=[], off=[]) -%}
+    {%- for l in lights | sort(attribute='name') -%}
+      {%- if (area_id(l.entity_id) or '') == a -%}
+        {%- if l.state == 'on' -%}
+          {%- set room.on = room.on + [l] -%}
+        {%- elif show_off -%}
+          {%- set room.off = room.off + [l] -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+    {%- set shown = room.on + room.off -%}
+    {%- if shown -%}
+      {%- set rc = namespace(cards=[]) -%}
+      {%- for l in shown -%}
+        {%- set modes = l.attributes.supported_color_modes or [] -%}
+        {%- if modes | select('in', ['hs', 'rgb', 'rgbw', 'rgbww', 'xy']) | list -%}
+          {%- set tpl = 'bubble_light_color' -%}
+        {%- elif modes == ['color_temp'] -%}
+          {%- set tpl = 'bubble_light_temp' -%}
+        {%- elif modes == ['onoff'] -%}
+          {%- set tpl = 'bubble_switch' -%}
+        {%- else -%}
+          {%- set tpl = 'bubble_light' -%}
+        {%- endif -%}
+        {%- set short = l.name[aname | length:] | trim if (l.name | lower).startswith(aname | lower) else l.name -%}
+        {%- set rc.cards = rc.cards + [{
+              'type': 'custom:decluttering-card',
+              'template': tpl,
+              'variables': [{'entity': l.entity_id}, {'name': (short[:1] | upper ~ short[1:]) if short else l.name}]}] -%}
+      {%- endfor -%}
+      {%- set fc.cards = fc.cards + [
+            {'type': 'heading', 'heading': aname, 'heading_style': 'subtitle'},
+            {'type': 'grid', 'columns': 2, 'square': false, 'cards': rc.cards}] -%}
+    {%- endif -%}
+  {%- endfor -%}
+  {%- if fc.cards -%}
+    {%- set ns.cards = ns.cards + [{'type': 'custom:bubble-card', 'card_type': 'separator',
+          'name': fname, 'icon': ficon}] + fc.cards -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- if not ns.cards -%}
+  {%- set ns.cards = [{'type': 'custom:bubble-card', 'card_type': 'button', 'button_type': 'name',
+        'name': 'All the lights are off', 'icon': 'mdi:lightbulb-off-outline'}] -%}
+{%- endif -%}
+{{- ns.cards -}}
+{%- endmacro -%}

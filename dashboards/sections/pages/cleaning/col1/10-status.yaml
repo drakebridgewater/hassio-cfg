@@ -1,0 +1,67 @@
+# What the vacuum is doing, in words: state, battery, the room it's in while out, and
+# the last clean. Tap for its details (fan speed, consumables).
+grid_options:
+  columns: full
+type: custom:button-card
+entity: vacuum.roborock_q5
+icon: mdi:robot-vacuum
+show_name: true
+show_state: false
+show_label: true
+triggers_update:
+  - sensor.roborock_q5_battery
+  - sensor.roborock_q5_current_room
+  - sensor.roborock_q5_last_clean_begin
+  - sensor.roborock_q5_vacuum_error
+name: >-
+  [[[ const s = entity?.state;
+      const err = hass.states['sensor.roborock_q5_vacuum_error']?.state;
+      if (s === 'error') return `Stuck${err && err !== 'none' ? ': ' + err.replace(/_/g, ' ') : ''}`;
+      return { docked: 'Docked', cleaning: 'Cleaning', returning: 'Heading back to the dock',
+               paused: 'Paused', idle: 'Waiting off the dock' }[s] ?? 'No signal'; ]]]
+label: >-
+  [[[ const st = (e) => hass.states[e]?.state;
+      const bat = st('sensor.roborock_q5_battery');
+      const charging = st('binary_sensor.roborock_q5_charging') === 'on';
+      const room = st('sensor.roborock_q5_current_room');
+      const parts = [];
+      if (bat != null) parts.push(`Battery ${bat}%${charging ? ', charging' : ''}`);
+      if (['cleaning', 'returning', 'paused'].includes(entity?.state) && room) parts.push(`in the ${room.toLowerCase()}`);
+      const begin = st('sensor.roborock_q5_last_clean_begin');
+      if (begin && entity?.state === 'docked') {
+        const d = new Date(begin);
+        const today = new Date().toDateString() === d.toDateString();
+        const when = today ? `today at ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+          : d.toLocaleDateString([], { weekday: 'long' });
+        const area = Number(st('sensor.roborock_q5_cleaning_area'));
+        parts.push(`last cleaned ${when}${area ? `, ${Math.round(area * 10.764)} sq ft` : ''}`);
+      }
+      return parts.join(' · '); ]]]
+tap_action:
+  action: more-info
+styles:
+  card:
+    - background: none
+    - box-shadow: none
+    - border: none
+    - padding: 4px 4px 8px
+  grid:
+    - grid-template-areas: '"i n" "i l"'
+    - grid-template-columns: 48px minmax(0, 1fr)
+    - column-gap: 14px
+    - justify-items: start
+  icon:
+    - width: 40px
+    - color: >-
+        [[[ const s = entity?.state;
+            return s === 'error' ? 'var(--orange-color)' : s === 'cleaning' ? 'var(--teal-color)' : 'var(--secondary-text-color)' ]]]
+  name:
+    - font-size: 22px
+    - font-weight: 500
+    - justify-self: start
+  label:
+    - font-size: 13px
+    - color: var(--secondary-text-color)
+    - justify-self: start
+    - text-align: left
+    - white-space: normal

@@ -1,0 +1,15 @@
+# Every water leak sensor, wet ones first (moved from Security's environmental hazards).
+type: custom:auto-entities
+card:
+  type: entities
+  title: Water leak sensors
+  show_header_toggle: false
+  state_color: true
+filter:
+  include:
+    - entity_id: binary_sensor.*water_leak*
+sort:
+  method: state
+  reverse: true
+show_empty: false
+card_param: entities

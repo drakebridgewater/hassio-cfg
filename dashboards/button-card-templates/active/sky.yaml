@@ -1,0 +1,135 @@
+# The sky right now, worked out once for every card that draws it: the tablet
+# hero (sections/tablet/10-hero.yaml) and the weather pop-up (popup/weather.yaml).
+# Cards add `template: sky` and read variables.sky:
+#   state, kind     weather.pirateweather's condition and its family (clear, partly,
+#                   wind, cloudy, fog, rain, pour, storm, snow)
+#   night, golden   sun.sun below the horizon; sun up but under 10 degrees
+#   mph, gust, push wind and gust in mph, and its sideways push on screen
+#   cover           cloud cover 0-1 (from the condition when the provider has none)
+#   aqi, haze       sensor.airnow_aqi and the haze colour from 51 up
+#   moon            phase, illum, alt, az, up, tilt, pa, next rise/set, key, name, x, y
+#   wet, light      rain/snow/fog; a pale day sky (fog, snow)
+#   colors          the sky gradient's three stops, top to horizon
+sky:
+  triggers_update:
+    - sun.sun
+    - weather.pirateweather
+    - sensor.airnow_aqi
+  variables:
+    sky: |
+      [[[
+        const ws = hass.states['weather.pirateweather'];
+        const w = ws?.state || 'sunny';
+        const at = ws?.attributes || {};
+        const sun = hass.states['sun.sun'];
+        const night = sun ? sun.state !== 'above_horizon' : false;
+        const golden = !night && (sun?.attributes?.elevation ?? 90) < 10;
+        const kind = {
+          sunny: 'clear', 'clear-night': 'clear', exceptional: 'clear',
+          partlycloudy: 'partly', windy: 'wind', 'windy-variant': 'wind',
+          cloudy: 'cloudy', fog: 'fog', rainy: 'rain', pouring: 'pour',
+          lightning: 'storm', 'lightning-rainy': 'storm',
+          snowy: 'snow', 'snowy-rainy': 'snow', hail: 'snow',
+        }[w] || 'cloudy';
+        // Wind in mph, and its sideways push on screen: the bearing is where the
+        // wind comes FROM, so a west wind (270) blows left to right (+).
+        const toMph = { 'km/h': 0.6214, 'm/s': 2.237, kn: 1.151, 'ft/s': 0.6818 }[at.wind_speed_unit] ?? 1;
+        const mph = (Number(at.wind_speed) || 0) * toMph;
+        const gust = Math.max(mph, (Number(at.wind_gust_speed) || 0) * toMph);
+        const bearing = Number(at.wind_bearing);
+        const push = (Number.isFinite(bearing) ? -Math.sin(bearing * Math.PI / 180) : 1) * mph;
+        // Cloud cover 0-1 (falls back to the condition when the provider has none).
+        const cover = Number.isFinite(Number(at.cloud_coverage)) && at.cloud_coverage !== null
+          ? Math.min(1, Number(at.cloud_coverage) / 100)
+          : { clear: 0, partly: 0.4, wind: 0.3 }[kind] ?? 0.9;
+        // US AQI from AirNow; haze from 51 (moderate) up.
+        const aqi = Number(hass.states['sensor.airnow_aqi']?.state);
+        const haze = !Number.isFinite(aqi) || aqi <= 50 ? null
+          : aqi <= 100 ? { rgb: '214, 196, 140', a: 0.16 }
+          : aqi <= 150 ? { rgb: '214, 160, 100', a: 0.26 }
+          : aqi <= 200 ? { rgb: '190, 110, 80', a: 0.36 }
+          : { rgb: '140, 80, 90', a: 0.46 };
+        // The moon for the home's latitude and longitude (SunCalc's formulas,
+        // good to a fraction of a degree): phase (0 new, 0.5 full), lit fraction,
+        // altitude and azimuth in degrees, the bright limb's tilt from straight
+        // up (degrees, counterclockwise), and the next rise or set within a day.
+        const moon = (() => {
+          const rad = Math.PI / 180, e = rad * 23.4397, now = Date.now();
+          const dd = (t) => t / 86400000 - 10957.5; // days since J2000
+          const moonCoords = (d) => {
+            const L = rad * (218.316 + 13.176396 * d), M = rad * (134.963 + 13.064993 * d), F = rad * (93.272 + 13.229350 * d);
+            const l = L + rad * 6.289 * Math.sin(M), b = rad * 5.128 * Math.sin(F);
+            return {
+              ra: Math.atan2(Math.sin(l) * Math.cos(e) - Math.tan(b) * Math.sin(e), Math.cos(l)),
+              dec: Math.asin(Math.sin(b) * Math.cos(e) + Math.cos(b) * Math.sin(e) * Math.sin(l)),
+              dist: 385001 - 20905 * Math.cos(M),
+            };
+          };
+          const phi = rad * (hass.config?.latitude ?? 45), lw = rad * -(hass.config?.longitude ?? -122);
+          const pos = (t) => {
+            const d = dd(t), c = moonCoords(d);
+            const H = rad * (280.16 + 360.9856235 * d) - lw - c.ra;
+            let alt = Math.asin(Math.sin(phi) * Math.sin(c.dec) + Math.cos(phi) * Math.cos(c.dec) * Math.cos(H));
+            alt += rad * 0.017 / Math.tan(alt + rad * 10.26 / (alt / rad + 5.10)); // refraction
+            const az = Math.atan2(Math.sin(H), Math.cos(H) * Math.sin(phi) - Math.tan(c.dec) * Math.cos(phi));
+            const pa = Math.atan2(Math.sin(H), Math.tan(phi) * Math.cos(c.dec) - Math.sin(c.dec) * Math.cos(H));
+            return { alt: alt / rad, az: (az / rad + 180) % 360, pa };
+          };
+          const d = dd(now), m = moonCoords(d), sdist = 149598000;
+          const M = rad * (357.5291 + 0.98560028 * d);
+          const L = M + rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M)) + rad * 102.9372 + Math.PI;
+          const s = { dec: Math.asin(Math.sin(e) * Math.sin(L)), ra: Math.atan2(Math.sin(L) * Math.cos(e), Math.cos(L)) };
+          const el = Math.acos(Math.sin(s.dec) * Math.sin(m.dec) + Math.cos(s.dec) * Math.cos(m.dec) * Math.cos(s.ra - m.ra));
+          const inc = Math.atan2(sdist * Math.sin(el), m.dist - sdist * Math.cos(el));
+          const angle = Math.atan2(Math.cos(s.dec) * Math.sin(s.ra - m.ra),
+            Math.sin(s.dec) * Math.cos(m.dec) - Math.cos(s.dec) * Math.sin(m.dec) * Math.cos(s.ra - m.ra));
+          const p = pos(now);
+          let next = null;
+          for (let i = 1, prev = p.alt; i <= 144 && !next; i++) {
+            const t = now + i * 600000, a = pos(t).alt;
+            if ((prev > 0) !== (a > 0)) next = { rise: a > 0, at: t };
+            prev = a;
+          }
+          const phase = 0.5 + 0.5 * inc * (angle < 0 ? -1 : 1) / Math.PI;
+          // Named phases: new, quarters and full within about a day of the exact moment.
+          const near = (x) => Math.min(Math.abs(phase - x), Math.abs(phase - x - 1), Math.abs(phase - x + 1)) < 0.034;
+          const key = near(0) ? 'new' : near(0.25) ? 'first-quarter' : near(0.5) ? 'full' : near(0.75) ? 'last-quarter'
+            : phase < 0.25 ? 'waxing-crescent' : phase < 0.5 ? 'waxing-gibbous' : phase < 0.75 ? 'waning-gibbous' : 'waning-crescent';
+          // On screen the sky faces the equator: rising (east) on the left and
+          // setting (west) on the right in the north, the other way round in the
+          // south. Moons behind you sit at the edges. Altitude is squeezed into
+          // the band above the clock (6-26% down) so the moon never sits behind the time.
+          const across = phi < 0 ? ((p.az - 270 + 360) % 360) / 180 : (p.az - 90) / 180;
+          return {
+            x: 4 + Math.min(1, Math.max(0, across)) * 92, y: 26 - Math.min(80, Math.max(0, p.alt)) / 80 * 20,
+            phase, illum: (1 + Math.cos(inc)) / 2, alt: p.alt, az: p.az, up: p.alt > 0,
+            tilt: (angle - p.pa) / rad, pa: p.pa / rad, next, key, south: phi < 0,
+            name: { new: 'New moon', full: 'Full moon' }[key] || key[0].toUpperCase() + key.slice(1).replace('-', ' '),
+          };
+        })();
+        const wet = ['rain', 'pour', 'storm', 'snow', 'fog'].includes(kind);
+        // The sky's colours, top to horizon, by day (warmer at golden hour) and by night.
+        const day = {
+          clear: golden ? ['#2b4d8c', '#8a6f9e', '#f2a86b'] : ['#1c58b0', '#3f82cf', '#a8cdef'],
+          partly: golden ? ['#3a5689', '#8d7896', '#e9a979'] : ['#2a64b3', '#5b8fcc', '#b5cde6'],
+          wind: ['#2a64b3', '#5b8fcc', '#b5cde6'],
+          cloudy: ['#5d6f86', '#8394aa', '#b3bfcd'],
+          fog: ['#6f7a88', '#949eab', '#bcc3cc'],
+          rain: ['#3a4a5e', '#56677b', '#7d8b9b'],
+          pour: ['#2c394a', '#435265', '#64717f'],
+          storm: ['#262a3d', '#3d3f5a', '#5a5470'],
+          snow: ['#61718a', '#8a99ae', '#bac4d2'],
+        };
+        const dark = {
+          clear: ['#0b1330', '#1b2a55', '#33477c'], partly: ['#0f1834', '#22305a', '#3a4a76'],
+          wind: ['#0f1834', '#22305a', '#3a4a76'], cloudy: ['#151a26', '#232a3a', '#353d50'],
+          fog: ['#1f2530', '#323a47', '#4a525f'], rain: ['#10151f', '#1d2533', '#2b3546'],
+          pour: ['#0c1018', '#18202c', '#253040'], storm: ['#0d0d1a', '#1d1b30', '#2e2843'],
+          snow: ['#2a3446', '#3f4a5e', '#5a6579'],
+        };
+        return {
+          colors: (night ? dark : day)[kind],
+          state: w, kind, night, golden, mph, gust, push, cover, aqi, haze, moon, wet,
+          light: !night && (kind === 'fog' || kind === 'snow'),
+        };
+      ]]]

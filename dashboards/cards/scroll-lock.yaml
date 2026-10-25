@@ -1,0 +1,52 @@
+# Invisible card that turns off page scrolling on full-screen pages: nothing to
+# scroll to, and no rubber-banding on tablets. Include it in a page's last
+# section; one page-level watcher (started by whichever copy renders first)
+# follows the URL, so scrolling comes back the moment you leave.
+# Pages and the narrowest width they lock at (below it their panels stack and
+# the page needs to scroll):
+#   tablet any width (it scrolls inside its card when narrow) · music 1300px · cleaning 900px
+# It also keeps --page-vh on <html> set to the window's real height (100vh can be
+# taller than what's visible), for cards that size themselves to the window.
+# (button-card templates get a proxied `window`, so it uses document.defaultView.)
+type: custom:button-card
+show_name: false
+show_icon: false
+show_state: false
+tap_action:
+  action: none
+custom_fields:
+  lock: |
+    [[[
+      const root = document.documentElement;
+      if (!root.dataset.scrollLock) {
+        root.dataset.scrollLock = 'on';
+        const win = document.defaultView;
+        const pages = { tablet: 0, music: 1300, cleaning: 900 };
+        let locked = null;
+        const check = () => {
+          root.style.setProperty('--page-vh', `${win.innerHeight}px`);
+          const m = win.location.pathname.match(/^\/lovelace-main\/([^/]+)\/?$/);
+          const min = m ? pages[m[1]] : undefined;
+          const on = min !== undefined && win.innerWidth >= min;
+          if (on === locked) return;
+          locked = on;
+          root.style.overflow = on ? 'hidden' : '';
+          root.style.overscrollBehavior = on ? 'none' : '';
+          if (on && win.scrollY) win.scrollTo(0, 0);
+        };
+        win.addEventListener('location-changed', () => win.setTimeout(check, 0));
+        win.addEventListener('popstate', check);
+        win.addEventListener('resize', check);
+        win.setInterval(check, 1000);
+        check();
+      }
+      return '';
+    ]]]
+styles:
+  card:
+    - height: 0
+    - padding: 0
+    - border: none
+    - background: none
+    - box-shadow: none
+    - overflow: hidden

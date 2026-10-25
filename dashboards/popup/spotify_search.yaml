@@ -1,0 +1,21 @@
+# Spotify search pop-up (#spotify-search), opened from the Spotify bar's menu on
+# the Music page (sections/pages/music/right/45-spotify.yaml, "Big search"). The
+# bar is collapsed to one line, so its own search has little room; this one has
+# the whole pop-up. Results play on media_player.spotify_thedrake.
+type: custom:bubble-card
+card_type: pop-up
+hash: '#spotify-search'
+button_type: name
+name: Search Spotify
+icon: mdi:magnify
+show_state: false
+button_action:
+  tap_action:
+    action: none
+cards:
+  - type: custom:yet-another-media-player
+    card_type: search
+    entities:
+      - entity_id: media_player.spotify_thedrake
+    disable_mass_queue: false
+    card_height: 620

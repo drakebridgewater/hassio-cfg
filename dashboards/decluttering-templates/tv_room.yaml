@@ -1,0 +1,100 @@
+# One TV's controls on its TV page (views/default/83-85-tv-*.yaml), in two parts so
+# they sit side by side on wide screens and stack on phones:
+#   tv_room_apps    what's on and the apps you open most
+#   tv_room_remote  the remote (back, home, power, touchpad, playback, volume)
+# Pass:
+#   media_player  the Apple TV's media player (media_player.living_room)
+#   remote        its remote (remote.living_room; tv_room_remote only)
+tv_room_apps:
+  card:
+    type: vertical-stack
+    grid_options:
+      columns: full
+    cards:
+      - type: tile
+        entity: '[[media_player]]'
+        name: Now playing
+        state_content:
+          - media_title
+          - app_name
+        vertical: false
+        tap_action:
+          action: more-info
+      - type: heading
+        heading: Apps
+        heading_style: subtitle
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+          - type: custom:button-card
+            template: tv_app
+            entity: '[[media_player]]'
+            name: YouTube TV
+            icon: mdi:television-classic
+            variables:
+              app: YouTube TV
+          - type: custom:button-card
+            template: tv_app
+            entity: '[[media_player]]'
+            name: Jellyfin
+            icon: mdi:jellyfish-outline
+            variables:
+              app: Swiftfin tvOS
+          - type: custom:button-card
+            template: tv_app
+            entity: '[[media_player]]'
+            name: YouTube
+            icon: mdi:youtube
+            variables:
+              app: YouTube
+          - type: custom:button-card
+            template: tv_app
+            entity: '[[media_player]]'
+            name: Netflix
+            icon: mdi:netflix
+            variables:
+              app: Netflix
+          - type: custom:button-card
+            template: tv_app
+            entity: '[[media_player]]'
+            name: Disney+
+            icon: mdi:movie-open-star-outline
+            variables:
+              app: Disney+
+          - type: custom:button-card
+            template: tv_app
+            entity: '[[media_player]]'
+            name: Prime Video
+            icon: mdi:filmstrip
+            variables:
+              app: Prime Video
+
+tv_room_remote:
+  card:
+    type: custom:universal-remote-card
+    platform: Apple TV
+    remote_id: '[[remote]]'
+    media_player_id: '[[media_player]]'
+    grid_options:
+      columns: full
+    # The card has no working Power for Apple TV, so it's defined here.
+    custom_actions:
+      - name: power
+        icon: mdi:power
+        tap_action:
+          action: perform-action
+          perform_action: media_player.toggle
+          target:
+            entity_id: '[[media_player]]'
+    # Apple TV key names: menu is the remote's Back button.
+    rows:
+      - - menu
+        - home
+        - power
+      - - touchpad
+      - - skip_backward
+        - play_pause
+        - skip_forward
+      - - volume_down
+        - volume_up

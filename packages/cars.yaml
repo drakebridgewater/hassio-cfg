@@ -1,0 +1,43 @@
+# =============================================================================
+# Cars - is the Prius / Ford parked on the driveway pad?
+# =============================================================================
+# Frigate's state classification model `driveway_cars` (frigate/config.yml) looks
+# at the driveway pad on motion and every 5 minutes and answers with one of the
+# states it was trained on: Prius, Ford, Both or Neither. The Frigate integration
+# publishes that as sensor.outdoors_driveway_driveway_cars_classification.
+# Training: Frigate > Classification > driveway_cars, sort the collected
+# snapshots into those four states, then train. Until then the sensors below are
+# unavailable and the Camera Events page says the model isn't trained yet.
+#
+# On after 2 minutes of agreement, off after 10 minutes away, so a person walking
+# in front of a car (or the bins being moved) doesn't flip it.
+# =============================================================================
+
+cars:
+  template:
+    - binary_sensor:
+        - name: Prius home
+          unique_id: prius_home
+          icon: mdi:car-side
+          device_class: presence
+          delay_on: "00:02:00"
+          delay_off: "00:10:00"
+          availability: >
+            {{ states('sensor.outdoors_driveway_driveway_cars_classification') | lower
+               not in ['unknown', 'unavailable', 'none', ''] }}
+          state: >
+            {% set s = states('sensor.outdoors_driveway_driveway_cars_classification') | lower %}
+            {{ 'prius' in s or s == 'both' }}
+
+        - name: Ford home
+          unique_id: ford_home
+          icon: mdi:car-pickup
+          device_class: presence
+          delay_on: "00:02:00"
+          delay_off: "00:10:00"
+          availability: >
+            {{ states('sensor.outdoors_driveway_driveway_cars_classification') | lower
+               not in ['unknown', 'unavailable', 'none', ''] }}
+          state: >
+            {% set s = states('sensor.outdoors_driveway_driveway_cars_classification') | lower %}
+            {{ 'ford' in s or s == 'both' }}

@@ -1,0 +1,107 @@
+# Birthdays pop-up, opened by the status card's Next birthday tile
+# (sections/banner/status-tiles.yaml). The next birthday first and large, then the
+# ones coming up in the next 90 days, then a button to the full calendar.
+type: custom:bubble-card
+card_type: pop-up
+hash: '#birthdays'
+button_type: name
+name: Birthdays
+icon: mdi:cake-variant
+show_state: false
+button_action:
+  tap_action:
+    action: none
+cards:
+  # The next one: who, the day, and how far away it is.
+  - type: custom:button-card
+    entity: calendar.birthdays
+    show_icon: true
+    show_name: true
+    show_state: false
+    show_label: true
+    icon: mdi:cake-variant
+    tap_action:
+      action: none
+    variables:
+      next: >-
+        [[[ const at = entity?.attributes ?? {};
+            if (!at.message || !at.start_time) return null;
+            const who = at.message.replace(/['’]s birthday$/i, '');
+            const day = new Date(at.start_time.replace(' ', 'T'));
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            return { who, day, days: Math.round((day - today) / 86400000) }; ]]]
+    name: '[[[ return variables.next ? variables.next.who : "No birthdays coming up" ]]]'
+    label: >-
+      [[[ const n = variables.next;
+          if (!n) return 'Nothing on the birthday calendar.';
+          const date = n.day.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+          const when = n.days <= 0 ? 'Today' : n.days === 1 ? 'Tomorrow' : `In ${n.days} days`;
+          return `<span class="when">${when}</span><span class="date">${date}</span>`; ]]]
+    styles:
+      card:
+        - background: >-
+            [[[ const d = variables.next?.days;
+                return d != null && d <= 7 ? 'color-mix(in srgb, var(--teal-color) 18%, transparent)'
+                  : 'color-mix(in srgb, var(--primary-text-color) 7%, transparent)' ]]]
+        - border: none
+        - border-radius: 16px
+        - padding: 18px 20px
+      grid:
+        - grid-template-areas: '"i n" "i l"'
+        - grid-template-columns: 56px minmax(0, 1fr)
+        - column-gap: 16px
+        - justify-items: start
+      icon:
+        - width: 44px
+        - color: >-
+            [[[ const d = variables.next?.days;
+                return d != null && d <= 0 ? 'var(--yellow-color)' : 'var(--teal-color)' ]]]
+      name:
+        - font-size: 22px
+        - font-weight: 500
+        - justify-self: start
+        - text-align: left
+        - white-space: normal
+      label:
+        - justify-self: start
+        - text-align: left
+    extra_styles: |
+      #label .when { display: block; font-size: 15px; font-weight: 500; color: var(--primary-text-color); }
+      #label .date { display: block; font-size: 13px; color: var(--secondary-text-color); }
+
+  # Coming up: the next six within 90 days (tap the list for more), so the calendar
+  # button stays in reach.
+  - type: heading
+    heading: Coming up
+    heading_style: subtitle
+  - type: custom:calendar-card-pro
+    entities:
+      - entity: calendar.birthdays
+    days_to_show: 90
+    compact_events_to_show: 6
+    filter_duplicates: true
+    show_countdown: true
+    show_time: false
+    show_location: false
+    title: ''
+    background_color: transparent
+    accent_color: var(--teal-color)
+    vertical_line_color: var(--teal-color)
+    weekday_color: var(--secondary-text-color)
+    day_color: var(--primary-text-color)
+    month_color: var(--secondary-text-color)
+    event_color: var(--primary-text-color)
+    day_separator_color: var(--divider-color)
+    today_indicator: dot
+    empty_day_color: var(--secondary-text-color)
+    show_empty_days: false
+
+  # Everything else lives on the family calendar page.
+  - type: custom:button-card
+    template: action_tile
+    name: Show the full calendar
+    label: Every birthday and event on the family calendar
+    icon: mdi:calendar-month-outline
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-main/calendar

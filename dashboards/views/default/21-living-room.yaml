@@ -1,0 +1,58 @@
+# Room page: the room's main light up top, then its sections from
+# sections/rooms/living-room/ (ported from the GUI by tools/port_gui_rooms.py) one section per file.
+title: Living Room
+path: living-room
+icon: mdi:sofa
+subview: true
+back_path: /lovelace-main/home
+type: sections
+max_columns: 4
+header: !include ../../header/alert-ticker.yaml
+sections:
+  - type: grid
+    column_span: 4
+    cards:
+      # Lighting mode first (cards/lighting-mode/), in the wall switch LED colours.
+      - !include ../../cards/lighting-mode/main_area.yaml
+      - type: custom:bubble-card
+        card_type: button
+        button_type: switch
+        name: Living Room
+        entity: light.awning_lights
+        force_icon: false
+        show_state: true
+        show_last_changed: false
+        show_attribute: true
+        attribute: max_color_temp_kelvin
+        button_action:
+          tap_action:
+            action: none
+        tap_action:
+          action: toggle
+        sub_button:
+          - icon: mdi:light-switch
+            tap_action:
+              action: more-info
+          - icon: mdi:power
+            tap_action:
+              action: toggle
+      - !include ../../sections/rooms/living-room/01-alerts.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/living-room/10-controls.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/living-room/20-entertainment-center.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/living-room/30-new-section.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/living-room/40-power-management.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/living-room/90-air-quality.yaml
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/rooms.yaml

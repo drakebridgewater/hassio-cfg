@@ -1,0 +1,43 @@
+# Climate, Air quality tab (/climate-aqi): the three indoor monitors side by side, then
+# outdoor (AirNow). The #aqi-overview pop-up opens this tab.
+title: Climate
+path: climate-aqi
+icon: mdi:air-filter
+subview: true
+back_path: /lovelace-main/home
+type: sections
+max_columns: 4
+header: !include ../../header/alert-ticker.yaml
+sections:
+  - type: grid
+    column_span: 4
+    cards:
+      - !include ../../cards/climate-tabs.yaml
+      - type: vertical-stack
+        grid_options:
+          columns: 12
+        cards:
+          - !include ../../sections/climate/air-quality/10-living-room.yaml
+      - type: vertical-stack
+        grid_options:
+          columns: 12
+        cards:
+          - !include ../../sections/climate/air-quality/20-family-room.yaml
+      - type: vertical-stack
+        grid_options:
+          columns: 12
+        cards:
+          - !include ../../sections/climate/air-quality/30-master-bedroom.yaml
+
+  - type: grid
+    column_span: 4
+    cards:
+      - type: heading
+        heading: Outdoor
+        icon: mdi:weather-partly-cloudy
+      - !include ../../sections/climate/spaces/60-outdoor-aqi.yaml
+
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/house.yaml

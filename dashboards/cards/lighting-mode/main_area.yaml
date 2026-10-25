@@ -1,0 +1,17 @@
+# Lighting mode for the main area zone (button-card template lighting_mode).
+# 24 = half of a full-width (4-column) section; on narrower sections it fills the width.
+# Same blockers and automations as sensor.lighting_mode_main_area.
+type: custom:button-card
+template: lighting_mode
+entity: sensor.lighting_mode_main_area
+grid_options:
+  columns: 24
+variables:
+  blockers:
+    - input_boolean.lighting_automation_blocker_main_area
+    - input_boolean.lighting_automation_blocker_kitchen
+    - input_boolean.lighting_automation_blocker_living_room
+    - input_boolean.lighting_automation_blocker_dining_room
+  automations:
+    - automation.lighting_main_sensor_light
+  note: The kitchen, living room and dining room share this.

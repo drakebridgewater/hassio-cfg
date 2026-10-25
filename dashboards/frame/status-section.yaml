@@ -1,0 +1,7 @@
+# First section of every view with the shared header: the status card across the
+# full width. It lives here, not in the header, because sections-view headers cap
+# their card at 700px. column_span 4 is the widest any view allows (max_columns).
+type: grid
+column_span: 4
+cards:
+  - !include ../sections/banner/10-status-card.yaml

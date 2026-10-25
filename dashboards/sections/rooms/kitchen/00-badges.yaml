@@ -5,13 +5,13 @@ template: bubble_chips
 variables:
   - chips:
       - entity: sensor.thermostat_temperature
-        show_name: true
+        show_name: false
         show_state: true
         fill_width: false
       - entity: binary_sensor.kitchen_motion_sensor_occupancy
         name: Motion
         icon: mdi:motion-sensor
-        show_name: true
+        show_name: false
         show_state: true
         state_background: true
         fill_width: false
@@ -19,7 +19,7 @@ variables:
           action: more-info
       - entity: binary_sensor.kitchen_window
         name: Window
-        show_name: true
+        show_name: false
         show_state: true
         state_background: true
         fill_width: false
@@ -28,16 +28,9 @@ variables:
       - entity: binary_sensor.kitchen_door
         name: Patio
         icon: mdi:door
-        show_name: true
+        show_name: false
         show_state: true
         state_background: true
         fill_width: false
-      - entity: input_boolean.lighting_automation_blocker_kitchen
-        name: Automation
-        icon: mdi:auto-mode
-        show_name: true
-        show_state: true
-        state_background: true
-        fill_width: false
-        tap_action:
-          action: toggle
+view_layout:
+  grid-column: 1 / -1

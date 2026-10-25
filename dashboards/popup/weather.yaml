@@ -1,0 +1,156 @@
+# Weather pop-up. Opened by tapping the what-to-wear kid or the outside weather
+# block on the tablet hero (sections/tablet/10-hero.yaml): the kid and today's
+# outfit, every reading the hero's sky and weather block are drawn from (the
+# `weather_details` button-card template, on the shared `sky` one, with the
+# Wireless Tag's last day running into the forecast and the daily outlook),
+# and the cutoffs that decide each item (helpers from packages/what_to_wear.yaml).
+type: custom:bubble-card
+card_type: pop-up
+hash: '#weather'
+button_type: name
+name: Weather
+icon: mdi:weather-partly-cloudy
+show_state: false
+button_action:
+  tap_action:
+    action: none
+cards:
+
+  # Right now and what's coming: the readings, a 48-hour temperature graph with
+  # rain and wind, and the daily forecast (button-card-templates/active/weather_details.yaml).
+  - type: custom:button-card
+    template: weather_details
+  # What to wear and its cutoffs in one card. It follows the hourly forecast
+  # (sensor.wear_day), so the list changes through the day and shows only what
+  # is needed right now; tapping an item opens its sensor. Below, each cutoff's icon lights up
+  # while its item is needed. Icons are set here rather than read from the
+  # entities, so a registry icon override can't swap them.
+  - type: custom:stack-in-card
+    cards:
+      - type: custom:button-card
+        show_name: false
+        show_icon: false
+        show_state: false
+        tap_action:
+          action: none
+        triggers_update:
+          - sensor.wear_day
+          - binary_sensor.needs_umbrella
+          - binary_sensor.needs_boots
+          - binary_sensor.needs_light_coat
+          - binary_sensor.needs_heavy_coat
+          - binary_sensor.needs_sweater
+          - binary_sensor.needs_tank_top
+          - binary_sensor.needs_sunglasses
+        custom_fields:
+          wear: |
+            [[[
+              const on = (id) => hass.states[id]?.state === 'on';
+              const day = hass.states['sensor.wear_day'];
+              const kind = hass.states['binary_sensor.needs_boots']?.attributes?.kind;
+              const open = (id) => `this.dispatchEvent(new CustomEvent('hass-more-info', { bubbles: true, composed: true,`
+                + ` detail: { entityId: '${id}' } }))`;
+              const items = [
+                ['binary_sensor.needs_umbrella', 'wear:umbrella', 'Umbrella'],
+                ['binary_sensor.needs_boots', 'wear:boots', kind === 'snow' ? 'Snow boots' : 'Rain boots'],
+                ['binary_sensor.needs_sweater', 'wear:sweater', 'Sweater'],
+                ['binary_sensor.needs_light_coat', 'wear:light-coat', 'Light coat'],
+                ['binary_sensor.needs_heavy_coat', 'wear:heavy-coat', 'Heavy coat'],
+                ['binary_sensor.needs_tank_top', 'wear:tank-top', 'Tank top'],
+                ['binary_sensor.needs_sunglasses', 'wear:sunglasses', 'Sunglasses'],
+              ].filter(([id]) => on(id));
+              if (day?.attributes?.windy === true) items.push(['sensor.wear_day', 'mdi:weather-windy', 'Windy']);
+              const list = items.length
+                ? items.map(([id, icon, name]) => `<button type="button" class="item" onpointerup="event.stopPropagation(); ${open(id)}">`
+                  + `<ha-icon icon="${icon}"></ha-icon><span>${name}</span></button>`).join('')
+                : '<span class="none">Nothing extra</span>';
+              // How it feels right now, which decides the coats, sweater and tank top.
+              const at = day?.attributes || {};
+              const leave = at.feels_temp !== undefined
+                ? `<p>Feels like ${Math.round(at.feels_temp)}° right now</p>` : '';
+              return `<h2>What to wear now</h2>${leave}<div class="items">${list}</div>`;
+            ]]]
+        styles:
+          card:
+            - padding: 16px 16px 4px
+          grid:
+            - grid-template-areas: '"wear"'
+            - grid-template-columns: 1fr
+          custom_fields:
+            wear:
+              - text-align: start
+        extra_styles: |
+          h2 { margin: 0 0 8px; font-size: 1.15em; font-weight: 500; }
+          p { margin: -4px 0 8px; color: var(--secondary-text-color); }
+          .items { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+          .item { display: flex; align-items: center; gap: 6px; padding: 4px 0; border: 0; background: none;
+            color: var(--primary-text-color); font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+          .item ha-icon { color: var(--state-active-color, var(--primary-color)); --mdc-icon-size: 22px; }
+          .item:active { opacity: 0.7; }
+          .item:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+          .none { color: var(--secondary-text-color); padding: 4px 0; }
+      
+      - type: custom:decluttering-card
+        template: what_to_wear
+        variables:
+          - tap: none
+      - type: entities
+        title: Cutoffs
+        show_header_toggle: false
+        state_color: false
+        entities:
+          - entity: input_number.wear_umbrella_chance
+            name: Umbrella from rain chance
+            icon: wear:umbrella
+            card_mod:
+              style: |
+                :host { --state-icon-color: {{ 'var(--state-active-color, var(--primary-color))' if is_state('binary_sensor.needs_umbrella', 'on') else 'var(--secondary-text-color)' }}; --paper-item-icon-color: {{ 'var(--state-active-color, var(--primary-color))' if is_state('binary_sensor.needs_umbrella', 'on') else 'var(--secondary-text-color)' }}; }
+          - entity: input_number.wear_rain_chance
+            name: Rain gear from rain chance
+            icon: wear:boots
+            card_mod:
+              style: |
+                :host { --state-icon-color: {{ 'var(--state-active-color, var(--primary-color))' if is_state('binary_sensor.needs_boots', 'on') else 'var(--secondary-text-color)' }}; --paper-item-icon-color: {{ 'var(--state-active-color, var(--primary-color))' if is_state('binary_sensor.needs_boots', 'on') else 'var(--secondary-text-color)' }}; }
+          - entity: input_number.wear_tank_top_from
+            name: Tank top from
+            icon: wear:tank-top
+            card_mod:
+              style: |
+                :host { --state-icon-color: {{ 'var(--state-active-color, var(--primary-color))' if is_state('binary_sensor.needs_tank_top', 'on') else 'var(--secondary-text-color)' }}; --paper-item-icon-color: {{ 'var(--state-active-color, var(--primary-color))' if is_state('binary_sensor.needs_tank_top', 'on') else 'var(--secondary-text-color)' }}; }
+          - entity: input_number.wear_sweater_below
+            name: Sweater below
+            icon: wear:sweater
+            card_mod:
+              style: |
+                :host { --state-icon-color: {{ 'var(--state-active-color, var(--primary-color))' if is_state('binary_sensor.needs_sweater', 'on') else 'var(--secondary-text-color)' }}; --paper-item-icon-color: {{ 'var(--state-active-color, var(--primary-color))' if is_state('binary_sensor.needs_sweater', 'on') else 'var(--secondary-text-color)' }}; }
+          - entity: input_number.wear_light_coat_below
+            name: Light coat below
+            icon: wear:light-coat
+            card_mod:
+              style: |
+                :host { --state-icon-color: {{ 'var(--state-active-color, var(--primary-color))' if is_state('binary_sensor.needs_light_coat', 'on') else 'var(--secondary-text-color)' }}; --paper-item-icon-color: {{ 'var(--state-active-color, var(--primary-color))' if is_state('binary_sensor.needs_light_coat', 'on') else 'var(--secondary-text-color)' }}; }
+          - entity: input_number.wear_heavy_coat_below
+            name: Heavy coat below
+            icon: wear:heavy-coat
+            card_mod:
+              style: |
+                :host { --state-icon-color: {{ 'var(--state-active-color, var(--primary-color))' if is_state('binary_sensor.needs_heavy_coat', 'on') else 'var(--secondary-text-color)' }}; --paper-item-icon-color: {{ 'var(--state-active-color, var(--primary-color))' if is_state('binary_sensor.needs_heavy_coat', 'on') else 'var(--secondary-text-color)' }}; }
+          - entity: input_number.wear_sunglasses_high
+            name: Sunglasses at a high of
+            icon: wear:sunglasses
+            card_mod:
+              style: |
+                :host { --state-icon-color: {{ 'var(--state-active-color, var(--primary-color))' if is_state('binary_sensor.needs_sunglasses', 'on') else 'var(--secondary-text-color)' }}; --paper-item-icon-color: {{ 'var(--state-active-color, var(--primary-color))' if is_state('binary_sensor.needs_sunglasses', 'on') else 'var(--secondary-text-color)' }}; }
+          - entity: input_number.wear_windy_from
+            name: Windy from
+            icon: mdi:weather-windy
+            card_mod:
+              style: |
+                :host { --state-icon-color: {{ 'var(--state-active-color, var(--primary-color))' if state_attr('sensor.wear_day', 'windy') == true else 'var(--secondary-text-color)' }}; --paper-item-icon-color: {{ 'var(--state-active-color, var(--primary-color))' if state_attr('sensor.wear_day', 'windy') == true else 'var(--secondary-text-color)' }}; }
+  - type: markdown
+    content: >-
+      Coats, the sweater and the tank top go by the hourly forecast's
+      feels-like temperature right now, so the outfit changes through the day.
+      Rain and umbrella look at the next 3 hours.
+      Changes last until Home Assistant restarts; edit `initial:` in
+      packages/what_to_wear.yaml to keep them.

@@ -3,7 +3,9 @@
 # Every room uses this template; only the data changes.
 #   name, subtitle   header text
 #   temp, humid      entity ids for the header readings and the trend graph
-#   score            {pm25, voc, voc_max, co2}: inputs to the score; omit any the room lacks
+#   score            {pm25, voc, voc_max, co2, iaq}: inputs to the score; omit any the room lacks.
+#                    iaq (a 0-500 Bosch-style index, e.g. the Ecobee's) replaces the others in
+#                    the score, since that sensor derives its VOC and CO2 from it
 #   tiles            list of {name, entity, unit, good, mod, high, scale, decimals}
 aq_room:
   default:
@@ -62,13 +64,17 @@ aq_room:
                 };
                 const unit = (id, fallback) => states[id]?.attributes?.unit_of_measurement || fallback;
 
-                // Score: PM2.5 (40) + CO2 (35) + VOC (25), rescaled to whichever inputs the room has
+                // Score: PM2.5 (40) + CO2 (35) + VOC (25), rescaled to whichever inputs the room has.
+                // An IAQ index scores alone: 50 or less = 100, 100 = 80, 150 = 60, 200 = 40, 300+ = 0.
                 const sc = variables.score || {};
-                const pm25 = num(sc.pm25), co2 = num(sc.co2), voc = num(sc.voc);
+                const pm25 = num(sc.pm25), co2 = num(sc.co2), voc = num(sc.voc), iaq = num(sc.iaq);
                 const parts = [];
-                if (pm25 !== null) parts.push([40, Math.min(1, Math.max(0, pm25 / 35))]);
-                if (co2 !== null) parts.push([35, Math.min(1, Math.max(0, (co2 - 400) / 1600))]);
-                if (voc !== null) parts.push([25, Math.min(1, Math.max(0, voc / (sc.voc_max || 300)))]);
+                if (iaq !== null) parts.push([100, Math.min(1, Math.max(0, (iaq - 50) / 250))]);
+                else {
+                  if (pm25 !== null) parts.push([40, Math.min(1, Math.max(0, pm25 / 35))]);
+                  if (co2 !== null) parts.push([35, Math.min(1, Math.max(0, (co2 - 400) / 1600))]);
+                  if (voc !== null) parts.push([25, Math.min(1, Math.max(0, voc / (sc.voc_max || 300)))]);
+                }
                 const weight = parts.reduce((a, p) => a + p[0], 0);
                 const score = weight ? Math.max(0, Math.round(100 - parts.reduce((a, p) => a + p[0] * p[1], 0) * 100 / weight)) : 0;
 
@@ -80,6 +86,12 @@ aq_room:
                 if (voc !== null && voc > (sc.voc_max || 300) * 0.66) advice = 'VOCs detected';
                 if (co2 !== null && co2 > 1000) advice = 'CO2 high - open a window';
                 if (co2 !== null && co2 > 1500) advice = 'CO2 very high - ventilate';
+                // An IAQ room (the Ecobee) uses the Ecobee app's words and bands instead.
+                if (iaq !== null) {
+                  if (iaq <= 100) { scoreColor = '#86efac'; scoreLabel = 'Clean'; advice = 'Air quality is clean'; }
+                  else if (iaq <= 200) { scoreColor = '#fde68a'; scoreLabel = 'Fair'; advice = 'Air is okay; a window would freshen it'; }
+                  else { scoreColor = '#fdba74'; scoreLabel = 'Poor'; advice = 'Ventilate now'; }
+                }
                 if (!weight) { scoreLabel = 'No data'; advice = 'Sensors unavailable'; scoreColor = '#6e87a8'; }
 
                 const temp = num(variables.temp), humid = num(variables.humid);

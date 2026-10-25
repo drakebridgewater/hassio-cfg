@@ -1,0 +1,20 @@
+# TV: where the Media menu's TV link lands. It opens a room tab straight away (the TV
+# that's playing, else the room you used last; cards/tv-auto-room.yaml). If that
+# can't happen, the tabs are here to pick one. The rooms are 83-85-tv-*.yaml.
+title: TV
+path: tv
+icon: mdi:television
+subview: true
+back_path: /lovelace-main/home
+type: sections
+max_columns: 2
+sections:
+  - type: grid
+    column_span: 2
+    cards:
+      - !include ../../cards/tv-tabs.yaml
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/house.yaml
+      - !include ../../cards/tv-auto-room.yaml

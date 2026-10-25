@@ -1,0 +1,29 @@
+# Music page, left panel: now playing, the queue and the players list (grouping,
+# transfer). Synced with the library panel, so picking a player here sets where
+# the library plays.
+type: custom:mass-player-card
+entities: !include players.yaml
+default_section: music_player
+panel: false
+sync_player_across_dashboard: true
+player:
+  enabled: true
+  layout:
+    artwork_size: medium
+queue:
+  enabled: true
+  show_album_covers: true
+  show_artist_names: true
+players:
+  enabled: true
+media_browser:
+  enabled: false
+grid_options:
+  columns: full
+# Wide screens (scrolling locked, cards/scroll-lock.yaml): fill the window
+# height below the page header (152px with its own 56px tab bar) and the Music tabs (56px) instead of the card's fixed 40em.
+card_mod:
+  style: |
+    @media (min-width: 1300px) {
+      ha-card { --mass-player-card-height: calc(var(--page-vh, 100vh) - 208px); }
+    }

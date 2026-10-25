@@ -1,0 +1,226 @@
+# Something's not working: one tile per thing that goes wrong, saying what's going on
+# right now, and where there's a fix, tapping the tile is the fix (scripts in
+# packages/help.yaml). A tile lights up while its problem is happening.
+type: vertical-stack
+grid_options:
+  columns: full
+cards:
+  - type: heading
+    heading: Something's not working
+    heading_style: title
+  - type: custom:layout-card
+    layout_type: custom:grid-layout
+    layout:
+      grid-template-columns: minmax(0, 1fr)
+      grid-gap: 8px
+      margin: 0
+      padding: 0
+      card_margin: 0
+      mediaquery:
+        "(min-width: 768px)":
+          grid-template-columns: repeat(2, minmax(0, 1fr))
+    cards:
+      - type: custom:button-card
+        template: action_tile
+        entity: switch.adguard_home_protection
+        name: A website or app won't load
+        icon: mdi:web-off
+        variables:
+          'on': '[[[ return entity?.state === "off" ]]]'
+          tone: attention
+        label: >-
+          [[[ return entity?.state === 'off'
+                ? 'Ad blocking is paused. It turns back on by itself after 10 minutes.'
+                : 'The ad blocker sometimes blocks a site by mistake. Tap to pause it for 10 minutes, then try again.' ]]]
+        tap_action:
+          action: perform-action
+          perform_action: script.turn_on
+          target:
+            entity_id: script.help_pause_ad_blocking
+          confirmation:
+            text: Pause ad blocking for 10 minutes?
+
+      - type: custom:button-card
+        template: action_tile
+        entity: input_boolean.lighting_automation_blocker_all
+        name: The lights won't turn on by themselves
+        icon: mdi:lightbulb-off-outline
+        triggers_update:
+          - input_boolean.lighting_automation_blocker_ethan_s_room
+          - input_boolean.lighting_automation_blocker_office_room
+          - input_boolean.lighting_automation_blocker_family_room
+          - input_boolean.lighting_automation_blocker_basement_hallway
+          - input_boolean.lighting_automation_blocker_basement_bathroom
+          - input_boolean.lighting_automation_blocker_master_bedroom
+          - input_boolean.lighting_automation_blocker_master_bathroom
+          - input_boolean.lighting_automation_blocker_kitchen
+          - input_boolean.lighting_automation_blocker_dining_room
+          - input_boolean.lighting_automation_blocker_garage
+          - input_boolean.lighting_automation_blocker_stairs
+          - input_boolean.lighting_automation_blocker_outdoor
+          - input_boolean.lighting_automation_blocker_all
+          - input_boolean.lighting_automation_blocker_living_room
+          - input_boolean.lighting_automation_blocker_main_area
+          - input_boolean.lighting_automation_blocker_upstairs_hallway
+          - input_boolean.lighting_automation_blocker_stairs_2
+          - input_boolean.lighting_automation_blocker_master_closet
+        variables:
+          manual: >-
+            [[[ return Object.keys(hass.states)
+                  .filter((e) => e.startsWith('input_boolean.lighting_automation_blocker_') && hass.states[e].state === 'on')
+                  .map((e) => hass.states[e].attributes.friendly_name.replace(/^Lighting Automation Blocker - /, '')) ]]]
+          'on': '[[[ return variables.manual.length > 0 ]]]'
+          tone: attention
+        label: >-
+          [[[ const m = variables.manual;
+              if (!m.length) return 'Every room is on automatic. If a light still won\'t come on, check its wall switch is on.';
+              const list = m.length > 1 ? `${m.slice(0, -1).join(', ')} and ${m.at(-1)} are` : `${m[0]} is`;
+              return `${list} on manual (a yellow ring on the room). Tap to put every room back on automatic.` ]]]
+        tap_action:
+          action: perform-action
+          perform_action: script.turn_on
+          target:
+            entity_id: script.help_all_rooms_automatic
+          confirmation:
+            text: Put every room back on automatic?
+
+      - type: custom:button-card
+        template: action_tile
+        entity: climate.thermostat
+        name: The heat or AC turned off
+        icon: mdi:thermostat
+        triggers_update:
+          - binary_sensor.any_door_open_group
+          - binary_sensor.window_open_group
+        variables:
+          open: >-
+            [[[ return hass.states['binary_sensor.any_door_open_group']?.state === 'on'
+                || hass.states['binary_sensor.window_open_group']?.state === 'on' ]]]
+          'on': '[[[ return variables.open && entity?.state === "off" ]]]'
+          tone: attention
+        label: >-
+          [[[ return variables.open
+                ? 'It pauses while a door or window is open, and something is open now. Close it and the heat comes back 20 minutes later.'
+                : 'It pauses while a door or window is open. Everything is shut, so it comes back within 20 minutes. Tap for the thermostat.' ]]]
+        tap_action:
+          action: navigate
+          navigation_path: /lovelace-main/climate-hvac
+
+      - type: custom:button-card
+        template: action_tile
+        entity: cover.garage_door
+        name: The garage won't open or close
+        icon: mdi:garage-variant
+        variables:
+          'on': '[[[ return !["open", "closed", "opening", "closing"].includes(entity?.state) ]]]'
+          tone: attention
+        label: >-
+          [[[ const s = entity?.state;
+              if (!['open', 'closed', 'opening', 'closing'].includes(s))
+                return 'The house can\'t reach the garage door right now. The button by the door in the garage always works.';
+              return `It's ${s}. Tap to ${s === 'closed' ? 'open' : 'close'} it from here; the button by the door in the garage always works too.` ]]]
+        tap_action:
+          action: toggle
+          confirmation:
+            text: '[[[ return entity?.state === "closed" ? "Open the garage door?" : "Close the garage door?" ]]]'
+
+      - type: custom:button-card
+        template: action_tile
+        entity: media_player.living_room
+        name: The Apple TV won't respond
+        icon: mdi:apple
+        label: >-
+          Restart it: hold Back and the TV button on the remote until the light blinks.
+          If the house can't control it, tap here to reconnect the Apple TVs.
+        tap_action:
+          action: perform-action
+          perform_action: script.turn_on
+          target:
+            entity_id: script.help_reconnect
+          data:
+            variables:
+              which: apple_tv
+          confirmation:
+            text: Reconnect the Apple TVs to the house?
+
+      - type: custom:button-card
+        template: action_tile
+        entity: media_player.drake_s_echo
+        name: Alexa isn't answering
+        icon: mdi:speaker-message
+        label: >-
+          If she answers but can't control the house, tap to reconnect Alexa.
+          If she doesn't answer at all, unplug the Echo for 10 seconds.
+        tap_action:
+          action: perform-action
+          perform_action: script.turn_on
+          target:
+            entity_id: script.help_reconnect
+          data:
+            variables:
+              which: alexa
+          confirmation:
+            text: Reconnect Alexa to the house?
+
+      - type: custom:button-card
+        template: action_tile
+        entity: media_player.kitchen_display
+        name: A Google display isn't working
+        icon: mdi:monitor-speaker
+        label: >-
+          If it won't play or show things from the house, tap to reconnect the Google displays.
+          If it's frozen, unplug it for 10 seconds.
+        tap_action:
+          action: perform-action
+          perform_action: script.turn_on
+          target:
+            entity_id: script.help_reconnect
+          data:
+            variables:
+              which: google
+          confirmation:
+            text: Reconnect the Google displays to the house?
+
+      - type: custom:button-card
+        template: action_tile
+        entity: sensor.canon_lbp646c
+        name: The printer isn't printing
+        icon: mdi:printer-outline
+        triggers_update:
+          - sensor.canon_lbp646c_canon_cartridge_075_black_toner
+          - sensor.canon_lbp646c_canon_cartridge_075_cyan_toner
+          - sensor.canon_lbp646c_canon_cartridge_075_magenta_toner
+          - sensor.canon_lbp646c_canon_cartridge_075_yellow_toner
+        variables:
+          low: >-
+            [[[ return ['black', 'cyan', 'magenta', 'yellow']
+                  .filter((c) => Number(hass.states[`sensor.canon_lbp646c_canon_cartridge_075_${c}_toner`]?.state) < 10) ]]]
+          'on': '[[[ return variables.low.length > 0 || !["idle", "printing"].includes(entity?.state) ]]]'
+          tone: attention
+        label: >-
+          [[[ const s = entity?.state;
+              const st = s === 'idle' ? 'The printer is ready.' : s === 'printing' ? 'The printer is printing.'
+                : 'The house can\'t reach the printer. Turn it off and on with the button on the front.';
+              const low = variables.low.length ? ` Low on ${variables.low.join(' and ')} toner.` : '';
+              return st + low; ]]]
+        tap_action:
+          action: more-info
+
+      - type: custom:button-card
+        template: action_tile
+        entity: script.help_ask_drake
+        name: Something else
+        icon: mdi:account-question-outline
+        label: Sends Drake's phone an urgent note saying it's you and which page you were on.
+        variables:
+          tone: attention
+        tap_action:
+          action: perform-action
+          perform_action: script.turn_on
+          target:
+            entity_id: script.help_ask_drake
+          data:
+            variables:
+              page: '[[[ return document.defaultView.location.pathname ]]]'
+          confirmation:
+            text: Send Drake an urgent note?

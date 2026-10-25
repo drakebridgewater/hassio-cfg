@@ -1,0 +1,49 @@
+# Invisible card on the TV pages. On a room tab (/tv-living-room, ...) it remembers
+# that room on this device. On /tv (the Media menu's TV link) it opens a room: the TV
+# that's playing, else one that's paused, else one that's on, else the room you used
+# last on this device, else the living room. Each device picks on its own; nothing
+# is shared between screens. (button-card templates get a proxied `window`, so it
+# uses document.defaultView, as cards/scroll-lock.yaml does.)
+type: custom:button-card
+show_name: false
+show_icon: false
+show_state: false
+tap_action:
+  action: none
+triggers_update:
+  - media_player.living_room
+  - media_player.family_room
+  - media_player.garage
+custom_fields:
+  pick: |
+    [[[
+      const win = document.defaultView;
+      const rooms = { 'living-room': 'media_player.living_room',
+                      'family-room': 'media_player.family_room',
+                      'garage': 'media_player.garage' };
+      const path = win.location.pathname.replace(/\/$/, '');
+      const store = (k, v) => { try { return v === undefined ? win.localStorage.getItem(k) : win.localStorage.setItem(k, v); } catch (e) { return null; } };
+      const here = path.match(/^\/lovelace-main\/tv-(.+)$/);
+      if (here && rooms[here[1]]) { store('tv-room', here[1]); return ''; }
+      if (path !== '/lovelace-main/tv') return '';
+      const ids = Object.keys(rooms);
+      const with_state = (ok) => ids.find((r) => ok(states[rooms[r]]?.state));
+      const room = with_state((s) => s === 'playing')
+        ?? with_state((s) => s === 'paused')
+        ?? with_state((s) => s && !['off', 'standby', 'unavailable', 'unknown'].includes(s))
+        ?? (rooms[store('tv-room')] ? store('tv-room') : 'living-room');
+      win.setTimeout(() => {
+        if (win.location.pathname.replace(/\/$/, '') !== '/lovelace-main/tv') return;
+        win.history.replaceState(null, '', `/lovelace-main/tv-${room}`);
+        win.dispatchEvent(new CustomEvent('location-changed', { detail: { replace: true } }));
+      }, 0);
+      return '';
+    ]]]
+styles:
+  card:
+    - height: 0
+    - padding: 0
+    - border: none
+    - background: none
+    - box-shadow: none
+    - overflow: hidden

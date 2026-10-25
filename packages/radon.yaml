@@ -1,0 +1,116 @@
+# =============================================================================
+# Radon - current level, 24-hour max and trend, with warnings
+# =============================================================================
+# From the Airthings View Plus in the family room (sensor.view_plus_radon,
+# Bq/m³, updated hourly). Bands are the EPA's, the same as the Family Room air
+# card tile and room badges (1 pCi/L = 37 Bq/m³):
+#   good       under 2 pCi/L  (74 Bq/m³)
+#   moderate   2 to 4         (74-148)   EPA: consider fixing
+#   high       4 to 8         (148-296)  EPA action level
+#   very_high  8 and up       (296+)
+# sensor.radon_status: the band, with current, 24h max, 6h change and trend
+# (rising/falling by 10 Bq/m³ or more against 6 hours ago, otherwise steady)
+# as attributes, and `summary` for cards: "5.1 pCi/L · 24h max 5.3 · rising".
+# The tablet hero shows a notice while the current level or the 24h max is
+# high; a ticker alert fires when it first reaches high.
+# =============================================================================
+
+radon:
+  template:
+    # The 24h max and 6h change come from the recorder's own statistics, read
+    # every 15 minutes and whenever the reading changes: hourly maxes for the
+    # last 24 hours (plus the current reading, since this hour isn't compiled
+    # yet) and the 5-minute mean from 6 hours ago.
+    - triggers:
+        - trigger: state
+          entity_id: sensor.view_plus_radon
+        - trigger: time_pattern
+          minutes: /15
+        - trigger: event
+          event_type: event_template_reloaded
+        - trigger: homeassistant
+          event: start
+      actions:
+        - action: recorder.get_statistics
+          data:
+            statistic_ids:
+              - sensor.view_plus_radon
+            start_time: "{{ (now() - timedelta(hours=24)).isoformat() }}"
+            period: hour
+            types:
+              - max
+          response_variable: day
+        - action: recorder.get_statistics
+          data:
+            statistic_ids:
+              - sensor.view_plus_radon
+            start_time: "{{ (now() - timedelta(hours=6)).isoformat() }}"
+            end_time: "{{ (now() - timedelta(hours=5, minutes=30)).isoformat() }}"
+            period: 5minute
+            types:
+              - mean
+          response_variable: ago
+        - variables:
+            bq: "{{ states('sensor.view_plus_radon') | float(none) }}"
+            max_bq: >-
+              {% set rows = day.statistics.get('sensor.view_plus_radon', []) %}
+              {% set maxes = rows | map(attribute='max') | select('number') | list %}
+              {{ (maxes + ([bq] if bq is not none else [])) | max if maxes or bq is not none else none }}
+            change_bq: >-
+              {% set rows = ago.statistics.get('sensor.view_plus_radon', []) %}
+              {{ (bq - rows[0].mean) | round(0) if rows and bq is not none and rows[0].mean is number else none }}
+            trend: >-
+              {{ 'rising' if change_bq is number and change_bq >= 10
+                 else 'falling' if change_bq is number and change_bq <= -10 else 'steady' }}
+      sensor:
+        - name: Radon status
+          unique_id: radon_status
+          icon: mdi:radioactive
+          availability: "{{ bq is not none }}"
+          state: >-
+            {{ 'very_high' if bq >= 296 else 'high' if bq >= 148 else 'moderate' if bq >= 74 else 'good' }}
+          attributes:
+            bq: "{{ bq | round(0) }}"
+            pci: "{{ (bq / 37) | round(1) }}"
+            max_24h_bq: "{{ max_bq | round(0) if max_bq is number else none }}"
+            max_24h_pci: "{{ (max_bq / 37) | round(1) if max_bq is number else none }}"
+            max_24h_band: >-
+              {% set m = max_bq if max_bq is number else 0 %}
+              {{ 'very_high' if m >= 296 else 'high' if m >= 148 else 'moderate' if m >= 74 else 'good' }}
+            change_6h_bq: "{{ change_bq }}"
+            trend: "{{ trend }}"
+            summary: >-
+              {{ (bq / 37) | round(1) }} pCi/L
+              {%- if max_bq is number %} · 24h max {{ (max_bq / 37) | round(1) }}{% endif %}
+              · {{ trend }}
+
+  automation:
+    - id: radon_high_alert
+      alias: Radon - reached the EPA action level
+      description: >-
+        Ticker alert when radon first reaches 4 pCi/L (148 Bq/m³) or 8 pCi/L,
+        with the 24h max and trend (packages/radon.yaml).
+      triggers:
+        - trigger: state
+          entity_id: sensor.radon_status
+          to:
+            - high
+            - very_high
+      conditions:
+        # Only on the way up, not when it drops from very high to high.
+        - condition: template
+          value_template: >-
+            {{ trigger.from_state is not none
+               and trigger.from_state.state in ['good', 'moderate']
+               or trigger.to_state.state == 'very_high' }}
+      actions:
+        - action: ticker.notify
+          data:
+            category: Air quality
+            title: >-
+              Radon {{ 'very high' if trigger.to_state.state == 'very_high' else 'high' }} in the family room
+            message: >-
+              {{ state_attr('sensor.radon_status', 'summary') }}.
+              The EPA recommends fixing a home at 4 pCi/L or above. Ventilate
+              downstairs and watch whether it comes back down over a few days.
+      mode: single

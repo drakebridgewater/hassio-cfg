@@ -1,0 +1,12 @@
+# Quick play: the playlist dropdown (input_select.music_playlist, packages/music.yaml).
+type: tile
+entity: input_select.music_playlist
+name: Playlist
+hide_state: true
+vertical: false
+features_position: inline
+features:
+  - type: select-options
+grid_options:
+  columns: 12
+  rows: 1

@@ -1,0 +1,27 @@
+# Recent Ticker notifications across all categories (sensor.ticker_* keeps the
+# last 10 per category in memory, so this starts empty after an HA restart).
+# Full per-user history lives in the Ticker panel.
+type: markdown
+title: Recent notifications
+tap_action:
+  action: navigate
+  navigation_path: /ticker#history
+content: >-
+  {% set ns = namespace(items=[]) %}
+  {% for id in integration_entities('ticker') | select('match', 'sensor\.') %}
+  {% set s = states[id] %}
+  {% for n in s.attributes.notifications or [] %}
+  {% set ns.items = ns.items + [{'ts': n.timestamp | string, 'cat': s.attributes.category_name,
+     'icon': s.attributes.icon or 'mdi:bell', 'header': n.header, 'body': n.body}] %}
+  {% endfor %}
+  {% endfor %}
+  {% set items = (ns.items | sort(attribute='ts', reverse=true))[:8] %}
+  {% if items %}
+  {% for n in items %}
+  <ha-icon icon="{{ n.icon }}"></ha-icon> **{{ n.header }}** · _{{ n.cat }}, {{ relative_time(as_datetime(n.ts)) }} ago_<br>
+  {{ n.body }}
+
+  {% endfor %}
+  {% else %}
+  No recent notifications.
+  {% endif %}

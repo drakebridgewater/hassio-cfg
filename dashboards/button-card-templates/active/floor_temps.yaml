@@ -1,0 +1,51 @@
+# Header of one floor's temperature card (Climate page, Temperatures tab,
+# sections/climate/temperatures/): the floor's name, and for heated floors its average
+# and spread. The room tiles under it are decluttering-templates/temp_tile.yaml.
+# Cards set triggers_update (the room entities) and:
+#   title, icon  the floor's name and icon
+#   rooms        the room sensors; unavailable ones are left out of the average
+#   compare      true to show the average (heated floors); false for spaces the HVAC
+#                doesn't serve (outside, attic), where an average means nothing
+floor_temps:
+  show_name: false
+  show_icon: false
+  show_state: false
+  show_label: false
+  tap_action:
+    action: none
+  hold_action:
+    action: none
+  variables:
+    title: ''
+    icon: mdi:home-floor-1
+    rooms: []
+    compare: true
+  custom_fields:
+    head: >-
+      [[[ const live = variables.rooms
+            .map((id) => hass.states[id])
+            .filter((s) => s && !['unavailable', 'unknown'].includes(s.state) && Number.isFinite(Number(s.state)))
+            .map((s) => Number(s.state));
+          const avg = live.length ? live.reduce((a, b) => a + b, 0) / live.length : null;
+          const lo = Math.min(...live), hi = Math.max(...live);
+          const spread = live.length > 1 ? ` · ${Math.round(lo)}–${Math.round(hi)}° across ${live.length} rooms` : '';
+          return `<div class="ft-head">
+            <ha-icon icon="${variables.icon}"></ha-icon>
+            <span class="ft-name">${variables.title}</span>
+            ${variables.compare && avg != null ? `<span class="ft-avg">${avg.toFixed(1)}°</span>
+              <span class="ft-spread">Average${spread}</span>` : ''}
+          </div>`; ]]]
+  extra_styles: |
+    #container { display: block !important; }
+    .ft-head {
+      display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; grid-template-areas: "i n a" ". s s";
+      align-items: center; column-gap: 10px; row-gap: 2px; text-align: left;
+    }
+    .ft-head ha-icon { grid-area: i; --mdc-icon-size: 22px; color: var(--secondary-text-color); }
+    .ft-name { grid-area: n; font-size: 17px; font-weight: 600; }
+    .ft-avg { grid-area: a; font-family: var(--code-font-family, monospace); font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .ft-spread { grid-area: s; font-size: 13px; color: var(--secondary-text-color); }
+  styles:
+    card:
+      - padding: 16px 16px 8px
+      - cursor: default

@@ -1,0 +1,89 @@
+# Live "something needs attention" banner. Display only: delivery (push/TTS)
+# goes through Ticker so each person controls what they receive. Never add
+# tts/push_notify here — the card fires those once per open browser tab.
+type: custom:alert-ticker-card
+show_when_clear: false
+# Same height for every alert (two-line alerts are ~93px), so cycling alerts never
+# moves the page below. On the tablet hero it floats above the clock.
+card_height: 94
+cycle_interval: 6
+cycle_animation: slide
+alerts:
+  - entity: alarm_control_panel.default
+    state: triggered
+    message: Alarm triggered!
+    theme: alarm
+    priority: 1
+  - device_class: moisture
+    state: "on"
+    message: "Water detected: {name}"
+    theme: leak
+    priority: 1
+  - entity: binary_sensor.front_door
+    state: "on"
+    message: Front door is open
+    theme: door
+    priority: 2
+    auto_dismiss_after: 15
+  - entity: cover.garage_door
+    state: open
+    message: Garage door is open
+    theme: door
+    priority: 2
+    auto_dismiss_after: 15
+  - entity: lock.front_front_door
+    state: unlocked
+    message: Front door is unlocked
+    theme: warning
+    priority: 3
+    auto_dismiss_after: 15
+  # Chores: shown the day before pickup until someone taps to mark them done.
+  # input_boolean.*_taken_out are reset by "Ridwell Auto Opt in" and the
+  # day-of-week automation after pickup.
+  - entity: binary_sensor.tomorrow_monday
+    state: "on"
+    conditions:
+      - entity: input_boolean.garbage_taken_out
+        state: "off"
+    message: Take out garbage, recycling & compost
+    secondary_text: Pickup is tomorrow · tap when done
+    icon: mdi:trash-can
+    theme: info
+    priority: 3
+    tap_action:
+      action: call-service
+      service: input_boolean.turn_on
+      service_data:
+        entity_id: input_boolean.garbage_taken_out
+      confirmation:
+        text: Mark garbage, recycling & compost as taken out?
+  - entity: binary_sensor.ridwell_pickup_tomorrow
+    state: "on"
+    conditions:
+      - entity: input_boolean.ridwell_taken_out
+        state: "off"
+    message: Put the Ridwell bags out
+    secondary_text: >-
+      {% set types = state_attr('sensor.ridwell_ridwell_pickup_4659_se_meadowcrest_ct', 'pickup_types') or {} %}
+      {% set special = types.items() | selectattr('1.category', 'eq', 'rotating') | map(attribute='0') | list %}
+      {{ 'Special: ' ~ special | join(', ') ~ ' · ' if special else '' }}tap when done
+    icon: mdi:recycle-variant
+    theme: tips
+    priority: 3
+    tap_action:
+      action: call-service
+      service: input_boolean.turn_on
+      service_data:
+        entity_id: input_boolean.ridwell_taken_out
+      confirmation:
+        text: Mark the Ridwell bags as put out?
+  - device_class: battery
+    operator: "<="
+    state: "20"
+    message: "Low battery: {name} ({state}%)"
+    theme: battery
+    priority: 4
+    group: true
+    group_min: 2
+    group_message: "{count} low batteries"
+    visible_to: admin

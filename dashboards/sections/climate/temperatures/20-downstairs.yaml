@@ -1,0 +1,49 @@
+# Downstairs (HA floor "basement") room temperatures. Same sensors as the room cards on Home.
+# One card: the floor header (button-card floor_temps) over a tile per room
+# (decluttering temp_tile: reading, comparison and 24-hour trend; tap for more-info).
+type: custom:stack-in-card
+cards:
+  - type: custom:button-card
+    template: floor_temps
+    triggers_update:
+      - sensor.view_plus_temperature
+      - sensor.office_temperature_sensor_temperature
+      - sensor.ethan_bedroom_temperature
+      - sensor.flo_laundry_temperature
+    variables:
+      title: Downstairs
+      icon: mdi:home-floor-b
+      rooms:
+        - sensor.view_plus_temperature
+        - sensor.office_temperature_sensor_temperature
+        - sensor.ethan_bedroom_temperature
+        - sensor.flo_laundry_temperature
+  - type: custom:layout-card
+    layout_type: custom:grid-layout
+    layout:
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr))
+      grid-gap: 8px
+      margin: 0
+      padding: 0 16px 16px
+      card_margin: 0
+    cards:
+      - type: custom:decluttering-card
+        template: temp_tile
+        variables:
+          - entity: sensor.view_plus_temperature
+          - name: Family Room
+      - type: custom:decluttering-card
+        template: temp_tile
+        variables:
+          - entity: sensor.office_temperature_sensor_temperature
+          - name: Office
+      - type: custom:decluttering-card
+        template: temp_tile
+        variables:
+          - entity: sensor.ethan_bedroom_temperature
+          - name: 'Ethan''s Room'
+      - type: custom:decluttering-card
+        template: temp_tile
+        variables:
+          - entity: sensor.flo_laundry_temperature
+          - name: Laundry

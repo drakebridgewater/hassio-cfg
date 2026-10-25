@@ -1,6 +1,4 @@
-# Shared view frame: room button bar and the pop-ups every view can open
-# (room bar, navbar rooms, banner chips). Home uses footer-home.yaml.
+# Last section of every view: the ambient glow and the pop-ups every view can open
+# (navbar rooms, badges, room pages). Home and Tablet use footer-home.yaml.
 type: vertical-stack
-view_layout:
-  grid-area: footer
 cards: !include_dir_list ../sections/footer

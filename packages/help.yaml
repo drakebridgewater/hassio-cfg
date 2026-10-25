@@ -1,0 +1,123 @@
+# Help page (dashboards/views/default/99-help.yaml): canned broadcasts and the
+# one-button fixes it offers. Everything here is started from that page.
+
+help:
+  input_select:
+    # Picking a message sends it right away through the normal broadcast
+    # (input_text.broadcast_message -> "Notification - Broadcast by Text Box Entry"),
+    # then the list goes back to the first option.
+    broadcast_canned:
+      name: Canned broadcast
+      icon: mdi:message-fast-outline
+      options:
+        - Pick a message to send now
+        - Dinner is ready
+        - Time to leave in 5 minutes
+        - Ethan, come upstairs
+        - Someone's at the door
+        - Lights out in 10 minutes
+
+  automation:
+    - id: help_send_canned_broadcast
+      alias: Help - Send canned broadcast
+      description: Broadcast the message picked on the Help page, then reset the list.
+      mode: queued
+      triggers:
+        - trigger: state
+          entity_id: input_select.broadcast_canned
+      conditions:
+        - condition: template
+          value_template: "{{ trigger.to_state.state != state_attr('input_select.broadcast_canned', 'options')[0] }}"
+      actions:
+        # Clear first so the same message twice in a row still counts as a change.
+        - action: input_text.set_value
+          target:
+            entity_id: input_text.broadcast_message
+          data:
+            value: ""
+        - action: input_text.set_value
+          target:
+            entity_id: input_text.broadcast_message
+          data:
+            value: "{{ trigger.to_state.state }}"
+        - action: input_select.select_first
+          target:
+            entity_id: input_select.broadcast_canned
+
+  script:
+    # "A website or app won't load": AdGuard sometimes blocks a site by mistake.
+    # Pausing again while paused restarts the 10 minutes.
+    help_pause_ad_blocking:
+      alias: Help - Pause ad blocking for 10 minutes
+      icon: mdi:shield-off-outline
+      mode: restart
+      sequence:
+        - action: switch.turn_off
+          target:
+            entity_id: switch.adguard_home_protection
+        - delay: "00:10:00"
+        - action: switch.turn_on
+          target:
+            entity_id: switch.adguard_home_protection
+
+    # "The lights won't turn on by themselves": clear every room's manual mode.
+    help_all_rooms_automatic:
+      alias: Help - Put every room back on automatic
+      icon: mdi:lightbulb-auto-outline
+      mode: single
+      sequence:
+        - action: input_boolean.turn_off
+          target:
+            entity_id: >
+              {{ states.input_boolean | map(attribute='entity_id')
+                 | select('search', '^input_boolean.lighting_automation_blocker_') | list }}
+
+    # Reconnect a speaker or TV integration (reloading needs admin rights, which the
+    # script has even when the person tapping doesn't).
+    help_reconnect:
+      alias: Help - Reconnect speakers or TVs
+      icon: mdi:connection
+      mode: queued
+      fields:
+        which:
+          description: alexa, google or apple_tv
+          example: alexa
+      sequence:
+        - variables:
+            entries:
+              alexa: [01KW9W3NEGNX2RRYPWE3XK5E84]
+              google: [fa820a2b5d6b7f5f518569195f75ca3f]
+              apple_tv: [01JKB8TKVW84QCJ34A0EB6MMHN, 01JDG0192Q4W7FC9E4946AF0XZ, 01JG9Y8CG9Z3E0PR22QKQ5RRMH]
+        - repeat:
+            for_each: "{{ entries[which] }}"
+            sequence:
+              - action: homeassistant.reload_config_entry
+                data:
+                  entry_id: "{{ repeat.item }}"
+                continue_on_error: true
+
+    # "Something else": straight to Drake's phone at high priority, saying who
+    # asked and which page they were on.
+    help_ask_drake:
+      alias: Help - Ask Drake
+      icon: mdi:account-question-outline
+      mode: queued
+      fields:
+        page:
+          description: The dashboard page they were on
+          example: /lovelace-main/help
+      sequence:
+        - variables:
+            who: >
+              {{ states.person | selectattr('attributes.user_id', 'eq', context.user_id)
+                 | map(attribute='name') | first | default('Someone') }}
+        - action: notify.mobile_app_drake_s_pixel_11_pro
+          data:
+            title: "{{ who }} needs a hand"
+            message: "Asked from {{ page | default('the Help page') }} on the dashboard."
+            data:
+              priority: high
+              ttl: 0
+              channel: Help requests
+              importance: high
+              clickAction: "{{ page | default('/lovelace-main/help') }}"

@@ -1,0 +1,145 @@
+# Family Room card. Layout, badges and actions come from decluttering-templates/room_card.yaml.
+type: custom:decluttering-card
+template: room_card
+variables:
+  - name: Family Room
+  - icon: mdi:theater
+  - color: 233, 30, 99
+  - popup: /lovelace-main/family-room
+  - entity: binary_sensor.athom_family_room_presence_sensor_occupancy
+  - temp: sensor.view_plus_temperature
+  - humid: sensor.view_plus_humidity
+  - zone: family_room
+  - badges:
+      - name: Door open
+        target: main_icon
+        icon: mdi:door-sliding-open
+        color: red
+        animation: pulse
+        condition:
+          - condition: state
+            entity_id: binary_sensor.basement_sliding_door
+            state: 'on'
+      # Air quality, one badge by severity, using the Climate page tile bands
+      # (good / moderate / high) for: view_plus_pm2_5, view_plus_volatile_organic_compounds_parts, view_plus_carbon_dioxide, view_plus_radon.
+      - name: Air quality poor
+        target: main_icon
+        icon: mdi:smog
+        color: red
+        animation: pulse
+        condition:
+          - condition: or
+            conditions:
+              - condition: numeric_state
+                entity_id: sensor.view_plus_pm2_5
+                above: 75
+              - condition: numeric_state
+                entity_id: sensor.view_plus_volatile_organic_compounds_parts
+                above: 300
+              - condition: numeric_state
+                entity_id: sensor.view_plus_carbon_dioxide
+                above: 2000
+              - condition: numeric_state
+                entity_id: sensor.view_plus_radon
+                above: 296
+      - name: Air quality high
+        target: main_icon
+        icon: mdi:weather-dust
+        color: orange
+        animation: glow
+        condition:
+          - condition: and
+            conditions:
+              - condition: or
+                conditions:
+                  - condition: numeric_state
+                    entity_id: sensor.view_plus_pm2_5
+                    above: 35
+                  - condition: numeric_state
+                    entity_id: sensor.view_plus_volatile_organic_compounds_parts
+                    above: 200
+                  - condition: numeric_state
+                    entity_id: sensor.view_plus_carbon_dioxide
+                    above: 1200
+                  - condition: numeric_state
+                    entity_id: sensor.view_plus_radon
+                    above: 148
+              - condition: not
+                conditions:
+                  - condition: or
+                    conditions:
+                      - condition: numeric_state
+                        entity_id: sensor.view_plus_pm2_5
+                        above: 75
+                      - condition: numeric_state
+                        entity_id: sensor.view_plus_volatile_organic_compounds_parts
+                        above: 300
+                      - condition: numeric_state
+                        entity_id: sensor.view_plus_carbon_dioxide
+                        above: 2000
+                      - condition: numeric_state
+                        entity_id: sensor.view_plus_radon
+                        above: 296
+      - name: Air quality moderate
+        target: main_icon
+        icon: mdi:weather-dust
+        color: yellow
+        condition:
+          - condition: and
+            conditions:
+              - condition: or
+                conditions:
+                  - condition: numeric_state
+                    entity_id: sensor.view_plus_pm2_5
+                    above: 12
+                  - condition: numeric_state
+                    entity_id: sensor.view_plus_volatile_organic_compounds_parts
+                    above: 100
+                  - condition: numeric_state
+                    entity_id: sensor.view_plus_carbon_dioxide
+                    above: 800
+                  - condition: numeric_state
+                    entity_id: sensor.view_plus_radon
+                    above: 74
+              - condition: not
+                conditions:
+                  - condition: or
+                    conditions:
+                      - condition: numeric_state
+                        entity_id: sensor.view_plus_pm2_5
+                        above: 35
+                      - condition: numeric_state
+                        entity_id: sensor.view_plus_volatile_organic_compounds_parts
+                        above: 200
+                      - condition: numeric_state
+                        entity_id: sensor.view_plus_carbon_dioxide
+                        above: 1200
+                      - condition: numeric_state
+                        entity_id: sensor.view_plus_radon
+                        above: 148
+      - name: Too warm
+        target: main_icon
+        icon: mdi:fire
+        color: orange
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.view_plus_temperature
+            above: 74
+      - name: Too cold
+        target: main_icon
+        icon: mdi:snowflake-alert
+        color: cyan
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.view_plus_temperature
+            below: 67
+      - name: Occupied
+        target: main_icon
+        icon: mdi:motion-sensor
+        color: green
+        condition:
+          - condition: state
+            entity_id: binary_sensor.athom_family_room_presence_sensor_occupancy
+            state: 'on'

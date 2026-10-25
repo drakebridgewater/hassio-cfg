@@ -1,13 +1,18 @@
 # Rooms pages bar.
 type: custom:decluttering-card
 template: navbar
-view_layout:
-  grid-area: footer
 variables:
   - routes:
+      # Home goes to the page made for the device: Tablet from 768px wide
+      # (tablets and desktops, navbar.isDesktop), Home on phones.
+      - url: /lovelace-main/tablet
+        icon: mdi:home
+        label: Home
+        hidden: '[[[ return !navbar.isDesktop ]]]'
       - url: /lovelace-main/home
         icon: mdi:home
         label: Home
+        hidden: '[[[ return navbar.isDesktop ]]]'
       - url: /lovelace-main/ethan
         icon: mdi:teddy-bear
         label: Ethan
@@ -25,3 +30,5 @@ variables:
         tap_action:
           action: open-popup
         popup: !include rooms-popup.yaml
+      # Kitchen tablet only (tablet-route.yaml).
+      - !include tablet-route.yaml

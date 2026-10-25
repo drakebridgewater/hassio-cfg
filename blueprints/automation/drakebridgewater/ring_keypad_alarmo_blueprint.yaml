@@ -40,9 +40,22 @@ blueprint:
       default: []
       selector:
         action: {}
-  source_url: https://github.com/drakebridgewater/hass-notes/blob/main/ring_keypad_alarmo_blueprint.yaml
+    night_start:
+      name: Night Window Start
+      description: From this time, the Home button arms night instead of home
+      default: '21:00:00'
+      selector:
+        time: {}
+    night_end:
+      name: Night Window End
+      description: Until this time, the Home button arms night instead of home
+      default: '06:00:00'
+      selector:
+        time: {}
 variables:
   alarm: !input alarm
+  night_start: !input night_start
+  night_end: !input night_end
   formatted_delay: '{% set delay = state_attr(alarm, ''delay'') %} {% set total_seconds
     = delay if delay is not none else 0 %} {% set minutes = total_seconds // 60 %}
     {% set seconds = total_seconds % 60 %} {{ minutes }}m{{ seconds }}s
@@ -198,14 +211,29 @@ action:
           id: keypad_arm_away
         - condition: trigger
           id: keypad_arm_home
-      - condition: state
-        entity_id: !input alarm
-        state: disarmed
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: !input alarm
+          state: disarmed
+        - condition: and
+          conditions:
+          - condition: trigger
+            id: keypad_arm_home
+          - condition: state
+            entity_id: !input alarm
+            state: armed_away
     sequence:
+    - variables:
+        arm_mode: "{% set button = trigger.id.split('_')[2] %}\n{% set t = now().strftime('%H:%M:%S')
+          %}\n{% if night_start <= night_end %}\n  {% set is_night = night_start <=
+          t < night_end %}\n{% else %}\n  {% set is_night = t >= night_start or t <
+          night_end %}\n{% endif %}\n{{ 'night' if button == 'home' and is_night else
+          button }}\n"
     - service: alarmo.arm
       data:
         entity_id: !input alarm
-        mode: '{{ trigger.id.split("_")[2] }}'
+        mode: '{{ arm_mode }}'
         force: false
         code: "{% if trigger.event.data.event_data != none %}\n  {{ trigger.event.data.event_data
           }}\n{% endif %}\n"
@@ -222,7 +250,7 @@ action:
     - service: alarmo.arm
       data:
         entity_id: !input alarm
-        mode: '{{ trigger.id.split("_")[2] }}'
+        mode: '{{ arm_mode }}'
         force: true
         code: "{% if trigger.event.data.event_data != none %}\n  {{ trigger.event.data.event_data
           }}\n{% endif %}\n"

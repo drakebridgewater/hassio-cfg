@@ -1,0 +1,18 @@
+# Tell the house: pick a canned message (sent the moment it's picked, packages/help.yaml)
+# or type one and press enter. Either goes out through the normal broadcast automation.
+type: vertical-stack
+grid_options:
+  columns: full
+cards:
+  - type: heading
+    heading: Tell the house
+    heading_style: title
+  - type: entities
+    state_color: false
+    entities:
+      - entity: input_select.broadcast_canned
+        name: Send a message
+        icon: mdi:message-fast-outline
+      - entity: input_text.broadcast_message
+        name: Or type your own
+        icon: mdi:bullhorn-outline

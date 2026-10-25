@@ -36,7 +36,7 @@ cards:
         icon: mdi:package-variant
     tap_action:
       action: navigate
-      navigation_path: /dashboard-security/outdoor-cams
+      navigation_path: /lovelace-main/cameras
   - type: picture-glance
     title: Driveway
     camera_image: camera.driveway
@@ -52,4 +52,4 @@ cards:
         icon: mdi:lightbulb-on
     tap_action:
       action: navigate
-      navigation_path: /dashboard-security/outdoor-cams
+      navigation_path: /lovelace-main/cameras

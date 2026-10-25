@@ -8,22 +8,23 @@
 ###########################################
 # rest integration
 ###########################################
-- platform: rest
-  name: YeeSite Bar State
-  resource: "http://10.0.0.10:5003/api/lamps/yeesite-bar"
-  value_template: "{{ value_json.state }}"
-  json_attributes:
-    - brightness
-    - color
-    - white
-    - effect
-    - effect_list
-    - effect_speed
-    - rgb_dimmer
-    - white_dimmer
-    - color_strobe_rate
-    - white_strobe_rate
-  scan_interval: 30  # light actions refresh it immediately (homeassistant.update_entity)
+# Disabled: YeeSite controller container only runs sometimes (see configs/templates.yaml).
+# - platform: rest
+#   name: YeeSite Bar State
+#   resource: "http://10.0.0.10:5003/api/lamps/yeesite-bar"
+#   value_template: "{{ value_json.state }}"
+#   json_attributes:
+#     - brightness
+#     - color
+#     - white
+#     - effect
+#     - effect_list
+#     - effect_speed
+#     - rgb_dimmer
+#     - white_dimmer
+#     - color_strobe_rate
+#     - white_strobe_rate
+#   scan_interval: 30  # light actions refresh it immediately (homeassistant.update_entity)
 
 ###########################################
 # Next Holiday integration
@@ -320,23 +321,7 @@
     {% if day < 0 %}{% set day = day + 7 %}{% endif %}
     {{ today_at() - timedelta(days=day) }}
 
-# Dog Daycare tracking
-- platform: history_stats
-  name: Visited Dog Daycare Drake
-  entity_id: person.drake
-  state: Dog Daycare
-  type: count
-  start: "{{ today_at() }}"
-  end: "{{ now() }}"
-
-- platform: history_stats
-  name: Visited Dog Daycare Shawna
-  entity_id: person.shawna
-  state: Dog Daycare
-  type: count
-  start: "{{ today_at() }}"
-  end: "{{ now() }}"
-
+# Dog Daycare tracking (binary_sensor.abby_at_daycare is a trigger template in templates.yaml)
 - platform: history_stats
   name: "Abby Daycare Visits Counter"
   entity_id: binary_sensor.abby_at_daycare
@@ -349,7 +334,7 @@
 - platform: history_stats
   name: Visited school Drake
   entity_id: person.drake
-  state: school
+  state: School
   type: count
   start: "{{ today_at() }}"
   end: "{{ now() }}"
@@ -357,7 +342,7 @@
 - platform: history_stats
   name: Visited school Shawna
   entity_id: person.shawna
-  state: school
+  state: School
   type: count
   start: "{{ today_at() }}"
   end: "{{ now() }}"
@@ -365,7 +350,7 @@
 - platform: history_stats
   name: Visited school JK
   entity_id: person.john_byles
-  state: school
+  state: School
   type: count
   start: "{{ today_at() }}"
   end: "{{ now() }}"

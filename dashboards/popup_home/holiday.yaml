@@ -1,14 +1,16 @@
+# Holiday pop-up, opened by the Holiday Lights room card on Home and Tablet
+# (sections/spaces-cards/60-holiday.yaml). The next holiday first and large, the ones after it,
+# the lights, what drives them, then the next few pop culture holidays.
 type: custom:bubble-card
 card_type: pop-up
 hash: '#holiday'
 button_type: switch
 name: Holiday
+icon: mdi:string-lights
 entity: light.holiday_lights
 force_icon: false
 show_state: true
 show_last_changed: false
-show_attribute: true
-bg_opacity: '35'
 button_action:
   tap_action:
     action: none
@@ -20,37 +22,174 @@ sub_button:
     tap_action:
       action: toggle
 cards:
-  - type: custom:bubble-card
-    card_type: button
-    button_type: state
-    entity: sensor.next_holiday
-    show_attribute: false
-    force_icon: false
-    show_last_changed: false
-    sub_button:
-      - entity: sensor.next_holiday
-        show_attribute: true
-        attribute: days_until_next_holiday
-        icon: mdi:calendar-clock
-        name: Days
-        show_name: true
-    show_state: true
-  - type: custom:mushroom-light-card
-    entity: light.holiday_lights
-    name: All Holiday Lights
-    tap_action: 
-      action: more-info
+  # The next one: which, the day, and how far away it is. Dates come from the holidays
+  # calendar; sensor.next_holiday also covers Halloween and the family birthdays.
+  - type: custom:button-card
+    entity: calendar.holidays_in_united_states_2
+    show_icon: true
+    show_name: true
+    show_state: false
+    show_label: true
+    icon: mdi:party-popper
+    tap_action:
+      action: none
+    variables:
+      next: >-
+        [[[ const at = entity?.attributes ?? {};
+            if (!at.message || !at.start_time) return null;
+            const day = new Date(at.start_time.replace(' ', 'T'));
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            return { what: at.message, day, days: Math.round((day - today) / 86400000) }; ]]]
+    name: '[[[ return variables.next ? variables.next.what : "No holidays coming up" ]]]'
+    label: >-
+      [[[ const n = variables.next;
+          if (!n) return 'Nothing on the holidays calendar.';
+          const date = n.day.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+          const when = n.days <= 0 ? 'Today' : n.days === 1 ? 'Tomorrow' : `In ${n.days} days`;
+          return `<span class="when">${when}</span><span class="date">${date}</span>`; ]]]
+    styles:
+      card:
+        - background: >-
+            [[[ const d = variables.next?.days;
+                return d != null && d <= 7 ? 'color-mix(in srgb, var(--orange-color) 18%, transparent)'
+                  : 'color-mix(in srgb, var(--primary-text-color) 7%, transparent)' ]]]
+        - border: none
+        - border-radius: 16px
+        - padding: 18px 20px
+      grid:
+        - grid-template-areas: '"i n" "i l"'
+        - grid-template-columns: 56px minmax(0, 1fr)
+        - column-gap: 16px
+        - justify-items: start
+      icon:
+        - width: 44px
+        - color: >-
+            [[[ const d = variables.next?.days;
+                return d != null && d <= 0 ? 'var(--yellow-color)' : 'var(--orange-color)' ]]]
+      name:
+        - font-size: 22px
+        - font-weight: 500
+        - justify-self: start
+        - text-align: left
+        - white-space: normal
+      label:
+        - justify-self: start
+        - text-align: left
+    extra_styles: |
+      #label .when { display: block; font-size: 15px; font-weight: 500; color: var(--primary-text-color); }
+      #label .date { display: block; font-size: 13px; color: var(--secondary-text-color); }
+
+  - type: heading
+    heading: Coming up
+    heading_style: subtitle
+  - type: custom:calendar-card-pro
+    entities:
+      - entity: calendar.holidays_in_united_states_2
+      - entity: calendar.birthdays
+    days_to_show: 120
+    compact_events_to_show: 5
+    filter_duplicates: true
+    show_countdown: true
+    show_time: false
+    show_location: false
+    title: ''
+    background_color: transparent
+    accent_color: var(--orange-color)
+    vertical_line_color: var(--orange-color)
+    weekday_color: var(--secondary-text-color)
+    day_color: var(--primary-text-color)
+    month_color: var(--secondary-text-color)
+    event_color: var(--primary-text-color)
+    day_separator_color: var(--divider-color)
+    today_indicator: dot
+    show_empty_days: false
+
+  - type: heading
+    heading: Lights
+    heading_style: subtitle
+  - type: custom:decluttering-card
+    template: bubble_light
+    variables:
+      - entity: light.holiday_lights
+      - name: All Holiday Lights
   - type: custom:decluttering-card
     template: bubble_light_color
     variables:
       - entity: light.roof_lights
   - type: custom:decluttering-card
-    template: bubble_light_effect
+    template: bubble_wled
     variables:
-      - entity: light.wled_christmas_tree
-      - palette: select.wled_christmas_tree_color_palette
-      - preset: select.wled_christmas_tree_preset
-  - type: custom:decluttering-card
-    template: bubble_light
-    variables:
-      - entity: light.outdoor_holiday_switch
+      - device: wled_christmas_tree
+
+  - type: heading
+    heading: Automation
+    heading_style: subtitle
+  - type: custom:bubble-card
+    card_type: sub-buttons
+    sub_button:
+      main: []
+      bottom:
+        - name: Switches
+          buttons_layout: inline
+          justify_content: start
+          group:
+            - entity: input_boolean.holiday_mode
+              name: Holiday mode
+              icon: mdi:string-lights
+              show_name: true
+              show_state: true
+              state_background: true
+              fill_width: false
+              tap_action:
+                action: toggle
+            - entity: switch.schedule_holiday_outdoor_lights_schedule
+              name: Outdoor schedule
+              icon: mdi:calendar-clock
+              show_name: true
+              show_state: true
+              state_background: true
+              fill_width: false
+              tap_action:
+                action: toggle
+            - entity: automation.holiday_away_lighting
+              name: Away lighting
+              icon: mdi:home-lightbulb-outline
+              show_name: true
+              show_state: true
+              state_background: true
+              fill_width: false
+              tap_action:
+                action: toggle
+
+  - type: heading
+    heading: Pop culture holidays
+    heading_style: subtitle
+  - type: custom:calendar-card-pro
+    entities:
+      - entity: calendar.atlas_obscura_s_pop_culture_holiday_calendar
+    days_to_show: 14
+    compact_events_to_show: 4
+    filter_duplicates: true
+    show_countdown: true
+    show_time: false
+    show_location: false
+    title: ''
+    background_color: transparent
+    accent_color: var(--purple-color)
+    vertical_line_color: var(--purple-color)
+    weekday_color: var(--secondary-text-color)
+    day_color: var(--primary-text-color)
+    month_color: var(--secondary-text-color)
+    event_color: var(--primary-text-color)
+    day_separator_color: var(--divider-color)
+    today_indicator: dot
+    show_empty_days: false
+
+  - type: custom:button-card
+    template: action_tile
+    name: Show the full calendar
+    label: Every holiday and event on the family calendar
+    icon: mdi:calendar-month-outline
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-main/calendar

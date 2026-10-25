@@ -28,21 +28,51 @@
       attributes:
         forecast: "{{ daily['weather.pirateweather'].forecast }}"
         
-- binary_sensor:
-  - name: Ethan at School
-    state: >
-      {% set db = states("sensor.visited_school_drake") | int(0) %}
-      {% set sb = states("sensor.visited_school_shawna") | int(0) %}
-      {% set jk  = states("sensor.visited_school_jk") | int(0) %}
+# Ethan at school: a grown-up's stop at the School zone (2+ minutes, so driving
+# past doesn't count) before noon is the drop-off; a stop after noon is the
+# pickup. Off again at midnight. (It used to count the day's School visits,
+# odd = at school, so one drive-by flipped it.)
+- triggers:
+    - trigger: state
+      entity_id:
+        - person.drake
+        - person.shawna
+      to: School
+      for: "00:02:00"
+      id: visit
+    - trigger: time
+      at: "00:00:00"
+      id: reset
+  binary_sensor:
+    - name: Ethan at School
+      state: >
+        {% if trigger.id == 'reset' %}false
+        {%- elif now().hour < 12 %}true
+        {%- else %}false{% endif %}
 
-      {% set visits  = db + sb + jk %}
-      {% if visits == 0 -%}
-        false
-      {%- elif visits == 1 -%}
-        true
-      {%- else -%}
-        false
-      {%- endif %}
+# Abby at daycare: a grown-up's stop at the Dog Daycare zone (3+ minutes, so the
+# morning commute through the zone doesn't count) before noon is the drop-off; a
+# stop after noon is the pickup. Off again at midnight. (It used to count the
+# day's zone visits, odd = at daycare, so every drive-by turned it on.)
+- triggers:
+    - trigger: state
+      entity_id:
+        - person.drake
+        - person.shawna
+      to: Dog Daycare
+      for: "00:03:00"
+      id: visit
+    - trigger: time
+      at: "00:00:00"
+      id: reset
+  binary_sensor:
+    - name: Abby at Daycare
+      state: >
+        {% if trigger.id == 'reset' %}false
+        {%- elif now().hour < 12 %}true
+        {%- else %}false{% endif %}
+
+- binary_sensor:
   - name: "Ethan at School Helper"
     state: >
       {%- if now().hour < 17 or (now().hour == 17 and now().minute < 30) -%}
@@ -55,8 +85,7 @@
     state: >
       {{ is_state('person.drake', 'home') 
       or is_state('person.shawna', 'home')
-      or is_state('input_boolean.home_guest_mode', 'on') 
-      or is_state('person.guest', 'home') 
+      or is_state('input_boolean.guest_mode', 'on')
       or is_state('person.named_guest', 'home') }}
     delay_off: 00:00:10
   - name: Parents Asleep
@@ -95,13 +124,12 @@
     delay_off: "01:00:00"
   - name: Someone in the house in the last hour
     state: >
-      {{ is_state("binary_sensor.motion_detected_in_last_hour", "on")
+      {{ is_state("binary_sensor.any_motion_detected_in_last_hour", "on")
           or is_state("group.persons", "home") }}
   - name: Activity in the living room
     state: >
       {{ is_state("binary_sensor.living_room_presence_sensor_occupancy", "on")
-          or is_state("media_player.living_room", "on")
-          or is_state("media_player.marantz_sr5012_2", "on") }}
+          or is_state("media_player.living_room", "on") }}
     delay_off: "00:20:00"
   - name: Activity in the kitchen
     state: >
@@ -114,8 +142,7 @@
     delay_off: "00:10:00"
   - name: Activity in the Ethan's Bedroom
     state: >
-      {{ is_state("binary_sensor.ethans_smartsensor_occupancy", "on")
-          or is_state("binary_sensor.ethan_s_bedroom_occupancy", "on")
+      {{ is_state("binary_sensor.ethan_bedroom_occupancy", "on")
           or is_state("binary_sensor.ethans_bedroom_presence_sensor_pir_sensor", "on") }}
     delay_off: "00:10:00"
   - name: Activity in the Family Room
@@ -142,19 +169,6 @@
   - name: Worked enough today
     state: >
       {{ states("sensor.time_at_work_today_drake") | float(0) > 8 }}
-  - name: Abby at Daycare
-    state: >
-      {% set db = states("sensor.visited_dog_daycare_drake") | int(0) %}
-      {% set sb = states("sensor.visited_dog_daycare_shawna") | int(0) %}
-
-      {% set visits  = db + sb %}
-      {% if visits == 0 -%}
-        false
-      {%- elif visits == 1 -%}
-        true
-      {%- else -%}
-        false
-      {%- endif %}
   
   # "The house has been buttoned up long enough to run the HVAC."
   # Turns off the instant anything opens; needs 20 uninterrupted minutes with
@@ -170,6 +184,25 @@
     state: >
       {{ not (is_state('binary_sensor.window_open_group', 'on')
               or is_state('binary_sensor.any_door_open_group', 'on')) }}
+
+  # A package Frigate has seen for 2 straight minutes at the front door, porch or
+  # deck. The deck zone flickers on a white object on the steps (scores ~0.7), so
+  # the raw occupancy sensors are never shown on the dashboard directly.
+  - name: Package Delivered
+    unique_id: package_delivered
+    icon: mdi:package-variant-closed
+    delay_on: "00:02:00"
+    delay_off: "00:05:00"
+    state: >
+      {{ is_state('binary_sensor.frontdoor_package_occupancy', 'on')
+         or is_state('binary_sensor.porch_package_occupancy', 'on')
+         or is_state('binary_sensor.frontdeck_package_occupancy', 'on') }}
+    attributes:
+      where: >
+        {{ 'front door' if is_state('binary_sensor.frontdoor_package_occupancy', 'on')
+           else 'porch' if is_state('binary_sensor.porch_package_occupancy', 'on')
+           else 'deck' if is_state('binary_sensor.frontdeck_package_occupancy', 'on')
+           else this.attributes.get('where', 'front door') }}
 
 
   # - name: "Any Light On"
@@ -381,227 +414,185 @@
           {% endfor %}
           {{ next_birthday.name }}
 
-    # Family dinner nights this month
-    - name: "Family Dinners This Month"
-      state: >
-        {{ states('sensor.family_dinner_counter') | int(0) }}
 
-    # Date night tracker
-    - name: "Days Since Last Date Night"
-      state: >
-        {% set last_date = states('input_datetime.last_date_night') %}
-        {% if last_date not in ['unknown', 'unavailable'] %}
-          {{ (now() - strptime(last_date, '%Y-%m-%d %H:%M:%S')).days }}
-        {% else %}
-          Unknown
-        {% endif %}
-
-    # Percentage of life spent at work (assuming 40 years working)
-    - name: "Drake - Percentage of Life at Work"
-      state: >
-        {% set work_hours = states('sensor.time_at_work_this_week_drake') | float(0) %}
-        {% set total_hours = 168 %}
-        {{ ((work_hours / total_hours) * 100) | round(1) }}
-      unit_of_measurement: "%"
-
-    - name: "Shawna - Percentage of Life at Work"
-      state: >
-        {% set work_hours = states('sensor.time_at_work_this_week_shawna') | float(0) %}
-        {% set total_hours = 168 %}
-        {{ ((work_hours / total_hours) * 100) | round(1) }}
-      unit_of_measurement: "%"
-
-    # How many times the doorbell rang this week
-    - name: "Doorbell Rings This Week"
-      state: >
-        {{ states('sensor.doorbell_counter') | int(0) }}
-
-    # Most visited room today
-    - name: "Most Active Room Today"
-      state: >
-        {% set rooms = {
-          'living_room': states('sensor.living_room_motion_count') | int(0),
-          'kitchen': states('sensor.kitchen_motion_count') | int(0),
-          'bedroom': states('sensor.bedroom_motion_count') | int(0)
-        } %}
-        {{ rooms | dictsort(by='value', reverse=true) | first | first }}
-
-
-# ===== 1. COLOR (RGB) LIGHT =====
-- light:
-  - name: "YeeSite Bar Color"
-    unique_id: yeesite_bar_color
-
-    # ---- State ----
-    state: >-
-      {{ states('sensor.yeesite_bar_state') }}
-
-    availability: >-
-      {{ states('sensor.yeesite_bar_state') not in ['unavailable', 'unknown'] }}
-
-    # ---- Brightness (0-255) ----
-    level: >-
-      {{ state_attr('sensor.yeesite_bar_state', 'brightness') | int(0) }}
-
-    # ---- RGB color from the sensor's color dict ----
-    rgb: >-
-      {% set c = state_attr('sensor.yeesite_bar_state', 'color') %}
-      {% if c %}
-        ({{ c.r | int(0) }}, {{ c.g | int(0) }}, {{ c.b | int(0) }})
-      {% else %}
-        (0, 0, 0)
-      {% endif %}
-
-    # ---- Effect ----
-    # Only show the current effect if it's an RGB effect (not a w_ prefixed one)
-    effect: >-
-      {% set eff = state_attr('sensor.yeesite_bar_state', 'effect') %}
-      {% if eff and not eff.startswith('w_') %}
-        {{ eff }}
-      {% else %}
-        {{ none }}
-      {% endif %}
-
-    # ---- Effect list: only RGB effects ----
-    effect_list: >-
-      {% set all = state_attr('sensor.yeesite_bar_state', 'effect_list') %}
-      {% if all %}
-        {{ all | reject('match', '^w_') | list }}
-      {% else %}
-        []
-      {% endif %}
-
-    # ---- Actions ----
-    turn_on:
-      - action: rest_command.yeesite_turn_on
-        data:
-          brightness: "{{ brightness | default(255) }}"
-      - action: homeassistant.update_entity
-        target:
-          entity_id: sensor.yeesite_bar_state
-
-    turn_off:
-      - action: rest_command.yeesite_turn_off
-      - action: homeassistant.update_entity
-        target:
-          entity_id: sensor.yeesite_bar_state
-
-    set_level:
-      - action: rest_command.yeesite_set_brightness
-        data:
-          value: "{{ brightness }}"
-      - action: homeassistant.update_entity
-        target:
-          entity_id: sensor.yeesite_bar_state
-
-    set_rgb:
-      - action: rest_command.yeesite_set_color
-        data:
-          r: "{{ r }}"
-          g: "{{ g }}"
-          b: "{{ b }}"
-          w: 0
-      - action: homeassistant.update_entity
-        target:
-          entity_id: sensor.yeesite_bar_state
-
-    set_effect:
-      - action: rest_command.yeesite_set_effect
-        data:
-          effect: "{{ effect }}"
-          speed: 1.0
-      - action: homeassistant.update_entity
-        target:
-          entity_id: sensor.yeesite_bar_state
-
-# ===== 2. WHITE LIGHT =====
-- light:
-  - name: "YeeSite Bar White"
-    unique_id: yeesite_bar_white
-
-    # ---- State ----
-    # White is "on" if the overall fixture is on AND white has some value
-    # or a white effect is running.
-    state: >-
-      {% set lamp_on = is_state('sensor.yeesite_bar_state', 'on') %}
-      {% set w_val = state_attr('sensor.yeesite_bar_state', 'white') | int(0) %}
-      {% set eff = state_attr('sensor.yeesite_bar_state', 'effect') | default('', true) %}
-      {% if lamp_on and (w_val > 0 or eff.startswith('w_')) %}
-        on
-      {% else %}
-        off
-      {% endif %}
-
-    availability: >-
-      {{ states('sensor.yeesite_bar_state') not in ['unavailable', 'unknown'] }}
-
-    # ---- Brightness: derived from white_dimmer (0-100 from API → 0-255) ----
-    level: >-
-      {% set wd = state_attr('sensor.yeesite_bar_state', 'white_dimmer') | int(0) %}
-      {{ (wd / 100 * 255) | int }}
-
-    # ---- Effect: only white effects ----
-    effect: >-
-      {% set eff = state_attr('sensor.yeesite_bar_state', 'effect') %}
-      {% if eff and eff.startswith('w_') %}
-        {{ eff }}
-      {% else %}
-        {{ none }}
-      {% endif %}
-
-    # ---- Effect list: only white effects ----
-    effect_list: >-
-      {% set all = state_attr('sensor.yeesite_bar_state', 'effect_list') %}
-      {% if all %}
-        {{ all | select('match', '^w_') | list }}
-      {% else %}
-        []
-      {% endif %}
-
-    # ---- Actions ----
-    turn_on:
-      # Turn on solid white at full brightness
-      - action: rest_command.yeesite_set_color
-        data:
-          r: 0
-          g: 0
-          b: 0
-          w: "{{ brightness | default(255) }}"
-      - action: homeassistant.update_entity
-        target:
-          entity_id: sensor.yeesite_bar_state
-
-    turn_off:
-      # Set white to 0 (don't blackout the entire fixture)
-      - action: rest_command.yeesite_set_color
-        data:
-          r: 0
-          g: 0
-          b: 0
-          w: 0
-      - action: homeassistant.update_entity
-        target:
-          entity_id: sensor.yeesite_bar_state
-
-    set_level:
-      - action: rest_command.yeesite_set_color
-        data:
-          r: 0
-          g: 0
-          b: 0
-          w: "{{ brightness }}"
-      - action: homeassistant.update_entity
-        target:
-          entity_id: sensor.yeesite_bar_state
-
-    set_effect:
-      - action: rest_command.yeesite_set_effect
-        data:
-          effect: "{{ effect }}"
-          speed: 1.0
-      - action: homeassistant.update_entity
-        target:
-          entity_id: sensor.yeesite_bar_state
+# Disabled: the YeeSite bar controller is a Docker container that only runs sometimes.
+# Uncomment these lights, the YeeSite REST sensor (configs/sensor.yaml) and the
+# "Office YeeSite" automations when it is running.
+# # ===== 1. COLOR (RGB) LIGHT =====
+# - light:
+#   - name: "YeeSite Bar Color"
+#     unique_id: yeesite_bar_color
+#
+#     # ---- State ----
+#     state: >-
+#       {{ states('sensor.yeesite_bar_state') }}
+#
+#     availability: >-
+#       {{ states('sensor.yeesite_bar_state') not in ['unavailable', 'unknown'] }}
+#
+#     # ---- Brightness (0-255) ----
+#     level: >-
+#       {{ state_attr('sensor.yeesite_bar_state', 'brightness') | int(0) }}
+#
+#     # ---- RGB color from the sensor's color dict ----
+#     rgb: >-
+#       {% set c = state_attr('sensor.yeesite_bar_state', 'color') %}
+#       {% if c %}
+#         ({{ c.r | int(0) }}, {{ c.g | int(0) }}, {{ c.b | int(0) }})
+#       {% else %}
+#         (0, 0, 0)
+#       {% endif %}
+#
+#     # ---- Effect ----
+#     # Only show the current effect if it's an RGB effect (not a w_ prefixed one)
+#     effect: >-
+#       {% set eff = state_attr('sensor.yeesite_bar_state', 'effect') %}
+#       {% if eff and not eff.startswith('w_') %}
+#         {{ eff }}
+#       {% else %}
+#         {{ none }}
+#       {% endif %}
+#
+#     # ---- Effect list: only RGB effects ----
+#     effect_list: >-
+#       {% set all = state_attr('sensor.yeesite_bar_state', 'effect_list') %}
+#       {% if all %}
+#         {{ all | reject('match', '^w_') | list }}
+#       {% else %}
+#         []
+#       {% endif %}
+#
+#     # ---- Actions ----
+#     turn_on:
+#       - action: rest_command.yeesite_turn_on
+#         data:
+#           brightness: "{{ brightness | default(255) }}"
+#       - action: homeassistant.update_entity
+#         target:
+#           entity_id: sensor.yeesite_bar_state
+#
+#     turn_off:
+#       - action: rest_command.yeesite_turn_off
+#       - action: homeassistant.update_entity
+#         target:
+#           entity_id: sensor.yeesite_bar_state
+#
+#     set_level:
+#       - action: rest_command.yeesite_set_brightness
+#         data:
+#           value: "{{ brightness }}"
+#       - action: homeassistant.update_entity
+#         target:
+#           entity_id: sensor.yeesite_bar_state
+#
+#     set_rgb:
+#       - action: rest_command.yeesite_set_color
+#         data:
+#           r: "{{ r }}"
+#           g: "{{ g }}"
+#           b: "{{ b }}"
+#           w: 0
+#       - action: homeassistant.update_entity
+#         target:
+#           entity_id: sensor.yeesite_bar_state
+#
+#     set_effect:
+#       - action: rest_command.yeesite_set_effect
+#         data:
+#           effect: "{{ effect }}"
+#           speed: 1.0
+#       - action: homeassistant.update_entity
+#         target:
+#           entity_id: sensor.yeesite_bar_state
+#
+# # ===== 2. WHITE LIGHT =====
+# - light:
+#   - name: "YeeSite Bar White"
+#     unique_id: yeesite_bar_white
+#
+#     # ---- State ----
+#     # White is "on" if the overall fixture is on AND white has some value
+#     # or a white effect is running.
+#     state: >-
+#       {% set lamp_on = is_state('sensor.yeesite_bar_state', 'on') %}
+#       {% set w_val = state_attr('sensor.yeesite_bar_state', 'white') | int(0) %}
+#       {% set eff = state_attr('sensor.yeesite_bar_state', 'effect') | default('', true) %}
+#       {% if lamp_on and (w_val > 0 or eff.startswith('w_')) %}
+#         on
+#       {% else %}
+#         off
+#       {% endif %}
+#
+#     availability: >-
+#       {{ states('sensor.yeesite_bar_state') not in ['unavailable', 'unknown'] }}
+#
+#     # ---- Brightness: derived from white_dimmer (0-100 from API → 0-255) ----
+#     level: >-
+#       {% set wd = state_attr('sensor.yeesite_bar_state', 'white_dimmer') | int(0) %}
+#       {{ (wd / 100 * 255) | int }}
+#
+#     # ---- Effect: only white effects ----
+#     effect: >-
+#       {% set eff = state_attr('sensor.yeesite_bar_state', 'effect') %}
+#       {% if eff and eff.startswith('w_') %}
+#         {{ eff }}
+#       {% else %}
+#         {{ none }}
+#       {% endif %}
+#
+#     # ---- Effect list: only white effects ----
+#     effect_list: >-
+#       {% set all = state_attr('sensor.yeesite_bar_state', 'effect_list') %}
+#       {% if all %}
+#         {{ all | select('match', '^w_') | list }}
+#       {% else %}
+#         []
+#       {% endif %}
+#
+#     # ---- Actions ----
+#     turn_on:
+#       # Turn on solid white at full brightness
+#       - action: rest_command.yeesite_set_color
+#         data:
+#           r: 0
+#           g: 0
+#           b: 0
+#           w: "{{ brightness | default(255) }}"
+#       - action: homeassistant.update_entity
+#         target:
+#           entity_id: sensor.yeesite_bar_state
+#
+#     turn_off:
+#       # Set white to 0 (don't blackout the entire fixture)
+#       - action: rest_command.yeesite_set_color
+#         data:
+#           r: 0
+#           g: 0
+#           b: 0
+#           w: 0
+#       - action: homeassistant.update_entity
+#         target:
+#           entity_id: sensor.yeesite_bar_state
+#
+#     set_level:
+#       - action: rest_command.yeesite_set_color
+#         data:
+#           r: 0
+#           g: 0
+#           b: 0
+#           w: "{{ brightness }}"
+#       - action: homeassistant.update_entity
+#         target:
+#           entity_id: sensor.yeesite_bar_state
+#
+#     set_effect:
+#       - action: rest_command.yeesite_set_effect
+#         data:
+#           effect: "{{ effect }}"
+#           speed: 1.0
+#       - action: homeassistant.update_entity
+#         target:
+#           entity_id: sensor.yeesite_bar_state
 
 # Dashboard ambient edge glow (palette logic in custom_templates/dashboard_glow.jinja).
 # Read by the glow card at the bottom of the /lovelace-mushroom/dashboard view.
@@ -673,12 +664,19 @@
       icon: mdi:calendar-clock
       state: "{{ states.input_datetime | count }}"
 
-# Lights on, excluding groups. The status chips read this instead of scanning every
-# entity in the browser on each state change.
+# Room lights on (custom_templates/lights.jinja leaves out groups, status LEDs and
+# screens), and how many are off (lights_off). The status tile and the #lights
+# pop-up read this instead of scanning every entity in the browser on each state change.
 - sensor:
     - name: "Lights On Count"
       unique_id: lights_on_count
       icon: mdi:lightbulb-multiple
       state: >
-        {{ states.light | rejectattr('entity_id', 'search', 'group')
+        {% from 'lights.jinja' import light_skip %}
+        {{ states.light | rejectattr('entity_id', 'search', light_skip() | trim)
            | selectattr('state', 'eq', 'on') | list | count }}
+      attributes:
+        lights_off: >
+          {% from 'lights.jinja' import light_skip %}
+          {{ states.light | rejectattr('entity_id', 'search', light_skip() | trim)
+             | selectattr('state', 'eq', 'off') | list | count }}

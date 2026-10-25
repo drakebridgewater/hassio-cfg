@@ -92,10 +92,6 @@ cards:
         show_state: true
         show_attribute: false
         show_name: false
-      - entity: sensor.hz526153_water_filter_status
-        show_state: true
-        show_background: false
-        icon: mdi:water
       - entity: sensor.hz526153_ice_maker_bucket_status_state_full_fridge
         icon: mdi:delete-variant
         show_background: false

@@ -1,21 +1,19 @@
 # Home view bar: one entry per page group (no Home button on Home).
 type: custom:decluttering-card
 template: navbar
-view_layout:
-  grid-area: footer
 variables:
   - routes:
       - url: /lovelace-main/security
         icon: mdi:shield-home
         label: Security
-      - icon: mdi:floor-plan
-        label: Rooms
-        tap_action:
-          action: open-popup
-        popup: !include rooms-popup.yaml
       - url: /lovelace-main/calendar
         icon: mdi:calendar
         label: Planning
-      - url: /lovelace-main/cleaning
+      - url: /cod-chores_ops
+        icon: mdi:checkbox-marked-circle-auto-outline
+        label: Chores
+      - url: /lovelace-main/climate
         icon: mdi:home-variant
         label: House
+      # Kitchen tablet only (tablet-route.yaml).
+      - !include tablet-route.yaml

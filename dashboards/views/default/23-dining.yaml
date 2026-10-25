@@ -1,0 +1,27 @@
+# Room page: the room's main light up top, then its sections from
+# sections/rooms/dining/ (ported from the GUI by tools/port_gui_rooms.py) one section per file.
+title: Dining Room
+path: dining
+icon: mdi:table-furniture
+subview: true
+back_path: /lovelace-main/home
+type: sections
+max_columns: 4
+header: !include ../../header/alert-ticker.yaml
+sections:
+  - type: grid
+    column_span: 4
+    cards:
+      # Lighting mode first (cards/lighting-mode/), in the wall switch LED colours.
+      - !include ../../cards/lighting-mode/main_area.yaml
+      - !include ../../sections/rooms/dining/01-alerts.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/dining/10-overview.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/dining/20-lighting.yaml
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/rooms.yaml
