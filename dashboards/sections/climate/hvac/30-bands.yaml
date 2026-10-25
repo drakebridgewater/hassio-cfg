@@ -1,0 +1,5 @@
+# The HVAC Schedule's bands (configs/hvac_bands.json via pyscript/hvac_bands.py),
+# edited in place by www/hvac-bands-card.js.
+type: custom:hvac-bands-card
+grid_options:
+  columns: full

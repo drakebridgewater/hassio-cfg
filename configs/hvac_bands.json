@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "bands": [
+    {
+      "id": "b-cold",
+      "max": 50,
+      "mode": "heat",
+      "disarmed": 71,
+      "armed_home": 71,
+      "armed_night": 66,
+      "armed_away": 63,
+      "armed_vacation": 58
+    },
+    {
+      "id": "b-cool",
+      "max": 60,
+      "mode": "heat",
+      "disarmed": 71,
+      "armed_home": 71,
+      "armed_night": 67,
+      "armed_away": 64,
+      "armed_vacation": 60
+    },
+    {
+      "id": "b-mild",
+      "max": 74,
+      "mode": "heat_cool",
+      "disarmed": [
+        67,
+        73
+      ],
+      "armed_home": [
+        67,
+        74
+      ],
+      "armed_night": [
+        67,
+        71
+      ],
+      "armed_away": [
+        62,
+        78
+      ],
+      "armed_vacation": [
+        58,
+        82
+      ]
+    },
+    {
+      "id": "b-warm",
+      "max": 80,
+      "mode": "cool",
+      "disarmed": 71,
+      "armed_home": 71,
+      "armed_night": 69,
+      "armed_away": 75,
+      "armed_vacation": 80
+    },
+    {
+      "id": "b-hot",
+      "max": null,
+      "mode": "cool",
+      "disarmed": 71,
+      "armed_home": 71,
+      "armed_night": 69,
+      "armed_away": 76,
+      "armed_vacation": 83
+    }
+  ]
+}

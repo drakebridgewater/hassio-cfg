@@ -1,34 +1,79 @@
+# Climate, Temperatures tab. The tabs across the top switch to HVAC (41-climate-hvac.yaml)
+# and Air quality (42-climate-aqi.yaml).
+#   Upstairs and downstairs: one card per floor, its average over a tile per room
+#   Outside and unheated: outdoor, garage, attic, crawl space, greenhouse
+#   Trends: temperature and humidity, then the attic and crawl space histories
+# Cards sit side by side inside a section through grid_options; a section's grid
+# has 12 columns per column it spans (so 12 = a quarter of a 4-wide section, and
+# on narrower screens the same cards wrap to halves).
 title: Climate
 path: climate
 icon: mdi:thermometer
 subview: true
 back_path: /lovelace-main/home
-type: custom:grid-layout
-layout: !include ../../layouts/frame.yaml
-cards:
-  - !include ../../frame/banner.yaml
-  - !include ../../frame/sidebar.yaml
-  - !include ../../frame/sidebar-lower.yaml
-  - !include ../../frame/footer.yaml
-  - !include ../../navigation/house.yaml
-
-  # Masonry drops each card into the shortest column, so tall air-quality cards
-  # don't leave empty rows next to the short ones. One include per card so the
-  # cards balance individually; order is the fill order.
-  - type: custom:layout-card
-    layout_type: masonry
-    view_layout:
-      grid-area: main
-    layout:
-      width: 400
-      max_cols: 3
+type: sections
+max_columns: 4
+header: !include ../../header/alert-ticker.yaml
+sections:
+  - type: grid
+    column_span: 4
     cards:
-      - !include ../../sections/climate/thermostat/thermostat.yaml
-      - !include ../../sections/climate/air-quality/10-living-room.yaml
-      - !include ../../sections/climate/spaces/40-attic.yaml
-      - !include ../../sections/climate/air-quality/20-family-room.yaml
-      - !include ../../sections/climate/spaces/50-crawl-space.yaml
-      - !include ../../sections/climate/air-quality/30-master-bedroom.yaml
-      - !include ../../sections/climate/spaces/60-outdoor-aqi.yaml
-      - !include ../../sections/climate/trends/60-temperature.yaml
-      - !include ../../sections/climate/trends/70-humidity.yaml
+      - !include ../../cards/climate-tabs.yaml
+      # Upstairs and downstairs side by side whenever there's room for both.
+      - type: custom:layout-card
+        layout_type: custom:grid-layout
+        grid_options:
+          columns: full
+        layout:
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))
+          grid-gap: 8px
+          margin: 0
+          padding: 0
+          card_margin: 0
+        cards:
+          - !include ../../sections/climate/temperatures/10-upstairs.yaml
+          - !include ../../sections/climate/temperatures/20-downstairs.yaml
+      - type: vertical-stack
+        grid_options:
+          columns: full
+        cards:
+          - !include ../../sections/climate/temperatures/30-outside.yaml
+
+  # - type: grid
+  #   column_span: 4
+  #   cards:
+  #     - type: heading
+  #       heading: Trends
+  #       icon: mdi:chart-line
+  #     - type: vertical-stack
+  #       grid_options:
+  #         columns: 12
+  #       cards:
+  #         - !include ../../sections/climate/trends/60-temperature.yaml
+  #     - type: vertical-stack
+  #       grid_options:
+  #         columns: 12
+  #       cards:
+  #         - !include ../../sections/climate/trends/70-humidity.yaml
+
+  # - type: grid
+  #   column_span: 4
+  #   cards:
+  #     - type: heading
+  #       heading: Attic and crawl space
+  #       icon: mdi:home-roof
+  #     - type: vertical-stack
+  #       grid_options:
+  #         columns: 12
+  #       cards:
+  #         - !include ../../sections/climate/spaces/40-attic.yaml
+  #     - type: vertical-stack
+  #       grid_options:
+  #         columns: 12
+  #       cards:
+  #         - !include ../../sections/climate/spaces/50-crawl-space.yaml
+
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/house.yaml

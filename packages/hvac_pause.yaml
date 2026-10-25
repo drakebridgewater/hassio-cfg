@@ -1,0 +1,85 @@
+# Pause the HVAC Schedule automation from the Climate page, so the thermostat can be
+# run by hand. input_boolean.hvac_schedule_paused is what the automation checks.
+# A timed pause also runs timer.hvac_schedule_pause; "until the alarm changes" has no
+# timer and ends on the next alarm_control_panel.default state change.
+
+hvac_pause:
+  input_boolean:
+    hvac_schedule_paused:
+      name: HVAC schedule paused
+      icon: mdi:calendar-remove-outline
+
+  timer:
+    hvac_schedule_pause:
+      name: HVAC schedule pause
+      icon: mdi:timer-pause-outline
+
+  script:
+    hvac_schedule_pause:
+      alias: HVAC - Pause schedule
+      icon: mdi:calendar-remove-outline
+      mode: restart
+      fields:
+        hours:
+          description: How long to pause for. Leave out to pause until the alarm state changes.
+          example: 2
+      sequence:
+        - action: timer.cancel
+          target:
+            entity_id: timer.hvac_schedule_pause
+        - action: input_boolean.turn_on
+          target:
+            entity_id: input_boolean.hvac_schedule_paused
+        - if: "{{ hours is defined and hours | float(0) > 0 }}"
+          then:
+            - action: timer.start
+              target:
+                entity_id: timer.hvac_schedule_pause
+              data:
+                duration:
+                  hours: "{{ hours | float }}"
+
+    hvac_schedule_resume:
+      alias: HVAC - Resume schedule
+      icon: mdi:calendar-check-outline
+      mode: single
+      sequence:
+        - action: timer.cancel
+          target:
+            entity_id: timer.hvac_schedule_pause
+        - action: input_boolean.turn_off
+          target:
+            entity_id: input_boolean.hvac_schedule_paused
+
+  automation:
+    - id: hvac_schedule_pause_end
+      alias: HVAC schedule pause ends
+      description: Ends the pause when its timer runs out, or, for an untimed pause, on the next alarm state change.
+      mode: single
+      triggers:
+        - trigger: event
+          event_type: timer.finished
+          event_data:
+            entity_id: timer.hvac_schedule_pause
+        - trigger: state
+          entity_id: alarm_control_panel.default
+          to:
+            - disarmed
+            - armed_home
+            - armed_night
+            - armed_away
+            - armed_vacation
+      conditions:
+        - condition: state
+          entity_id: input_boolean.hvac_schedule_paused
+          state: "on"
+        # A timed pause ignores alarm changes; only the timer ends it.
+        - condition: or
+          conditions:
+            - condition: template
+              value_template: "{{ trigger.platform == 'event' }}"
+            - condition: state
+              entity_id: timer.hvac_schedule_pause
+              state: idle
+      actions:
+        - action: script.hvac_schedule_resume

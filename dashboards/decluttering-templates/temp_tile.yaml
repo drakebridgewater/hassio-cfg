@@ -1,0 +1,40 @@
+# One room tile in a floor's temperature card: the button-card temp_tile template
+# (button-card-templates/active/temp_tile.yaml) plus the room's 24-hour trend.
+# 24 hours shows a whole day: the overnight setback, the morning recovery and the
+# afternoon sun, which is what says whether a room keeps up with the thermostat.
+# Tapping the tile or the graph opens the sensor's more-info.
+# Variables: entity, name, compare (true to tint against the thermostat).
+temp_tile:
+  default:
+    - compare: true
+  card:
+    type: custom:button-card
+    template: temp_tile
+    entity: '[[entity]]'
+    name: '[[name]]'
+    variables:
+      compare: '[[compare]]'
+    custom_fields:
+      graph:
+        card:
+          type: custom:mini-graph-card
+          entities:
+            - entity: '[[entity]]'
+          hours_to_show: 24
+          points_per_hour: 2
+          aggregate_func: avg
+          height: 56
+          line_width: 2
+          line_color: var(--secondary-text-color)
+          smoothing: true
+          show:
+            name: false
+            icon: false
+            state: false
+            legend: false
+            labels: false
+            points: false
+            fill: fade
+          card_mod:
+            style: |
+              ha-card { background: none !important; box-shadow: none !important; border: none !important; padding: 0 !important; }

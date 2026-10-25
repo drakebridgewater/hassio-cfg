@@ -1,0 +1,107 @@
+# Pause the HVAC schedule so the thermostat can be run by hand (packages/hvac_pause.yaml).
+# Tapping the lit tile, or Resume, hands control back to the schedule.
+type: vertical-stack
+grid_options:
+  columns: full
+cards:
+  - type: heading
+    heading: Pause the schedule
+    heading_style: title
+  - type: custom:layout-card
+    layout_type: custom:grid-layout
+    layout:
+      grid-template-columns: repeat(2, minmax(0, 1fr))
+      grid-gap: 8px
+      margin: 0
+      padding: 0
+      card_margin: 0
+      mediaquery:
+        "(min-width: 768px)":
+          grid-template-columns: repeat(4, minmax(0, 1fr))
+    cards:
+      - type: custom:button-card
+        template: action_tile
+        entity: timer.hvac_schedule_pause
+        name: 2 hours
+        icon: mdi:timer-pause-outline
+        triggers_update:
+          - input_boolean.hvac_schedule_paused
+        variables:
+          tone: attention
+          'on': >-
+            [[[ return states['input_boolean.hvac_schedule_paused'].state === 'on'
+                  && entity.attributes.duration === '2:00:00' ]]]
+        label: >-
+          [[[ return variables.on ? 'Paused until ' + new Date(entity.attributes.finishes_at).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'}) : 'Control it yourself' ]]]
+        tap_action:
+          action: perform-action
+          perform_action: script.hvac_schedule_pause
+          data:
+            hours: 2
+      - type: custom:button-card
+        template: action_tile
+        entity: timer.hvac_schedule_pause
+        name: 4 hours
+        icon: mdi:timer-pause-outline
+        triggers_update:
+          - input_boolean.hvac_schedule_paused
+        variables:
+          tone: attention
+          'on': >-
+            [[[ return states['input_boolean.hvac_schedule_paused'].state === 'on'
+                  && entity.attributes.duration === '4:00:00' ]]]
+        label: >-
+          [[[ return variables.on ? 'Paused until ' + new Date(entity.attributes.finishes_at).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'}) : 'Control it yourself' ]]]
+        tap_action:
+          action: perform-action
+          perform_action: script.hvac_schedule_pause
+          data:
+            hours: 4
+      - type: custom:button-card
+        template: action_tile
+        entity: timer.hvac_schedule_pause
+        name: 6 hours
+        icon: mdi:timer-pause-outline
+        triggers_update:
+          - input_boolean.hvac_schedule_paused
+        variables:
+          tone: attention
+          'on': >-
+            [[[ return states['input_boolean.hvac_schedule_paused'].state === 'on'
+                  && entity.attributes.duration === '6:00:00' ]]]
+        label: >-
+          [[[ return variables.on ? 'Paused until ' + new Date(entity.attributes.finishes_at).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'}) : 'Control it yourself' ]]]
+        tap_action:
+          action: perform-action
+          perform_action: script.hvac_schedule_pause
+          data:
+            hours: 6
+      - type: custom:button-card
+        template: action_tile
+        entity: input_boolean.hvac_schedule_paused
+        name: Until the alarm changes
+        icon: mdi:shield-sync-outline
+        triggers_update:
+          - timer.hvac_schedule_pause
+        variables:
+          tone: attention
+          'on': >-
+            [[[ return entity.state === 'on' && states['timer.hvac_schedule_pause'].state === 'idle' ]]]
+        label: >-
+          [[[ return variables.on ? 'Paused until you arm or disarm' : 'Next arm or disarm' ]]]
+        tap_action:
+          action: perform-action
+          perform_action: script.hvac_schedule_pause
+  - type: custom:button-card
+    template: action_tile
+    entity: input_boolean.hvac_schedule_paused
+    name: Resume the schedule
+    icon: mdi:calendar-check-outline
+    variables:
+      tone: ok
+      'on': false
+    label: >-
+      [[[ return entity.state === 'on' ? 'The schedule is paused' : 'The schedule is running' ]]]
+    tap_action:
+      action: perform-action
+      perform_action: script.hvac_schedule_resume

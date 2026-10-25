@@ -1,4 +1,4 @@
-# Thermostat (Ecobee), first card on the Climate page. The status-chip header cards
+# Thermostat (Ecobee), first card on the Climate page's HVAC tab. The status-chip header cards
 # (security, doors, windows, wall switches) follow this look.
 type: custom:bubble-card
 card_type: climate

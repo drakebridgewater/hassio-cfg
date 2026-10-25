@@ -104,3 +104,6 @@ www/upcoming-media-card-images/plex/Recently_Added_Movies/p132346.jpg
 
 # --- Hosting ---
 www/google*.html
+
+# Claude Code worktrees
+.claude/worktrees/
