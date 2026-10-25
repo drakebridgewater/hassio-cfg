@@ -13,7 +13,13 @@ navbar:
     mobile:
       show_labels: true
       show_popup_label_backgrounds: true
+    # Media bar above the navbar while anything plays (see navigation/media-players.yaml).
+    media_player:
+      album_cover_background: true
+      players: !include ../navigation/media-players.yaml
     layout:
+      # Media and Rooms light up while you're on one of their pages.
+      reflect_child_state: true
       auto_padding:
         enabled: true
     haptic:

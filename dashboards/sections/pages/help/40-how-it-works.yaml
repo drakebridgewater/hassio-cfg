@@ -1,0 +1,68 @@
+# How the house works: what the colours mean, the small buttons on the wall switches
+# (from the Inovelli automations), and what happens on its own. Read only.
+type: vertical-stack
+grid_options:
+  columns: full
+cards:
+  - type: heading
+    heading: How the house works
+    heading_style: title
+  - type: custom:layout-card
+    layout_type: custom:grid-layout
+    layout:
+      grid-template-columns: minmax(0, 1fr)
+      grid-gap: 8px
+      margin: 0
+      padding: 0
+      card_margin: 0
+      mediaquery:
+        "(min-width: 1024px)":
+          grid-template-columns: repeat(3, minmax(0, 1fr))
+    cards:
+      - type: custom:button-card
+        template: action_tile
+        name: What the colours mean
+        icon: mdi:palette-outline
+        tap_action:
+          action: none
+        label: >-
+          [[[ const k = (c, t, ring) => `<div class="k"><span style="${ring
+                ? `border:2px solid ${c}` : `background:${c}`}"></span>${t}</div>`;
+              return k('var(--green-color)', 'Fine: closed, locked, everyone home')
+                + k('var(--amber-color)', 'Look at this: open or unlocked. Pulsing means it should be shut.')
+                + k('var(--orange-color)', 'The house can\'t reach it')
+                + k('var(--yellow-color)', 'Lights on')
+                + k('var(--amber-color)', 'Ring on a room: its lights are on manual', true); ]]]
+        extra_styles: |
+          #label .k { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
+          #label .k span { width: 12px; height: 12px; border-radius: 4px; flex: none; box-sizing: border-box; }
+
+      - type: custom:button-card
+        template: action_tile
+        name: The small button on the wall switches
+        icon: mdi:light-switch
+        tap_action:
+          action: none
+        label: >-
+          <p>Kitchen, bedroom and upstairs: tap once to stop the music, 2 to 5 times for a playlist.
+          Hold it to put that room's lights on manual; hold again for automatic.</p>
+          <p>Upstairs hallway: hold to put the stairs, living and dining room on manual.
+          Office: hold for manual.</p>
+          <p>Garage: tap to open the garage partway to let Abby out; tap again to close it.</p>
+        extra_styles: |
+          #label p { margin: 0 0 6px; }
+
+      - type: custom:button-card
+        template: action_tile
+        name: Things the house does on its own
+        icon: mdi:home-automation
+        tap_action:
+          action: none
+        label: >-
+          <p>Lights in most rooms come on with motion and go off when the room is empty,
+          unless the room is on manual.</p>
+          <p>The heat and AC pause while a door or window is open and come back 20 minutes
+          after everything is shut.</p>
+          <p>A package shows on the status card once a camera has seen it for 2 minutes.</p>
+        extra_styles: |
+          #label p { margin: 0 0 6px; }

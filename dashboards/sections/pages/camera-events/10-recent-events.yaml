@@ -1,0 +1,35 @@
+# The security events feed (moved from Security): the last hour only, then a button
+# to the Activity (logbook) panel with the same entities. Keep the two lists in sync.
+type: vertical-stack
+cards:
+  - type: heading
+    heading: Last hour
+    heading_style: title
+    icon: mdi:history
+  - type: logbook
+    hours_to_show: 1
+    target:
+      entity_id:
+        - alarm_control_panel.default
+        - lock.front_door
+        - cover.garage_door
+        - binary_sensor.front_door
+        - binary_sensor.kitchen_door
+        - binary_sensor.basement_sliding_door
+        - binary_sensor.frontdeck_package_occupancy
+        - binary_sensor.frontdoor_package_occupancy
+        - binary_sensor.smoke_alarm_monitor
+        - binary_sensor.basement_bathroom_sink_water_leak_detected
+        - binary_sensor.crawl_space_leak_monitor_water_leak_detected
+        - binary_sensor.main_bathroom_sink_water_leak_detected
+        - binary_sensor.crawl_space_water_leak_detected_2
+        - binary_sensor.master_bathroom_toilet_water_leak_detected
+  - type: custom:button-card
+    template: action_tile
+    name: Show the full history
+    label: Every event from these doors, locks and sensors, in the Activity panel
+    icon: mdi:history
+    tap_action:
+      action: navigate
+      navigation_path: >-
+        /logbook?entity_id=alarm_control_panel.default,lock.front_door,cover.garage_door,binary_sensor.front_door,binary_sensor.kitchen_door,binary_sensor.basement_sliding_door,binary_sensor.frontdeck_package_occupancy,binary_sensor.frontdoor_package_occupancy,binary_sensor.smoke_alarm_monitor,binary_sensor.basement_bathroom_sink_water_leak_detected,binary_sensor.crawl_space_leak_monitor_water_leak_detected,binary_sensor.main_bathroom_sink_water_leak_detected,binary_sensor.crawl_space_water_leak_detected_2,binary_sensor.master_bathroom_toilet_water_leak_detected

@@ -1,0 +1,140 @@
+# Retired: replaced on every view by sections/banner/10-status-card.yaml.
+# Status badges under the alert ticker on every view (native sections badges,
+# replacing the old Bubble status chips). Order: presence, alarm, garage, front
+# door, doors/windows (only while open), motion, thermostat, wall switches,
+# lights on, power, solar (only while producing).
+# Every badge with a state shows a small label on top (show_name); presence and
+# motion are icon-and-state only. "Any" marks the group badges (any door, window
+# or wall switch).
+- type: entity
+  entity: binary_sensor.home_occupied
+  show_name: false
+  show_state: true
+  visibility: !include ../visibility/disarmed.yaml
+  tap_action:
+    action: navigate
+    navigation_path: '#people_overview'
+  hold_action:
+    action: more-info
+- type: entity
+  entity: alarm_control_panel.default
+  name: Alarm
+  show_name: true
+  show_state: true
+  visibility: !include ../visibility/disarmed.yaml
+  tap_action:
+    action: navigate
+    navigation_path: /lovelace-main/security
+  hold_action:
+    action: more-info
+- type: entity
+  entity: cover.garage_door
+  name: Garage
+  show_name: true
+  show_state: true
+  color: amber
+  visibility: !include ../visibility/disarmed.yaml
+  tap_action:
+    action: toggle
+  hold_action:
+    action: more-info
+- type: entity
+  entity: lock.front_door
+  name: Front Door
+  show_name: true
+  show_state: true
+  visibility: !include ../visibility/disarmed.yaml
+  tap_action:
+    action: more-info
+- type: entity
+  entity: binary_sensor.any_door_open_group
+  name: Any
+  show_name: true
+  show_state: true
+  color: amber
+  visibility:
+    - condition: state
+      entity: binary_sensor.any_door_open_group
+      state: 'on'
+  tap_action:
+    action: navigate
+    navigation_path: '#door'
+- type: entity
+  entity: binary_sensor.window_open_group
+  name: Any
+  show_name: true
+  show_state: true
+  color: amber
+  visibility:
+    - condition: state
+      entity: binary_sensor.window_open_group
+      state: 'on'
+  tap_action:
+    action: navigate
+    navigation_path: '#window'
+- type: entity
+  entity: binary_sensor.whole_house_motion_group
+  icon: mdi:motion-sensor
+  show_name: false
+  show_state: false
+  color: amber
+  tap_action:
+    action: more-info
+- type: entity
+  entity: climate.thermostat
+  name: Thermostat
+  show_name: true
+  show_state: true
+  state_content:
+    - state
+    - current_temperature
+  tap_action:
+    action: navigate
+    navigation_path: /lovelace-main/climate
+  hold_action:
+    action: more-info
+- type: entity
+  entity: light.wall_switch_light_group
+  name: Any
+  icon: mdi:light-switch
+  show_name: true
+  show_state: true
+  tap_action:
+    action: navigate
+    navigation_path: '#wall_switches'
+- type: entity
+  entity: sensor.lights_on_count
+  name: Lights on
+  icon: mdi:lightbulb-multiple
+  show_name: true
+  show_state: true
+  color: amber
+  tap_action:
+    action: navigate
+    navigation_path: '#lights'
+- type: entity
+  entity: sensor.sense_energy
+  name: Using
+  icon: mdi:meter-electric-outline
+  show_name: true
+  show_state: true
+  color: blue
+  tap_action:
+    action: navigate
+    navigation_path: /energy
+  hold_action:
+    action: more-info
+- type: entity
+  entity: sensor.envoy_202208027163_current_power_production
+  name: Producing
+  icon: mdi:solar-power-variant
+  show_name: true
+  show_state: true
+  color: green
+  visibility:
+    - condition: numeric_state
+      entity: sensor.envoy_202208027163_current_power_production
+      above: 20
+  tap_action:
+    action: navigate
+    navigation_path: /energy

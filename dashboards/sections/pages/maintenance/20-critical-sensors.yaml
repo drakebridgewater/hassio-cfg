@@ -1,0 +1,19 @@
+# Critical sensors that have stopped reporting (moved from Help).
+type: custom:unavailable-entity-card
+title: Critical sensors
+expanded: false
+entities:
+  - sensor.living_room_temperature_sensor_temperature
+  - entity: cover.garage_door
+    name: Garage Door
+    icon: mdi:garage
+  - entity: sensor.flo_basement_bathroom_water_sensor_temperature
+  - entity: sensor.flo_under_kitchen_sink_temperature
+  - entity: sensor.acurite_tower_attic_sensor_temperature
+  - entity: sensor.crawl_space_temperature_sensor_temperature
+  - entity: sensor.flo_laundry_temperature
+unavailable_states:
+  - state: unavailable
+  - state: unknown
+  - state: error
+  - state: offline

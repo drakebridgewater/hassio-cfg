@@ -3,16 +3,26 @@ path: music
 icon: mdi:music
 subview: true
 back_path: /lovelace-main/home
-type: custom:grid-layout
-layout: !include ../../layouts/frame.yaml
-cards:
-  - !include ../../frame/banner.yaml
-  - !include ../../frame/sidebar.yaml
-  - !include ../../frame/sidebar-lower.yaml
-  - !include ../../frame/footer.yaml
-  - !include ../../navigation/house.yaml
-
-  - type: vertical-stack
-    view_layout:
-      grid-area: main
-    cards: !include_dir_list ../../sections/pages/music/col1
+type: sections
+max_columns: 3
+# Music, Music Assistant tab, no header or badges. The tabs across the top switch to
+# Echo (81-music-echo.yaml, Spotify on the Echos). Left (one column): the player +
+# queue. Right (two columns): one Quick play row (playlist, room, Play, Stop) over
+# the library. On a large screen it all fits and scrolling is locked
+# (cards/scroll-lock.yaml); narrower, the sections stack and the page scrolls.
+sections:
+  - type: grid
+    column_span: 3
+    cards:
+      - !include ../../cards/music-tabs.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/pages/music/10-player.yaml
+  - type: grid
+    column_span: 2
+    cards: !include_dir_list ../../sections/pages/music/right
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/house.yaml
+      - !include ../../cards/scroll-lock.yaml

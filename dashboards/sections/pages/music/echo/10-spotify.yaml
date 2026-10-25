@@ -1,0 +1,15 @@
+# Echo tab, left: your Spotify (media_player.spotify_thedrake), whatever it's playing on.
+# Its search finds and plays songs; "Big search" in its menu opens the full-size
+# search pop-up (popup/spotify_search.yaml).
+type: custom:yet-another-media-player
+entities:
+  - entity_id: media_player.spotify_thedrake
+disable_mass_queue: false
+actions:
+  - name: Big search
+    icon: mdi:magnify-expand
+    in_menu: true
+    action: navigate
+    navigation_path: '#spotify-search'
+grid_options:
+  columns: full

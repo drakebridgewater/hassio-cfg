@@ -1,0 +1,64 @@
+# Grocery list pop-up (Mealie's Grocery list). Opened from the tablet hero's
+# grocery button (sections/tablet/10-hero.yaml) and Home's status bar tile
+# (sections/banner/status-tiles.yaml) without leaving the page.
+# Add items by keyboard in the list's "Add item" field, or by voice: the
+# microphone button opens Assist already listening ("add milk to grocery").
+type: custom:bubble-card
+card_type: pop-up
+hash: '#grocery'
+button_type: name
+name: Grocery list
+icon: mdi:cart-outline
+show_state: false
+button_action:
+  tap_action:
+    action: none
+cards:
+  - type: horizontal-stack
+    cards: 
+      - type: custom:bubble-card
+        card_type: button
+        button_type: name
+        name: Print
+        sub_button:
+          main: []
+          bottom: []
+        icon: mdi:printer
+        tap_action:
+          action: perform-action
+          perform_action: script.turn_on
+          target:
+            entity_id: script.esc_pos_shopping_list
+          confirmation:
+            text: Print the grocery list?
+        button_action:
+          tap_action:
+            action: perform-action
+            perform_action: script.turn_on
+            target:
+              entity_id: script.esc_pos_shopping_list
+            confirmation:
+              text: Print the grocery list?
+      - type: custom:bubble-card
+        card_type: button
+        button_type: name
+        name: Add by voice
+        sub_button:
+          main: []
+          bottom: []
+        icon: mdi:microphone
+        tap_action:
+          action: assist
+          start_listening: true
+        button_action:
+          tap_action:
+            action: assist
+            start_listening: true
+  - type: markdown
+    text_only: true
+    content: Say "add milk to grocery", or type below.
+  - type: todo-list
+    entity: todo.kitchen_mealie_grocery
+    title: ''
+    hide_create: false
+    hide_completed: true

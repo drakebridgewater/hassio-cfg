@@ -1,0 +1,10 @@
+# Main bathroom: only a leak sensor under the sink so far.
+- type: heading
+  heading_style: title
+  heading: Main bathroom
+- type: tile
+  entity: binary_sensor.main_bathroom_sink_water_leak_detected
+  name: Sink leak
+- type: tile
+  entity: sensor.main_bathroom_sink_battery_level
+  name: Sink sensor battery

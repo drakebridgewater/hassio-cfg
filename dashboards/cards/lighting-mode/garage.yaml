@@ -1,0 +1,12 @@
+# Lighting mode for the garage zone (button-card template lighting_mode).
+# Same blockers and automations as sensor.lighting_mode_garage.
+type: custom:button-card
+template: lighting_mode
+entity: sensor.lighting_mode_garage
+grid_options:
+  columns: 24
+variables:
+  blockers:
+    - input_boolean.lighting_automation_blocker_garage
+  automations:
+    - automation.lighting_automation_garage_sensor_light

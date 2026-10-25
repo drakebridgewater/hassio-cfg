@@ -1,0 +1,31 @@
+# Echo tab, right: each Echo's volume (Alexa Media Player). The garage Echo isn't in
+# Alexa Media Player, so set its volume from Spotify while it plays there.
+type: vertical-stack
+grid_options:
+  columns: full
+cards:
+  - type: heading
+    heading: Volume
+    heading_style: title
+  - type: grid
+    columns: 2
+    square: false
+    cards:
+      - type: tile
+        entity: media_player.drake_s_echo
+        name: Living room
+        icon: mdi:speaker
+        state_content: volume_level
+        vertical: false
+        features_position: bottom
+        features:
+          - type: media-player-volume-slider
+      - type: tile
+        entity: media_player.family_room_echo
+        name: Family room
+        icon: mdi:speaker
+        state_content: volume_level
+        vertical: false
+        features_position: bottom
+        features:
+          - type: media-player-volume-slider

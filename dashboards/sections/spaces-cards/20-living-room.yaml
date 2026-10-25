@@ -1,0 +1,137 @@
+# Living Room card. Layout, badges and actions come from decluttering-templates/room_card.yaml.
+type: custom:decluttering-card
+template: room_card
+variables:
+  - name: Living Room
+  - icon: mdi:sofa-outline
+  - color: 33, 150, 243
+  - popup: /lovelace-main/living-room
+  - entity: binary_sensor.living_room_presence_sensor_occupancy
+  - temp: sensor.living_room_temperature_sensor_temperature
+  - humid: sensor.wirelesstag_main_freezer_humidity
+  - zone: main_area
+  - badges:
+      - name: Window open
+        target: main_icon
+        icon: mdi:window-open-variant
+        color: red
+        animation: pulse
+        condition:
+          - condition: or
+            conditions:
+              - condition: state
+                entity_id: binary_sensor.awning_left_window
+                state: 'on'
+              - condition: state
+                entity_id: binary_sensor.awning_right_window
+                state: 'on'
+      # Air quality, one badge by severity, using the Climate page tile bands
+      # (good / moderate / high) for: thermostat_air_quality_index, thermostat_voc, thermostat_co2.
+      # IAQ: yellow from the Ecobee app's Fair (100), red at its Poor (200); CO2 800/1200/2000.
+      # See sections/climate/air-quality/10-living-room.yaml.
+      - name: Air quality poor
+        target: main_icon
+        icon: mdi:smog
+        color: red
+        animation: pulse
+        condition:
+          - condition: or
+            conditions:
+              - condition: numeric_state
+                entity_id: sensor.thermostat_air_quality_index
+                above: 200
+              - condition: numeric_state
+                entity_id: sensor.thermostat_voc
+                above: 10000
+              - condition: numeric_state
+                entity_id: sensor.thermostat_co2
+                above: 2000
+      - name: Air quality high
+        target: main_icon
+        icon: mdi:weather-dust
+        color: orange
+        animation: glow
+        condition:
+          - condition: and
+            conditions:
+              - condition: or
+                conditions:
+                  - condition: numeric_state
+                    entity_id: sensor.thermostat_air_quality_index
+                    above: 150
+                  - condition: numeric_state
+                    entity_id: sensor.thermostat_voc
+                    above: 5000
+                  - condition: numeric_state
+                    entity_id: sensor.thermostat_co2
+                    above: 1200
+              - condition: not
+                conditions:
+                  - condition: or
+                    conditions:
+                      - condition: numeric_state
+                        entity_id: sensor.thermostat_air_quality_index
+                        above: 200
+                      - condition: numeric_state
+                        entity_id: sensor.thermostat_voc
+                        above: 10000
+                      - condition: numeric_state
+                        entity_id: sensor.thermostat_co2
+                        above: 2000
+      - name: Air quality moderate
+        target: main_icon
+        icon: mdi:weather-dust
+        color: yellow
+        condition:
+          - condition: and
+            conditions:
+              - condition: or
+                conditions:
+                  - condition: numeric_state
+                    entity_id: sensor.thermostat_air_quality_index
+                    above: 100
+                  - condition: numeric_state
+                    entity_id: sensor.thermostat_voc
+                    above: 1500
+                  - condition: numeric_state
+                    entity_id: sensor.thermostat_co2
+                    above: 800
+              - condition: not
+                conditions:
+                  - condition: or
+                    conditions:
+                      - condition: numeric_state
+                        entity_id: sensor.thermostat_air_quality_index
+                        above: 150
+                      - condition: numeric_state
+                        entity_id: sensor.thermostat_voc
+                        above: 5000
+                      - condition: numeric_state
+                        entity_id: sensor.thermostat_co2
+                        above: 1200
+      - name: Too warm
+        target: main_icon
+        icon: mdi:fire
+        color: orange
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.living_room_temperature_sensor_temperature
+            above: 74
+      - name: Too cold
+        target: main_icon
+        icon: mdi:snowflake-alert
+        color: cyan
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.living_room_temperature_sensor_temperature
+            below: 67
+      - name: Occupied
+        target: main_icon
+        icon: mdi:motion-sensor
+        color: green
+        condition:
+          - condition: state
+            entity_id: binary_sensor.living_room_presence_sensor_occupancy
+            state: 'on'

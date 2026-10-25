@@ -1,0 +1,48 @@
+# TV, family room tab: what's on and the apps on the left, the remote on the right; phones
+# stack them. The tabs across the top switch TVs (cards/tv-tabs.yaml), and /tv
+# (82-tv.yaml) opens whichever one is playing.
+# The family room also has the Samsung TV's power and volume under the apps.
+title: TV
+path: tv-family-room
+icon: mdi:theater
+subview: true
+back_path: /lovelace-main/home
+type: sections
+max_columns: 2
+sections:
+  - type: grid
+    column_span: 2
+    cards:
+      - !include ../../cards/tv-tabs.yaml
+  - type: grid
+    cards:
+      - type: custom:decluttering-card
+        template: tv_room_apps
+        variables:
+          - media_player: media_player.family_room
+      - type: tile
+        entity: media_player.family_room_samsung_tv
+        name: Samsung TV
+        icon: mdi:television
+        vertical: false
+        features_position: bottom
+        grid_options:
+          columns: full
+        tap_action:
+          action: toggle
+        icon_tap_action:
+          action: toggle
+        features:
+          - type: media-player-volume-slider
+  - type: grid
+    cards:
+      - type: custom:decluttering-card
+        template: tv_room_remote
+        variables:
+          - media_player: media_player.family_room
+          - remote: remote.family_room
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/house.yaml
+      - !include ../../cards/tv-auto-room.yaml

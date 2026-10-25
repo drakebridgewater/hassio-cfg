@@ -1,7 +1,7 @@
 type: vertical-stack
 cards:
   - type: heading
-    heading: 🚨 Panic Active
+    heading: Panic active
     heading_style: title
     icon: mdi:alarm-light
   - type: markdown
@@ -14,7 +14,7 @@ cards:
       Disarm on either Ring keypad with your code, or tap **Stand Down** below. This will silence sirens, stop announcements, restore lights, and return the alarm to its pre-panic state. Garage door and door locks will be left as-is.
   - type: tile
     entity: script.panic_stand_down
-    name: Stand Down — Reset Panic
+    name: Stand down the panic
     icon: mdi:check-decagram
     color: green
     tap_action:

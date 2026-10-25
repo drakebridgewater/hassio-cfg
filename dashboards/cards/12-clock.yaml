@@ -1,0 +1,5 @@
+clock_style: digital
+clock_size: large
+show_seconds: true
+no_background: false
+type: clock

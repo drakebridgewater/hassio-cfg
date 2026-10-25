@@ -1,0 +1,39 @@
+# The TV page's room tabs: one subview per TV (83-85-tv-*.yaml), so each device
+# remembers its own room and the address says which TV you're controlling. A dot
+# marks a TV that's playing. /tv itself opens the right tab (cards/tv-auto-room.yaml).
+type: grid
+columns: 3
+square: false
+grid_options:
+  columns: full
+cards:
+  - type: custom:button-card
+    template: page_tab
+    entity: media_player.living_room
+    name: Living room
+    icon: mdi:sofa
+    variables:
+      path: tv-living-room
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-main/tv-living-room
+  - type: custom:button-card
+    template: page_tab
+    entity: media_player.family_room
+    name: Family room
+    icon: mdi:theater
+    variables:
+      path: tv-family-room
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-main/tv-family-room
+  - type: custom:button-card
+    template: page_tab
+    entity: media_player.garage
+    name: Garage
+    icon: mdi:garage-variant
+    variables:
+      path: tv-garage
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-main/tv-garage

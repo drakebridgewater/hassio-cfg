@@ -1,0 +1,13 @@
+# Lighting mode for the basement bathroom zone (button-card template lighting_mode).
+# Same blockers and automations as sensor.lighting_mode_basement_bathroom.
+type: custom:button-card
+template: lighting_mode
+entity: sensor.lighting_mode_basement_bathroom
+grid_options:
+  columns: 24
+variables:
+  blockers:
+    - input_boolean.lighting_automation_blocker_basement_bathroom
+  automations:
+    - automation.lighting_automation_basement_bathroom_sensor_light
+  title: Basement bathroom lighting

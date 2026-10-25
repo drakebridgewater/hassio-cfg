@@ -1,0 +1,495 @@
+# Icons in the status card (10-status-card.yaml). The grid is a layout-card, which
+# ignores `visibility`, so tiles that come and go are wrapped in conditional cards.
+# Each is a status_tile (button-card-templates/active/status_tile.yaml): `name` shows
+# above the state from 768px; a `<span class="more">` in the label only shows there too.
+# Who's away: the pictures of whoever is out (Ethan and Abby from their school or
+# daycare sensors, otherwise with the grown-ups); a green home icon when everyone's in.
+# Phones say who or how many; from 768px each name with where they are, and for a
+# grown-up at work their drive home (packages/drive_home.yaml), amber when slow.
+- type: conditional
+  conditions: !include ../../visibility/disarmed.yaml
+  card:
+      type: custom:button-card
+      template: status_tile
+      entity: binary_sensor.home_occupied
+      name: Who's away
+      icon: mdi:home-account
+      triggers_update:
+        - person.drake
+        - person.shawna
+        - sensor.drake_drive_home
+        - sensor.shawna_drive_home
+        - binary_sensor.ethan_at_school
+        - binary_sensor.ethan_at_daycare
+        - binary_sensor.abby_at_daycare
+      variables:
+        away: >-
+          [[[
+            const place = (p) => {
+              const s = hass.states[p]?.state;
+              return s === 'home' ? 'Home' : s === 'not_home' ? 'Away' : s && s !== 'unknown' ? s : 'Away';
+            };
+            const grownUps = place('person.drake') === 'Home' || place('person.shawna') === 'Home' ? 'Home' : 'Out';
+            const on = (e) => hass.states[e]?.state === 'on';
+            return [
+              ['person.drake', place('person.drake')],
+              ['person.shawna', place('person.shawna')],
+              ['person.ethan', on('binary_sensor.ethan_at_school') ? 'School' : on('binary_sensor.ethan_at_daycare') ? 'Daycare' : grownUps],
+              ['person.abby', on('binary_sensor.abby_at_daycare') ? 'Daycare' : grownUps],
+            ].filter(([, where]) => where !== 'Home').map(([p, where]) => {
+              const dr = hass.states[`sensor.${p.split('.')[1]}_drive_home`];
+              const drive = dr?.attributes?.at_work && !['unknown', 'unavailable'].includes(dr.state) ? dr : null;
+              return {
+                name: hass.states[p]?.attributes?.friendly_name ?? p,
+                pic: hass.states[p]?.attributes?.entity_picture,
+                where,
+                drive: drive && `${drive.state} min home`,
+                late: !!drive?.attributes?.delayed,
+              };
+            });
+          ]]]
+        tone: '[[[ return variables.away.length === 0 ? "ok" : "neutral" ]]]'
+      label: >-
+        [[[ const a = variables.away;
+            if (a.length === 0) return 'All home';
+            const phone = a.length === 1 ? a[0].name : `${a.length} away`;
+            const wide = a.map((p) => (['Away', 'Out'].includes(p.where) ? `${p.name} out`
+              : `${p.name} at ${p.where.toLowerCase()}`)
+              + (p.drive ? ` <span class="${p.late ? 'late' : ''}">(${p.drive})</span>` : '')).join(', ');
+            return `<span class="phone">${phone}</span><span class="more">${wide}</span>` ]]]
+      custom_fields:
+        faces: >-
+          [[[ return variables.away.slice(0, 4).map((p) => p.pic
+                ? `<img src="${p.pic}" alt="">` : `<span class="ini">${p.name[0]}</span>`).join('') ]]]
+      # The pictures take the icon's place while anyone is out.
+      styles:
+        img_cell:
+          - display: '[[[ return variables.away.length ? "none" : "flex" ]]]'
+        custom_fields:
+          faces:
+            - display: '[[[ return variables.away.length ? "flex" : "none" ]]]'
+      extra_styles: |
+        #faces { grid-area: i !important; align-items: center; justify-content: center; }
+        #faces img, #faces .ini { width: 30px; height: 30px; border-radius: 50%; object-fit: cover;
+          border: 2px solid var(--card-background-color, #222); margin-left: -10px; }
+        #faces > :first-child { margin-left: 0; }
+        #label .late { color: var(--amber-color); }
+        #faces .ini { display: flex; align-items: center; justify-content: center; font-size: 13px;
+          background: var(--secondary-background-color); color: var(--primary-text-color); }
+        @media (min-width: 768px) { #container { grid-template-columns: auto minmax(0, 1fr) !important; } }
+      tap_action:
+        action: navigate
+        navigation_path: '#people_overview'
+      hold_action:
+        action: none
+
+# Shawna's work mornings (binary_sensor.shawna_leave_for_work, packages/drive_home.yaml):
+# while she's home on a work day, 5:30-7:20+10m walking 7:30, when to leave to be there by 7:30.
+# Amber from 10 minutes before the leave time. Tap for the Who's home pop-up.
+- type: conditional
+  conditions:
+    - condition: state
+      entity: binary_sensor.shawna_leave_for_work
+      state: "on"
+  card:
+      type: custom:button-card
+      template: status_tile
+      entity: binary_sensor.shawna_leave_for_work
+      name: Shawna to work
+      icon: mdi:car-clock
+      variables:
+        tone: '[[[ return entity?.attributes?.amber ? "attention" : "neutral" ]]]'
+      label: >-
+        [[[ const at = entity?.attributes ?? {};
+            const leave = at.leave ? new Date(at.leave) : null;
+            const late = leave && new Date() >= leave;
+            const t = leave ? leave.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).replace(/\s?[AP]M$/i, '') : '';
+            return `<span class="phone">${late ? 'Leave now' : `Leave ${t}`}</span><span class="more">${at.summary ?? ''}</span>` ]]]
+      tap_action:
+        action: navigate
+        navigation_path: '#people_overview'
+      hold_action:
+        action: more-info
+
+- type: conditional
+  conditions: !include ../../visibility/disarmed.yaml
+  card:
+      type: custom:button-card
+      template: status_tile
+      entity: alarm_control_panel.default
+      name: Alarm
+      icon: >-
+        [[[ const s = entity?.state ?? '';
+            return s === 'disarmed' ? 'mdi:shield-off-outline'
+              : s === 'triggered' ? 'mdi:bell-ring'
+              : s.startsWith('armed_') ? 'mdi:shield-check' : 'mdi:shield-alert' ]]]
+      label: >-
+        [[[ return {
+              disarmed: '<span class="phone">Alarm off</span><span class="more">Off</span>', armed_home: 'Armed', armed_away: 'Armed away',
+              armed_night: 'Night', armed_vacation: 'Vacation', arming: 'Arming',
+              pending: 'Entry delay', triggered: 'Triggered',
+            }[entity?.state] ?? 'No signal' ]]]
+      variables:
+        tone: >-
+          [[[ const s = entity?.state ?? '';
+              return s === 'disarmed' ? 'neutral' : s === 'triggered' ? 'alarm'
+                : s.startsWith('armed_') ? 'ok' : ['arming', 'pending'].includes(s) ? 'attention' : 'failed' ]]]
+        pulse: '[[[ return ["triggered", "pending"].includes(entity?.state) ]]]'
+      tap_action:
+        action: navigate
+        navigation_path: /lovelace-main/security
+      hold_action:
+        action: more-info
+
+- type: conditional
+  conditions: !include ../../visibility/disarmed.yaml
+  card:
+      type: custom:button-card
+      template: [status_tile, close_up]
+      entity: cover.garage_door
+      name: Garage
+      icon: '[[[ return entity?.state === "closed" ? "mdi:garage-variant" : "mdi:garage-open-variant" ]]]'
+      label: >-
+        [[[ return { closed: 'Closed', open: 'Open', opening: 'Opening', closing: 'Closing' }[entity?.state] ?? 'No signal' ]]]
+      variables:
+        tone: >-
+          [[[ const s = entity?.state;
+              return s === 'closed' ? 'ok' : ['open', 'opening', 'closing'].includes(s) ? 'attention' : 'failed' ]]]
+        pulse: '[[[ return variables.close_up.garage ]]]'
+      tap_action:
+        action: toggle
+        confirmation:
+          text: '[[[ return entity?.state === "closed" ? "Open the garage door?" : "Close the garage door?" ]]]'
+      hold_action:
+        action: more-info
+
+- type: conditional
+  conditions: !include ../../visibility/disarmed.yaml
+  card:
+      type: custom:button-card
+      template: [status_tile, close_up]
+      entity: lock.front_door
+      name: Front door
+      icon: '[[[ return entity?.state === "locked" ? "mdi:lock" : "mdi:lock-open-variant" ]]]'
+      label: >-
+        [[[ return { locked: 'Locked', unlocked: 'Unlocked', open: 'Unlocked', locking: 'Locking',
+                     unlocking: 'Unlocking', jammed: 'Jammed' }[entity?.state] ?? 'No signal' ]]]
+      variables:
+        tone: >-
+          [[[ const s = entity?.state;
+              return s === 'locked' ? 'ok' : ['unlocked', 'open', 'locking', 'unlocking'].includes(s) ? 'attention' : 'failed' ]]]
+        pulse: '[[[ return variables.close_up.lock ]]]'
+      tap_action:
+        action: more-info
+
+- type: conditional
+  conditions:
+    - condition: state
+      entity: binary_sensor.any_door_open_group
+      state: "on"
+  card:
+      type: custom:button-card
+      template: [status_tile, close_up]
+      entity: binary_sensor.any_door_open_group
+      name: Doors
+      icon: mdi:door-open
+      label: '<span class="phone">Door open</span><span class="more">Open</span>'
+      variables:
+        tone: attention
+        pulse: '[[[ return variables.close_up.doors ]]]'
+      tap_action:
+        action: navigate
+        navigation_path: '#door'
+
+- type: conditional
+  conditions:
+    - condition: state
+      entity: binary_sensor.window_open_group
+      state: "on"
+  card:
+      type: custom:button-card
+      template: [status_tile, close_up]
+      entity: binary_sensor.window_open_group
+      name: Windows
+      icon: mdi:window-open-variant
+      label: '<span class="phone">Window open</span><span class="more">Open</span>'
+      variables:
+        tone: attention
+        pulse: '[[[ return variables.close_up.windows ]]]'
+      tap_action:
+        action: navigate
+        navigation_path: '#window'
+
+- type: custom:button-card
+  template: status_tile
+  entity: climate.thermostat
+  name: Thermostat
+  # The set point: one temperature in heat or cool, the range in heat/cool (auto).
+  # From 768px also the temperature inside and what it's doing right now.
+  icon: >-
+    [[[ const a = entity?.attributes?.hvac_action;
+        return a === 'heating' ? 'mdi:fire' : a === 'cooling' ? 'mdi:snowflake' : 'mdi:thermostat' ]]]
+  label: >-
+    [[[ const at = entity?.attributes ?? {};
+        const r = (v) => Math.round(v);
+        if (entity?.state === 'off') return 'Off';
+        if (entity?.state === 'unavailable' || entity?.state == null) return 'No signal';
+        const set = at.target_temp_low != null && at.target_temp_high != null
+          ? `${r(at.target_temp_low)}–${r(at.target_temp_high)}°`
+          : at.temperature != null ? `${r(at.temperature)}°` : '';
+        const doing = { heating: ' · heating', cooling: ' · cooling', fan: ' · fan' }[at.hvac_action] ?? '';
+        const inside = at.current_temperature != null ? ` · ${r(at.current_temperature)}° inside` : '';
+        return `Set ${set}<span class="more">${inside}${doing}</span>` ]]]
+  variables:
+    tone: >-
+      [[[ const a = entity?.attributes?.hvac_action;
+          return a === 'heating' ? 'heat' : a === 'cooling' ? 'cool'
+            : entity?.state === 'unavailable' ? 'failed' : 'neutral' ]]]
+  tap_action:
+    action: navigate
+    navigation_path: /lovelace-main/climate-hvac
+  hold_action:
+    action: more-info
+
+# Next birthday from calendar.birthdays: the first name on phones; from 768px the full
+# name, how many days away and the date. Glows from 7 days out, warm on the day itself.
+# Tap for the birthdays pop-up (popup/birthdays.yaml).
+- type: custom:button-card
+  template: status_tile
+  entity: calendar.birthdays
+  name: Next birthday
+  icon: mdi:cake-variant
+  variables:
+    next: >-
+      [[[ const at = entity?.attributes ?? {};
+          if (!at.message || !at.start_time) return null;
+          const who = at.message.replace(/['’]s birthday$/i, '');
+          const day = new Date(at.start_time.replace(' ', 'T'));
+          const today = new Date(); today.setHours(0, 0, 0, 0);
+          return { who, first: who.split(' ')[0], day, days: Math.round((day - today) / 86400000) }; ]]]
+    tone: >-
+      [[[ const n = variables.next;
+          return !n ? 'neutral' : n.days <= 0 ? 'warm' : n.days <= 7 ? 'info' : 'neutral' ]]]
+  label: >-
+    [[[ const n = variables.next;
+        if (!n) return 'None soon';
+        const when = n.days <= 0 ? 'today' : n.days === 1 ? 'tomorrow' : `in ${n.days} days`;
+        const date = n.day.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+        return `<span class="phone">${n.first}${n.days <= 1 ? ' ' + when : ''}</span>`
+          + `<span class="more">${n.who} · ${when}${n.days > 1 ? ', ' + date : ''}</span>` ]]]
+  tap_action:
+    action: navigate
+    navigation_path: '#birthdays'
+  hold_action:
+    action: more-info
+
+# Mealie's grocery list: how many items are on it. Tap for the grocery pop-up
+# (popup/grocery.yaml, add by keyboard or voice); hold for the full to-do page.
+- type: custom:button-card
+  template: status_tile
+  entity: todo.kitchen_mealie_grocery
+  name: Grocery list
+  icon: mdi:cart-outline
+  label: >-
+    [[[ const n = parseInt(entity?.state, 10);
+        if (!Number.isFinite(n)) return 'No signal';
+        return n > 0 ? `${n} ${n === 1 ? 'item' : 'items'}` : 'Empty' ]]]
+  variables:
+    tone: '[[[ return Number.isFinite(parseInt(entity?.state, 10)) ? "neutral" : "failed" ]]]'
+  tap_action:
+    action: navigate
+    navigation_path: '#grocery'
+  hold_action:
+    action: navigate
+    navigation_path: /todo?entity_id=todo.kitchen_mealie_grocery
+
+- type: custom:button-card
+  template: status_tile
+  entity: sensor.lights_on_count
+  name: Lights
+  icon: '[[[ return Number(entity?.state) > 0 ? "mdi:lightbulb-on" : "mdi:lightbulb-outline" ]]]'
+  label: '[[[ const n = Number(entity?.state) || 0; return n > 0 ? `${n} on` : "All off" ]]]'
+  variables:
+    tone: '[[[ return Number(entity?.state) > 0 ? "warm" : "neutral" ]]]'
+  tap_action:
+    action: navigate
+    navigation_path: '#lights'
+
+- type: conditional
+  conditions:
+    - condition: state
+      entity: light.wall_switch_light_group
+      state: "on"
+  card:
+      type: custom:button-card
+      template: status_tile
+      entity: light.wall_switch_light_group
+      name: Wall switches
+      icon: mdi:light-switch
+      label: >-
+        [[[ const n = (entity?.attributes?.entity_id ?? []).filter((id) => hass.states[id]?.state === 'on').length;
+            return n === 0 ? 'On' : n === 1 ? '1 switch' : `${n} switches` ]]]
+      variables:
+        tone: warm
+      tap_action:
+        action: navigate
+        navigation_path: '#wall_switches'
+
+- type: conditional
+  conditions:
+    - condition: state
+      entity: input_boolean.guest_mode
+      state: "on"
+  card:
+      type: custom:button-card
+      template: status_tile
+      entity: input_boolean.guest_mode
+      name: Guest mode
+      icon: mdi:account-group
+      label: Guests
+      variables:
+        tone: info
+      tap_action:
+        action: toggle
+        confirmation:
+          text: Turn off guest mode?
+
+    # Motion anywhere in the house; tablet and up only (the badges had it, phones don't need it).
+- type: conditional
+  conditions:
+    - condition: screen
+      media_query: "(min-width: 768px)"
+  card:
+      type: custom:button-card
+      template: status_tile
+      entity: binary_sensor.whole_house_motion_group
+      name: Motion
+      icon: mdi:motion-sensor
+      label: '[[[ return entity?.state === "on" ? "Moving" : "Still" ]]]'
+      variables:
+        tone: '[[[ return entity?.state === "on" ? "info" : "neutral" ]]]'
+      tap_action:
+        action: more-info
+
+    # Power, two columns wide: what the solar panels make (sun icon) and the house uses (house
+# icon), a bar for how
+    # much of the house solar covers, and in words whether power is going to or coming from
+    # the grid. Green while sending power back. Tap for Energy.
+- type: custom:button-card
+  template: status_tile
+  entity: sensor.sense_energy
+  view_layout:
+    grid-column: span 2
+  show_name: false
+  show_label: false
+  triggers_update:
+    - sensor.envoy_202208027163_current_power_production
+  variables:
+    sun: '[[[ return Math.max(Number(hass.states["sensor.envoy_202208027163_current_power_production"]?.state) || 0, 0) ]]]'
+    use: '[[[ return Math.max(Number(entity?.state) || 0, 0) ]]]'
+    tone: '[[[ return variables.sun > 20 && variables.sun >= variables.use ? "ok" : "neutral" ]]]'
+  icon: '[[[ return variables.sun > 20 ? "mdi:solar-power-variant" : "mdi:weather-night" ]]]'
+  custom_fields:
+    power: >-
+      [[[
+        const kw = (w) => `${(w / 1000).toFixed(1)} kW`;
+        const { sun, use } = variables;
+        const solar = sun > 20;
+        const covered = use > 0 ? Math.min(sun / use, 1) * 100 : 100;
+        const [verb, amount, dir] = solar && sun >= use ? ['Sending', sun - use, 'to the grid']
+          : ['Buying', solar ? use - sun : use, 'from the grid'];
+        const msg = `${verb} ${kw(amount)}<span class="more"> ${dir}</span>`;
+        return `
+          <div class="msg">${msg}</div>
+          <div class="bar"><div style="width:${covered}%"></div></div>
+          <div class="nums">
+            <span title="Solar making"><ha-icon icon="mdi:solar-power-variant" class="sun"></ha-icon><b>${kw(sun)}</b></span>
+            <span title="House using"><ha-icon icon="mdi:home-lightning-bolt-outline"></ha-icon><b>${kw(use)}</b></span>
+          </div>`;
+      ]]]
+  extra_styles: |
+    #container { grid-template-areas: "i power" !important; grid-template-columns: 32px minmax(0, 1fr) !important;
+      column-gap: 12px; justify-items: stretch !important; align-items: center; }
+    ha-card { padding: 10px 14px !important; }
+    #power { text-align: left; min-width: 0; }
+    @media (max-width: 767px) {
+      #img-cell { display: none !important; }
+      #container { grid-template-areas: "power" !important; grid-template-columns: minmax(0, 1fr) !important; }
+      #power .more { display: none; }
+      #power .nums { font-size: 11px; }
+    }
+    #power .msg { font-size: 14px; font-weight: 500; color: var(--primary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #power .bar { height: 6px; border-radius: 3px; margin: 6px 0 4px; overflow: hidden;
+      background: color-mix(in srgb, var(--secondary-text-color) 25%, transparent); }
+    #power .bar div { height: 100%; background: var(--green-color); }
+    #power .nums { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--secondary-text-color); }
+    #power .nums b { font-weight: 500; color: var(--primary-text-color); }
+    #power .nums span { display: inline-flex; align-items: center; gap: 4px; }
+    #power .nums ha-icon { --mdc-icon-size: 16px; color: var(--secondary-text-color); }
+    #power .nums ha-icon.sun { color: var(--yellow-color); }
+  styles:
+    icon:
+      - color: '[[[ return variables.sun > 20 ? "var(--green-color)" : "var(--secondary-text-color)" ]]]'
+  tap_action:
+    action: navigate
+    navigation_path: /energy
+  hold_action:
+    action: more-info
+
+# Weather: the condition icon and the temperature now; from 768px also today's high
+# and low and the chance of rain. The tile is a small copy of the tablet hero's sky
+# (variables.sky.colors from the sky template) with just a soft sun or moon glow in
+# the corner, so text and icon are white. Tap for the forecast.
+- type: custom:button-card
+  template: [status_tile, sky]
+  entity: weather.pirateweather
+  name: Weather
+  triggers_update:
+    - sensor.daily_weather_forecast
+    - sun.sun
+    - sensor.airnow_aqi
+  variables:
+    tone: neutral
+    today: '[[[ return hass.states["sensor.daily_weather_forecast"]?.attributes?.forecast?.[0] ?? null ]]]'
+  icon: >-
+    [[[ return {
+          'clear-night': 'mdi:weather-night', cloudy: 'mdi:weather-cloudy', fog: 'mdi:weather-fog',
+          hail: 'mdi:weather-hail', lightning: 'mdi:weather-lightning', 'lightning-rainy': 'mdi:weather-lightning-rainy',
+          partlycloudy: 'mdi:weather-partly-cloudy', pouring: 'mdi:weather-pouring', rainy: 'mdi:weather-rainy',
+          snowy: 'mdi:weather-snowy', 'snowy-rainy': 'mdi:weather-snowy-rainy', sunny: 'mdi:weather-sunny',
+          windy: 'mdi:weather-windy', 'windy-variant': 'mdi:weather-windy-variant', exceptional: 'mdi:alert-circle-outline',
+        }[entity?.state] ?? 'mdi:weather-cloudy' ]]]
+  label: >-
+    [[[ const c = entity?.state;
+        const word = { 'clear-night': 'Clear', partlycloudy: 'Partly cloudy', 'lightning-rainy': 'Storms',
+          'snowy-rainy': 'Sleet', 'windy-variant': 'Windy', exceptional: 'Severe' }[c]
+          ?? (c ? c[0].toUpperCase() + c.slice(1) : 'No signal');
+        const t = entity?.attributes?.temperature;
+        const d = variables.today;
+        const rain = d?.precipitation_probability >= 30 ? ` · ${Math.round(d.precipitation_probability)}% rain` : '';
+        const hl = d ? ` · ${Math.round(d.temperature)}°/${Math.round(d.templow)}°` : '';
+        return `${t != null ? Math.round(t) + '° ' : ''}${word}<span class="more">${hl}${rain}</span>` ]]]
+  extra_styles: |
+    #name { color: rgba(255, 255, 255, 0.78) !important; }
+    #label { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25); }
+  styles:
+    card:
+      - '--tile-bg': >-
+          [[[ const { colors: [a, b, c], night, wet, cover, golden, moon } = variables.sky;
+              const sun = !night && !wet && cover <= 0.85;
+              const glow = sun
+                ? `radial-gradient(circle at 88% 18%, rgba(255,${golden ? '214,160' : '250,225'},${(0.75 - cover * 0.5).toFixed(2)}) 0 6px, transparent 28px), `
+                : night && moon.up && !wet
+                  ? 'radial-gradient(circle at 88% 18%, rgba(235,240,255,0.55) 0 4px, transparent 18px), '
+                  : '';
+              return `${glow}linear-gradient(160deg, ${a} 0%, ${b} 65%, ${c} 130%)` ]]]
+      - transition: background 2s ease
+    label:
+      - color: white
+    icon:
+      - color: >-
+          [[[ const c = entity?.state;
+              return c === 'sunny' ? '#ffe08a' : c === 'exceptional' ? 'var(--amber-color)' : 'white' ]]]
+  tap_action:
+    action: navigate
+    navigation_path: '#weather'

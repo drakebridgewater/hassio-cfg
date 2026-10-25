@@ -1,0 +1,151 @@
+
+# Shawna's section on Home. Each card shows only when she needs it:
+#   afternoons on a workday while she's out: where the kids are, for the drive home
+#   from 6:45 PM: master bedroom controls
+#   from 9 PM while the alarm is disarmed: the Goodnight scene and what to check first
+# Only Shawna's login sees the section.
+type: grid
+visibility:
+  - condition: user
+    users:
+      - 79f6891d0d1b40a798e2407ca48889aa  # Shawna
+cards:
+  # Where the kids are, for the drive home from work
+  - type: markdown
+    content: |
+      {% set abby = is_state('binary_sensor.abby_at_daycare', 'on') %}
+      {% set ethan = is_state('binary_sensor.ethan_at_daycare', 'on') %}
+      {% if abby and ethan %}
+        {% set message = "Abby and Ethan are at daycare" %}
+      {% else %}
+        {% set message = "Abby is at " ~ ("daycare" if abby else "home") ~ " and Ethan is at " ~ ("daycare" if ethan else "home") %}
+      {% endif %}
+      <h3><ha-alert alert-type="info">{{ message }}</ha-alert></h3>
+    text_only: true
+    visibility:
+      - condition: state
+        entity: sensor.shawna_work_today
+        state: working
+      - condition: state
+        entity: person.shawna
+        state_not: home
+      - condition: time
+        after: '12:00:00'
+        before: '18:45:00'
+
+  # Master bedroom: the things Shawna uses day to day
+  - type: custom:bubble-card
+    card_type: button
+    button_type: switch
+    entity: light.shawna_s_bedside_lamp
+    name: Shawna's Lamp
+    icon: mdi:lamp
+    show_state: true
+    sub_button:
+      main:
+        - entity: light.master_bedroom_dresser_lamp
+          icon: mdi:dresser
+        - entity: light.master_bedroom_wall_switch
+          name: ''
+          icon: mdi:light-switch
+        - entity: sensor.master_bedroom_temperature
+          show_background: false
+      bottom: []
+    hold_action:
+      action: navigate
+      navigation_path: /lovelace-mushroom/master_bedroom
+    visibility:
+      - condition: time
+        after: '18:45:00'
+        before: '05:00:00'
+  - type: custom:bubble-card
+    card_type: button
+    button_type: switch
+    sub_button:
+      main: []
+      bottom: []
+    entity: input_boolean.lighting_automation_blocker_master_bedroom
+    name: Block Master Bedroom Automations
+    icon: mdi:close-octagon
+    show_state: true
+    show_last_changed: true
+    show_attribute: false
+    tap_action:
+      action: toggle
+    modules:
+      - inline_confirmation
+    inline_confirmation:
+      icon_confirmation: true
+      card_confirmation: true
+    flat_style:
+      card_styles:
+        prime_color:
+          - 25
+          - 203
+          - 1
+    visibility:
+      - condition: time
+        after: '18:45:00'
+        before: '05:00:00'
+
+  # Goodnight turns off the downstairs and bedroom lights, closes the garage door
+  # and arms the alarm in night mode. Things it won't fix, or that night mode
+  # would trip on, are listed above the button.
+  - type: markdown
+    content: |
+      {% set ns = namespace(items=[]) %}
+      {% if not is_state('person.drake', 'home') %}
+        {% set ns.items = ns.items + ["Drake isn't home. The alarm will go off when he comes in."] %}
+      {% endif %}
+      {% set doors = {
+        'binary_sensor.front_door': 'Front door',
+        'binary_sensor.kitchen_door': 'Kitchen patio door',
+        'binary_sensor.basement_sliding_door': 'Basement slider',
+        'binary_sensor.garage_portal': 'Garage entry door'} %}
+      {% for e, name in doors.items() if is_state(e, 'on') %}
+        {% set ns.items = ns.items + [name ~ " is open."] %}
+      {% endfor %}
+      {% set windows = expand('binary_sensor.window_open_group')
+         | selectattr('state', 'eq', 'on') | map(attribute='name') | list %}
+      {% if windows %}
+        {% set ns.items = ns.items + ["Open: " ~ windows | join(', ') ~ "."] %}
+      {% endif %}
+      {% if is_state('lock.front_front_door', 'unlocked') %}
+        {% set ns.items = ns.items + ["The front door is unlocked. Goodnight doesn't lock it."] %}
+      {% endif %}
+      {% if is_state('cover.garage_door', 'open') %}
+        {% set ns.items = ns.items + ["The garage door is open. Goodnight will close it, so make sure nothing is in the way."] %}
+      {% endif %}
+      {% if is_state('binary_sensor.garage_door_motion_sensor_occupancy', 'on') %}
+        {% set ns.items = ns.items + ["Someone is moving in the garage."] %}
+      {% endif %}
+      {% if ns.items %}
+      {% for item in ns.items %}
+      <ha-alert alert-type="warning">{{ item }}</ha-alert>
+      {% endfor %}
+      {% else %}
+      <ha-alert alert-type="success">Everything is closed and Drake is home.</ha-alert>
+      {% endif %}
+    text_only: true
+    visibility: &goodnight_time
+      - condition: time
+        after: '21:00:00'
+        before: '05:00:00'
+      - condition: state
+        entity: alarm_control_panel.default
+        state: disarmed
+  - type: custom:bubble-card
+    card_type: button
+    button_type: switch
+    entity: scene.goodnight
+    name: Activate Goodnight
+    icon: mdi:weather-night
+    modules:
+      - inline_confirmation
+    inline_confirmation:
+      icon_confirmation: true
+      card_confirmation: true
+    sub_button:
+      main: []
+      bottom: []
+    visibility: *goodnight_time

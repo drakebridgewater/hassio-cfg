@@ -1,0 +1,32 @@
+# The grocery list (Mealie) and printing it on the receipt printer.
+type: vertical-stack
+grid_options:
+  columns: full
+cards:
+  - type: heading
+    heading: Shopping
+    heading_style: title
+  - type: custom:button-card
+    template: action_tile
+    entity: todo.kitchen_mealie_grocery
+    name: Open the grocery list
+    icon: mdi:cart-outline
+    label: >-
+      [[[ const n = Number(entity?.state) || 0;
+          return n === 0 ? 'Nothing on it yet' : n === 1 ? '1 thing on it' : `${n} things on it` ]]]
+    tap_action:
+      action: navigate
+      navigation_path: /todo?entity_id=todo.kitchen_mealie_grocery
+  - type: custom:button-card
+    template: action_tile
+    entity: todo.kitchen_mealie_grocery
+    name: Print the grocery list
+    label: Prints it on the little receipt printer
+    icon: mdi:printer-pos-outline
+    tap_action:
+      action: perform-action
+      perform_action: script.turn_on
+      target:
+        entity_id: script.esc_pos_shopping_list
+      confirmation:
+        text: Print the grocery list?

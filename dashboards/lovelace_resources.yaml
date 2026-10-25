@@ -1,5 +1,10 @@
 # Loaded for every dashboard, including the GUI ones in .storage: check those
-# before removing a card. Icon packs load from frontend.extra_module_url instead.
+# before removing a card. Icon packs load from frontend.extra_module_url instead,
+# except wear-icons.js, which is here too: an app holding an older cached frontend
+# never sees new extra_module_url entries, but it does read this list. Same URL,
+# so browsers that already loaded it don't run it twice.
+- url: /local/wear-icons.js
+  type: module
 - url: /local/icloud3/icloud3-event-log-card.js
   type: module
 - url: /browser_mod.js
@@ -75,4 +80,6 @@
   type: module
 
 - url: /local/routine-editor-card.js?v=3
+  type: module
+- url: /local/hvac-bands-card.js?v=1
   type: module

@@ -1,13 +1,18 @@
 # Security pages bar.
 type: custom:decluttering-card
 template: navbar
-view_layout:
-  grid-area: footer
 variables:
   - routes:
+      # Home goes to the page made for the device: Tablet from 768px wide
+      # (tablets and desktops, navbar.isDesktop), Home on phones.
+      - url: /lovelace-main/tablet
+        icon: mdi:home
+        label: Home
+        hidden: '[[[ return !navbar.isDesktop ]]]'
       - url: /lovelace-main/home
         icon: mdi:home
         label: Home
+        hidden: '[[[ return navbar.isDesktop ]]]'
       - url: /lovelace-main/security
         icon: mdi:shield-home
         label: Overview
@@ -17,9 +22,8 @@ variables:
       - url: /lovelace-main/cameras
         icon: mdi:cctv
         label: Outdoor
-      - url: /lovelace-main/doorbell
-        icon: mdi:doorbell-video
-        label: Doorbell
       - url: /lovelace-main/armed
         icon: mdi:shield-lock
         label: Armed
+      # Kitchen tablet only (tablet-route.yaml).
+      - !include tablet-route.yaml

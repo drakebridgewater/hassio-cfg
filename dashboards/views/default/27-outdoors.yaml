@@ -1,23 +1,16 @@
+# Room page: the room's main light up top, then its sections from
+# sections/rooms/outdoors/ (ported from the GUI by tools/port_gui_rooms.py) one section per file.
 title: Outdoors
 path: outdoors
 icon: hue:room-outdoors
 subview: true
 back_path: /lovelace-main/home
-type: custom:grid-layout
-layout: !include ../../layouts/frame.yaml
-
-# Room page: the room's main light up top, then its sections from
-# sections/rooms/outdoors/ (ported from the GUI by tools/port_gui_rooms.py) in columns.
-cards:
-  - !include ../../frame/banner.yaml
-  - !include ../../frame/sidebar.yaml
-  - !include ../../frame/sidebar-lower.yaml
-  - !include ../../frame/footer.yaml
-  - !include ../../navigation/rooms.yaml
-
-  - type: vertical-stack
-    view_layout:
-      grid-area: main
+type: sections
+max_columns: 4
+header: !include ../../header/alert-ticker.yaml
+sections:
+  - type: grid
+    column_span: 4
     cards:
       - type: custom:bubble-card
         card_type: button
@@ -32,7 +25,27 @@ cards:
             action: none
         tap_action:
           action: toggle
-      - type: custom:layout-card
-        layout_type: custom:grid-layout
-        layout: !include ../../layouts/main.yaml
-        cards: !include_dir_list ../../sections/rooms/outdoors
+      - !include ../../sections/rooms/outdoors/00-badges.yaml
+      - !include ../../sections/rooms/outdoors/01-alerts.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/outdoors/10-garbage.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/outdoors/20-uv-index.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/outdoors/30-weather.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/outdoors/40-frontdoor.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/outdoors/50-backyard.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/outdoors/60-openuv.yaml
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/rooms.yaml

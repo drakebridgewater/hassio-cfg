@@ -3,6 +3,9 @@ bubble_light:
   default:
     - name: null
     - icon: null
+    - show_name: true
+    - show_state: true
+    - show_last_changed: true
   card:
     type: custom:decluttering-card
     template: bubble_control
@@ -12,3 +15,6 @@ bubble_light:
       - icon: '[[icon]]'
       - button_type: slider
       - slider: brightness
+      - show_name: '[[show_name]]'
+      - show_state: '[[show_state]]'
+      - show_last_changed: '[[show_last_changed]]'

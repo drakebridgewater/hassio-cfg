@@ -1,0 +1,12 @@
+# Lighting mode for the master bedroom zone (button-card template lighting_mode).
+# Same blockers and automations as sensor.lighting_mode_master_bedroom.
+type: custom:button-card
+template: lighting_mode
+entity: sensor.lighting_mode_master_bedroom
+grid_options:
+  columns: 24
+variables:
+  blockers:
+    - input_boolean.lighting_automation_blocker_master_bedroom
+  automations:
+    - automation.lighting_automation_master_bedroom_sensor_light

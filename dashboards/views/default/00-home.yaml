@@ -1,27 +1,39 @@
+# Home: native sections. The alert ticker comes from the shared header and the status
+# card (people, weather, power) is the first section; the old sidebar cards are
+# sections here (Home only) next to the rooms.
+# On a phone the sections stack in this order.
 title: Home
 icon: mdi:home
 path: home
-# background: center / cover no-repeat fixed url('/local/tropical-background.jpg')
-type: custom:grid-layout
-layout: !include ../../layouts/frame.yaml
-
-cards:
-  - !include ../../frame/banner.yaml
-  - !include ../../frame/sidebar.yaml
-  - !include ../../frame/sidebar-lower.yaml
-  - !include ../../frame/footer-home.yaml
-  - !include ../../navigation/home.yaml
-
+type: sections
+max_columns: 3
+header: !include ../../header/alert-ticker.yaml
+sections:
+  - !include ../../frame/status-section.yaml
+  # Today's events (tablet and up), Shawna's day and running timers
+  
+  - type: grid
+    cards:
+      - type: vertical-stack
+        visibility:
+          - condition: screen
+            media_query: "(min-width: 768px)"
+        cards:
+          - !include ../../cards/50-today.yaml
+      - !include ../../cards/40-timers_card.yaml
+      - !include ../../cards/12-chores.yaml
+  - !include ../../cards/10-shawna.yaml
+  
+  # # Rooms, grouped by floor like the GUI dashboard (2-wide grid per floor)
+  # - type: grid
+  #   cards: !include_dir_list ../../sections/spaces-cards
+  # - type: grid
+  #   cards:  !include_dir_list ../../sections/spaces-cards
+  # - type: grid
+  #   cards: !include_dir_list ../../sections/spaces-cards
   - type: custom:layout-card
     layout_type: custom:grid-layout
-    view_layout:
-      grid-area: main
-    layout: !include ../../layouts/main.yaml
     cards:
-      # - !include ../../cards/alert-ticker.yaml
-      # - !include ../../cards/notification-feed.yaml
-      # Rooms, grouped like the GUI dashboard: one stack per floor (a Bubble
-      # separator and a 2-wide grid), so the floors sit side by side on wide screens.
       - type: vertical-stack
         cards:
           - type: custom:bubble-card
@@ -31,7 +43,14 @@ cards:
           - type: grid
             columns: 2
             square: false
-            cards: !include_dir_list ../../sections/spaces-cards/upstairs
+            cards: 
+              - !include ../../sections/spaces-cards/10-kitchen.yaml
+              - !include ../../sections/spaces-cards/20-living-room.yaml
+              - !include ../../sections/spaces-cards/30-dining.yaml
+              - !include ../../sections/spaces-cards/40-master-bedroom.yaml
+  - type: custom:layout-card
+    layout_type: custom:grid-layout
+    cards:
       - type: vertical-stack
         cards:
           - type: custom:bubble-card
@@ -41,7 +60,13 @@ cards:
           - type: grid
             columns: 2
             square: false
-            cards: !include_dir_list ../../sections/spaces-cards/downstairs
+            cards: 
+              - !include ../../sections/spaces-cards/10-office.yaml
+              - !include ../../sections/spaces-cards/20-ethans-room.yaml
+              - !include ../../sections/spaces-cards/30-family-room.yaml
+  - type: custom:layout-card
+    layout_type: custom:grid-layout
+    cards:
       - type: vertical-stack
         cards:
           - type: custom:bubble-card
@@ -51,4 +76,21 @@ cards:
           - type: grid
             columns: 2
             square: false
-            cards: !include_dir_list ../../sections/spaces-cards/other
+            cards: 
+              - !include ../../sections/spaces-cards/10-outdoor.yaml
+              - !include ../../sections/spaces-cards/20-greenhouses.yaml
+              - !include ../../sections/spaces-cards/29-attic.yaml
+              - !include ../../sections/spaces-cards/30-crawl-space.yaml
+              - !include ../../sections/spaces-cards/60-holiday.yaml
+
+
+  # Media and batteries (tablet and up, set on the cards)
+  - type: grid
+    cards:
+      - !include ../../cards/60-media_cards.yaml
+
+  # Pop-ups, ambient glow and the navbar (render nothing in place)
+  - type: grid
+    cards:
+      - !include ../../frame/footer-home.yaml
+      - !include ../../navigation/home.yaml

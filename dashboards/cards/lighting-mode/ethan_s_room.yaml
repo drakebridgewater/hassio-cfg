@@ -1,0 +1,14 @@
+# Lighting mode for the ethan s room zone (button-card template lighting_mode).
+# Same blockers and automations as sensor.lighting_mode_ethan_s_room.
+type: custom:button-card
+template: lighting_mode
+entity: sensor.lighting_mode_ethan_s_room
+grid_options:
+  columns: 24
+variables:
+  blockers:
+    - input_boolean.lighting_automation_blocker_ethan_s_room
+  automations:
+    - automation.lighting_automation_sensor_light_ethan
+    - automation.ethan_motion_light
+    - automation.lighting_auto_off_ethan_s_bedroom_lights_off_after_30_minutes

@@ -3,6 +3,9 @@
 # tts/push_notify here — the card fires those once per open browser tab.
 type: custom:alert-ticker-card
 show_when_clear: false
+# Same height for every alert (two-line alerts are ~93px), so cycling alerts never
+# moves the page below. On the tablet hero it floats above the clock.
+card_height: 94
 cycle_interval: 6
 cycle_animation: slide
 alerts:
@@ -21,16 +24,19 @@ alerts:
     message: Front door is open
     theme: door
     priority: 2
+    auto_dismiss_after: 15
   - entity: cover.garage_door
     state: open
     message: Garage door is open
     theme: door
     priority: 2
-  - entity: lock.front_door
+    auto_dismiss_after: 15
+  - entity: lock.front_front_door
     state: unlocked
     message: Front door is unlocked
     theme: warning
     priority: 3
+    auto_dismiss_after: 15
   # Chores: shown the day before pickup until someone taps to mark them done.
   # input_boolean.*_taken_out are reset by "Ridwell Auto Opt in" and the
   # day-of-week automation after pickup.

@@ -1,0 +1,120 @@
+# Outdoor card. Layout, badges and actions come from decluttering-templates/room_card.yaml.
+type: custom:decluttering-card
+template: room_card
+variables:
+  - name: Outdoor
+  - icon: mdi:balcony
+  - color: 76, 175, 80
+  - popup: /lovelace-main/outdoors
+  - entity: binary_sensor.porch_motion_motion_detection
+  - temp: sensor.wirelesstag_outdoor_temperature
+  - humid: sensor.wirelesstag_outdoor_humidity
+  - badges:
+      # Air quality, one badge by severity, using the Climate page tile bands
+      # (good / moderate / high) for: airnow_aqi, airnow_pm2_5, airnow_o3.
+      - name: Air quality poor
+        target: main_icon
+        icon: mdi:smog
+        color: red
+        animation: pulse
+        condition:
+          - condition: or
+            conditions:
+              - condition: numeric_state
+                entity_id: sensor.airnow_aqi
+                above: 150
+              - condition: numeric_state
+                entity_id: sensor.airnow_pm2_5
+                above: 75
+              - condition: numeric_state
+                entity_id: sensor.airnow_o3
+                above: 150
+      - name: Air quality high
+        target: main_icon
+        icon: mdi:weather-dust
+        color: orange
+        animation: glow
+        condition:
+          - condition: and
+            conditions:
+              - condition: or
+                conditions:
+                  - condition: numeric_state
+                    entity_id: sensor.airnow_aqi
+                    above: 100
+                  - condition: numeric_state
+                    entity_id: sensor.airnow_pm2_5
+                    above: 35
+                  - condition: numeric_state
+                    entity_id: sensor.airnow_o3
+                    above: 100
+              - condition: not
+                conditions:
+                  - condition: or
+                    conditions:
+                      - condition: numeric_state
+                        entity_id: sensor.airnow_aqi
+                        above: 150
+                      - condition: numeric_state
+                        entity_id: sensor.airnow_pm2_5
+                        above: 75
+                      - condition: numeric_state
+                        entity_id: sensor.airnow_o3
+                        above: 150
+      - name: Air quality moderate
+        target: main_icon
+        icon: mdi:weather-dust
+        color: yellow
+        condition:
+          - condition: and
+            conditions:
+              - condition: or
+                conditions:
+                  - condition: numeric_state
+                    entity_id: sensor.airnow_aqi
+                    above: 50
+                  - condition: numeric_state
+                    entity_id: sensor.airnow_pm2_5
+                    above: 12
+                  - condition: numeric_state
+                    entity_id: sensor.airnow_o3
+                    above: 50
+              - condition: not
+                conditions:
+                  - condition: or
+                    conditions:
+                      - condition: numeric_state
+                        entity_id: sensor.airnow_aqi
+                        above: 100
+                      - condition: numeric_state
+                        entity_id: sensor.airnow_pm2_5
+                        above: 35
+                      - condition: numeric_state
+                        entity_id: sensor.airnow_o3
+                        above: 100
+      - name: Hot
+        target: main_icon
+        icon: mdi:fire
+        color: orange
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.wirelesstag_outdoor_temperature
+            above: 80
+      - name: Cold
+        target: main_icon
+        icon: mdi:snowflake-alert
+        color: cyan
+        animation: glow
+        condition:
+          - condition: numeric_state
+            entity_id: sensor.wirelesstag_outdoor_temperature
+            below: 40
+      - name: Motion
+        target: main_icon
+        icon: mdi:motion-sensor
+        color: green
+        condition:
+          - condition: state
+            entity_id: binary_sensor.porch_motion_motion_detection
+            state: 'on'

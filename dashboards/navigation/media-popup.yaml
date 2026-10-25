@@ -1,0 +1,11 @@
+# Media pages, opened from the house bar's Media button. Music covers both of its
+# tabs (Music Assistant at /music, Echo at /music-echo); TV opens a room tab
+# (/tv picks the TV that's playing, then /tv-living-room and so on).
+- url: /lovelace-main/music
+  icon: mdi:music
+  label: Music
+  selected: '[[[ return /^\/lovelace-main\/music(-echo)?\/?$/.test(window.location.pathname) ]]]'
+- url: /lovelace-main/tv
+  icon: mdi:television
+  label: TV
+  selected: '[[[ return /^\/lovelace-main\/tv(-[a-z-]+)?\/?$/.test(window.location.pathname) ]]]'

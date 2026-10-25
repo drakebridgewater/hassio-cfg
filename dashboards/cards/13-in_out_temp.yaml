@@ -1,0 +1,49 @@
+
+type: horizontal-stack
+cards:
+  - type: custom:button-card
+    entity: sensor.wirelesstag_outdoor_temperature
+    show_state: true
+    show_name: true
+    show_label: false
+    show_icon: false
+    label: label
+    name: Outdoor
+    # Text scales with the tile (container query units), not the window,
+    # so it always fits its box.
+    styles:
+      card:
+        - container-type: inline-size
+      state:
+        - font-size: clamp(1.2em, 19cqi, 4em)
+        - white-space: nowrap
+      grid:
+        - grid-template-areas: '"i" "n" "s"'
+      name:
+        - text-transform: uppercase
+        - letter-spacing: clamp(0.1em, 1.2cqi, 0.5em)
+        - font-size: clamp(0.7em, 6cqi, 1em)
+    tap_action: none
+  - type: custom:button-card
+    entity: sensor.living_room_temperature_sensor_temperature
+    show_state: true
+    show_name: true
+    show_label: false
+    show_icon: false
+    label: label
+    name: Indoor
+    # Text scales with the tile (container query units), not the window,
+    # so it always fits its box.
+    styles:
+      card:
+        - container-type: inline-size
+      state:
+        - font-size: clamp(1.2em, 19cqi, 4em)
+        - white-space: nowrap
+      grid:
+        - grid-template-areas: '"i" "n" "s"'
+      name:
+        - text-transform: uppercase
+        - letter-spacing: clamp(0.1em, 1.2cqi, 0.5em)
+        - font-size: clamp(0.7em, 6cqi, 1em)
+    tap_action: none

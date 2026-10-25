@@ -1,0 +1,173 @@
+# Clean one room: tap a room and the vacuum goes and cleans just that room
+# (vacuum.clean_area; its rooms are mapped to HA areas in the vacuum's entity options,
+# its "Hall" to Entryway). The room it's cleaning right now is highlighted.
+type: vertical-stack
+grid_options:
+  columns: full
+cards:
+  - type: heading
+    heading: Clean one room
+    heading_style: subtitle
+  - type: custom:layout-card
+    layout_type: custom:grid-layout
+    layout:
+      grid-template-columns: repeat(2, minmax(0, 1fr))
+      grid-gap: 8px
+      margin: 0
+      padding: 0
+      card_margin: 0
+    cards:
+      - type: custom:button-card
+        template: action_tile
+        entity: vacuum.roborock_q5
+        name: Kitchen
+        icon: mdi:fridge-outline
+        triggers_update:
+          - sensor.roborock_q5_current_room
+        variables:
+          'on': >-
+            [[[ return entity?.state === 'cleaning'
+                && hass.states['sensor.roborock_q5_current_room']?.state === 'Kitchen' ]]]
+        label: '[[[ return variables.on ? "Cleaning now" : "Tap to clean" ]]]'
+        tap_action:
+          action: perform-action
+          perform_action: vacuum.clean_area
+          target:
+            entity_id: vacuum.roborock_q5
+          data:
+            cleaning_area_id:
+              - kitchen
+          confirmation:
+            text: Clean the kitchen now?
+      - type: custom:button-card
+        template: action_tile
+        entity: vacuum.roborock_q5
+        name: Living room
+        icon: mdi:sofa-outline
+        triggers_update:
+          - sensor.roborock_q5_current_room
+        variables:
+          'on': >-
+            [[[ return entity?.state === 'cleaning'
+                && hass.states['sensor.roborock_q5_current_room']?.state === 'Living room' ]]]
+        label: '[[[ return variables.on ? "Cleaning now" : "Tap to clean" ]]]'
+        tap_action:
+          action: perform-action
+          perform_action: vacuum.clean_area
+          target:
+            entity_id: vacuum.roborock_q5
+          data:
+            cleaning_area_id:
+              - living_room
+          confirmation:
+            text: Clean the living room now?
+      - type: custom:button-card
+        template: action_tile
+        entity: vacuum.roborock_q5
+        name: Dining room
+        icon: mdi:table-chair
+        triggers_update:
+          - sensor.roborock_q5_current_room
+        variables:
+          'on': >-
+            [[[ return entity?.state === 'cleaning'
+                && hass.states['sensor.roborock_q5_current_room']?.state === 'Dining room' ]]]
+        label: '[[[ return variables.on ? "Cleaning now" : "Tap to clean" ]]]'
+        tap_action:
+          action: perform-action
+          perform_action: vacuum.clean_area
+          target:
+            entity_id: vacuum.roborock_q5
+          data:
+            cleaning_area_id:
+              - dinning_room
+          confirmation:
+            text: Clean the dining room now?
+      - type: custom:button-card
+        template: action_tile
+        entity: vacuum.roborock_q5
+        name: Bedroom
+        icon: mdi:bed-outline
+        triggers_update:
+          - sensor.roborock_q5_current_room
+        variables:
+          'on': >-
+            [[[ return entity?.state === 'cleaning'
+                && hass.states['sensor.roborock_q5_current_room']?.state === 'Bedroom' ]]]
+        label: '[[[ return variables.on ? "Cleaning now" : "Tap to clean" ]]]'
+        tap_action:
+          action: perform-action
+          perform_action: vacuum.clean_area
+          target:
+            entity_id: vacuum.roborock_q5
+          data:
+            cleaning_area_id:
+              - master_bedroom
+          confirmation:
+            text: Clean the bedroom now?
+      - type: custom:button-card
+        template: action_tile
+        entity: vacuum.roborock_q5
+        name: Hall
+        icon: mdi:door
+        triggers_update:
+          - sensor.roborock_q5_current_room
+        variables:
+          'on': >-
+            [[[ return entity?.state === 'cleaning'
+                && hass.states['sensor.roborock_q5_current_room']?.state === 'Hall' ]]]
+        label: '[[[ return variables.on ? "Cleaning now" : "Tap to clean" ]]]'
+        tap_action:
+          action: perform-action
+          perform_action: vacuum.clean_area
+          target:
+            entity_id: vacuum.roborock_q5
+          data:
+            cleaning_area_id:
+              - entryway
+          confirmation:
+            text: Clean the hall now?
+      - type: custom:button-card
+        template: action_tile
+        entity: vacuum.roborock_q5
+        name: Main bathroom
+        icon: mdi:shower
+        triggers_update:
+          - sensor.roborock_q5_current_room
+        variables:
+          'on': >-
+            [[[ return entity?.state === 'cleaning'
+                && hass.states['sensor.roborock_q5_current_room']?.state === 'Main Bathroom' ]]]
+        label: '[[[ return variables.on ? "Cleaning now" : "Tap to clean" ]]]'
+        tap_action:
+          action: perform-action
+          perform_action: vacuum.clean_area
+          target:
+            entity_id: vacuum.roborock_q5
+          data:
+            cleaning_area_id:
+              - main_bathroom
+          confirmation:
+            text: Clean the main bathroom now?
+      - type: custom:button-card
+        template: action_tile
+        entity: vacuum.roborock_q5
+        name: Master bathroom
+        icon: mdi:bathtub-outline
+        triggers_update:
+          - sensor.roborock_q5_current_room
+        variables:
+          'on': >-
+            [[[ return entity?.state === 'cleaning'
+                && hass.states['sensor.roborock_q5_current_room']?.state === 'Master Bathroom' ]]]
+        label: '[[[ return variables.on ? "Cleaning now" : "Tap to clean" ]]]'
+        tap_action:
+          action: perform-action
+          perform_action: vacuum.clean_area
+          target:
+            entity_id: vacuum.roborock_q5
+          data:
+            cleaning_area_id:
+              - master_bathroom
+          confirmation:
+            text: Clean the master bathroom now?

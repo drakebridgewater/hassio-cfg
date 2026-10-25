@@ -1,0 +1,220 @@
+# What to wear: a cartoon kid dressed for the day, with the outfit in words.
+# Used by the tablet hero (sections/tablet/10-hero.yaml); drop it anywhere with
+#   type: custom:decluttering-card
+#   template: what_to_wear
+# What the day needs comes from the binary_sensor.needs_* sensors (umbrella, boots,
+# light coat, heavy coat, sweater, tank top, sunglasses) in packages/what_to_wear.yaml,
+# which also holds the adjustable cutoffs. This card draws them: heavy coat adds a
+# beanie (plus scarf and mittens under 35°F), boots are rain or snow boots, rain
+# boots bring a raincoat unless a heavy coat is already on, a tank top replaces the
+# tee, sunglasses stand on their own. Shorts come with the tank top or 8°F over the
+# sweater cutoff; long sleeves under it (under a coat) and scarf and mittens 10°F
+# under the heavy coat, going by how it feels right now (sensor.wear_day feels_temp),
+# so the outfit changes through the day.
+# Tapping does what `tap` says: a '#hash' opens that pop-up on this page (the hero
+# uses #weather, popup/weather.yaml), 'none' does nothing, anything else opens the
+# weather entity's more-info.
+# The glass button reads --hero-glass / --hero-glass-border when the page sets them.
+#   forecast   sensor with a daily `forecast` attribute (default sensor.daily_weather_forecast)
+#   weather    weather entity for units and the more-info (default weather.pirateweather)
+#   tap        '#hash', 'none' or 'more-info' (default more-info)
+what_to_wear:
+  default:
+    - forecast: sensor.daily_weather_forecast
+    - weather: weather.pirateweather
+    - tap: more-info
+  card:
+    type: custom:button-card
+    entity: '[[forecast]]'
+    variables:
+      forecast: '[[forecast]]'
+      weather: '[[weather]]'
+      tap: '[[tap]]'
+    # sensor.wear_day updates every 5 minutes, so the outfit follows the day.
+    triggers_update:
+      - '[[weather]]'
+      - sensor.time
+      - sensor.wear_day
+      - binary_sensor.needs_umbrella
+      - binary_sensor.needs_boots
+      - binary_sensor.needs_light_coat
+      - binary_sensor.needs_heavy_coat
+      - binary_sensor.needs_sweater
+      - binary_sensor.needs_tank_top
+      - binary_sensor.needs_sunglasses
+      - input_number.wear_light_coat_below
+      - input_number.wear_heavy_coat_below
+      - input_number.wear_sweater_below
+    show_name: false
+    show_icon: false
+    show_state: false
+    show_label: false
+    tap_action:
+      action: none
+    hold_action:
+      action: none
+    styles:
+      card:
+        - background: none
+        - border: none
+        - box-shadow: none
+        - border-radius: 0
+        - padding: 0
+        - overflow: visible
+        - pointer-events: none
+      grid:
+        - grid-template-areas: '"wear"'
+        - grid-template-columns: 1fr
+      custom_fields:
+        wear:
+          - justify-self: center
+          - max-width: 100%
+    custom_fields:
+      wear: |
+        [[[
+            const fc = hass.states[variables.forecast]?.attributes?.forecast || [];
+            const day = fc[0];
+            if (!day) return '';
+            const unit = hass.states[variables.weather]?.attributes?.temperature_unit || '°F';
+            const toF = (t) => (unit === '°C' ? t * 9 / 5 + 32 : t);
+            const hi = toF(Number(day.temperature)), lo = toF(Number(day.templow ?? day.temperature));
+            const pop = Number(hass.states['sensor.wear_day']?.attributes?.rain_chance ?? day.precipitation_probability) || 0;
+            const windUnit = hass.states[variables.weather]?.attributes?.wind_speed_unit;
+            const wind = (Number(day.wind_speed) || 0) * ({ 'km/h': 0.6214, 'm/s': 2.237, kn: 1.151 }[windUnit] ?? 1);
+            const cond = day.condition || '';
+            // How it feels right now (packages/what_to_wear.yaml); the low without it.
+            const feelsF = Number(hass.states['sensor.wear_day']?.attributes?.feels_temp);
+            const feels = Number.isFinite(feelsF) ? feelsF : lo;
+
+            // The outfit
+            const cut = (k, d) => Number(hass.states['input_number.wear_' + k]?.state) || d;
+            const need = (k) => hass.states['binary_sensor.needs_' + k]?.state === 'on';
+            const kind = hass.states['binary_sensor.needs_boots']?.attributes?.kind;
+            const snowy = kind === 'snow', rainy = kind === 'rain';
+            const windy = hass.states['sensor.wear_day']?.attributes?.windy === true;
+            const o = { top: 'tee', bottom: 'pants', outer: null, hat: null, feet: 'sneakers',
+              scarf: false, mittens: snowy, shades: need('sunglasses'), umbrella: need('umbrella'), windy };
+            if (need('tank_top')) o.top = 'tank';
+            else if (need('sweater')) o.top = 'sweater';
+            else if (feels < cut('sweater_below', 60)) o.top = 'long';
+            if (!snowy && (need('tank_top') || feels >= cut('sweater_below', 60) + 8)) o.bottom = 'shorts';
+            if (need('heavy_coat')) { o.outer = 'coat'; o.hat = 'beanie'; }
+            else if (rainy) o.outer = 'raincoat';
+            else if (need('light_coat')) o.outer = 'jacket';
+            if (feels < cut('heavy_coat_below', 45) - 10) { o.scarf = true; o.mittens = true; }
+            if (snowy) o.feet = 'snowboots';
+            else if (rainy) o.feet = 'rainboots';
+
+            // Words: outerwear, top, bottom, then extras
+            const words = [];
+            const outerWord = { jacket: 'light jacket', coat: 'warm coat', raincoat: 'raincoat' }[o.outer];
+            if (outerWord) words.push(outerWord);
+            words.push({ tank: 'tank top', tee: 't-shirt', long: 'long sleeves', sweater: 'sweater' }[o.top]);
+            words.push(o.bottom);
+            if (o.feet === 'rainboots') words.push('rain boots');
+            if (o.feet === 'snowboots') words.push('snow boots');
+            if (o.hat === 'beanie') words.push('hat');
+            if (o.scarf) words.push('scarf');
+            if (o.mittens) words.push('mittens');
+            if (o.hat === 'sunhat') words.push('sun hat');
+            if (o.umbrella) words.push('umbrella');
+            const list = words.length > 1 ? words.slice(0, -1).join(', ') + ' and ' + words.at(-1) : words[0];
+            const title = list.charAt(0).toUpperCase() + list.slice(1);
+            const deg = (t) => Math.round(unit === '°C' ? (t - 32) * 5 / 9 : t) + '°';
+            const details = `Feels like ${deg(feels)} · ${deg(lo)} to ${deg(hi)} today`
+              + (pop >= 10 ? ` · ${Math.round(pop)}% ${snowy ? 'snow' : 'rain'}` : '') + (o.windy ? ' · windy' : '');
+
+            // The kid (viewBox 0 0 140 190; centred on x 58)
+            const C = { skin: '#f3c7a1', cheek: '#f29e8e', hair: '#6b4226', ink: '#2b2b2b',
+              tank: '#f4a261', tee: '#ef6f6c', long: '#5fa8d3', sweater: '#8e7dbe', pants: '#3d5a80', shorts: '#3d5a80',
+              jacket: '#2a9d8f', coat: '#e76f51', raincoat: '#ffd23f', beanie: '#4361ee', sunhat: '#f4d58d',
+              scarf: '#e63946', mitten: '#e63946', boot: '#ffd23f', snowboot: '#7a5230', shoe: '#f1f3f5', umbrella: '#4cc9f0' };
+            const shR = [72, 74], shL = [44, 74];
+            const handL = [34, 110], handR = o.umbrella ? [96, 100] : [82, 110];
+            const along = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+            const seg = (a, b, w, c) => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+            const arms = (w, c, t) => seg(shL, along(shL, handL, t), w, c) + seg(shR, along(shR, handR, t), w, c);
+            const p = [];
+            if (o.umbrella) {
+              p.push(`<path d="M64 42 A36 34 0 0 1 136 42 Q127 36 118 42 Q109 36 100 42 Q91 36 82 42 Q73 36 64 42 Z" fill="${C.umbrella}"/>`,
+                `<path d="M100 8 L100 42" stroke="rgba(0,0,0,0.15)" stroke-width="1.5"/>`,
+                `<path d="M100 42 L100 101 Q100 108 94 107" stroke="${C.ink}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`);
+            }
+            if (o.outer === 'raincoat') p.push(`<circle cx="58" cy="37" r="27" fill="${C.raincoat}"/>`);
+            if (o.windy) p.push(`<path d="M2 70 Q12 66 22 70 M6 84 Q16 80 26 84 M0 98 Q10 94 20 98" stroke="rgba(255,255,255,0.8)" stroke-width="2.5" fill="none" stroke-linecap="round"/>`);
+            // legs and bottoms
+            p.push(seg([50, 118], [50, 168], 12, C.skin), seg([66, 118], [66, 168], 12, C.skin));
+            if (o.bottom === 'shorts') p.push(`<path d="M42 112 H74 V138 H60 L58 128 L56 138 H42 Z" fill="${C.shorts}"/>`);
+            else p.push(`<rect x="42" y="112" width="32" height="16" rx="4" fill="${C.pants}"/>`,
+              seg([50, 120], [50, 166], 14, C.pants), seg([66, 120], [66, 166], 14, C.pants));
+            // feet
+            if (o.feet === 'rainboots') p.push(`<rect x="42" y="150" width="15" height="26" rx="4" fill="${C.boot}"/><rect x="59" y="150" width="15" height="26" rx="4" fill="${C.boot}"/>`,
+              `<path d="M40 176 H58 M57 176 H76" stroke="${C.ink}" stroke-width="3" stroke-linecap="round"/>`);
+            else if (o.feet === 'snowboots') p.push(`<rect x="41" y="152" width="17" height="24" rx="6" fill="${C.snowboot}"/><rect x="58" y="152" width="17" height="24" rx="6" fill="${C.snowboot}"/>`,
+              `<rect x="40" y="149" width="19" height="7" rx="3.5" fill="#fff"/><rect x="57" y="149" width="19" height="7" rx="3.5" fill="#fff"/>`);
+            else p.push(`<ellipse cx="48" cy="172" rx="9" ry="5.5" fill="${C.shoe}"/><ellipse cx="68" cy="172" rx="9" ry="5.5" fill="${C.shoe}"/>`,
+              `<path d="M40 174 H56 M60 174 H76" stroke="#e63946" stroke-width="2" stroke-linecap="round"/>`);
+            // arms, torso and top
+            p.push(arms(10, C.skin, 1));
+            p.push(`<rect x="40" y="66" width="36" height="54" rx="10" fill="${C[o.top]}"/>`);
+            if (o.top === 'tank') p.push(`<path d="M50 66 Q58 78 66 66 Z" fill="${C.skin}"/>`);
+            else p.push(arms(11, C[o.top], o.top === 'tee' ? 0.32 : 0.86));
+            if (o.top === 'sweater') p.push(`<path d="M42 114 H74" stroke="rgba(0,0,0,0.18)" stroke-width="3"/>`);
+            // outerwear, open enough to show the layer underneath: the jacket
+            // hangs open down the front, the coat and raincoat show it at the neck.
+            const under = o.top === 'tank' ? C.skin : C[o.top];
+            if (o.outer === 'jacket') p.push(`<rect x="38" y="64" width="40" height="60" rx="10" fill="${C.jacket}"/>`, arms(12, C.jacket, 0.88),
+              `<path d="M52 64 L58 72 L64 64 V124 H52 Z" fill="${under}"/>`,
+              `<path d="M52 64 V124 M64 64 V124" stroke="rgba(0,0,0,0.25)" stroke-width="2"/>`,
+              o.top === 'sweater' ? `<path d="M53 114 H63" stroke="rgba(0,0,0,0.18)" stroke-width="3"/>` : '');
+            if (o.outer === 'coat') p.push(`<rect x="35" y="63" width="46" height="74" rx="13" fill="${C.coat}"/>`, arms(15, C.coat, 0.88),
+              `<path d="M49 63 L58 80 L67 63 Z" fill="${under}"/>`,
+              `<path d="M37 84 H79 M37 104 H79 M37 122 H79" stroke="rgba(0,0,0,0.15)" stroke-width="2"/><path d="M58 80 V136" stroke="rgba(0,0,0,0.25)" stroke-width="2"/>`);
+            if (o.outer === 'raincoat') p.push(`<path d="M40 63 H76 L82 138 H34 Z" fill="${C.raincoat}"/>`, arms(13, C.raincoat, 0.88),
+              `<path d="M50 63 L58 76 L66 63 Z" fill="${under}"/>`,
+              `<circle cx="58" cy="84" r="2.5" fill="${C.ink}"/><circle cx="58" cy="99" r="2.5" fill="${C.ink}"/><circle cx="58" cy="114" r="2.5" fill="${C.ink}"/>`);
+            // hands
+            const hand = o.mittens ? C.mitten : C.skin, hr = o.mittens ? 7.5 : 6;
+            p.push(`<circle cx="${handL[0]}" cy="${handL[1]}" r="${hr}" fill="${hand}"/><circle cx="${handR[0]}" cy="${handR[1]}" r="${hr}" fill="${hand}"/>`);
+            // scarf
+            if (o.scarf) p.push(`<rect x="44" y="58" width="28" height="10" rx="5" fill="${C.scarf}"/><rect x="62" y="62" width="8" height="24" rx="3" fill="${C.scarf}"/>`,
+              `<path d="M64 80 H70 M64 76 H70" stroke="#fff" stroke-width="1.5"/>`);
+            // head
+            p.push(`<circle cx="37" cy="40" r="4.5" fill="${C.skin}"/><circle cx="79" cy="40" r="4.5" fill="${C.skin}"/>`,
+              `<circle cx="58" cy="38" r="21" fill="${C.skin}"/>`,
+              `<path d="M37 36 Q38 15 58 15 Q78 15 79 36 Q72 26 62 27 Q55 22 46 28 Q40 30 37 36 Z" fill="${C.hair}"/>`,
+              `<circle cx="50.5" cy="40" r="2.4" fill="${C.ink}"/><circle cx="65.5" cy="40" r="2.4" fill="${C.ink}"/>`,
+              `<circle cx="45" cy="47" r="3.2" fill="${C.cheek}" opacity="0.6"/><circle cx="71" cy="47" r="3.2" fill="${C.cheek}" opacity="0.6"/>`,
+              `<path d="M51 48 Q58 54 65 48" stroke="${C.ink}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`);
+            if (o.shades) p.push(`<rect x="44" y="35" width="12" height="9" rx="3.5" fill="#222"/><rect x="60" y="35" width="12" height="9" rx="3.5" fill="#222"/><path d="M56 39 H60" stroke="#222" stroke-width="2"/>`);
+            if (o.hat === 'beanie') p.push(`<path d="M36 33 Q36 13 58 13 Q80 13 80 33 Z" fill="${C.beanie}"/><rect x="35" y="29" width="46" height="8" rx="4" fill="#3a0ca3"/><circle cx="58" cy="11" r="5" fill="#fff"/>`);
+            if (o.hat === 'sunhat') p.push(`<ellipse cx="58" cy="24" rx="33" ry="7" fill="${C.sunhat}"/><path d="M41 24 Q41 6 58 6 Q75 6 75 24 Z" fill="${C.sunhat}"/><rect x="41" y="18" width="34" height="5" fill="#e76f51"/>`);
+            // Crop the canvas to the kid unless the umbrella needs the right side.
+            const vb = o.umbrella ? '0 0 140 190' : (o.windy ? '0 0 100 190' : '18 0 82 190');
+            const svg = `<svg viewBox="${vb}" class="kid" role="img" aria-label="${title}">${p.join('')}</svg>`;
+
+            const tap = variables.tap;
+            const onTap = tap === 'none' ? ''
+              : tap.startsWith('#')
+                ? ` onpointerup="event.stopPropagation(); history.pushState(null, '', location.pathname + '${tap}'); window.dispatchEvent(new CustomEvent('location-changed'))"`
+                : ` onpointerup="event.stopPropagation(); this.dispatchEvent(new CustomEvent('hass-more-info', { bubbles: true, composed: true, detail: { entityId: '${variables.weather}' } }))"`;
+            return `<button type="button" class="wear${tap === 'none' ? ' still' : ''}"${onTap}>${svg}`
+              + `<span class="wear-text"><small>What to wear</small><b>${title}</b><span>${details}</span></span></button>`;
+        ]]]
+    extra_styles: |
+      .wear {
+        pointer-events: auto; display: flex; align-items: center; gap: 16px; max-width: 100%;
+        padding: 10px 22px 10px 12px; border-radius: 24px;
+        background: var(--hero-glass, rgba(255, 255, 255, 0.14));
+        border: 1px solid var(--hero-glass-border, rgba(255, 255, 255, 0.3)); backdrop-filter: blur(12px); color: white;
+        font: inherit; text-align: start; cursor: pointer; -webkit-tap-highlight-color: transparent;
+      }
+      .wear.still { cursor: default; }
+      .wear:active { background: rgba(255, 255, 255, 0.24); }
+      .wear:focus-visible { outline: 2px solid white; outline-offset: 2px; }
+      .wear .kid { flex: none; height: clamp(96px, 9cqi, 130px); width: auto; overflow: visible;
+        filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2)); }
+      .wear-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+      .wear-text small { font-size: 0.85rem; opacity: 0.85; }
+      .wear-text b { font-weight: 500; font-size: clamp(1.1rem, 1.7cqi, 1.45rem); line-height: 1.25; }
+      .wear-text span { font-size: clamp(0.9rem, 1.2cqi, 1.05rem); opacity: 0.9; }

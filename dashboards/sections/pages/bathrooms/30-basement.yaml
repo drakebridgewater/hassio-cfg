@@ -1,0 +1,35 @@
+# Basement bathroom: lighting mode, the wall switch, then every sensor in the area.
+# Temperature and humidity come from the Flo water sensor.
+- type: heading
+  heading_style: title
+  heading: Basement bathroom
+  badges:
+    - type: entity
+      entity: sensor.flo_basement_bathroom_water_sensor_temperature
+      show_state: true
+      show_icon: true
+    - type: entity
+      entity: sensor.flo_basement_bathroom_water_sensor_humidity
+      show_state: true
+      show_icon: true
+- !include ../../../cards/lighting-mode/basement_bathroom.yaml
+- type: custom:decluttering-card
+  template: bubble_light
+  variables:
+    - entity: light.basement_bathroom_wall_switch
+    - name: Basement bathroom
+- type: tile
+  entity: binary_sensor.basement_bathroom_motion_motion_detection
+  name: Motion
+- type: tile
+  entity: binary_sensor.basement_bathroom_window_contact
+  name: Window
+- type: tile
+  entity: binary_sensor.basement_bathroom_sink_water_leak_detected
+  name: Sink leak
+- type: tile
+  entity: binary_sensor.flo_basement_bathroom_water_sensor_water_detected
+  name: Floor leak (Flo)
+- type: tile
+  entity: sensor.basement_bathroom_wall_switch_power
+  name: Light power

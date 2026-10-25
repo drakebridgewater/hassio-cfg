@@ -1,0 +1,16 @@
+title: Armed
+path: armed
+icon: mdi:shield-lock
+subview: true
+back_path: /lovelace-main/home
+type: sections
+max_columns: 4
+header: !include ../../layouts/header.yaml
+sections:
+  - !include ../../frame/status-section.yaml
+  - type: grid
+    cards: !include_dir_list ../../sections/pages/armed/col1
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/security.yaml

@@ -1,0 +1,50 @@
+# A button that says what it does: icon left, the action (`name`, a verb) and one line
+# under it (`label`) explaining it. Same tinted rounded-square look as status_tile.
+# Cards set name, label, icon, the action and optionally:
+#   tone  accent (default) | ok | attention | neutral
+#   on    true to highlight the tile (the room being cleaned, say)
+action_tile:
+  show_name: true
+  show_label: true
+  show_state: false
+  variables:
+    tone: accent
+    'on': false
+  styles:
+    card:
+      - '--tone': >-
+          [[[ return { ok: 'var(--green-color)', attention: 'var(--amber-color)',
+                       neutral: 'var(--secondary-text-color)' }[variables.tone] ?? 'var(--teal-color)' ]]]
+      - background: >-
+          [[[ return variables.on ? 'color-mix(in srgb, var(--tone) 28%, transparent)'
+            : 'color-mix(in srgb, var(--primary-text-color) 7%, transparent)' ]]]
+      - box-shadow: >-
+          [[[ return variables.on ? '0 0 12px 1px color-mix(in srgb, var(--tone) 45%, transparent)' : 'none' ]]]
+      - border: none
+      - border-radius: 16px
+      - min-height: 64px
+      - padding: 10px 14px
+    grid:
+      - grid-template-areas: '"i n" "i l"'
+      - grid-template-columns: 30px minmax(0, 1fr)
+      - column-gap: 12px
+      - justify-items: start
+      - align-items: center
+    img_cell:
+      - width: 30px
+      - height: 30px
+    icon:
+      - width: 26px
+      - color: var(--tone)
+    name:
+      - font-size: 15px
+      - font-weight: 500
+      - justify-self: start
+      - text-align: left
+      - color: var(--primary-text-color)
+    label:
+      - font-size: 12px
+      - justify-self: start
+      - text-align: left
+      - white-space: normal
+      - color: var(--secondary-text-color)

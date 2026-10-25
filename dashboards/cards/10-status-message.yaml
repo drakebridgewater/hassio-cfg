@@ -1,7 +1,7 @@
 type: markdown
 text_only: true
 content: |+
-  {% set commute = states('sensor.waze_aspire_dental_to_home') |int(default=0) %}
+  {% set commute = states('sensor.waze_home_to_aspire') |int(default=0) %}
   {% set abby_daycare = is_state('binary_sensor.abby_at_daycare', 'on') %}
   {% set ethan_daycare = is_state('binary_sensor.ethan_at_daycare', 'on') %}
   {% set drake_home = is_state('person.drake', 'home') %}

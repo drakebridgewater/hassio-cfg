@@ -1,0 +1,17 @@
+title: Doorbell
+path: doorbell
+icon: mdi:doorbell-video
+subview: true
+back_path: /lovelace-main/home
+type: sections
+max_columns: 4
+header: !include ../../layouts/header.yaml
+badges: !include ../../layouts/badges.yaml
+sections:
+  - type: grid
+    column_span: 4
+    cards: !include_dir_list ../../sections/pages/doorbell/col1
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/security.yaml

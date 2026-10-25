@@ -1,0 +1,34 @@
+# Kitchen tablet controls: a Tablet button on every bar, shown only when the
+# Kiosk Satellite app on the kitchen tablet is signed in (HA user "Kitchen
+# Tablet"). Its menu opens the app's own Music Assistant and camera views.
+icon: mdi:tablet-dashboard
+label: Tablet
+hidden: '[[[ return user?.name !== "Kitchen Tablet" ]]]'
+tap_action:
+  action: open-popup
+popup:
+  - label: Music Assistant
+    icon: mdi:music
+    tap_action:
+      action: perform-action
+      perform_action: button.press
+      target:
+        entity_id: button.dinng_room_kitchen_tablet_show_music_assistant
+  - label: Outdoors camera
+    icon: mdi:cctv
+    tap_action:
+      action: perform-action
+      perform_action: select.select_option
+      target:
+        entity_id: select.dinng_room_kitchen_tablet_camera_view
+      data:
+        option: Outdoors
+  - label: Driveway camera
+    icon: mdi:car
+    tap_action:
+      action: perform-action
+      perform_action: select.select_option
+      target:
+        entity_id: select.dinng_room_kitchen_tablet_camera_view
+      data:
+        option: Driveway

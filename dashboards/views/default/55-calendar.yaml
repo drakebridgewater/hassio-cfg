@@ -3,14 +3,15 @@ path: calendar
 icon: mdi:calendar
 subview: true
 back_path: /lovelace-main/home
-type: custom:grid-layout
-layout: !include ../../layouts/frame-full-width.yaml
-cards:
-  - !include ../../frame/banner.yaml
-  - !include ../../frame/footer.yaml
-  - !include ../../navigation/planning.yaml
-
-  - type: vertical-stack
-    view_layout:
-      grid-area: main
-    cards: !include_dir_list ../../sections/pages/calendar/col1
+type: sections
+max_columns: 4
+# Like the Tablet page: no header or badges, so the calendar (compact_height in
+# sections/pages/calendar/10-main.yaml) fills the screen.
+sections:
+  - type: grid
+    column_span: 4
+    cards: !include_dir_list ../../sections/pages/calendar
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/planning.yaml

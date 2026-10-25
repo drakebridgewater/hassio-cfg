@@ -1,0 +1,65 @@
+# Glass status pill used by the tablet hero (sections/tablet/10-hero.yaml):
+# round icon on the left, name above state. Cards set entity, name, actions and
+# a `state:` list for alert colors. Set `variables.quiet` (a template) to true in
+# the normal state (closed, locked) and the pill shrinks to its icon.
+# Set `variables.pulse` to { a, b, k } to make the pill glow while it should be
+# shut: a and b are the "r, g, b" colours it swings between, k (0 to 1) how hard.
+# The hero takes these from close_up.yaml, the rules it shares with the status bar.
+hero_pill:
+  layout: icon_name_state2nd
+  show_state: true
+  styles:
+    card:
+      - background: var(--hero-glass, rgba(255, 255, 255, 0.16))
+      - backdrop-filter: blur(12px)
+      - border: 1px solid var(--hero-glass-border, rgba(255, 255, 255, 0.35))
+      - border-radius: 999px
+      - box-shadow: none
+      - padding: '[[[ return variables.quiet ? "6px" : "6px 20px 6px 6px" ]]]'
+      - --pulse-a: '[[[ return variables.pulse?.a || "255, 255, 255" ]]]'
+      - --pulse-b: '[[[ return variables.pulse?.b || variables.pulse?.a || "255, 255, 255" ]]]'
+      - --pulse-k: '[[[ return variables.pulse ? Math.max(0, Math.min(1, variables.pulse.k || 0)) : 0 ]]]'
+      # Faster as well as brighter as k rises: 2.8s at the threshold, 1.2s at full.
+      - animation: >-
+          [[[ const p = variables.pulse;
+              return p ? `hero-pill-pulse ${(2.8 - 1.6 * Math.max(0, Math.min(1, p.k || 0))).toFixed(2)}s ease-in-out infinite` : 'none'; ]]]
+    grid:
+      - grid-template-areas: '[[[ return variables.quiet ? `"i"` : `"i n" "i s"` ]]]'
+      - grid-template-columns: '[[[ return variables.quiet ? "44px" : "44px auto" ]]]'
+      - grid-template-rows: '[[[ return variables.quiet ? "44px" : "auto auto" ]]]'
+      - column-gap: 12px
+    img_cell:
+      - background: rgba(255, 255, 255, 0.2)
+      - border-radius: 50%
+      - width: 44px
+      - height: 44px
+    icon:
+      - width: 22px
+      - color: white
+    name:
+      - display: '[[[ return variables.quiet ? "none" : "block" ]]]'
+      - justify-self: start
+      - font-size: 0.85rem
+      - color: rgba(255, 255, 255, 0.8)
+    state:
+      - display: '[[[ return variables.quiet ? "none" : "block" ]]]'
+      - justify-self: start
+      - font-size: 1.15rem
+      - font-weight: 500
+      - color: white
+  extra_styles: |
+    @keyframes hero-pill-pulse {
+      0%, 100% {
+        border-color: rgba(var(--pulse-a), 0.9);
+        box-shadow: 0 0 0 0 rgba(var(--pulse-a), calc(0.45 + 0.4 * var(--pulse-k))),
+                    0 0 calc(10px + 14px * var(--pulse-k)) calc(2px + 4px * var(--pulse-k)) rgba(var(--pulse-a), 0.5);
+        filter: brightness(1);
+      }
+      50% {
+        border-color: rgba(var(--pulse-b), 0.9);
+        box-shadow: 0 0 0 calc(8px + 16px * var(--pulse-k)) rgba(var(--pulse-b), 0),
+                    0 0 calc(24px + 36px * var(--pulse-k)) calc(4px + 18px * var(--pulse-k)) rgba(var(--pulse-b), calc(0.4 + 0.4 * var(--pulse-k)));
+        filter: brightness(calc(1.05 + 0.2 * var(--pulse-k)));
+      }
+    }
+    @media (prefers-reduced-motion: reduce) { ha-card { animation: none !important; } }

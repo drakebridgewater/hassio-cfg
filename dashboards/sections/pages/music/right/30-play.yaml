@@ -1,0 +1,24 @@
+# Quick play: plays the picked playlist in the picked room (script.music_play_picked).
+type: custom:button-card
+template: action_tile
+entity: script.music_play_picked
+name: Play
+icon: mdi:play
+label: "[[[ return `${states['input_select.music_playlist'].state} in ${states['input_select.music_room'].state.toLowerCase()}` ]]]"
+triggers_update:
+  - input_select.music_playlist
+  - input_select.music_room
+tap_action:
+  action: perform-action
+  perform_action: script.music_play_picked
+styles:
+  card:
+    - min-height: 56px
+    - height: 100%
+  label:
+    - white-space: nowrap
+    - overflow: hidden
+    - text-overflow: ellipsis
+grid_options:
+  columns: 12
+  rows: 1

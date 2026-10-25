@@ -1,59 +1,70 @@
+# Room page: the room's main light up top, then its sections from
+# sections/rooms/kitchen/ (ported from the GUI by tools/port_gui_rooms.py) one section per file.
 title: Kitchen
 path: kitchen
 icon: mdi:fridge
 subview: true
 back_path: /lovelace-main/home
-type: custom:grid-layout
-layout: !include ../../layouts/frame.yaml
+type: sections
+max_columns: 4
+header: !include ../../header/alert-ticker.yaml
+sections:
 
-# Room page: the room's main light up top, then its sections from
-# sections/rooms/kitchen/ (ported from the GUI by tools/port_gui_rooms.py) in columns.
-cards:
-  - !include ../../frame/banner.yaml
-  - !include ../../frame/sidebar.yaml
-  - !include ../../frame/sidebar-lower.yaml
-  - !include ../../frame/footer.yaml
-  - !include ../../navigation/rooms.yaml
-
-  - type: vertical-stack
-    view_layout:
-      grid-area: main
+  - type: grid
+    column_span: 4
     cards:
-      - type: custom:bubble-card
-        card_type: button
-        button_type: switch
-        name: Kitchen
-        entity: light.kitchen_wall_switch
-        force_icon: false
-        show_state: true
-        show_last_changed: false
-        show_attribute: true
-        attribute: max_color_temp_kelvin
-        button_action:
-          tap_action:
-            action: none
-        tap_action:
-          action: toggle
-        sub_button:
-          - entity: light.kitchen_wall_switch
-            icon: mdi:lightbulb-fluorescent-tube-outline
-            show_name: false
-            show_state: false
-            tap_action:
-              action: toggle
-          - entity: fan.ceiling_fan
-            icon: mdi:ceiling-fan
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-          - entity: light.vaulted_light
-            icon: mdi:ceiling-fan-light
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-      - type: custom:layout-card
-        layout_type: custom:grid-layout
-        layout: !include ../../layouts/main.yaml
-        cards: !include_dir_list ../../sections/rooms/kitchen
+      - !include ../../sections/rooms/kitchen/00-badges.yaml
+      - !include ../../sections/rooms/kitchen/01-alerts.yaml
+  - type: grid
+    column_span: 4
+    cards:
+      # Lighting mode first (cards/lighting-mode/), in the wall switch LED colours.
+      - !include ../../cards/lighting-mode/main_area.yaml
+  # - type: grid
+  #   cards:
+  #     - type: custom:bubble-card
+  #       card_type: button
+  #       button_type: switch
+  #       name: Kitchen
+  #       entity: light.kitchen_wall_switch
+  #       force_icon: false
+  #       show_state: true
+  #       show_last_changed: false
+  #       show_attribute: true
+  #       attribute: max_color_temp_kelvin
+  #       button_action:
+  #         tap_action:
+  #           action: none
+  #       tap_action:
+  #         action: toggle
+  #       sub_button:
+  #         - entity: light.kitchen_wall_switch
+  #           icon: mdi:lightbulb-fluorescent-tube-outline
+  #           show_name: false
+  #           show_state: false
+  #           tap_action:
+  #             action: toggle
+  #         - entity: fan.ceiling_fan
+  #           icon: mdi:ceiling-fan
+  #           tap_action:
+  #             action: toggle
+  #           hold_action:
+  #             action: more-info
+  #         - entity: light.vaulted_light
+  #           icon: mdi:ceiling-fan-light
+  #           tap_action:
+  #             action: toggle
+  #           hold_action:
+  #             action: more-info
+
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/kitchen/10-controls.yaml
+      - !include ../../sections/rooms/kitchen/20-dinning-room.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/kitchen/30-refrigerator.yaml
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/rooms.yaml

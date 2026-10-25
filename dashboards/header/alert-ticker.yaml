@@ -1,0 +1,5 @@
+# Sections-view header on every view: the alert ticker across the very top.
+# It hides itself when nothing needs attention. The status card is the first
+# section (frame/status-section.yaml): headers cap their card at 700px.
+card: !include ../sections/banner/01-alert-ticker.yaml
+layout: center

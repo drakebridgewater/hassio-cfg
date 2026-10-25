@@ -1,0 +1,18 @@
+# Maintenance: the house's own health (AdGuard, sensors that stopped reporting,
+# water leak sensors, Frigate).
+# A start; it grows into the system maintenance page.
+title: Maintenance
+path: maintenance
+icon: mdi:wrench-outline
+subview: true
+back_path: /lovelace-main/home
+type: sections
+max_columns: 3
+header: !include ../../header/alert-ticker.yaml
+sections:
+  - type: grid
+    cards: !include_dir_list ../../sections/pages/maintenance
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/house.yaml

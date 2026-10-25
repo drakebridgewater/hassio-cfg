@@ -1,0 +1,19 @@
+# The live map: where the vacuum is and what it has covered. From 768px it fills the
+# height of the screen beside the controls, so the page never scrolls there.
+grid_options:
+  columns: full
+type: picture-entity
+entity: image.roborock_q5_map_0
+show_name: false
+show_state: false
+tap_action:
+  action: none
+hold_action:
+  action: none
+card_mod:
+  style: |
+    ha-card { background: none; border: none; box-shadow: none; }
+    @media (min-width: 768px) {
+      ha-card, hui-image { height: calc(100vh - 140px); }
+      img { height: 100% !important; object-fit: contain; }
+    }

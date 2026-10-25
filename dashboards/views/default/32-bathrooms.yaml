@@ -3,20 +3,18 @@ path: bathrooms
 icon: mdi:toilet
 subview: true
 back_path: /lovelace-main/home
-type: custom:grid-layout
-layout: !include ../../layouts/frame.yaml
-cards:
-  - !include ../../frame/banner.yaml
-  - !include ../../frame/sidebar.yaml
-  - !include ../../frame/sidebar-lower.yaml
-  - !include ../../frame/footer.yaml
-  - !include ../../navigation/rooms.yaml
-
-  - type: custom:layout-card
-    layout_type: custom:grid-layout
-    view_layout:
-      grid-area: main
-    layout: !include ../../layouts/main.yaml
+type: sections
+max_columns: 4
+header: !include ../../header/alert-ticker.yaml
+sections:
+  # One section per bathroom (sections/pages/bathrooms/), each listing its sensors.
+  - type: grid
+    cards: !include ../../sections/pages/bathrooms/10-master.yaml
+  - type: grid
+    cards: !include ../../sections/pages/bathrooms/20-main.yaml
+  - type: grid
+    cards: !include ../../sections/pages/bathrooms/30-basement.yaml
+  - type: grid
     cards:
-      - type: vertical-stack
-        cards: !include_dir_list ../../sections/pages/bathrooms/col1
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/rooms.yaml

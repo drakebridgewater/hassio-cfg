@@ -1,25 +1,39 @@
 # House pages bar.
 type: custom:decluttering-card
 template: navbar
-view_layout:
-  grid-area: footer
 variables:
   - routes:
+      # Home goes to the page made for the device: Tablet from 768px wide
+      # (tablets and desktops, navbar.isDesktop), Home on phones.
+      - url: /lovelace-main/tablet
+        icon: mdi:home
+        label: Home
+        hidden: '[[[ return !navbar.isDesktop ]]]'
       - url: /lovelace-main/home
         icon: mdi:home
         label: Home
-      - url: /lovelace-main/cleaning
-        icon: mdi:vacuum-outline
-        label: Cleaning
+        hidden: '[[[ return navbar.isDesktop ]]]'
       - url: /lovelace-main/climate
         icon: mdi:thermometer
         label: Climate
-      - url: /lovelace-main/music
-        icon: mdi:music
-        label: Music
+      - icon: mdi:play-box-multiple-outline
+        label: Media
+        tap_action:
+          action: open-popup
+        popup: !include media-popup.yaml
+      - url: /lovelace-main/cleaning
+        icon: mdi:vacuum-outline
+        label: Cleaning
+      - icon: mdi:floor-plan
+        label: Rooms
+        tap_action:
+          action: open-popup
+        popup: !include rooms-popup.yaml
       - url: /lovelace-main/misc
         icon: mdi:dots-grid
         label: Misc
       - url: /lovelace-main/help
         icon: mdi:help-circle-outline
         label: Help
+      # Kitchen tablet only (tablet-route.yaml).
+      - !include tablet-route.yaml

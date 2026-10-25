@@ -3,41 +3,32 @@ card_type: pop-up
 hash: '#door'
 button_type: name
 name: Door Sensors
+icon: mdi:door
 cards:
   # Header card (door status chip opens this pop-up), styled like the Climate thermostat card
   - type: custom:bubble-card
     card_type: button
-    button_type: state
-    entity: binary_sensor.any_door_open_group
-    name: Doors
-    icon: mdi:door
-    show_state: true
-    show_last_changed: true
-    tap_action:
-      action: more-info
-    button_action:
-      tap_action:
-        action: more-info
+    button_type: name
     sub_button:
       main: []
       bottom:
-        - entity: lock.og_u_bolt_pro
+        - entity: lock.front_front_door
           name: Front Lock
-          show_name: true
+          show_name: false
           show_state: true
           state_background: false
           tap_action:
             action: more-info
         - entity: cover.garage_door
           name: Garage
-          show_name: true
+          show_name: false
           show_state: true
           state_background: false
           tap_action:
             action: more-info
         - entity: binary_sensor.window_open_group
           name: Windows
-          show_name: true
+          show_name: false
           show_state: true
           state_background: false
           tap_action:
@@ -49,16 +40,16 @@ cards:
       type: grid
       columns: 1
       square: false
+    # List the group's members, so the group itself and stray door sensors
+    # (fridge doors, duplicate lock sensors) stay out. Edit the group to change the list.
     filter:
       include:
-        - domain: binary_sensor
-          attributes:
-            device_class: door
+        - group: binary_sensor.any_door_open_group
           options:
             type: custom:bubble-card
             card_type: button
             button_type: state
-      exclude: 
+      exclude:
         - state: unavailable
         - state: unknown
     sort:

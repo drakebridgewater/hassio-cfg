@@ -1,22 +1,22 @@
+# Cleaning: a full-screen vacuum page, no header or status card. Controls on the left
+# (status, labelled actions, clean one room), the live map on the right; on phones
+# they stack. From 900px the page doesn't scroll (cards/scroll-lock.yaml).
 title: Cleaning
 path: cleaning
 icon: mdi:vacuum-outline
 subview: true
 back_path: /lovelace-main/home
-type: custom:grid-layout
-layout: !include ../../layouts/frame.yaml
-cards:
-  - !include ../../frame/banner.yaml
-  - !include ../../frame/sidebar.yaml
-  - !include ../../frame/sidebar-lower.yaml
-  - !include ../../frame/footer.yaml
-  - !include ../../navigation/house.yaml
-
-  - type: custom:layout-card
-    layout_type: custom:grid-layout
-    view_layout:
-      grid-area: main
-    layout: !include ../../layouts/main.yaml
+type: sections
+max_columns: 2
+sections:
+  - type: grid
+    column_span: 1
+    cards: !include_dir_list ../../sections/pages/cleaning/col1
+  - type: grid
+    column_span: 1
+    cards: !include_dir_list ../../sections/pages/cleaning/col2
+  - type: grid
     cards:
-      - type: vertical-stack
-        cards: !include_dir_list ../../sections/pages/cleaning/col1
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/house.yaml
+      - !include ../../cards/scroll-lock.yaml

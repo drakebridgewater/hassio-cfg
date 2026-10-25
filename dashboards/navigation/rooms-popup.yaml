@@ -34,3 +34,9 @@
   tap_action:
     action: navigate
     navigation_path: /lovelace-main/outdoors
+- url: /lovelace-main/bathrooms
+  icon: mdi:toilet
+  label: Bathrooms
+  tap_action:
+    action: navigate
+    navigation_path: /lovelace-main/bathrooms

@@ -1,0 +1,12 @@
+# Lighting mode for the office room zone (button-card template lighting_mode).
+# Same blockers and automations as sensor.lighting_mode_office_room.
+type: custom:button-card
+template: lighting_mode
+entity: sensor.lighting_mode_office_room
+grid_options:
+  columns: 24
+variables:
+  blockers:
+    - input_boolean.lighting_automation_blocker_office_room
+  automations:
+    - automation.lighting_office_sensor_light

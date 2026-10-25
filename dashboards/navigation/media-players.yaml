@@ -1,0 +1,38 @@
+# Media players shown in the navbar's media bar (navbar-card `media_player.players`).
+# A player shows while it plays and for 10 minutes after it pauses, so you can resume it
+# from the bar; with several at once the bar becomes a swipeable carousel.
+# Jellyfin, Cast, Alexa and voice-satellite players are left out: they repeat the devices below.
+
+# Music Assistant speakers
+- entity: media_player.living_room_2
+  show: "[[[ const s = states['media_player.living_room_2']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"
+- entity: media_player.family_room_2
+  show: "[[[ const s = states['media_player.family_room_2']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"
+- entity: media_player.kitchen_google
+  show: "[[[ const s = states['media_player.kitchen_google']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"
+- entity: media_player.kitchen_amped_esp32
+  show: "[[[ const s = states['media_player.kitchen_amped_esp32']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"
+- entity: media_player.ethan_s_bedroom_display
+  show: "[[[ const s = states['media_player.ethan_s_bedroom_display']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"
+- entity: media_player.garage_2
+  show: "[[[ const s = states['media_player.garage_2']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"
+- entity: media_player.tenjin_2
+  show: "[[[ const s = states['media_player.tenjin_2']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"
+- entity: media_player.xbox
+  show: "[[[ const s = states['media_player.xbox']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"
+- entity: media_player.drakes_macbook_pro
+  show: "[[[ const s = states['media_player.drakes_macbook_pro']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"
+
+# TVs
+- entity: media_player.living_room
+  show: "[[[ const s = states['media_player.living_room']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"
+- entity: media_player.family_room
+  show: "[[[ const s = states['media_player.family_room']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"
+- entity: media_player.garage
+  show: "[[[ const s = states['media_player.garage']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"
+- entity: media_player.family_room_samsung_tv
+  show: "[[[ const s = states['media_player.family_room_samsung_tv']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"
+
+# Spotify on any device
+- entity: media_player.spotify_thedrake
+  show: "[[[ const s = states['media_player.spotify_thedrake']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"

@@ -1,0 +1,46 @@
+# One app button on the TV page (decluttering-templates/tv_room.yaml): opens the app
+# on an Apple TV (media_player.select_source), lit while that app is open.
+# Cards set name, icon and:
+#   app  the app's name exactly as the Apple TV lists it ("YouTube TV", "Netflix", ...)
+# and the entity, the Apple TV's media player.
+tv_app:
+  show_name: true
+  show_icon: true
+  show_state: false
+  show_label: false
+  variables:
+    app: ''
+    'on': '[[[ return entity?.attributes?.app_name === variables.app ]]]'
+  tap_action:
+    action: perform-action
+    perform_action: media_player.select_source
+    target:
+      entity_id: entity
+    data:
+      source: '[[[ return variables.app ]]]'
+  styles:
+    card:
+      - background: >-
+          [[[ return variables.on ? 'color-mix(in srgb, var(--teal-color) 28%, transparent)'
+            : 'color-mix(in srgb, var(--primary-text-color) 7%, transparent)' ]]]
+      - box-shadow: none
+      - border: none
+      - border-radius: 12px
+      - padding: 8px 4px
+      - height: 64px
+    grid:
+      - grid-template-areas: '"i" "n"'
+      - row-gap: 4px
+    img_cell:
+      - height: 24px
+    icon:
+      - width: 22px
+      - color: >-
+          [[[ return variables.on ? 'var(--teal-color)' : 'var(--secondary-text-color)' ]]]
+    name:
+      - font-size: 12px
+      - white-space: nowrap
+      - overflow: hidden
+      - text-overflow: ellipsis
+      - max-width: 100%
+      - color: var(--primary-text-color)

@@ -35,19 +35,18 @@ cards:
       type: grid
       columns: 1
       square: false
+    # List the group's members, so the group entity itself stays out.
+    # Edit the group to change the list.
     filter:
       include:
-        - domain: binary_sensor
-          attributes:
-            device_class: window
+        - group: binary_sensor.window_open_group
           options:
             type: custom:bubble-card
             card_type: button
             button_type: state
-      exclude: 
+      exclude:
         - state: unavailable
         - state: unknown
-        - entity_id: group
     sort:
       method: state
       reverse: true

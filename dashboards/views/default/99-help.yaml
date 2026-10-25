@@ -1,140 +1,41 @@
+# Help: for anyone who isn't Drake. Tell the house (broadcast) and shopping side by side,
+# then "Something's not working" (tap a tile to fix it), then how the house works.
+# Two columns at most so the wide sections span the page and phones stack everything.
+# No status card, so the help starts at the top. AdGuard and the critical-sensors
+# list moved to Maintenance (98-maintenance.yaml); a Drake-only tile at the bottom links there.
 title: Help
 path: help
-type: custom:grid-layout
+icon: mdi:help-circle-outline
 subview: true
 back_path: /lovelace-main/home
-layout: !include ../../layouts/frame.yaml
-cards:
-  - !include ../../frame/banner.yaml
-  - !include ../../frame/sidebar.yaml
-  - !include ../../frame/sidebar-lower.yaml
-  - !include ../../frame/footer.yaml
-  - !include ../../navigation/house.yaml
-
-  - type: custom:layout-card
-    layout_type: custom:grid-layout
-    view_layout:
-      grid-area: main
-    layout: !include ../../layouts/main.yaml
+type: sections
+max_columns: 2
+header: !include ../../header/alert-ticker.yaml
+sections:
+  - type: grid
     cards:
-      - type: vertical-stack
-        cards:
-          - type: custom:bubble-card
-            card_type: button
-            button_type: switch
-            sub_button:
-              main:
-                - entity: sensor.adguard_home_average_processing_speed
-                  show_state: true
-                  show_icon: false
-                  name: Speed
-                  show_name: true
-                  fill_width: false
-                  content_layout: icon-top
-                  show_background: false
-                - entity: switch.adguard_home_protection
-                  name: ""
-                  icon: mdi:power
-                  tap_action:
-                    action: toggle
-              bottom:
-                - entity: sensor.adguard_home_dns_queries_blocked_ratio
-                  show_state: true
-                  show_icon: false
-                  name: Blocked %
-                  show_name: true
-                  fill_width: false
-                  content_layout: icon-top
-                  show_background: false
-                - entity: sensor.adguard_home_dns_queries
-                  show_state: true
-                  show_icon: false
-                  name: Total DNS Queries
-                  show_name: true
-                  fill_width: false
-                  content_layout: icon-top
-                  show_background: false
-            entity: switch.adguard_home_protection
-            rows: 1.719
-            show_attribute: true
-            attribute: friendly_name
-            button_action:
-              tap_action:
-                action: none
-            icon: mdi:web
-            modules: []
-            rmn_conditional_state_coloring:
-              default_configuration:
-                card_background:
-                  color_preset: deep-orange
-                  color_mode: preset
-              conditional_colors_1:
-                card_background:
-                  color_preset: red
-                  color_mode: preset
-                  opacity: 30
-                card_text:
-                  color_preset: deep-orange
-                  color_mode: preset
-                  opacity: 100
-                conditions:
-                  - condition: state
-                    entity_id: switch.adguard_home_protection
-                    state:
-                      - "off"
-            name: Internet Protection
-
-      - type: vertical-stack
-        cards:
-
-          - type: custom:unavailable-entity-card
-            title: Critical sensors
-            expanded: false
-            entities:
-              - sensor.living_room_temperature_sensor_temperature
-              - entity: cover.garage_door
-                name: Garage Door
-                icon: mdi:garage
-              - entity: sensor.flo_basement_bathroom_water_sensor_temperature
-              - entity: sensor.flo_under_kitchen_sink_temperature
-              - entity: sensor.acurite_tower_attic_sensor_temperature
-              - entity: sensor.crawl_space_temperature_sensor_temperature
-              - entity: sensor.flo_laundry_temperature
-
-            unavailable_states:
-              - state: offline
-                background: "#f0f4c3"
-                color: "[#827717](https://github.com/vineetchoudhary/lovelace-unavailable-entity-card/issues/827717)"
-              - state: error
-              - state: unavailable
-                background: "rgba(255, 0, 0, 0.18)"
-                color: "#b71c1c"
-              - state: unknown
-                value: "#fff59d"
-
-      - type: vertical-stack
-        cards:
-          - type: tile
-            entity: input_text.broadcast_message
-            name: Broadcast Message - Click to edit
-            show_entity_picture: false
-            vertical: false
-            features_position: bottom
-          - type: custom:bubble-card
-            card_type: button
-            button_type: state
-            tap_action:
-              action: navigate
-              navigation_path: /todo?entity_id=todo.default
-            sub_button:
-              main:
-                - entity: script.print_shopping_list
-                  tap_action:
-                    action: toggle
-                  icon: mdi:printer-pos
-                  name: Print
-                  show_name: true
-                  content_layout: icon-top
-              bottom: []
-            entity: todo.default
-            icon: mdi:cart-variant
+      - !include ../../sections/pages/help/10-broadcast.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/pages/help/20-shopping.yaml
+  - type: grid
+    column_span: 2
+    cards:
+      - !include ../../sections/pages/help/30-not-working.yaml
+  - type: grid
+    column_span: 2
+    cards:
+      - !include ../../sections/pages/help/40-how-it-works.yaml
+  # Drake only: the link to Maintenance.
+  - type: grid
+    column_span: 2
+    visibility:
+      - condition: user
+        users:
+          - 9edc32828f114914baabce7b9ae21eb3
+    cards:
+      - !include ../../sections/pages/help/50-maintenance.yaml
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/house.yaml

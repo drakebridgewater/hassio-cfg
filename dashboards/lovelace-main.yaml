@@ -1,5 +1,5 @@
-# button_card_templates: !include_dir_merge_named dashboards/button-card-templates/
+# Templates in button-card-templates/active/ are loaded; the rest of button-card-templates/ is legacy.
+button_card_templates: !include_dir_merge_named button-card-templates/active/
 decluttering_templates: !include_dir_merge_named decluttering-templates/
-show_in_sidebar: false
 
 views: !include_dir_list views/default

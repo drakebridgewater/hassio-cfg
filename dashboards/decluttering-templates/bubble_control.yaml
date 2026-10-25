@@ -13,6 +13,9 @@ bubble_control:
     - show_attribute: false
     - attribute: null
     - bottom: []
+    - show_name: true
+    - show_state: true
+    - show_last_changed: true
   card:
     type: custom:bubble-card
     card_type: button
@@ -21,8 +24,9 @@ bubble_control:
     entity: '[[entity]]'
     name: '[[name]]'
     icon: '[[icon]]'
-    show_state: true
-    show_last_changed: true
+    show_name: '[[show_name]]'
+    show_state: '[[show_state]]'
+    show_last_changed: '[[show_last_changed]]'
     show_attribute: '[[show_attribute]]'
     attribute: '[[attribute]]'
     tap_action:

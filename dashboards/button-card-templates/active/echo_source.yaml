@@ -1,0 +1,18 @@
+# Use with action_tile: moves Spotify (media_player.spotify_thedrake) to one of its
+# sources, an Echo. Lit while Spotify is on that source. Cards set name, icon and:
+#   source  the source's name exactly as Spotify lists it ("Living Room Echo", ...)
+echo_source:
+  entity: media_player.spotify_thedrake
+  variables:
+    source: ''
+    'on': '[[[ return entity?.attributes?.source === variables.source ]]]'
+  label: >-
+    [[[ if (entity?.attributes?.source !== variables.source) return 'Tap to play here';
+        return entity.state === 'playing' ? 'Playing here' : 'Spotify is set to play here' ]]]
+  tap_action:
+    action: perform-action
+    perform_action: media_player.select_source
+    target:
+      entity_id: media_player.spotify_thedrake
+    data:
+      source: '[[[ return variables.source ]]]'

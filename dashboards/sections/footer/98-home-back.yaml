@@ -1,0 +1,44 @@
+# Invisible card: the toolbar back arrow on sub-pages goes to the home page made
+# for the device. Sub-pages set `back_path: /lovelace-main/home`; from 768px wide
+# (tablets and desktops, the same breakpoint as the navbar's Home button in
+# navigation/*.yaml) the arrow goes to Tablet instead. One capture-phase click
+# listener, installed by whichever copy renders first, reads the current view's
+# back_path from hui-root, so other back paths are left alone.
+# (button-card templates get a proxied `window`, so it uses document.defaultView.)
+type: custom:button-card
+show_name: false
+show_icon: false
+show_state: false
+tap_action:
+  action: none
+custom_fields:
+  back: |
+    [[[
+      const root = document.documentElement;
+      if (!root.dataset.homeBack) {
+        root.dataset.homeBack = 'on';
+        const win = document.defaultView;
+        const wide = win.matchMedia('(min-width: 768px)');
+        win.addEventListener('click', (ev) => {
+          if (!wide.matches) return;
+          const path = ev.composedPath();
+          if (!path.some((el) => el.tagName === 'HA-ICON-BUTTON-ARROW-PREV')) return;
+          const hui = path.find((el) => el.tagName === 'HUI-ROOT');
+          const view = hui?.lovelace?.config?.views?.[hui._curView];
+          if (view?.back_path !== '/lovelace-main/home') return;
+          ev.stopPropagation();
+          ev.preventDefault();
+          win.history.pushState(null, '', '/lovelace-main/tablet');
+          win.dispatchEvent(new CustomEvent('location-changed'));
+        }, true);
+      }
+      return '';
+    ]]]
+styles:
+  card:
+    - height: 0
+    - padding: 0
+    - border: none
+    - background: none
+    - box-shadow: none
+    - overflow: hidden

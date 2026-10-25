@@ -1,0 +1,37 @@
+# Echo tab, right: which Echo Spotify plays on (the Spotify player's sources). Tapping
+# one moves the music there; the Echo it's on now is lit.
+type: vertical-stack
+grid_options:
+  columns: full
+cards:
+  - type: heading
+    heading: Play on
+    heading_style: title
+  - type: grid
+    columns: 2
+    square: false
+    cards:
+      - type: custom:button-card
+        template: [action_tile, echo_source]
+        name: Living room
+        icon: mdi:sofa
+        variables:
+          source: Living Room Echo
+      - type: custom:button-card
+        template: [action_tile, echo_source]
+        name: Family room
+        icon: mdi:theater
+        variables:
+          source: Family Room Echo
+      - type: custom:button-card
+        template: [action_tile, echo_source]
+        name: Garage
+        icon: mdi:garage-variant
+        variables:
+          source: Garage echo
+      - type: custom:button-card
+        template: [action_tile, echo_source]
+        name: Every Echo
+        icon: mdi:speaker-multiple
+        variables:
+          source: All echo devices

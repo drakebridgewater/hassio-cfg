@@ -1,29 +1,15 @@
 title: Cameras
 path: cameras
-type: custom:grid-layout
 subview: true
 back_path: /lovelace-main/home
-layout: !include ../../layouts/frame.yaml
-cards:
-  - !include ../../frame/banner.yaml
-  - !include ../../frame/sidebar.yaml
-  - !include ../../frame/sidebar-lower.yaml
-  - !include ../../frame/footer.yaml
-  - !include ../../navigation/security.yaml
-
-  - type: custom:layout-card
-    layout_type: custom:grid-layout
-    view_layout:
-      grid-area: main
-    layout: !include ../../layouts/main.yaml
+type: sections
+max_columns: 4
+header: !include ../../header/alert-ticker.yaml
+sections:
+  - type: grid
     cards:
-      - type: vertical-stack
-        cards: !include_dir_list ../../sections/pages/cameras/col1
-
-
       - type: custom:stack-in-card
-        cards: 
-
+        cards:
           - type: custom:bubble-card
             card_type: sub-buttons
             button_type: state
@@ -111,9 +97,10 @@ cards:
             timeline:
               controls:
                 thumbnails: {}
-
+  - type: grid
+    cards:
       - type: custom:stack-in-card
-        cards: 
+        cards:
           - type: custom:bubble-card
             card_type: sub-buttons
             button_type: state
@@ -169,9 +156,10 @@ cards:
             timeline:
               controls:
                 thumbnails: {}
-
+  - type: grid
+    cards:
       - type: custom:stack-in-card
-        cards: 
+        cards:
           - type: custom:advanced-camera-card
             cameras:
               - camera_entity: camera.garage
@@ -212,8 +200,10 @@ cards:
             timeline:
               controls:
                 thumbnails: {}
+  - type: grid
+    cards:
       - type: custom:stack-in-card
-        cards: 
+        cards:
           - type: custom:advanced-camera-card
             cameras:
               - camera_entity: camera.front_door_camera
@@ -257,93 +247,54 @@ cards:
             timeline:
               controls:
                 thumbnails: {}
-      - type: custom:stack-in-card
-        cards: 
-          - type: custom:advanced-camera-card
-            cameras:
-              - camera_entity: camera.entryway
-                triggers:
-                  occupancy: true
-                  motion: true
-            menu:
-              style: outside
-              button_size: 67
-              buttons:
-                iris:
-                  enabled: false
-                cameras:
-                  enabled: true
-                substreams:
-                  enabled: false
-                live:
-                  enabled: true
-                download:
-                  enabled: false
-                display_mode:
-                  enabled: false
-                media_player:
-                  enabled: false
-                fullscreen:
-                  enabled: false
-                recordings:
-                  enabled: true
-                  icon: mdi:record-rec
-                  priority: 29
-            status_bar:
-              style: outside
-              position: bottom
-            media_viewer:
-              display: {}
-            media_gallery:
-              controls:
-                thumbnails:
-                  size: 140
-                  show_details: true
-            timeline:
-              controls:
-                thumbnails: {}
-      - type: custom:stack-in-card
-        cards: 
-          - type: custom:advanced-camera-card
-            cameras:
-              - camera_entity: camera.dining
-                triggers:
-                  occupancy: true
-                  motion: true
-            menu:
-              style: outside
-              button_size: 67
-              buttons:
-                iris:
-                  enabled: false
-                cameras:
-                  enabled: true
-                substreams:
-                  enabled: false
-                live:
-                  enabled: true
-                download:
-                  enabled: false
-                display_mode:
-                  enabled: false
-                media_player:
-                  enabled: false
-                fullscreen:
-                  enabled: false
-                recordings:
-                  enabled: true
-                  icon: mdi:record-rec
-                  priority: 29
-            status_bar:
-              style: outside
-              position: bottom
-            media_viewer:
-              display: {}
-            media_gallery:
-              controls:
-                thumbnails:
-                  size: 140
-                  show_details: true
-            timeline:
-              controls:
-                thumbnails: {}
+  # - type: grid
+  #   cards:
+  #     - type: custom:stack-in-card
+  #       cards:
+  #         - type: custom:advanced-camera-card
+  #           cameras:
+  #             - camera_entity: camera.entryway
+  #               triggers:
+  #                 occupancy: true
+  #                 motion: true
+  #           menu:
+  #             style: outside
+  #             button_size: 67
+  #             buttons:
+  #               iris:
+  #                 enabled: false
+  #               cameras:
+  #                 enabled: true
+  #               substreams:
+  #                 enabled: false
+  #               live:
+  #                 enabled: true
+  #               download:
+  #                 enabled: false
+  #               display_mode:
+  #                 enabled: false
+  #               media_player:
+  #                 enabled: false
+  #               fullscreen:
+  #                 enabled: false
+  #               recordings:
+  #                 enabled: true
+  #                 icon: mdi:record-rec
+  #                 priority: 29
+  #           status_bar:
+  #             style: outside
+  #             position: bottom
+  #           media_viewer:
+  #             display: {}
+  #           media_gallery:
+  #             controls:
+  #               thumbnails:
+  #                 size: 140
+  #                 show_details: true
+  #           timeline:
+  #             controls:
+  #               thumbnails: {}
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/security.yaml

@@ -7,7 +7,7 @@ shared templates described in dashboards/ARCHITECTURE.md:
 
   heading                      -> Bubble separator (heading badges become sub-buttons)
   page badges, mushroom chips  -> bubble_chips
-  simple Bubble light/switch   -> bubble_light / _color / _temp / _effect, bubble_switch
+  simple Bubble light/switch   -> bubble_light / _color / _temp, bubble_wled, bubble_switch
   anything else                -> copied unchanged (GUI-only layout keys removed)
 
 Run inside the Home Assistant container (it has PyYAML):
@@ -121,16 +121,13 @@ class Porter:
         if not self.toggle_only(main, entity_id):
             return None
 
-        extra = []
+        variables = [{"entity": entity_id}]
         if domain == "light" and any(b.get("sub_button_type") == "select" for b in bottom):
             palette, preset = self.effect_selects(entity_id)
             if not palette:
                 return None
-            template = "bubble_light_effect"
-            extra = [{"palette": palette}, {"preset": preset}]
-            dropped = [b.get("name") or b.get("entity") for b in bottom if b.get("sub_button_type") != "select"]
-            if dropped:
-                self.warn(f"{entity_id}: bubble_light_effect has no room for {', '.join(map(str, dropped))}")
+            template = "bubble_wled"
+            variables = [{"device": entity_id.split(".", 1)[1]}]
         elif bottom:
             return None
         elif domain == "light":
@@ -138,13 +135,12 @@ class Porter:
         else:
             template = "bubble_switch"
 
-        variables = [{"entity": entity_id}]
         if card.get("name"):
             variables.append({"name": card["name"]})
         if card.get("icon"):
             variables.append({"icon": card["icon"]})
         self.converted += 1
-        return {"type": "custom:decluttering-card", "template": template, "variables": variables + extra}
+        return {"type": "custom:decluttering-card", "template": template, "variables": variables}
 
     # ---- headings, badges and chips -----------------------------------------
     def separator(self, heading):

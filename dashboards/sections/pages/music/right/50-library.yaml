@@ -1,0 +1,28 @@
+# Music page, right panel under the Quick play row: the Music Assistant library (favorites, recents,
+# recommendations and search). Plays to the player picked in the left panel.
+type: custom:mass-player-card
+entities: !include ../players.yaml
+default_section: media_browser
+panel: false
+sync_player_across_dashboard: true
+player:
+  enabled: false
+queue:
+  enabled: false
+players:
+  enabled: false
+media_browser:
+  enabled: true
+  columns: 4
+  default_section: favorites
+  default_enqueue_option: play_now
+grid_options:
+  columns: full
+# Wide screens (scrolling locked, cards/scroll-lock.yaml): fill the window
+# height below the page header and the Quick play rows (280px with its own 56px
+# tab bar) and the Music tabs (56px) instead of the card's fixed 40em.
+card_mod:
+  style: |
+    @media (min-width: 1300px) {
+      ha-card { --mass-player-card-height: calc(var(--page-vh, 100vh) - 336px); }
+    }

@@ -1,24 +1,19 @@
+# Room page: the room's main light up top, then its sections from
+# sections/rooms/master-bedroom/ (ported from the GUI by tools/port_gui_rooms.py) one section per file.
 title: Master Bedroom
 path: master-bedroom
 icon: mdi:bed-king-outline
 subview: true
 back_path: /lovelace-main/home
-type: custom:grid-layout
-layout: !include ../../layouts/frame.yaml
-
-# Room page: the room's main light up top, then its sections from
-# sections/rooms/master-bedroom/ (ported from the GUI by tools/port_gui_rooms.py) in columns.
-cards:
-  - !include ../../frame/banner.yaml
-  - !include ../../frame/sidebar.yaml
-  - !include ../../frame/sidebar-lower.yaml
-  - !include ../../frame/footer.yaml
-  - !include ../../navigation/rooms.yaml
-
-  - type: vertical-stack
-    view_layout:
-      grid-area: main
+type: sections
+max_columns: 4
+header: !include ../../header/alert-ticker.yaml
+sections:
+  - type: grid
+    column_span: 4
     cards:
+      # Lighting mode first (cards/lighting-mode/), in the wall switch LED colours.
+      - !include ../../cards/lighting-mode/master_bedroom.yaml
       - type: custom:bubble-card
         card_type: button
         button_type: switch
@@ -40,7 +35,95 @@ cards:
           - icon: mdi:power
             tap_action:
               action: toggle
-      - type: custom:layout-card
-        layout_type: custom:grid-layout
-        layout: !include ../../layouts/main.yaml
-        cards: !include_dir_list ../../sections/rooms/master-bedroom
+      - !include ../../sections/rooms/master-bedroom/01-alerts.yaml
+      
+
+  - type: grid
+    cards:
+      - type: custom:bubble-card
+        card_type: separator
+        name: Bedroom
+        icon: mdi:bed-king-outline
+      - !include ../../sections/rooms/master-bedroom/00-badges.yaml
+      - !include ../../sections/rooms/master-bedroom/10-bedroom.yaml
+  - type: grid
+    cards:
+      - type: custom:bubble-card
+        card_type: separator
+        name: Bathroom
+        icon: phu:rooms-bathroom
+      - type: custom:decluttering-card
+        template: bubble_chips
+        variables:
+          - chips:
+              - entity: binary_sensor.master_bathroom_window
+                name: Bathroom
+                show_name: true
+                show_state: true
+                state_background: true
+                fill_width: false
+              - entity: binary_sensor.master_bathroom_motion_sensor_occupancy
+                name: Bathroom
+                show_name: true
+                show_state: true
+                state_background: true
+                fill_width: false
+        view_layout:
+          grid-column: 1 / -1
+      - type: custom:decluttering-card
+        template: bubble_light
+        variables:
+          - entity: light.master_bathroom_wall_switch
+          - name: Bathroom
+      - type: custom:bubble-card
+        card_type: separator
+        name: Closet
+        icon: mdi:hanger
+      - type: custom:decluttering-card
+        template: bubble_light
+        variables:
+          - entity: light.master_bedroom_closet_wall_switch
+          - name: Closet
+  - type: grid
+    cards:
+      - type: custom:bubble-card
+        card_type: separator
+        name: Climate
+      # - !include ../../sections/rooms/master-bedroom/20-temperature.yaml
+      - type: custom:bubble-card
+        card_type: button
+        button_type: state
+        entity: light.apollo_air_1_f8b340_rgb_light
+        name: Air Quality Indicator
+        icon: mdi:molecule-co2
+        sub_button:
+          main:
+            - entity: light.apollo_air_1_f8b340_rgb_light
+              icon: mdi:power
+              tap_action:
+                action: toggle
+          bottom:
+            - entity: sensor.apollo_air_1_f8b340_co2
+              show_state: true
+              show_name: false
+              show_background: false
+              fill_width: false
+            - entity: sensor.apollo_air_1_f8b340_pm_2_5mm_weight_concentration
+              show_state: true
+              show_background: false
+              fill_width: false
+            - entity: sensor.apollo_air_1_f8b340_sen55_voc
+              show_state: true
+              show_background: false
+              fill_width: false
+        rows: 1.719
+        show_last_changed: false
+        show_last_updated: false
+      - !include ../../sections/rooms/master-bedroom/90-air-quality.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/master-bedroom/30-alarms.yaml
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/rooms.yaml

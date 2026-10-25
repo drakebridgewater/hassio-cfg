@@ -1,25 +1,15 @@
-max_columns: 4
 title: Planting
 path: planting
-type: custom:grid-layout
 subview: true
 back_path: /lovelace-main/home
-layout: !include ../../layouts/frame.yaml
-cards:
-  - !include ../../frame/banner.yaml
-  - !include ../../frame/sidebar.yaml
-  - !include ../../frame/sidebar-lower.yaml
-  - !include ../../frame/footer.yaml
-  - !include ../../navigation/planning.yaml
-
-  - type: custom:layout-card
-    layout_type: custom:grid-layout
-    view_layout:
-      grid-area: main
-    layout: !include ../../layouts/main.yaml
+type: sections
+max_columns: 4
+header: !include ../../header/alert-ticker.yaml
+sections:
+  - type: grid
     cards:
       - type: custom:stack-in-card
-        cards: 
+        cards:
           - type: heading
             heading: Indoors
             heading_style: title
@@ -153,9 +143,10 @@ cards:
                     action: toggle
             entity: switch.basement_bathroom_holiday
             rows: 1
-
+  - type: grid
+    cards:
       - type: custom:stack-in-card
-        cards: 
+        cards:
           - type: heading
             heading: Outdoors
             heading_style: title
@@ -173,3 +164,7 @@ cards:
                   show_attribute: true
                   attribute: sprinkler_type
               bottom: []
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/planning.yaml

@@ -1,241 +1,176 @@
+# Who's home pop-up (the status card's Who's away tile opens it). A live map of the
+# grown-ups, then one row per person (button-card template person_tile): picture with
+# a green ring while home, where they are and since when, and a detail line (today's
+# work or school from packages/work_school.yaml, the drive home while at work from
+# packages/drive_home.yaml, Shawna's leave-by time on work mornings, the street when away, moving or not, phone battery).
+# Ethan and Abby have no phones, so their rows read their school and
+# daycare sensors. Each row ends its detail with the share of the year at work, school
+# or daycare (packages/time_share.yaml). Guests last. Tap a person for their details and map.
+# The old version (static map images, Mushroom cards) is in dashboard_unused/.
 type: custom:bubble-card
 card_type: pop-up
 hash: '#people_overview'
-button_type: state
-entity: binary_sensor.house_occupied_group
-name: Who's Home
-force_icon: false 
-show_state: true
+button_type: name
+entity: binary_sensor.home_occupied
+name: Who's home
+icon: mdi:home-account
+show_state: false
 show_last_changed: false
-show_attribute: true
+show_attribute: false
 button_action:
   tap_action:
     action: none
 cards:
-  - type: custom:stack-in-card
+  - type: map
+    entities:
+      - person.drake
+      - person.shawna
+    hours_to_show: 0
+    theme_mode: auto
+    aspect_ratio: '16:7'
+    fit_zones: false
     card_mod:
       style: |
-        ha-card {
-          background: url('https://maps.geoapify.com/v1/staticmap?style=dark-matter-yellow-roads&width=600&height=230&center=lonlat:{{ state_attr('device_tracker.iphone_2022', 'longitude') }},{{ state_attr('device_tracker.iphone_2022', 'latitude') }}&zoom=14.0&marker=lonlat:{{ state_attr('device_tracker.iphone_2022', 'longitude') }},{{ state_attr('device_tracker.iphone_2022', 'latitude') }};type:material;color:%23ff3421;icontype:awesome&scaleFactor=2&apiKey=6511f281394741e8b02bf29351f40555');
-          background-size: cover;
-          background-blend-mode: overlay;
-          background-color: rgba(var(--rgb-card-background-color), .1);
-        }
-    cards:
-      - type: custom:mushroom-template-card
-        entity: person.drake
-        primary: Drake
-        picture: "{{ state_attr(entity, 'entity_picture') }}"
-        secondary: >-
-          {{ iif(states(entity) == 'not_home', 'away', states(entity)) | title }} |
-          {{ states('sensor.drakes_iphone_geocoded_location') }}
-        badge_icon: >-
-          {% set zone = iif(states(entity) == 'not_home', 'away', states(entity)) %}
-          {%- if 'home' in zone.lower() -%}
-            mdi:home
-          {%- elif zone == 'Work' -%}
-            mdi:office-building
-          {%- else -%}
-            mdi:home-export-outline
-          {%- endif -%}
-        badge_color: >-
-          {% set zone = iif(states(entity) == 'not_home', 'away', states(entity))
-          %}  {%- if 'home' in zone.lower() -%}
-            green
-          {%- elif zone == 'Work' -%}
-            blue
-          {%- else -%}
-            red
-          {%- endif -%}
-        fill_container: true
-        multiline_secondary: false
-        layout: horizontal
-        tap_action:
-          action: more-info
-        card_mod:
-          style: |
-            :host {
-              height: 40px;
-              --mush-icon-size: 60px;
+        ha-card { border: none; border-radius: 16px; overflow: hidden; }
+
+  - type: custom:button-card
+    template: person_tile
+    entity: person.drake
+    triggers_update:
+      - sensor.home_drake_distance
+      - sensor.home_drake_direction_of_travel
+      - sensor.drake_s_pixel_11_pro_geocoded_location
+      - sensor.drake_s_pixel_11_pro_battery_level
+      - sensor.drake_s_pixel_11_pro_battery_state
+      - sensor.drake_s_pixel_11_pro_detected_activity
+      - sensor.drake_work_today
+      - sensor.drake_drive_home
+      - sensor.drake_share_of_year_at_work
+    variables:
+      distance: sensor.home_drake_distance
+      direction: sensor.home_drake_direction_of_travel
+      place: sensor.drake_s_pixel_11_pro_geocoded_location
+      battery: sensor.drake_s_pixel_11_pro_battery_level
+      charging: sensor.drake_s_pixel_11_pro_battery_state
+      activity: sensor.drake_s_pixel_11_pro_detected_activity
+      schedule: sensor.drake_work_today
+      drive: sensor.drake_drive_home
+      year: sensor.drake_share_of_year_at_work
+
+  - type: custom:button-card
+    template: person_tile
+    entity: person.shawna
+    triggers_update:
+      - sensor.home_shawna_distance
+      - sensor.home_shawna_direction_of_travel
+      - sensor.shawnas_iphone_geocoded_location_2
+      - sensor.shawnas_iphone_battery_level_2
+      - sensor.shawnas_iphone_battery_state_2
+      - sensor.shawnas_iphone_activity_2
+      - sensor.shawna_work_today
+      - sensor.shawna_drive_home
+      - sensor.shawna_share_of_year_at_work
+      - binary_sensor.shawna_leave_for_work
+    variables:
+      distance: sensor.home_shawna_distance
+      direction: sensor.home_shawna_direction_of_travel
+      place: sensor.shawnas_iphone_geocoded_location_2
+      battery: sensor.shawnas_iphone_battery_level_2
+      charging: sensor.shawnas_iphone_battery_state_2
+      activity: sensor.shawnas_iphone_activity_2
+      schedule: sensor.shawna_work_today
+      drive: sensor.shawna_drive_home
+      year: sensor.shawna_share_of_year_at_work
+      morning: binary_sensor.shawna_leave_for_work
+
+  # Ethan: at school from binary_sensor.ethan_at_school (a grown-up's morning stop
+  # there), otherwise wherever the grown-ups are.
+  - type: custom:button-card
+    template: person_tile
+    entity: person.ethan
+    triggers_update:
+      - binary_sensor.ethan_at_school
+      - sensor.ethan_school_today
+      - sensor.time_at_school_today_ethan
+      - sensor.ethan_share_of_year_at_school
+      - binary_sensor.home_occupied
+    variables:
+      home: >-
+        [[[ return hass.states['binary_sensor.ethan_at_school']?.state !== 'on'
+              && hass.states['binary_sensor.home_occupied']?.state === 'on' ]]]
+      status: >-
+        [[[ if (hass.states['binary_sensor.ethan_at_school']?.state === 'on') {
+              const d = new Date(hass.states['binary_sensor.ethan_at_school'].last_changed);
+              return `At school since ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
             }
-      - type: custom:decluttering-card
-        template: bubble_chips
-        variables:
-          - chips:
-              - entity: sensor.drakes_iphone_battery_plus
-                show_state: true
-                fill_width: false
-                show_background: false
-              - entity: sensor.drakes_iphone_steps
-                show_state: true
-                fill_width: false
-                show_background: false
-              - entity: sensor.drake_iphone_idevice_travel_time_min_home
-                icon: mdi:home
-                show_state: true
-                fill_width: false
-                show_background: false
-  - entity: person.drake
-    card_layout: large-2-rows
-    type: custom:bubble-card
-    card_type: button
-    button_type: state
-    show_last_changed: false
-    show_attribute: false
-    force_icon: false
-    sub_button:
-      - entity: sensor.abby_daycare_to_siemens
-        show_state: true
-        show_name: true
-        name: Daycare to Siemens
-      - show_name: true
-        show_attribute: false
-        show_last_changed: false
-        show_icon: true
-        entity: sensor.siemens_to_daycare
-        show_state: true
-  - type: custom:stack-in-card
-    card_mod:
-      style: |
-        ha-card {
-          background: url('https://maps.geoapify.com/v1/staticmap?style=dark-matter-yellow-roads&width=600&height=230&center=lonlat:{{ state_attr('device_tracker.shawnas_iphone', 'longitude') }},{{ state_attr('device_tracker.shawnas_iphone', 'latitude') }}&zoom=14.0&marker=lonlat:{{ state_attr('device_tracker.shawnas_iphone', 'longitude') }},{{ state_attr('device_tracker.shawnas_iphone', 'latitude') }};type:material;color:%23ff3421;icontype:awesome&scaleFactor=2&apiKey=6511f281394741e8b02bf29351f40555');
-          background-size: cover;
-          background-blend-mode: overlay;
-          background-color: rgba(var(--rgb-card-background-color), .1);
-        }
-    cards:
-      - type: custom:mushroom-template-card
-        entity: person.shawna
-        primary: Shawna
-        picture: "{{ state_attr(entity, 'entity_picture') }}"
-        secondary: >-
-          {{ iif(states(entity) == 'not_home', 'away', states(entity)) | title }} |
-          {{ states('sensor.shawnas_iphone_geocoded_location') }}
-        badge_icon: >-
-          {% set zone = iif(states(entity) == 'not_home', 'away', states(entity)) %}
-          {%- if 'home' in zone.lower() -%}
-            mdi:home
-          {%- elif zone == 'Work' -%}
-            mdi:office-building
-          {%- else -%}
-            mdi:home-export-outline
-          {%- endif -%}
-        badge_color: >-
-          {% set zone = iif(states(entity) == 'not_home', 'away', states(entity))
-          %}  {%- if 'home' in zone.lower() -%}
-            green
-          {%- elif zone == 'Work' -%}
-            blue
-          {%- else -%}
-            red
-          {%- endif -%}
-        fill_container: true
-        multiline_secondary: false
-        layout: horizontal
-        tap_action:
-          action: more-info
-        card_mod:
-          style: |
-            :host {
-              height: 40px;
-              --mush-icon-size: 60px;
+            return variables.home ? 'Home' : 'Out with the grown-ups'; ]]]
+      detail: >-
+        [[[ const w = hass.states['sensor.ethan_school_today'];
+            const parts = [];
+            const over = w?.attributes?.end && new Date(w.attributes.end) < new Date();
+            if (w?.attributes?.expected && w.attributes.summary && !over) parts.push(w.attributes.summary);
+            const h = Number(hass.states['sensor.time_at_school_today_ethan']?.state);
+            if (hass.states['binary_sensor.ethan_at_school']?.state === 'on' && h > 0) parts.push(`${h.toFixed(1)} h there today`);
+            const y = hass.states['sensor.ethan_share_of_year_at_school']?.state;
+            if (y && !['unknown', 'unavailable'].includes(y)) parts.push(`${y}% of the year at school`);
+            return parts.join(' · '); ]]]
+    tap_action:
+      action: more-info
+      entity: binary_sensor.ethan_at_school
+
+  # Abby: at daycare from binary_sensor.abby_at_daycare (a grown-up's 3-minute stop
+  # there before noon), otherwise wherever the grown-ups are.
+  - type: custom:button-card
+    template: person_tile
+    entity: person.abby
+    triggers_update:
+      - binary_sensor.abby_at_daycare
+      - sensor.abby_share_of_year_at_daycare
+      - binary_sensor.home_occupied
+    variables:
+      home: >-
+        [[[ return hass.states['binary_sensor.abby_at_daycare']?.state !== 'on'
+              && hass.states['binary_sensor.home_occupied']?.state === 'on' ]]]
+      status: >-
+        [[[ if (hass.states['binary_sensor.abby_at_daycare']?.state === 'on') {
+              const d = new Date(hass.states['binary_sensor.abby_at_daycare'].last_changed);
+              return `At daycare since ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
             }
-      - type: custom:decluttering-card
-        template: bubble_chips
-        variables:
-          - chips:
-              - entity: sensor.shawna_iphone_battery_plus
-                show_state: true
-                fill_width: false
-                show_background: false
-              - entity: sensor.shwana_iphone_steps
-                show_state: true
-                fill_width: false
-                show_background: false
-              - entity: sensor.shawna_iphone_idevice_travel_time_home
-                icon: mdi:home
-                show_state: true
-                fill_width: false
-                show_background: false
-  # - entity: person.shawna
-  #   card_layout: large-2-rows
-  #   type: custom:bubble-card
-  #   card_type: button
-  #   button_type: state
-  #   show_last_changed: false
-  #   show_attribute: false
-  #   force_icon: false
-  #   sub_button:
-  #     - entity: sensor.shawna_iphone_idevice_travel_time_min_home
-  #       show_state: true
-  #       show_name: true
-  #       name: Time to Home
-  #     - show_name: true
-  #       name: Battery
-  #       show_attribute: false
-  #       show_last_changed: false
-  #       show_icon: true
-  #       entity: sensor.shawna_iphone_idevice_battery
-  #       show_state: true
-  - entity: binary_sensor.ethan_at_daycare
-    card_layout: large-2-rows
-    type: custom:bubble-card
-    card_type: button
-    button_type: state
-    show_last_changed: false
-    show_attribute: false
-    force_icon: false
-    sub_button:
-      - entity: sensor.drake_iphone_idevice_travel_time_min_daycare
-        show_state: true
-        show_name: true
-        name: Drake's Drive Time
-      - entity: sensor.shawna_iphone_idevice_travel_time_min_daycare
-        show_state: true
-        show_name: true
-        name: Shawna's Drive Time
-  - entity: binary_sensor.abby_at_daycare
-    card_layout: large-2-rows
-    type: custom:bubble-card
-    card_type: button
-    button_type: state
-    sub_button: []
-    show_last_changed: false
-    show_attribute: false
-    force_icon: false
-  - type: custom:bubble-card
-    card_type: separator
-    button_type: state
-    name: "Guests "
-    icon: ""
-  - entity: input_boolean.guest_mode
-    content_info: name
+            return variables.home ? 'Home' : 'Out with the grown-ups'; ]]]
+      detail: >-
+        [[[ const y = hass.states['sensor.abby_share_of_year_at_daycare']?.state;
+            return y && !['unknown', 'unavailable'].includes(y) ? `${y}% of the year at daycare` : ''; ]]]
+    tap_action:
+      action: more-info
+      entity: binary_sensor.abby_at_daycare
+
+  # Guests: guest mode (asks before switching) and the named guest while they're here.
+  - type: heading
+    heading: Guests
+    heading_style: subtitle
+  - type: custom:button-card
+    template: action_tile
+    entity: input_boolean.guest_mode
+    name: Guest mode
+    icon: mdi:account-group-outline
+    variables:
+      'on': '[[[ return entity?.state === "on" ]]]'
+    label: >-
+      [[[ return entity?.state === 'on'
+            ? 'On, for people staying over. Tap to turn it off.'
+            : 'Off. Tap to turn it on when people are staying over.' ]]]
     tap_action:
       action: toggle
-    type: custom:bubble-card
-    card_type: button
-    button_type: state
-    sub_button: []
-    show_last_changed: false
-    show_attribute: false
-    force_icon: false
-  - type: horizontal-stack
-    cards:
-    - entity: person.named_guest
-      name: Named Guest
-      type: custom:bubble-card
-      card_type: button
-      button_type: state
-      sub_button: []
-      show_last_changed: false
-      show_attribute: false
-      force_icon: false
-    - entity: person.guest
-      name: Guest
-      type: custom:bubble-card
-      card_type: button
-      button_type: state
-      sub_button: []
-      show_last_changed: false
-      show_attribute: false
-      force_icon: false
+      confirmation:
+        text: '[[[ return entity?.state === "on" ? "Turn guest mode off?" : "Turn guest mode on?" ]]]'
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: person.named_guest
+        state: home
+    card:
+      type: custom:button-card
+      template: person_tile
+      entity: person.named_guest
+      triggers_update:
+        - person.named_guest
