@@ -1,2 +1,0 @@
-show_in_sidebar: false
-views: !include_dir_list views/admin

@@ -1,6 +1,0 @@
-# Shared view frame: top of the left sidebar on every view (status and weather).
-# The rest is frame/sidebar-lower.yaml, which drops below the content on phones.
-type: vertical-stack
-view_layout:
-  grid-area: sidebar
-cards: !include_dir_list ../sections/sidebar

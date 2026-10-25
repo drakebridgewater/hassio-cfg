@@ -107,3 +107,6 @@ www/google*.html
 
 # Claude Code worktrees
 .claude/worktrees/
+
+# Retired dashboard files, kept on disk only
+dashboard_unused/
