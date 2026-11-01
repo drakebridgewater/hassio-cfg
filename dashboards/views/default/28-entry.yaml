@@ -1,0 +1,21 @@
+# Room page: the ways into the house and the lights they turn on. Each door has its own
+# section with its lighting mode (the switch config hold changes the same thing).
+title: Entry
+path: entry
+icon: mdi:door-open
+subview: true
+back_path: /lovelace-main/home
+type: sections
+max_columns: 4
+header: !include ../../header/alert-ticker.yaml
+sections:
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/entry/10-front-door.yaml
+  - type: grid
+    cards:
+      - !include ../../sections/rooms/entry/20-garage-door.yaml
+  - type: grid
+    cards:
+      - !include ../../frame/footer.yaml
+      - !include ../../navigation/rooms.yaml

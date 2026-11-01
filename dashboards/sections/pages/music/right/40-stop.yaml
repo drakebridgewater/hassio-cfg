@@ -4,7 +4,9 @@ template: action_tile
 entity: script.music_stop_picked
 name: Stop
 icon: mdi:stop
-label: "[[[ return `Stops the ${states['input_select.music_room'].state.toLowerCase()}` ]]]"
+label: >-
+  [[[ const room = states['input_select.music_room'].state;
+      return room.endsWith('Echo') ? 'Pauses Spotify' : `Stops the ${room.toLowerCase()}` ]]]
 triggers_update:
   - input_select.music_room
 tap_action:

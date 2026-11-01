@@ -5,6 +5,9 @@
 # write the same sub-buttons card directly (see sections/rooms/outdoors/10-overview.yaml).
 #   chips   list of sub-buttons
 #   align   start | center | end (default start)
+# Bubble lays the group out on one line, anchored to the bottom of a 56px card, so a long
+# row ran sideways into the next section. `styles` wraps the chips inside the card's own
+# width and lets the card grow to fit them.
 bubble_chips:
   default:
     - align: start
@@ -12,6 +15,11 @@ bubble_chips:
     type: custom:bubble-card
     card_type: sub-buttons
     hide_main_background: true
+    styles: |
+      .card-content, .type-custom-bubble-card, .bubble-sub-buttons-container { height: auto !important; min-height: 0; }
+      .bubble-sub-button-bottom-container { position: relative; bottom: auto; min-width: 0; max-width: 100%; flex-wrap: wrap; }
+      .bubble-sub-button-alignment-lane { flex: 1 1 100%; min-width: 0; max-width: 100%; flex-wrap: wrap; }
+      .bubble-sub-button-group.display-inline { flex-wrap: wrap; min-width: 0; width: 100%; }
     sub_button:
       main: []
       bottom:

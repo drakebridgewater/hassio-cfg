@@ -13,13 +13,13 @@ sections:
   - type: grid
     column_span: 4
     cards:
-      - !include ../../sections/rooms/kitchen/00-badges.yaml
-      - !include ../../sections/rooms/kitchen/01-alerts.yaml
+      - !include ../../sections/rooms/kitchen/00-chips.yaml
   - type: grid
     column_span: 4
     cards:
       # Lighting mode first (cards/lighting-mode/), in the wall switch LED colours.
       - !include ../../cards/lighting-mode/main_area.yaml
+      - !include ../../cards/scenes/main.yaml
   # - type: grid
   #   cards:
   #     - type: custom:bubble-card

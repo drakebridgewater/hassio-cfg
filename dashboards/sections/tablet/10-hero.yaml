@@ -34,9 +34,10 @@ triggers_update:
   - weather.pirateweather
   - alarm_control_panel.default
   - cover.garage_door
+  - binary_sensor.ratgdov2_925f17_obstruction
   - binary_sensor.any_door_open_group
   - binary_sensor.window_open_group
-  - lock.front_front_door
+  - lock.front_door
   - binary_sensor.front_door
   - sensor.airnow_aqi
   # Outside and inside readings (custom_fields.weather)
@@ -600,17 +601,36 @@ custom_fields:
         - type: custom:button-card
           template: hero_pill
           entity: cover.garage_door
+          triggers_update:
+            - binary_sensor.ratgdov2_925f17_obstruction
+          # These templates run in the hero's context (see the top of this file):
+          # `entity` is sensor.time and the hero has no `blocked` variable, so each
+          # one reads the door and the obstruction sensor itself.
           variables:
-            quiet: '[[[ return hass.states["cover.garage_door"]?.state === "closed" ]]]'
+            quiet: >-
+              [[[ return hass.states["cover.garage_door"]?.state === "closed"
+                  && hass.states["binary_sensor.ratgdov2_925f17_obstruction"]?.state !== "on" ]]]
             pulse: '[[[ return variables.close_up.garage ]]]'
           name: Garage
+          # Blocked: the opener's safety sensors see something in the doorway.
+          icon: >-
+            [[[ const s = hass.states["cover.garage_door"]?.state;
+                return hass.states["binary_sensor.ratgdov2_925f17_obstruction"]?.state === "on" ? 'mdi:garage-alert-variant'
+                  : s === 'closed' ? 'mdi:garage-variant' : 'mdi:garage-open-variant' ]]]
+          state_display: >-
+            [[[ const s = hass.states["cover.garage_door"]?.state;
+                const t = { closed: 'Closed', open: 'Open', opening: 'Opening', closing: 'Closing' }[s] ?? 'No signal';
+                return hass.states["binary_sensor.ratgdov2_925f17_obstruction"]?.state === "on" ? (s === 'closed' ? 'Sensor blocked' : 'Blocked') : t ]]]
           tap_action:
-            action: more-info
-          state:
-            - value: open
-              styles:
-                icon:
-                  - color: var(--amber-color)
+            action: navigate
+            navigation_path: '#garage'
+          styles:
+            icon:
+              - color: >-
+                  [[[ const s = hass.states["cover.garage_door"]?.state;
+                      const blocked = hass.states["binary_sensor.ratgdov2_925f17_obstruction"]?.state === "on";
+                      return blocked && s !== 'closed' ? 'var(--orange-color)'
+                        : blocked || s === 'open' ? 'var(--amber-color)' : 'white' ]]]
         - type: custom:button-card
           template: hero_pill
           entity: binary_sensor.any_door_open_group
@@ -649,9 +669,9 @@ custom_fields:
                   - color: var(--amber-color)
         - type: custom:button-card
           template: hero_pill
-          entity: lock.front_front_door
+          entity: lock.front_door
           variables:
-            quiet: '[[[ return hass.states["lock.front_front_door"]?.state === "locked" ]]]'
+            quiet: '[[[ return hass.states["lock.front_door"]?.state === "locked" ]]]'
             pulse: '[[[ return variables.close_up.lock ]]]'
           name: Front Door
           icon: mdi:lock
@@ -872,7 +892,8 @@ custom_fields:
   # Inside: the living room sensor, Ecobee humidity, what the thermostat is doing,
   # and the Ecobee air quality in the Ecobee app's words (clean up to 100, fair to
   # 200, then poor). Outside opens the #weather pop-up (popup/weather.yaml), AQI
-  # the #aqi-overview pop-up; inside taps open the sensor or the thermostat.
+  # the #aqi-overview pop-up; inside goes to the climate page, and its readings
+  # open the humidity sensor, the thermostat or the AQI pop-up.
   # Each block takes a third of the row, leaving the middle third for the
   # navbar; narrower cards stack the two blocks.
   # Each block keeps one fixed height: the caption stays on one line, and when
@@ -1000,7 +1021,7 @@ custom_fields:
       return `<div class="wx">`
         + block('out', clearMoon ? 'mdi:moon-' + moon.key : icons[w?.state] || 'mdi:weather-partly-cloudy', tint, deg(outT), outSub, outStats, weatherPopup)
         + block('in', 'mdi:home-thermometer-outline', 'white', deg(inT), 'Inside<span data-drop="2"> · Living room</span>', inStats,
-            open('sensor.living_room_temperature_sensor_temperature'))
+            `history.pushState(null, '', '/lovelace-main/climate'); window.dispatchEvent(new CustomEvent('location-changed'))`)
         + `</div>
       <style>
         /* Thirds: outside left, inside right, the middle left clear for the floating navbar. */

@@ -12,8 +12,13 @@ alerts:
   - entity: alarm_control_panel.default
     state: triggered
     message: Alarm triggered!
+    secondary_text: Tap to disarm
     theme: alarm
     priority: 1
+    # Security has the Alarmo card and its disarm keypad.
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-main/security
   - device_class: moisture
     state: "on"
     message: "Water detected: {name}"
@@ -31,7 +36,7 @@ alerts:
     theme: door
     priority: 2
     auto_dismiss_after: 15
-  - entity: lock.front_front_door
+  - entity: lock.front_door
     state: unlocked
     message: Front door is unlocked
     theme: warning

@@ -1,5 +1,6 @@
 # Music, Echo tab: Spotify on the Echos. Left, what Spotify is playing (with search);
-# right, which Echo it plays on and each Echo's volume. The tabs across the top
+# right, the same Quick play row as the Music Assistant tab (its Room list has the
+# Echos too), then which Echo it plays on and each Echo's volume. The tabs across the top
 # switch to Music Assistant (80-music.yaml).
 title: Music
 path: music-echo
@@ -19,6 +20,10 @@ sections:
   - type: grid
     column_span: 2
     cards:
+      - !include ../../sections/pages/music/right/10-playlist.yaml
+      - !include ../../sections/pages/music/right/20-room.yaml
+      - !include ../../sections/pages/music/right/30-play.yaml
+      - !include ../../sections/pages/music/right/40-stop.yaml
       - !include ../../sections/pages/music/echo/20-play-on.yaml
       - !include ../../sections/pages/music/echo/30-volume.yaml
   - type: grid

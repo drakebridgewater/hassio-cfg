@@ -10,8 +10,9 @@ sections:
   - type: grid
     column_span: 4
     cards:
+      - !include ../../sections/rooms/ethan/00-chips.yaml
       - !include ../../cards/lighting-mode/ethan_s_room.yaml
-      - !include ../../sections/rooms/ethan/01-alerts.yaml
+      - !include ../../cards/scenes/ethan.yaml
   - type: grid
     cards:
       - type: heading
@@ -36,54 +37,6 @@ sections:
           - name: White Noise
           - icon: mdi:sleeps
 
-      - type: custom:bubble-card
-        card_type: sub-buttons
-        sub_button:
-          main: []
-          bottom:
-            - name: Group 1
-              buttons_layout: inline
-              group:
-                - entity: sensor.ethans_bedroom_presence_sensor_light_sensor
-                  show_state: true
-                  name: Light Level
-                  show_name: true
-                  content_layout: icon-top
-                  icon: mdi:weather-sunny
-                - entity: binary_sensor.ethan_s_bedroom_window_sensor_contact
-                  name: Window Sensor
-                  icon: mdi:window-open
-                  content_layout: icon-top
-                  show_state: true
-                  force_icon: false
-            - name: Group 2
-              buttons_layout: inline
-              group:
-                - entity: binary_sensor.ethan_bedroom_occupancy
-                  name: Occupancy
-                  icon: mdi:motion-sensor
-                  show_state: true
-                  content_layout: icon-top
-                - entity: binary_sensor.ethans_bedroom_presence_sensor_occupancy
-                  name: Occupancy
-                  icon: mdi:motion-sensor
-                  show_state: true
-                  content_layout: icon-top
-            - name: Group 3
-              buttons_layout: inline
-              group:
-                - entity: sensor.ethans_blinds_battery
-                  show_state: true
-                  show_name: true
-                  name: Blinds Battery
-                  content_layout: icon-top
-                - entity: cover.ethans_blinds
-                  show_state: true
-                  show_name: true
-                  name: Blinds
-                  content_layout: icon-top
-          bottom_layout: rows
-        rows: 2.325
   - type: grid
     cards:
       - type: custom:routine-editor-card

@@ -1,0 +1,27 @@
+# Entry card. Layout, badges and actions come from decluttering-templates/room_card.yaml.
+# The ring shows the stairs zone (the front door light).
+type: custom:decluttering-card
+template: room_card
+variables:
+  - name: Entry
+  - icon: mdi:door
+  - color: 0, 150, 136
+  - popup: /lovelace-main/entry
+  - entity: binary_sensor.front_door
+  - extra: lock.front_door
+  - zone: stairs
+  - badges:
+      - name: Door open
+        target: main_icon
+        icon: mdi:door-open
+        color: red
+        animation: pulse
+        condition:
+          - condition: or
+            conditions:
+              - condition: state
+                entity_id: binary_sensor.front_door
+                state: 'on'
+              - condition: state
+                entity_id: binary_sensor.garage_portal
+                state: 'on'

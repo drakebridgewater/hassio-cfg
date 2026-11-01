@@ -1,0 +1,133 @@
+# Reminders while the big garage door (cover.garage_door) is left open: one Ticker
+# notification after 30 minutes, then another every hour until it closes.
+# input_boolean.garage_door_notify (a UI helper, "Garage Door Notify") is the silence
+# switch: turn it off, or tap "Silence until closed" on a reminder, to keep the door
+# open without reminders. It turns itself back on when the door closes, so the next
+# time the door is left open the reminders come back.
+#
+# The reminder carries a tag, so each hourly one replaces the last instead of piling up.
+# A restart (or turning reminders back on while the door is open) starts the 30 minutes
+# again, since the waits don't survive a restart.
+
+garage_door_reminders:
+  automation:
+    - id: garage_door_open_reminder
+      alias: Garage door open reminder
+      description: Notifies when the garage door has been open 30 minutes, then every
+        hour after that, until it closes or input_boolean.garage_door_notify is turned off.
+      mode: restart
+      triggers:
+        - trigger: state
+          entity_id: cover.garage_door
+          to: open
+          for: "00:30:00"
+          id: open
+        - trigger: homeassistant
+          event: start
+          id: start
+        - trigger: state
+          entity_id: input_boolean.garage_door_notify
+          from: "off"
+          to: "on"
+          id: resume
+      conditions:
+        - condition: state
+          entity_id: cover.garage_door
+          state: open
+        - condition: state
+          entity_id: input_boolean.garage_door_notify
+          state: "on"
+      actions:
+        - alias: After a restart or a resume, wait 30 minutes before the first reminder
+          if: "{{ trigger.id != 'open' }}"
+          then:
+            - wait_for_trigger:
+                - trigger: state
+                  entity_id: cover.garage_door
+                  not_to: open
+                - trigger: state
+                  entity_id: input_boolean.garage_door_notify
+                  to: "off"
+              timeout: "00:30:00"
+            - alias: Stop if the door closed or reminders were silenced
+              condition: template
+              value_template: "{{ wait.trigger is none }}"
+        - repeat:
+            sequence:
+              - action: ticker.notify
+                data:
+                  category: Garage Door Events
+                  title: Garage door open
+                  message: >-
+                    The garage door has been open for
+                    {{ relative_time(states.cover.garage_door.last_changed) }}, since
+                    {{ as_timestamp(states.cover.garage_door.last_changed) | timestamp_custom('%-I:%M %p') }}.
+                  data:
+                    tag: garage-door-open
+                    group: garage-door
+                    actions:
+                      - action: GARAGE_DOOR_SILENCE
+                        title: Silence until closed
+                        icon: sfsymbols:bell.slash
+                      - action: GARAGE_DOOR_CLOSE
+                        title: Close the door
+                        icon: sfsymbols:arrow.down.to.line
+              - wait_for_trigger:
+                  - trigger: state
+                    entity_id: cover.garage_door
+                    not_to: open
+                  - trigger: state
+                    entity_id: input_boolean.garage_door_notify
+                    to: "off"
+                timeout: "01:00:00"
+            until: "{{ wait.trigger is not none }}"
+
+    - id: garage_door_reminder_actions
+      alias: Garage door reminder actions
+      description: Handles the buttons on the garage door open reminder.
+      mode: queued
+      triggers:
+        - trigger: event
+          event_type: mobile_app_notification_action
+          event_data:
+            action: GARAGE_DOOR_SILENCE
+          id: silence
+        - trigger: event
+          event_type: mobile_app_notification_action
+          event_data:
+            action: GARAGE_DOOR_CLOSE
+          id: close
+      actions:
+        - choose:
+            - conditions:
+                - condition: trigger
+                  id: silence
+              sequence:
+                - action: input_boolean.turn_off
+                  target:
+                    entity_id: input_boolean.garage_door_notify
+            - conditions:
+                - condition: trigger
+                  id: close
+              sequence:
+                - action: cover.close_cover
+                  target:
+                    entity_id: cover.garage_door
+
+    - id: garage_door_reminders_rearm
+      alias: Garage door reminders back on when closed
+      description: Turns input_boolean.garage_door_notify back on when the door closes,
+        so silencing only lasts for the one time it was left open.
+      mode: single
+      triggers:
+        - trigger: state
+          entity_id: cover.garage_door
+          to: closed
+      conditions:
+        - condition: state
+          entity_id: input_boolean.garage_door_notify
+          state: "off"
+      actions:
+        - action: input_boolean.turn_on
+          target:
+            entity_id: input_boolean.garage_door_notify

@@ -12,42 +12,78 @@ sections:
   - type: grid
     column_span: 4
     cards:
+      - !include ../../sections/rooms/living-room/00-chips.yaml
       # Lighting mode first (cards/lighting-mode/), in the wall switch LED colours.
       - !include ../../cards/lighting-mode/main_area.yaml
+      - !include ../../cards/scenes/main.yaml
+  - type: grid
+    cards:
+          - type: custom:decluttering-card
+            template: bubble_light_color
+            variables:
+              - entity: light.awning_left_lamp
+              - icon: hue:friends-of-hue-iq-pendant
+          - type: custom:decluttering-card
+            template: bubble_light_color
+            variables:
+              - entity: light.awning_right_lamp
+
+  - type: grid
+    cards:
       - type: custom:bubble-card
-        card_type: button
-        button_type: switch
-        name: Living Room
-        entity: light.awning_lights
-        force_icon: false
-        show_state: true
-        show_last_changed: false
-        show_attribute: true
-        attribute: max_color_temp_kelvin
-        button_action:
-          tap_action:
-            action: none
-        tap_action:
-          action: toggle
-        sub_button:
-          - icon: mdi:light-switch
-            tap_action:
-              action: more-info
-          - icon: mdi:power
-            tap_action:
-              action: toggle
-      - !include ../../sections/rooms/living-room/01-alerts.yaml
+        card_type: separator
+        name: Entertainment Center
+      - !include ../../cards/scenes/entertainment.yaml
+      
   - type: grid
     cards:
-      - !include ../../sections/rooms/living-room/10-controls.yaml
+      - type: custom:decluttering-card
+        template: bubble_light_color
+        variables:
+          - entity: light.tv_lights_group
+          - name: All
+      - type: custom:decluttering-card
+        template: bubble_light_color
+        variables:
+          - entity: light.entertainment_center_backdrop
+          - icon: hue:lightstrip-tv
+      - type: horizontal-stack
+        cards:
+          - type: custom:decluttering-card
+            template: bubble_light_color
+            variables:
+              - entity: light.living_room_tv_left_lamp
+              - icon: hue:floor-shade
+          - type: custom:decluttering-card
+            template: bubble_light_color
+            variables:
+              - entity: light.living_room_tv_right_lamp
+              - icon: hue:floor-shade
+      - type: horizontal-stack
+        cards:
+          - type: custom:decluttering-card
+            template: bubble_light_color
+            variables:
+              - entity: light.yeelight_pulley_lamp
+              - name: Couch Left
+              - icon: hue:floor-shade
+          - type: custom:decluttering-card
+            template: bubble_light_color
+            variables:
+              - entity: light.yeelight_theater_left
+              - name: Couch Right
+              - icon: hue:floor-shade
+
+
   - type: grid
     cards:
-      - !include ../../sections/rooms/living-room/20-entertainment-center.yaml
-  - type: grid
-    cards:
-      - !include ../../sections/rooms/living-room/30-new-section.yaml
-  - type: grid
-    cards:
+      - type: vertical-stack
+        cards:
+          - type: custom:bubble-card
+            card_type: separator
+            name: Automations
+          - type: custom:mushroom-entity-card
+            entity: automation.applet_tv_auto_pause
       - !include ../../sections/rooms/living-room/40-power-management.yaml
   - type: grid
     cards:

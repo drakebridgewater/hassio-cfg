@@ -183,7 +183,7 @@
 }
 {%- endmacro -%}
 
-{#- The eleven zones, with the blocker that forces manual and a friendly name. -#}
+{#- The twelve zones, with the blocker that forces manual and a friendly name. -#}
 {%- macro mode_zones() -%}
 [
 {"zone":"main_area","name":"Main Area","icon":"mdi:home-floor-1","floor":"upstairs","blocker":"input_boolean.lighting_automation_blocker_main_area"},
@@ -196,7 +196,8 @@
 {"zone":"office_room","name":"Office","icon":"mdi:desk","floor":"downstairs","blocker":"input_boolean.lighting_automation_blocker_office_room"},
 {"zone":"basement_bathroom","name":"Basement Bathroom","icon":"mdi:toilet","floor":"downstairs","blocker":"input_boolean.lighting_automation_blocker_basement_bathroom"},
 {"zone":"basement_hallway","name":"Basement Hallway","icon":"mdi:transit-connection-horizontal","floor":"downstairs","blocker":"input_boolean.lighting_automation_blocker_basement_hallway"},
-{"zone":"stairs","name":"Stairs","icon":"mdi:stairs-box","floor":"downstairs","blocker":"input_boolean.lighting_automation_blocker_stairs"}
+{"zone":"stairs","name":"Stairs","icon":"mdi:stairs-box","floor":"downstairs","blocker":"input_boolean.lighting_automation_blocker_stairs"},
+{"zone":"outdoor","name":"Outdoor","icon":"mdi:outdoor-lamp","floor":"outdoors","blocker":"input_boolean.lighting_automation_blocker_outdoor"}
 ]
 {%- endmacro -%}
 
@@ -215,9 +216,9 @@
 {"switch":"light.basement_bathroom_wall_switch","zone":"basement_bathroom"},
 {"switch":"light.basement_hallway_wall_switch","zone":"basement_hallway"},
 {"switch":"light.garage_wall_switch","zone":"garage"},
-{"switch":"light.basement_deck_wall_switch","zone":"unmapped"},
-{"switch":"light.upstairs_deck_wall_switch","zone":"unmapped"},
-{"switch":"light.front_porch_wall_switch","zone":"unmapped"},
+{"switch":"light.basement_deck_wall_switch","zone":"outdoor"},
+{"switch":"light.upstairs_deck_wall_switch","zone":"outdoor"},
+{"switch":"light.front_porch_wall_switch","zone":"outdoor"},
 {"switch":"light.stairs_wall_switch","zone":"stairs"}
 ]
 {%- endmacro -%}

@@ -5,8 +5,8 @@
       "id": "b-cold",
       "max": 50,
       "mode": "heat",
-      "disarmed": 71,
-      "armed_home": 71,
+      "disarmed": 70,
+      "armed_home": 70,
       "armed_night": 66,
       "armed_away": 63,
       "armed_vacation": 58
@@ -15,8 +15,8 @@
       "id": "b-cool",
       "max": 60,
       "mode": "heat",
-      "disarmed": 71,
-      "armed_home": 71,
+      "disarmed": 70,
+      "armed_home": 70,
       "armed_night": 67,
       "armed_away": 64,
       "armed_vacation": 60

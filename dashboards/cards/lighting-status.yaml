@@ -393,11 +393,23 @@ views:
             tap_action: {action: toggle}
             hold_action: {action: more-info, entity: sensor.lighting_mode_stairs}
 
+          - type: custom:mushroom-template-card
+            primary: Outdoor
+            entity: input_boolean.lighting_automation_blocker_outdoor
+            secondary: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','outdoor') | first %}
+              {{ z.mode | capitalize }} · {{ z.label }}
+            icon: mdi:outdoor-lamp
+            icon_color: >
+              {% set z = state_attr('sensor.led_4_mode','zones') | selectattr('zone','eq','outdoor') | first %}{{ z.ui }}
+            tap_action: {action: toggle}
+            hold_action: {action: more-info, entity: sensor.lighting_mode_outdoor}
+
           - type: markdown
             text_only: true
             grid_options: {columns: full, rows: auto}
             content: >
-              *Unmapped (LED 4 held dark): Basement Deck, Upstairs Deck, Front Porch.*
+              *Outdoor covers the Front Porch, Upstairs Deck and Basement Deck switches.*
 
           - type: markdown
             text_only: true

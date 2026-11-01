@@ -1,0 +1,10 @@
+# The main space's favourite Scene Presets (www/scene-rooms.js, pyscript/scene_rooms.py):
+# the kitchen, dining room, living room and entryway as one, without the entertainment
+# center (cards/scenes/entertainment.yaml). On the kitchen, dining and living room pages.
+# A scene pauses the main area's motion lighting until the alarm next changes.
+# Full width, under the lighting mode card: its tiles are taller than that card.
+type: custom:scene-rooms-card
+room: main
+note: The kitchen, dining room, living room and entryway share these.
+grid_options:
+  columns: full

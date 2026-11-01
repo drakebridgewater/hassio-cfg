@@ -16,6 +16,8 @@ status_tile:
   variables:
     tone: neutral
     pulse: false
+  # `variables?.` because Bubble Card pop-ups can render a tile once before its
+  # variables are evaluated (the garage pop-up's room tiles did).
   # stack-in-card strips child cards' background, shadow and radius, so they go through
   # --tile-bg / --tile-glow and are re-applied here with !important; the pulse runs
   # on ::after because an !important box-shadow would override the animation.
@@ -54,7 +56,7 @@ status_tile:
   styles:
     card:
       - '--tile-bg': >-
-          [[[ return variables.tone === 'neutral'
+          [[[ return variables?.tone === 'neutral'
             ? 'color-mix(in srgb, var(--primary-text-color) 7%, transparent)'
             : 'color-mix(in srgb, var(--tone) 16%, transparent)' ]]]
       - border: none
@@ -63,17 +65,17 @@ status_tile:
       - padding: 10px 4px
       - overflow: visible
       - '--tile-glow': >-
-          [[[ return ['ok', 'neutral'].includes(variables.tone) ? 'none'
+          [[[ return ['ok', 'neutral'].includes(variables?.tone) ? 'none'
             : '0 0 12px 1px color-mix(in srgb, var(--tone) 45%, transparent)' ]]]
       - '--tile-pulse': >-
-          [[[ const p = variables.pulse;
+          [[[ const p = variables?.pulse;
               if (!p) return 'none';
               if (typeof p !== 'object') return 'status-pulse 2s ease-in-out infinite';
               const k = Math.max(0, Math.min(1, p.k || 0));
               return `status-pulse-rule ${(2.8 - 1.6 * k).toFixed(2)}s ease-in-out infinite`; ]]]
-      - '--pulse-a': '[[[ return variables.pulse?.a || "255, 255, 255" ]]]'
-      - '--pulse-b': '[[[ return variables.pulse?.b || variables.pulse?.a || "255, 255, 255" ]]]'
-      - '--pulse-k': '[[[ return Math.max(0, Math.min(1, variables.pulse?.k || 0)) ]]]'
+      - '--pulse-a': '[[[ return variables?.pulse?.a || "255, 255, 255" ]]]'
+      - '--pulse-b': '[[[ return variables?.pulse?.b || variables?.pulse?.a || "255, 255, 255" ]]]'
+      - '--pulse-k': '[[[ return Math.max(0, Math.min(1, variables?.pulse?.k || 0)) ]]]'
       - '--tone': >-
           [[[ return {
             ok: 'var(--green-color)',
@@ -84,7 +86,7 @@ status_tile:
             heat: 'var(--deep-orange-color)',
             cool: 'var(--blue-color)',
             info: 'var(--teal-color)',
-          }[variables.tone] ?? 'var(--secondary-text-color)' ]]]
+          }[variables?.tone] ?? 'var(--secondary-text-color)' ]]]
     grid:
       - grid-template-areas: '"i" "l"'
       - row-gap: 6px

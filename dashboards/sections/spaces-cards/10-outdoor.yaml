@@ -9,6 +9,7 @@ variables:
   - entity: binary_sensor.porch_motion_motion_detection
   - temp: sensor.wirelesstag_outdoor_temperature
   - humid: sensor.wirelesstag_outdoor_humidity
+  - zone: outdoor
   - badges:
       # Air quality, one badge by severity, using the Climate page tile bands
       # (good / moderate / high) for: airnow_aqi, airnow_pm2_5, airnow_o3.

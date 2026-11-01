@@ -13,13 +13,13 @@ sections:
   - type: grid
     column_span: 4
     cards:
-      - !include ../../sections/rooms/family-room/00-badges.yaml
-      - !include ../../sections/rooms/family-room/01-alerts.yaml
+      - !include ../../sections/rooms/family-room/00-chips.yaml
   - type: grid
     column_span: 4
     cards:
       # Lighting mode first (cards/lighting-mode/), in the wall switch LED colours.
       - !include ../../cards/lighting-mode/family_room.yaml
+      - !include ../../cards/scenes/family_room.yaml
       - type: custom:bubble-card
         card_type: button
         button_type: switch

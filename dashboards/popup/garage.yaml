@@ -1,0 +1,288 @@
+# Garage pop-up: the garage as a room, opened by the garage tile in the status card
+# (sections/banner/status-tiles.yaml), the tablet hero's garage pill
+# (sections/tablet/10-hero.yaml) and the garage page's chips. From the top: what the big
+# door is doing (and, when the opener's safety sensors are blocked,
+# binary_sensor.ratgdov2_925f17_obstruction, what to check); Open, Stop, Close and a
+# position slider, so moving the door from Home is tap the tile, tap the button (they
+# don't ask first: opening the pop-up is the deliberate step); the camera; the room's
+# temperature, whether anyone is in there and the walk-through door; the lights; and
+# whether Abby is out.
+type: custom:bubble-card
+card_type: pop-up
+hash: '#garage'
+button_type: name
+name: Garage
+icon: mdi:garage
+show_state: false
+button_action:
+  tap_action:
+    action: none
+cards:
+
+  # Summary: the door's state, how long, and what's wrong if anything.
+  - type: custom:button-card
+    entity: cover.garage_door
+    show_icon: true
+    show_name: true
+    show_state: false
+    show_label: true
+    triggers_update:
+      - binary_sensor.ratgdov2_925f17_obstruction
+      - sensor.time
+    tap_action:
+      action: more-info
+    variables:
+      blocked: '[[[ return hass.states["binary_sensor.ratgdov2_925f17_obstruction"]?.state === "on" ]]]'
+      tone: >-
+        [[[ const s = entity?.state;
+            if (variables.blocked) return s === 'closed' ? 'attention' : 'failed';
+            return s === 'closed' ? 'ok' : ['open', 'opening', 'closing'].includes(s) ? 'attention' : 'failed' ]]]
+    icon: >-
+      [[[ return variables.blocked ? 'mdi:garage-alert-variant'
+          : entity?.state === 'closed' ? 'mdi:garage-variant' : 'mdi:garage-open-variant' ]]]
+    name: >-
+      [[[ const s = { closed: 'Closed', open: 'Open', opening: 'Opening', closing: 'Closing' }[entity?.state];
+          if (!s) return 'No signal from the opener';
+          if (variables.blocked) return s === 'Closed' ? 'Closed, sensor blocked' : `${s} and blocked`;
+          return s; ]]]
+    label: >-
+      [[[ const since = (id) => {
+            const t = new Date(hass.states[id]?.last_changed);
+            const m = Math.round((Date.now() - t) / 60000);
+            const ago = m < 1 ? 'just now' : m < 60 ? `${m} min ago` : `${Math.floor(m / 60)} h ${m % 60} min ago`;
+            return `${t.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}, ${ago}`;
+          };
+          const s = entity?.state;
+          if (!s || ['unknown', 'unavailable'].includes(s))
+            return '<span class="why">The ratgdo isn\'t answering. Check its power and Wi-Fi.</span>';
+          let out = `<span class="when">Since ${since('cover.garage_door')}</span>`;
+          if (variables.blocked) {
+            out += `<span class="why">The safety sensors at the bottom of the door have seen something in the way since ${since('binary_sensor.ratgdov2_925f17_obstruction')}. `
+              + (s === 'closed' ? 'The door won\'t close again until they\'re clear. ' : 'The door won\'t close until it\'s clear. ')
+              + 'Move whatever is in the doorway, wipe the sensor lenses, and check both sensor lights are steady, not blinking.</span>';
+          }
+          return out; ]]]
+    styles:
+      card:
+        - '--tone': >-
+            [[[ return { ok: 'var(--green-color)', attention: 'var(--amber-color)',
+                         failed: 'var(--orange-color)' }[variables.tone] ?? 'var(--secondary-text-color)' ]]]
+        - background: color-mix(in srgb, var(--tone) 16%, transparent)
+        - border: none
+        - border-radius: 16px
+        - padding: 18px 20px
+      grid:
+        - grid-template-areas: '"i n" "i l"'
+        - grid-template-columns: 56px minmax(0, 1fr)
+        - column-gap: 16px
+        - justify-items: start
+      img_cell:
+        - align-self: start
+      icon:
+        - width: 44px
+        - color: var(--tone)
+      name:
+        - font-size: 22px
+        - font-weight: 500
+        - justify-self: start
+        - text-align: left
+        - white-space: normal
+      label:
+        - justify-self: start
+        - text-align: left
+        - white-space: normal
+    extra_styles: |
+      #label .when { display: block; font-size: 14px; color: var(--secondary-text-color); }
+      #label .why { display: block; margin-top: 8px; font-size: 14px; line-height: 1.4; color: var(--primary-text-color); }
+
+  # Move the door: Open, Stop, Close, one tap each. The button for where the door is
+  # (or is heading) is lit; Close turns orange while the sensors are blocked, since
+  # the opener will stop and go back up.
+  - type: grid
+    columns: 3
+    square: false
+    cards:
+      - &door_button
+        type: custom:button-card
+        entity: cover.garage_door
+        name: Open
+        icon: mdi:arrow-up
+        show_name: true
+        show_icon: true
+        show_state: false
+        triggers_update:
+          - binary_sensor.ratgdov2_925f17_obstruction
+        variables:
+          lit: '[[[ return ["open", "opening"].includes(entity?.state) ]]]'
+          tone: teal
+        tap_action:
+          action: perform-action
+          perform_action: cover.open_cover
+          target:
+            entity_id: cover.garage_door
+        hold_action:
+          action: more-info
+        styles:
+          card:
+            - '--tone': '[[[ return `var(--${variables.tone}-color)` ]]]'
+            - background: >-
+                [[[ return variables.lit ? 'color-mix(in srgb, var(--tone) 28%, transparent)'
+                  : 'color-mix(in srgb, var(--primary-text-color) 7%, transparent)' ]]]
+            - border: none
+            - border-radius: 16px
+            - box-shadow: none
+            - min-height: 76px
+            - padding: 10px 4px
+          grid:
+            - grid-template-areas: '"i" "n"'
+            - row-gap: 4px
+          img_cell:
+            - height: 32px
+          icon:
+            - width: 28px
+            - color: var(--tone)
+          name:
+            - font-size: 15px
+            - font-weight: 500
+            - color: var(--primary-text-color)
+      - <<: *door_button
+        name: Stop
+        icon: mdi:stop
+        variables:
+          lit: false
+          tone: secondary-text
+        tap_action:
+          action: perform-action
+          perform_action: cover.stop_cover
+          target:
+            entity_id: cover.garage_door
+      - <<: *door_button
+        name: Close
+        icon: mdi:arrow-down
+        variables:
+          lit: '[[[ return ["closed", "closing"].includes(entity?.state) ]]]'
+          tone: >-
+            [[[ return hass.states['binary_sensor.ratgdov2_925f17_obstruction']?.state === 'on'
+                && entity?.state !== 'closed' ? 'orange' : 'teal' ]]]
+        tap_action:
+          action: perform-action
+          perform_action: cover.close_cover
+          target:
+            entity_id: cover.garage_door
+
+  # Part way: drag to set how far open the door is (the ratgdo times it from its
+  # opening and closing durations).
+  - type: custom:bubble-card
+    card_type: button
+    button_type: slider
+    entity: cover.garage_door
+    name: Position
+    icon: mdi:garage-open-variant
+    show_state: false
+    show_attribute: true
+    attribute: current_position
+    tap_action:
+      action: none
+    button_action:
+      tap_action:
+        action: more-info
+
+  # Open-door reminders (packages/garage_door.yaml): a Ticker note after 30 minutes open,
+  # then hourly. Turn off to keep the door open quietly; it turns back on when the door
+  # closes. Only shown while the door isn't closed, or while reminders are off.
+  - type: conditional
+    conditions:
+      - condition: or
+        conditions:
+          - condition: state
+            entity: cover.garage_door
+            state_not: closed
+          - condition: state
+            entity: input_boolean.garage_door_notify
+            state: 'off'
+    card:
+      type: custom:bubble-card
+      card_type: button
+      button_type: switch
+      entity: input_boolean.garage_door_notify
+      name: Remind me while it's open
+      icon: mdi:bell-ring-outline
+      show_state: false
+
+  # The garage camera, to see what's in the doorway. Tap for the live view.
+  - type: picture-entity
+    entity: camera.garage
+    camera_view: auto
+    show_name: false
+    show_state: false
+
+  # The room: how warm it is, whether anyone is in there, and the walk-through door
+  # to the house. Tap any for its history.
+  - type: grid
+    columns: 3
+    square: false
+    cards:
+      - type: custom:button-card
+        template: status_tile
+        entity: sensor.garage_temperature_sensor_temperature
+        name: Temperature
+        icon: mdi:thermometer
+        label: >-
+          [[[ const v = Number(entity?.state);
+              return Number.isFinite(v) ? `${Math.round(v)}°` : 'No signal' ]]]
+        variables:
+          tone: >-
+            [[[ const v = Number(entity?.state);
+                return !Number.isFinite(v) ? 'failed' : v < 40 ? 'cool' : v > 90 ? 'heat' : 'neutral' ]]]
+        tap_action:
+          action: more-info
+      - type: custom:button-card
+        template: status_tile
+        entity: binary_sensor.garage_occupied_group
+        name: Someone there
+        icon: '[[[ return entity?.state === "on" ? "mdi:account" : "mdi:account-outline" ]]]'
+        label: '[[[ return entity?.state === "on" ? "Someone in" : "Empty" ]]]'
+        variables:
+          tone: '[[[ return entity?.state === "on" ? "info" : "neutral" ]]]'
+        tap_action:
+          action: more-info
+      - type: custom:button-card
+        template: status_tile
+        entity: binary_sensor.garage_portal
+        name: Entry door
+        icon: '[[[ return entity?.state === "on" ? "mdi:door-open" : "mdi:door-closed" ]]]'
+        label: >-
+          [[[ return entity?.state === 'on'
+              ? '<span class="phone">Door open</span><span class="more">Open</span>'
+              : '<span class="phone">Door shut</span><span class="more">Closed</span>' ]]]
+        variables:
+          tone: '[[[ return entity?.state === "on" ? "attention" : "neutral" ]]]'
+        tap_action:
+          action: more-info
+
+  # Lights: the lighting mode (the same card as the garage page), the ceiling lights
+  # and the light on the opener.
+  - !include ../cards/lighting-mode/garage.yaml
+  - type: custom:decluttering-card
+    template: bubble_light
+    variables:
+      - entity: light.garage_wall_switch
+      - name: Garage lights
+      - icon: mdi:light-switch
+  - type: custom:bubble-card
+    card_type: button
+    button_type: switch
+    entity: light.ratgdov2_925f17_light
+    name: Opener light
+    icon: mdi:lightbulb
+    show_state: true
+
+  # Abby goes out through the garage; the same switch as the garage page.
+  - type: custom:bubble-card
+    card_type: button
+    button_type: switch
+    entity: input_boolean.dog_outside
+    name: Abby is outside
+    icon: mdi:dog-side
+    show_state: false
+    show_last_changed: true

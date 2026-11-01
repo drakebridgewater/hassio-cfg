@@ -1,0 +1,8 @@
+# The entertainment center's favourite Scene Presets: the TV lights only, in the living
+# room's Entertainment Center section. A scene pauses the Apple TV lighting automation
+# (input_boolean.lighting_automation_blocker_entertainment_center) until the alarm next changes.
+type: custom:scene-rooms-card
+room: entertainment
+note: The TV lights only. The Apple TV lighting pauses with a scene.
+grid_options:
+  columns: full

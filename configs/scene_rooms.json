@@ -1,0 +1,58 @@
+{
+  "rooms": {
+    "family_room": {
+      "favorites": [
+        "8a363ceb-f4c2-4c7f-9cd3-a71a6181b471"
+      ],
+      "active_id": "8a363ceb-f4c2-4c7f-9cd3-a71a6181b471",
+      "paused_blockers": [
+        "input_boolean.lighting_automation_blocker_family_room"
+      ]
+    },
+    "master_bedroom": {
+      "favorites": [],
+      "active_id": null,
+      "paused_blockers": []
+    },
+    "office": {
+      "favorites": [],
+      "active_id": null,
+      "paused_blockers": []
+    },
+    "ethan": {
+      "favorites": [],
+      "active_id": null,
+      "paused_blockers": []
+    },
+    "main": {
+      "favorites": [
+        "51960d8b-e47a-4b04-9163-28e3bbc91601",
+        "0cbcc8ed-5474-471c-b3c1-45b4acc555b1",
+        "77d10893-7b6f-4586-a77b-694b2b78fd3a",
+        "8d0f34db-78fd-475d-9bed-a502b787964d",
+        "1a379a13-fd93-4f1d-977d-f0816b4385a4",
+        "8a363ceb-f4c2-4c7f-9cd3-a71a6181b471",
+        "e24e9183-747e-4d4e-a950-a746c6291c90",
+        "2bf0e527-62ac-4203-b8a1-de06b0913fde",
+        "a62d217e-be67-4674-83d0-254a045793d9",
+        "ad0fe6ac-5877-4dc7-8386-6d4e8a17ea88",
+        "19175aca-cd4d-4e3d-b144-03f96edbf412",
+        "f587060a-c4a1-4885-87ff-54c247fb29e6"
+      ],
+      "active_id": null,
+      "paused_blockers": []
+    },
+    "entertainment": {
+      "favorites": [
+        "1a379a13-fd93-4f1d-977d-f0816b4385a4",
+        "8a363ceb-f4c2-4c7f-9cd3-a71a6181b471",
+        "e24e9183-747e-4d4e-a950-a746c6291c90",
+        "2bf0e527-62ac-4203-b8a1-de06b0913fde",
+        "ad0fe6ac-5877-4dc7-8386-6d4e8a17ea88",
+        "19175aca-cd4d-4e3d-b144-03f96edbf412"
+      ],
+      "active_id": null,
+      "paused_blockers": []
+    }
+  }
+}

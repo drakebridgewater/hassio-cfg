@@ -83,3 +83,5 @@
   type: module
 - url: /local/hvac-bands-card.js?v=1
   type: module
+- url: /local/scene-rooms.js?v=8
+  type: module

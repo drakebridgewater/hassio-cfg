@@ -29,11 +29,21 @@
   tap_action:
     action: navigate
     navigation_path: /lovelace-main/office
+- label: Greenhouse
+  icon: mdi:greenhouse
+  tap_action:
+    action: navigate
+    url: /lovelace-main/greenhouse
 - label: Outdoors
   icon: hue:room-outdoors
   tap_action:
     action: navigate
     navigation_path: /lovelace-main/outdoors
+- label: Entry
+  icon: mdi:door
+  tap_action:
+    action: navigate
+    navigation_path: /lovelace-main/entry
 - url: /lovelace-main/bathrooms
   icon: mdi:toilet
   label: Bathrooms

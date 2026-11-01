@@ -3,6 +3,28 @@
 # cube flip, so the LED 4 colour (sensor.lighting_mode_<zone>) follows.
 
 lighting_mode:
+  input_boolean:
+    # The entertainment center's blocker: the Apple TV lighting automation's by-pass
+    # (it pauses while this is on). Scenes on the TV lights turn it on until the
+    # alarm next changes (pyscript/scene_rooms.py).
+    lighting_automation_blocker_entertainment_center:
+      name: Lighting Automation Blocker - Entertainment Center
+      icon: mdi:television-ambient-light
+
+  # The Outdoor zone's mode, for LED 4 on the porch and deck switches. The other
+  # zones' sensors are UI template helpers; this one lives here. Config hold on any
+  # of the three switches toggles the blocker.
+  template:
+    - sensor:
+        - name: Lighting Mode - Outdoor
+          unique_id: lighting_mode_outdoor
+          icon: mdi:outdoor-lamp
+          state: >
+            {% if is_state('input_boolean.lighting_automation_blocker_all', 'on') %}manual
+            {% elif is_state('input_boolean.lighting_automation_blocker_outdoor', 'on') %}manual
+            {% elif is_state('automation.holiday_away_lighting', 'off') %}degraded
+            {% else %}auto{% endif %}
+
   script:
     lighting_set_zone_mode:
       alias: Lighting - Set zone mode

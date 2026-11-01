@@ -1,0 +1,16 @@
+# Lighting mode for the upstairs hallway zone (button-card template lighting_mode): the
+# garage entry door turning on the hallway light. Same blockers and automations as
+# sensor.lighting_mode_upstairs_hallway.
+type: custom:button-card
+template: lighting_mode
+entity: sensor.lighting_mode_upstairs_hallway
+grid_options:
+  columns: full
+variables:
+  title: Upstairs hallway
+  blockers:
+    - input_boolean.lighting_automation_blocker_upstairs_hallway
+  automations:
+    - automation.new_automationdoor_garage_hallway_lights_auto_on_off
+  auto_text: The garage door turns on the hallway light.
+  manual_text: The garage door leaves the hallway light alone.

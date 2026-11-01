@@ -20,8 +20,6 @@
   show: "[[[ const s = states['media_player.tenjin_2']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"
 - entity: media_player.xbox
   show: "[[[ const s = states['media_player.xbox']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"
-- entity: media_player.drakes_macbook_pro
-  show: "[[[ const s = states['media_player.drakes_macbook_pro']; return s?.state === 'playing' || (s?.state === 'paused' && Date.now() - new Date(s.last_changed) < 600000) ]]]"
 
 # TVs
 - entity: media_player.living_room
