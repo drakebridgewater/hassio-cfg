@@ -78,6 +78,7 @@ sections:
             square: false
             cards: 
               - !include ../../sections/spaces-cards/10-outdoor.yaml
+              - !include ../../sections/spaces-cards/15-entry.yaml
               - !include ../../sections/spaces-cards/20-greenhouses.yaml
               - !include ../../sections/spaces-cards/29-attic.yaml
               - !include ../../sections/spaces-cards/30-crawl-space.yaml

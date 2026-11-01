@@ -1,0 +1,72 @@
+# The room's chips in one row that wraps (dashboards/ARCHITECTURE.md, Room pages).
+# Alerts first: each shows only while its condition holds, and the styles below colour
+# them by position (.bubble-sub-button-N), so add new alerts at the top of the list
+# and renumber, and add status chips at the end.
+type: custom:bubble-card
+card_type: sub-buttons
+hide_main_background: true
+grid_options:
+  columns: full
+sub_button:
+  main: []
+  bottom:
+    - name: Chips
+      buttons_layout: inline
+      justify_content: start
+      group:
+        - name: Window open
+          icon: mdi:window-open-variant
+          show_name: true
+          fill_width: false
+          tap_action:
+            action: none
+          visibility:
+            - condition: state
+              entity_id: binary_sensor.office_window
+              state: 'on'
+        - name: Too warm
+          icon: mdi:fire
+          show_name: true
+          fill_width: false
+          tap_action:
+            action: none
+          visibility:
+            - condition: numeric_state
+              entity_id: sensor.office_temperature_sensor_temperature
+              above: 74
+        - name: Too cold
+          icon: mdi:snowflake-alert
+          show_name: true
+          fill_width: false
+          tap_action:
+            action: none
+          visibility:
+            - condition: numeric_state
+              entity_id: sensor.office_temperature_sensor_temperature
+              below: 67
+        - name: Occupied
+          icon: mdi:motion-sensor
+          show_name: true
+          fill_width: false
+          tap_action:
+            action: none
+          visibility:
+            - condition: state
+              entity_id: binary_sensor.office_multi_sensor_home_security_motion_detection
+              state: 'on'
+        - entity: sensor.office_temperature_sensor_temperature
+          show_state: true
+          fill_width: false
+styles: |
+  .card-content, .type-custom-bubble-card, .bubble-sub-buttons-container { height: auto !important; min-height: 0; }
+  .bubble-sub-button-bottom-container { position: relative; bottom: auto; min-width: 0; max-width: 100%; flex-wrap: wrap; }
+  .bubble-sub-button-alignment-lane { flex: 1 1 100%; min-width: 0; max-width: 100%; flex-wrap: wrap; }
+  .bubble-sub-button-group.display-inline { flex-wrap: wrap; min-width: 0; width: 100%; }
+  .bubble-sub-button-1 ha-icon { background: var(--red-color); color: #fff !important;
+    border-radius: 50%; padding: 4px; --mdc-icon-size: 16px; box-sizing: content-box; }
+  .bubble-sub-button-2 ha-icon { background: var(--orange-color); color: #fff !important;
+    border-radius: 50%; padding: 4px; --mdc-icon-size: 16px; box-sizing: content-box; }
+  .bubble-sub-button-3 ha-icon { background: var(--cyan-color); color: #fff !important;
+    border-radius: 50%; padding: 4px; --mdc-icon-size: 16px; box-sizing: content-box; }
+  .bubble-sub-button-4 ha-icon { background: var(--green-color); color: #fff !important;
+    border-radius: 50%; padding: 4px; --mdc-icon-size: 16px; box-sizing: content-box; }

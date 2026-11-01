@@ -1,11 +1,15 @@
-# Music: one script that starts a playlist in a room through Music Assistant,
-# used by the Quick play panel on the Music page (dashboards/views/default/80-music.yaml)
+# Music: one script that starts a playlist in a room, used by the Quick play row on
+# both Music page tabs (dashboards/views/default/80-music.yaml, 81-music-echo.yaml)
 # and the wall switches' config-button taps (automations.yaml, "Inovelli - ...").
 #
 # Playlists and rooms are named here once. To add one, add it to the dict in
 # music_play_playlist and the same name to the matching dropdown.
-# Rooms are Music Assistant players (media_player.* with a mass_player_type
-# attribute), not the cast/Apple TV entities, which don't play MA playlists.
+# Two kinds of room, and the script picks the route:
+#   ma_rooms    Music Assistant players (media_player.* with a mass_player_type
+#               attribute), not the cast/Apple TV entities, which don't play MA playlists.
+#   echo_rooms  Echos, through Spotify Connect: the value is the Echo's name exactly as
+#               media_player.spotify_thedrake lists it in source_list. Music Assistant
+#               can't reach the Echos, and they only play Spotify playlists.
 
 music:
   template:
@@ -53,6 +57,10 @@ music:
         - Family room
         - Ethan's room
         - Garage
+        - Living room Echo
+        - Family room Echo
+        - Garage Echo
+        - Every Echo
 
   script:
     music_play_playlist:
@@ -96,26 +104,46 @@ music:
           Nursery Rhymes: spotify:playlist:37i9dQZF1DXbwjaKZ52hOt
           Baby Sleep: spotify:playlist:37i9dQZF1DX0DxcHtn4Hwo
           Christmas: spotify:playlist:6PerOYnIYBTdZ2mD5vFHoz
-        rooms:
+        ma_rooms: &music_ma_rooms
           Kitchen: media_player.kitchen_google
           Living room: media_player.living_room_2
           Family room: media_player.family_room_2
           Ethan's room: media_player.ethan_s_bedroom_display
           Garage: media_player.garage_2
+        echo_rooms: &music_echo_rooms
+          Living room Echo: Living Room Echo
+          Family room Echo: Family Room Echo
+          Garage Echo: Garage echo
+          Every Echo: All echo devices
         uri: "{{ playlists.get(playlist, '') }}"
-        player: "{{ rooms.get(room, '') }}"
       sequence:
-        - if: "{{ uri == '' or player == '' }}"
+        - if: "{{ uri == '' or (room not in ma_rooms and room not in echo_rooms) }}"
           then:
             - stop: "Unknown playlist or room: {{ playlist }} in {{ room }}"
               error: true
-        - action: music_assistant.play_media
-          target:
-            entity_id: "{{ player }}"
-          data:
-            media_id: "{{ uri }}"
-            media_type: playlist
-            enqueue: replace
+        - if: "{{ room in echo_rooms }}"
+          then:
+            # Move Spotify to the Echo first: HA refreshes Spotify after this, so the
+            # play below lands on the Echo instead of Spotify's first device.
+            - action: media_player.select_source
+              target:
+                entity_id: media_player.spotify_thedrake
+              data:
+                source: "{{ echo_rooms[room] }}"
+            - action: media_player.play_media
+              target:
+                entity_id: media_player.spotify_thedrake
+              data:
+                media_content_id: "{{ uri }}"
+                media_content_type: playlist
+          else:
+            - action: music_assistant.play_media
+              target:
+                entity_id: "{{ ma_rooms[room] }}"
+              data:
+                media_id: "{{ uri }}"
+                media_type: playlist
+                enqueue: replace
 
     # The Music page's Play button: whatever the two dropdowns say.
     music_play_picked:
@@ -128,20 +156,23 @@ music:
             playlist: "{{ states('input_select.music_playlist') }}"
             room: "{{ states('input_select.music_room') }}"
 
-    # The Music page's Stop button: stops the picked room (same rooms as
-    # music_play_playlist).
+    # The Music page's Stop button: stops the picked room (the rooms are
+    # music_play_playlist's). An Echo room pauses Spotify, wherever it's playing.
     music_stop_picked:
       alias: Music - Stop the picked room
       icon: mdi:stop
       mode: parallel
       variables:
-        rooms:
-          Kitchen: media_player.kitchen_google
-          Living room: media_player.living_room_2
-          Family room: media_player.family_room_2
-          Ethan's room: media_player.ethan_s_bedroom_display
-          Garage: media_player.garage_2
+        ma_rooms: *music_ma_rooms
+        echo_rooms: *music_echo_rooms
+        room: "{{ states('input_select.music_room') }}"
       sequence:
-        - action: media_player.media_stop
-          target:
-            entity_id: "{{ rooms.get(states('input_select.music_room'), 'media_player.kitchen_google') }}"
+        - if: "{{ room in echo_rooms }}"
+          then:
+            - action: media_player.media_pause
+              target:
+                entity_id: media_player.spotify_thedrake
+          else:
+            - action: media_player.media_stop
+              target:
+                entity_id: "{{ ma_rooms.get(room, 'media_player.kitchen_google') }}"

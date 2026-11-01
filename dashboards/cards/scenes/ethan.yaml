@@ -1,0 +1,7 @@
+# The room's favourite Scene Presets (www/scene-rooms.js, pyscript/scene_rooms.py).
+# A scene pauses the room's motion lighting until the alarm next changes.
+# Full width, under the lighting mode card: its tiles are taller than that card.
+type: custom:scene-rooms-card
+room: ethan
+grid_options:
+  columns: full

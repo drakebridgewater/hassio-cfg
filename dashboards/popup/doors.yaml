@@ -12,7 +12,7 @@ cards:
     sub_button:
       main: []
       bottom:
-        - entity: lock.front_front_door
+        - entity: lock.front_door
           name: Front Lock
           show_name: false
           show_state: true
@@ -36,10 +36,18 @@ cards:
             navigation_path: '#window'
   - type: custom:auto-entities
     card_param: cards
+    # A one-column layout-card rather than a built-in grid/stack: Bubble Card warms up
+    # built-in card types from pop-up configs and errors on this wrapper's missing
+    # `cards` (auto-entities fills them); custom types are skipped.
     card:
-      type: grid
-      columns: 1
-      square: false
+      type: custom:layout-card
+      layout_type: custom:grid-layout
+      layout:
+        grid-template-columns: minmax(0, 1fr)
+        grid-gap: var(--vertical-stack-card-gap, 8px)
+        margin: 0
+        padding: 0
+        card_margin: 0
     # List the group's members, so the group itself and stray door sensors
     # (fridge doors, duplicate lock sensors) stay out. Edit the group to change the list.
     filter:

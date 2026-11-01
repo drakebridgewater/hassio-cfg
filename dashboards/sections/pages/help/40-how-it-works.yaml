@@ -39,6 +39,20 @@ cards:
 
       - type: custom:button-card
         template: action_tile
+        name: The paddle on the wall switches
+        icon: mdi:gesture-double-tap
+        tap_action:
+          action: none
+        label: >-
+          <p>Tap up for on, down for off. Hold up or down to make the lights brighter or dimmer.</p>
+          <p>Double tap up for full brightness. Double tap down for 10%.</p>
+          <p>Family room: a tap up sets the lights for the time of day, warm and dim at night.</p>
+          <p>The porch, garage and deck switches only turn on and off.</p>
+        extra_styles: |
+          #label p { margin: 0 0 6px; }
+
+      - type: custom:button-card
+        template: action_tile
         name: The small button on the wall switches
         icon: mdi:light-switch
         tap_action:

@@ -1,0 +1,27 @@
+# Entry page: the front door, its lock and the stairs light it turns on.
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: separator
+    name: Front door
+    icon: mdi:door
+  - !include ../../../cards/lighting-mode/stairs.yaml
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    entity: binary_sensor.front_door
+    name: Front door
+    show_state: true
+    show_last_changed: true
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    entity: lock.front_door
+    name: Front lock
+    show_state: true
+    show_last_changed: true
+  - type: custom:decluttering-card
+    template: bubble_light
+    variables:
+      - entity: light.stairs_wall_switch
+      - name: Stairs

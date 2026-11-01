@@ -4,7 +4,8 @@
 # button-card's templates and read `variables.close_up.<item>`: null while all is
 # well, otherwise a pulse { a, b, k }: the "r, g, b" colours to swing between and
 # how hard (0 to 1). hero_pill and status_tile both take that as variables.pulse.
-#   garage   open 30 minutes: amber, building to orange over the next 30
+#   garage   open 30 minutes: amber, building to orange over the next 30;
+#            open with the safety sensors blocked (ratgdo obstruction): strong orange
 #   doors    open while the outside air works against the house: 15°F or more
 #   windows  colder than inside is cool blue, 10°F or more warmer is yellow
 #            turning red, both stronger as the gap grows by another 10°F
@@ -14,9 +15,10 @@ close_up:
   triggers_update:
     - sensor.time
     - cover.garage_door
+    - binary_sensor.ratgdov2_925f17_obstruction
     - binary_sensor.any_door_open_group
     - binary_sensor.window_open_group
-    - lock.front_front_door
+    - lock.front_door
     - binary_sensor.front_door
     - sensor.wirelesstag_outdoor_temperature
     - sensor.living_room_temperature_sensor_temperature
@@ -47,14 +49,16 @@ close_up:
 
         const g = st('cover.garage_door')?.state;
         const garageOpen = g && !['closed', 'unknown', 'unavailable'].includes(g) ? mins('cover.garage_door') : -1;
-        const lock = st('lock.front_front_door')?.state, door = st('binary_sensor.front_door')?.state;
+        const garageBlocked = garageOpen >= 0 && st('binary_sensor.ratgdov2_925f17_obstruction')?.state === 'on';
+        const lock = st('lock.front_door')?.state, door = st('binary_sensor.front_door')?.state;
 
         return {
-          garage: garageOpen >= 30 ? { a: '255, 183, 77', b: '255, 112, 67', k: ramp(garageOpen - 30, 30) } : null,
+          garage: garageBlocked ? { a: '255, 112, 67', b: '244, 67, 54', k: 1 }
+            : garageOpen >= 30 ? { a: '255, 183, 77', b: '255, 112, 67', k: ramp(garageOpen - 30, 30) } : null,
           doors: st('binary_sensor.any_door_open_group')?.state === 'on' ? air : null,
           windows: st('binary_sensor.window_open_group')?.state === 'on' ? air : null,
           lock: ['unlocked', 'open'].includes(lock) && door === 'off'
-            && mins('lock.front_front_door', 'binary_sensor.front_door') >= 5
+            && mins('lock.front_door', 'binary_sensor.front_door') >= 5
             ? { a: '244, 67, 54', b: '255, 82, 82', k: 1 } : null,
         };
       ]]]

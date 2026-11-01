@@ -7,6 +7,8 @@
 #   automations  its motion automations (turned back on by Automatic)
 #   note         optional line, e.g. which rooms share the zone
 #   title        heading (default Lighting), for pages with more than one zone
+#   auto_text    what Automatic means here (default: lights follow motion)
+#   manual_text  what Manual means here (default: motion leaves the lights alone)
 # The segments are nested button-cards; their templates run in this card's context,
 # so they read this card's `variables` (mode, blockers, automations).
 lighting_mode:
@@ -22,6 +24,8 @@ lighting_mode:
     automations: []
     note: ''
     title: Lighting
+    auto_text: Lights follow motion in here.
+    manual_text: Motion leaves the lights alone in here.
     mode: '[[[ return ["auto", "manual", "degraded"].includes(entity?.state) ? entity.state : "unknown" ]]]'
     house: '[[[ return hass.states["input_boolean.lighting_automation_blocker_all"]?.state === "on" ]]]'
   custom_fields:
@@ -31,9 +35,9 @@ lighting_mode:
         const color = { auto: 'var(--green-color)', manual: 'var(--orange-color)',
                         degraded: 'var(--yellow-color)' }[m] ?? 'var(--secondary-text-color)';
         const say = {
-          auto: 'Lights follow motion in here.',
+          auto: variables.auto_text,
           manual: variables.house ? 'The whole house is on manual: motion leaves the lights alone.'
-            : 'Motion leaves the lights alone in here.',
+            : variables.manual_text,
           degraded: 'The motion automation is switched off. Automatic turns it back on.',
           unknown: 'The house can\'t tell which mode this room is in.',
         }[m];
@@ -114,6 +118,8 @@ lighting_mode:
       - background: none
       - box-shadow: none
       - border: none
+      # Square: a rounded card clipped the top-left of the "Lighting" heading.
+      - border-radius: 0
       - padding: 4px 0
     grid:
       - grid-template-areas: '"head head" "auto manual"'

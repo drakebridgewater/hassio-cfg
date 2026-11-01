@@ -1,0 +1,25 @@
+# Entry page: the garage entry door, the hallway light it turns on, and the big door.
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: separator
+    name: Garage door
+    icon: mdi:door-sliding
+  - !include ../../../cards/lighting-mode/upstairs_hallway.yaml
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    entity: binary_sensor.garage_portal
+    name: Garage entry door
+    show_state: true
+    show_last_changed: true
+  - type: custom:decluttering-card
+    template: bubble_light
+    variables:
+      - entity: light.upstairs_hallway_wall_switch
+      - name: Upstairs hallway
+  - type: custom:bubble-card
+    card_type: cover
+    entity: cover.garage_door
+    name: Garage
+    show_state: true

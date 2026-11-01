@@ -19,8 +19,10 @@ variables:
       - url: /lovelace-main/scheduling
         icon: mdi:calendar-clock
         label: Scheduling
-      - url: /lovelace-main/planting
-        icon: mdi:flower
-        label: Gardening
+      - icon: mdi:floor-plan
+        label: Rooms
+        tap_action:
+          action: open-popup
+        popup: !include rooms-popup.yaml
       # Kitchen tablet only (tablet-route.yaml).
       - !include tablet-route.yaml

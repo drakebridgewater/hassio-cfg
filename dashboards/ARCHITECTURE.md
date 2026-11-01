@@ -76,8 +76,8 @@ sections:
 
 - Each old column folder (`colN/`) is a section. Full-width pages (calendar, music, camera events,
   doorbell) use one section with `column_span: 4`.
-- Room pages: the first section (`column_span: 4`) holds the room's main-light Bubble button and
-  `00-badges.yaml`; every other file in `sections/rooms/<room>/` is its own section, listed by name
+- Room pages: the first section (`column_span: 4`) holds the room's chips (`00-chips.yaml`) and
+  main-light Bubble button; every other file in `sections/rooms/<room>/` is its own section, listed by name
   in the view. A new file from the GUI port needs a line in the view.
 - The status card (`sections/banner/10-status-card.yaml`, below) replaces the old view badges:
   presence and alarm (while disarmed or for listed users), garage, front door, doors/windows
@@ -154,6 +154,17 @@ sections:
   file's `light_skip()` leaves out groups, status LEDs, LED rings and screens, both here and in
   `sensor.lights_on_count` (the tile's count; `lights_off` attribute for the button). After
   editing the .jinja, reload custom templates, then template entities.
+- Garage pop-up (`popup/garage.yaml`, `#garage`, opened by the Garage tile, the tablet hero's
+  garage pill and the garage page's chips): the garage as a room. The big door's state and since
+  when, and when the ratgdo's safety sensors are blocked (`binary_sensor.ratgdov2_925f17_obstruction`)
+  what to check; Open, Stop, Close and a position slider right under it, with no confirmation
+  (opening the pop-up is the deliberate step), so the door is two taps from Home; while the door
+  isn't closed, a "Remind me while it's open" switch (`input_boolean.garage_door_notify`, see
+  `packages/garage_door.yaml`) to silence the open-door reminders; the camera;
+  temperature, whether anyone is in there and the walk-through door; the lighting mode, garage
+  lights and opener light; and Abby's outside switch. The tiles show "Blocked" with
+  `mdi:garage-alert-variant`, and `close_up.yaml` pulses strong orange while the door is open
+  and blocked.
 - Who's home pop-up (`popup/people_overview.yaml`, `#people_overview`, opened by the Who's away
   tile): a live map of the grown-ups, then one `person_tile` row each: picture with a green ring
   while home, where they are and since when (or miles from home and heading home or away), and
@@ -180,17 +191,21 @@ sections:
   garage, doors, packages, smoke and leak sensors, and a "Show the full history" button that
   opens the Activity panel (`/logbook?entity_id=...`) filtered to the same entities. The two
   entity lists are in one file; keep them in sync.
-- Music (`80-music.yaml`): Music Assistant, no header or badges. Left section: the player + queue
-  + players `mass-player-card` (`sections/pages/music/10-player.yaml`). Right section (two
-  columns, `sections/pages/music/right/`): Quick play (playlist and room dropdowns, Play, Stop;
-  `packages/music.yaml`), your Spotify as a collapsed `yet-another-media-player` bar while it
-  plays and for 30 minutes after (`binary_sensor.spotify_recently_active`; the library shrinks
-  to make room), then the library `mass-player-card`. The bar's own search only opens it up a
-  little, so its menu has "Big search": the `#spotify-search` pop-up (`popup/spotify_search.yaml`),
-  a full-size YAMP search card. Both cards list every MA player
-  from `sections/pages/music/players.yaml`. From 1300px scrolling is locked and card-mod sizes
-  both cards to the window (`--page-vh` from the scroll lock, minus what sits above them and
-  the card's 56px tab bar); narrower, the sections stack and the page scrolls.
+- Music: two tabs across the top (`cards/music-tabs.yaml`), each its own subview.
+  - Music Assistant (`80-music.yaml`, `/music`): left, the player + queue + players
+    `mass-player-card` (`sections/pages/music/10-player.yaml`); right (two columns,
+    `sections/pages/music/right/`), Quick play then the library `mass-player-card`. Both cards
+    list every MA player from `sections/pages/music/players.yaml`. From 1300px scrolling is
+    locked and card-mod sizes both cards to the window (`--page-vh` from the scroll lock, minus
+    what sits above them and the card's 56px tab bar); narrower, the sections stack and scroll.
+  - Amazon Echo (`81-music-echo.yaml`, `/music-echo`): left, Spotify in `yet-another-media-player`
+    (`echo/10-spotify.yaml`; "Big search" in its menu opens the `#spotify-search` pop-up,
+    `popup/spotify_search.yaml`); right, the same Quick play cards, then Play on (move Spotify to
+    an Echo, `echo_source` template) and each Echo's volume.
+  - Quick play (`right/10-40`, `packages/music.yaml`): playlist and room dropdowns, Play, Stop.
+    The Room list has the Music Assistant rooms and the Echos; `script.music_play_playlist`
+    sends Echo rooms through Spotify Connect (select the Echo as Spotify's source, then play)
+    and the rest through Music Assistant. Play's label says which route.
 - Calendar (`55-calendar.yaml`): no header or badges; the skylight card spans the section
   (`grid_options: columns: full`) and `compact_height` fits it to the screen.
   Templates in its nested cards run in the hero's context (`entity` is `sensor.time`), so they
@@ -260,6 +275,11 @@ variables:
         state_background: true   # highlight while on/open
         fill_width: false        # chip-sized, not stretched
 ```
+
+Bubble lays a group out on one line, anchored to the bottom of a 56px card, so a long row used to run
+sideways over the next section. The template's `styles` wrap the chips inside the card's own width
+and let the card grow; any chip card written as a plain Bubble sub-buttons card (the room pages'
+`00-chips.yaml`) carries the same four rules.
 
 Hide a chip with sub-button `visibility`. Chips that need JS `styles` (dynamic text, icons or colors)
 can't use the template, because decluttering-card breaks on multi-line string variables. Write the
@@ -361,15 +381,46 @@ Badges go in this order and style so every card reads the same way (only four sh
 
 ### Room pages
 
-Each room page also opens with an alert chip row (`sections/rooms/<room>/01-alerts.yaml`) that repeats the
-room card's badges with a label, the same icon and the same colour, shown only while the badge's condition
-holds. It is generated: edit the badges in the room card, then run `python3 dashboards/tools/gen_room_alerts.py`.
+Each room page opens with all of its chips in one card that wraps, `sections/rooms/<room>/00-chips.yaml`:
+first the alerts (the room card's badges with a label, the same icon and colour, shown only while the
+badge's condition holds), then the status chips (motion, windows, temperature, blinds...). The styles
+colour the alerts by position (`.bubble-sub-button-N`), so new alerts go at the top and renumber; new
+status chips go at the end. The file is kept by hand: it replaced the separate `00-badges.yaml`,
+`01-alerts.yaml` and in-section chip rows, which overlapped the next sections. Control rows (the
+kitchen's synced lights, the front door camera header) stay in their sections.
+`tools/gen_room_alerts.py` still writes the old `01-alerts.yaml` and no longer finds the room cards'
+badges; copy anything it would add into `00-chips.yaml`.
 
 Each room is a subview (`views/default/21-living-room.yaml` … `27-outdoors.yaml`, plus `20-ethan.yaml`)
-(sections view). A full-width first section holds the room's main-light Bubble button (the old pop-up
-header) and `00-badges.yaml`; each other file in `sections/rooms/<room>/` (one per GUI section) is
+(sections view). A full-width first section holds `00-chips.yaml` and the room's main-light Bubble button
+(the old pop-up header); each other file in `sections/rooms/<room>/` (one per GUI section) is
 its own section. Ethan's page is hand-built. Paths: `living-room`, `kitchen`, `dining`,
-`master-bedroom`, `family-room`, `office`, `outdoors`, `ethan`. Holiday is still a pop-up (`#holiday`).
+`master-bedroom`, `family-room`, `office`, `outdoors`, `ethan`, `entry`. Holiday is still a pop-up (`#holiday`).
+Entry (`28-entry.yaml`, room card under Other) is the doors into the house, one section each: the
+front door with the Stairs lighting mode (the door turns on the stairs light), the lock and the
+stairs light; the garage entry door with the Upstairs Hallway mode (it turns on the hallway light),
+the hallway light and the big garage door. Outdoors opens with the Outdoor lighting mode (porch
+and deck switches, holiday lights).
+
+#### Scenes
+
+Under the lighting mode card (both full width, so neither leaves a gap beside the other),
+`cards/scenes/<room>.yaml` (`custom:scene-rooms-card`, `www/scene-rooms.js`) shows the room's favourite
+Scene Presets as picture tiles. The kitchen, dining room, living room and entryway are one scene room,
+`main` (the same card on all three pages); the entertainment center's TV lights are their own,
+`entertainment`, in the living room's Entertainment Center section, and a scene there pauses the Apple
+TV lighting automation through `input_boolean.lighting_automation_blocker_entertainment_center`. While any of the room's colour lights is on, a brightness slider under
+the tiles sets them all to one brightness, keeping their colours (`pyscript.scene_room_brightness`). Tapping one applies it to the room's colour lights only
+(wall switches, white-only bulbs and status LEDs are skipped) and turns on the room's lighting
+blockers, so the room shows Manual until the alarm next changes; then the blockers go off and any
+dynamic scene stops. Automatic on the room page ends the scene early. "Edit scenes" opens the Scene
+Presets panel at `/scene_presets?room=<room>` with the room's lights targeted and its favourites
+loaded; stars toggled there are saved to the room. The room map (areas, blockers, excluded lights)
+lives in `pyscript/scene_rooms.py`; favourites are in `configs/scene_rooms.json`. A scene from the
+panel, voice or an automation pauses the rooms its lights are in the same way. WLED strips (kitchen
+cabinets, office candles) get three of the scene's colours in their colour slots with the "Color
+Gradient" palette, so their effect keeps moving in the scene's colours (a strip on Solid switches to
+Aurora).
 
 Pop-ups use Bubble Card's standalone format (v3.2+): the `pop-up` card is the top-level card and
 holds its content in `cards:`. Never wrap a pop-up in a `vertical-stack`; Bubble treats that as legacy.
@@ -404,6 +455,11 @@ buttons become the control templates (the light template is picked from the regi
 replaced on every run; don't edit them. Files without the marker, such as `90-air-quality.yaml`,
 are kept. `--dry-run` reports without writing; the report lists skipped sub-buttons and entities
 missing from the registry.
+
+The YAML room pages have since been edited by hand and the GUI pages have drifted: a full run on
+2026-10-25 rewrote most room folders and deleted Ethan's morning and evening sections, so port one
+room at a time and check `git diff` before keeping anything. The port still writes page badges to
+`00-badges.yaml` and chips into section files; move those chips into the room's `00-chips.yaml`.
 
 A room's air-quality card is pulled in by a one-line file in its room directory,
 e.g. `sections/rooms/master-bedroom/90-air-quality.yaml`:

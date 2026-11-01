@@ -35,6 +35,7 @@ frontend:
     - /hacsfiles/hass-hue-icons/hass-hue-icons.js
     - /local/community/custom-brand-icons/custom-brand-icons.js
     - /local/wear-icons.js
+    - /local/scene-rooms.js?v=8&panel
 
 browser:
 powercalc:
@@ -43,7 +44,7 @@ group: !include configs/groups.yaml
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
-alert: !include configs/alert.yaml
+# alert: !include configs/alert.yaml
 sensor: !include configs/sensor.yaml
 input_boolean: !include configs/input_boolean.yaml
 input_select: !include configs/input_select.yaml

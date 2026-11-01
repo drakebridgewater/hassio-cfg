@@ -110,7 +110,7 @@ cards:
       {% if windows %}
         {% set ns.items = ns.items + ["Open: " ~ windows | join(', ') ~ "."] %}
       {% endif %}
-      {% if is_state('lock.front_front_door', 'unlocked') %}
+      {% if is_state('lock.front_door', 'unlocked') %}
         {% set ns.items = ns.items + ["The front door is unlocked. Goodnight doesn't lock it."] %}
       {% endif %}
       {% if is_state('cover.garage_door', 'open') %}

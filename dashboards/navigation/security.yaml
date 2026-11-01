@@ -22,8 +22,5 @@ variables:
       - url: /lovelace-main/cameras
         icon: mdi:cctv
         label: Outdoor
-      - url: /lovelace-main/armed
-        icon: mdi:shield-lock
-        label: Armed
       # Kitchen tablet only (tablet-route.yaml).
       - !include tablet-route.yaml

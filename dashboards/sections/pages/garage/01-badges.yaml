@@ -14,9 +14,25 @@ variables:
         state_background: true
         fill_width: false
         tap_action:
-          action: toggle
+          action: navigate
+          navigation_path: '#garage'
         hold_action:
           action: more-info
+      # The opener's safety sensors see something in the doorway; tap for the garage pop-up.
+      - entity: binary_sensor.ratgdov2_925f17_obstruction
+        name: Blocked
+        icon: mdi:garage-alert-variant
+        show_name: true
+        show_state: false
+        state_background: true
+        fill_width: false
+        tap_action:
+          action: navigate
+          navigation_path: '#garage'
+        visibility:
+          - condition: state
+            entity: binary_sensor.ratgdov2_925f17_obstruction
+            state: 'on'
       - entity: lock.og_u_bolt_pro
         show_state: true
         state_background: true

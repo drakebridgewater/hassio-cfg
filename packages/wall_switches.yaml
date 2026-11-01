@@ -1,0 +1,83 @@
+# Inovelli Blue wall switches (VZM31-SN, Zigbee2MQTT): what the paddle does on every
+# switch in dimmer mode. The switch does it itself, so it works without Home Assistant:
+#   tap up       on (the family room then follows sensor.circadian_lighting)
+#   double up    100% (parameter 55)
+#   double down  10%  (parameter 56)
+#   hold         dims up or down
+# Smart bulb mode switches pass all of this to the bulbs bound to them in Zigbee2MQTT.
+# The front porch, garage and both decks are on/off switches and are left alone.
+# Per-switch extras (lamps that follow a double tap, music, manual mode) are in the
+# Inovelli automations in automations.yaml.
+
+wall_switches:
+  template:
+    - sensor:
+        # Brightness and colour temperature for the time of day, from the sun's elevation:
+        # warm and dim from civil dusk to civil dawn, bright and cool once the sun is 30°
+        # up. Lights are set from it when they come on; it doesn't adjust lights already on.
+        - name: Circadian lighting
+          unique_id: circadian_lighting
+          icon: mdi:sun-clock
+          unit_of_measurement: "%"
+          state: >-
+            {% set min_pct, max_pct = 35, 100 %}
+            {% set e = state_attr('sun.sun', 'elevation') | float(0) %}
+            {% set f = [[(e + 6) / 36, 0] | max, 1] | min %}
+            {{ (min_pct + (max_pct - min_pct) * f) | round(0) | int }}
+          attributes:
+            color_temp_kelvin: >-
+              {% set warm, cool = 2200, 5000 %}
+              {% set e = state_attr('sun.sun', 'elevation') | float(0) %}
+              {% set f = [[(e + 6) / 36, 0] | max, 1] | min %}
+              {{ ((warm + (cool - warm) * f) / 50) | round(0) | int * 50 }}
+
+  script:
+    # Writes the double-tap levels to every dimmer and binds the awning switch to its
+    # lamps. The settings live in the switches, so run this again after a switch is
+    # replaced or factory reset.
+    wall_switches_apply_settings:
+      alias: Wall switches - Apply dimmer settings
+      icon: mdi:light-switch
+      mode: single
+      sequence:
+        - repeat:
+            for_each:
+              - Kitchen Wall Switch
+              - Stairs Wall Switch
+              - Awning Wall Switch
+              - Upstairs Hallway Wall Switch
+              - Master Bedroom Wall Switch
+              - Master Bedroom Closet Wall Switch
+              - Master Bathroom Wall Switch
+              - Ethan's Bedroom Wall Switch
+              - Family Room Wall Switch
+              - Basement Bathroom Wall Switch
+              - Basement Hallway Wall Switch
+              - Office Wall Switch
+            sequence:
+              - action: mqtt.publish
+                data:
+                  topic: "zigbee2mqtt/{{ repeat.item }}/set"
+                  payload: >-
+                    {{ {'doubleTapUpToParam55': 'Enabled',
+                        'brightnessLevelForDoubleTapUp': 254,
+                        'doubleTapDownToParam56': 'Enabled',
+                        'brightnessLevelForDoubleTapDown': 25} | to_json }}
+              - delay:
+                  milliseconds: 500
+        - alias: The awning switch is in smart bulb mode but had nothing bound to it. The
+            switch sends from endpoint 2; Hue bulbs listen on 11.
+          repeat:
+            for_each:
+              - Awning Left Lamp
+              - Awning Right Lamp
+            sequence:
+              - action: mqtt.publish
+                data:
+                  topic: zigbee2mqtt/bridge/request/device/bind
+                  payload: >-
+                    {{ {'from': 'Awning Wall Switch', 'from_endpoint': 2,
+                        'to': repeat.item, 'to_endpoint': 11,
+                        'clusters': ['genOnOff', 'genLevelCtrl']} | to_json }}
+              - delay:
+                  seconds: 2

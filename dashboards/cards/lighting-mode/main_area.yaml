@@ -1,11 +1,11 @@
 # Lighting mode for the main area zone (button-card template lighting_mode).
-# 24 = half of a full-width (4-column) section; on narrower sections it fills the width.
+# Full width: the Scenes card (cards/scenes/) sits under it, so neither leaves a gap beside the other.
 # Same blockers and automations as sensor.lighting_mode_main_area.
 type: custom:button-card
 template: lighting_mode
 entity: sensor.lighting_mode_main_area
 grid_options:
-  columns: 24
+  columns: full
 variables:
   blockers:
     - input_boolean.lighting_automation_blocker_main_area

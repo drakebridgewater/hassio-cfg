@@ -12,6 +12,9 @@ sections:
   - type: grid
     column_span: 4
     cards:
+      - !include ../../sections/rooms/outdoors/00-chips.yaml
+      # Lighting mode first (cards/lighting-mode/), in the wall switch LED colours.
+      - !include ../../cards/lighting-mode/outdoor.yaml
       - type: custom:bubble-card
         card_type: button
         button_type: switch
@@ -25,8 +28,6 @@ sections:
             action: none
         tap_action:
           action: toggle
-      - !include ../../sections/rooms/outdoors/00-badges.yaml
-      - !include ../../sections/rooms/outdoors/01-alerts.yaml
   - type: grid
     cards:
       - !include ../../sections/rooms/outdoors/10-garbage.yaml

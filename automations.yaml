@@ -278,13 +278,43 @@
       time: 07:00:00
 - id: '1676149411597'
   alias: Inovelli - Patio Lights Wall Switch
-  description: Z2M - Inovelli 2-in-1 switch + dimmer Scene Controls
+  description: Front porch switch. Config hold toggles the outdoor blocker (outdoor
+    lighting automations, holiday lights included), same as the deck switches.
   use_blueprint:
     path: starbuck93/z2m-inovelli-blue-series-2-in-1-switch-dimmer.yaml
     input:
       switch: df873ab3b3f9c5f6a4a9072d35c0c93e
+      config_held:
+      - data: {}
+        action: input_boolean.toggle
+        target:
+          entity_id: input_boolean.lighting_automation_blocker_outdoor
       down_double: []
       up_double: []
+- id: '1791900000001'
+  alias: Inovelli - Upstairs Deck Wall Switch
+  description: Config hold toggles the outdoor blocker, same as the front porch switch.
+  use_blueprint:
+    path: starbuck93/z2m-inovelli-blue-series-2-in-1-switch-dimmer.yaml
+    input:
+      switch: 36033ef2ff3fbbe2f56a253fc0ca33ee
+      config_held:
+      - data: {}
+        action: input_boolean.toggle
+        target:
+          entity_id: input_boolean.lighting_automation_blocker_outdoor
+- id: '1791900000002'
+  alias: Inovelli - Basement Deck Wall Switch
+  description: Config hold toggles the outdoor blocker, same as the front porch switch.
+  use_blueprint:
+    path: starbuck93/z2m-inovelli-blue-series-2-in-1-switch-dimmer.yaml
+    input:
+      switch: 202edd64ebe0f8b215dec062cb4b3d04
+      config_held:
+      - data: {}
+        action: input_boolean.toggle
+        target:
+          entity_id: input_boolean.lighting_automation_blocker_outdoor
 - id: '1676258624755'
   alias: Inovelli - Kitchen Wall Switch
   description: ''
@@ -334,10 +364,11 @@
         domain: light
         brightness_pct: 100
       down_double:
-      - type: turn_off
+      - type: turn_on
         device_id: aabf2fd3626aa7cdea882013e3133f72
         entity_id: d1f55697f0d76b1d2ff9e4e9a904fcc9
         domain: light
+        brightness_pct: 10
       down_triple: []
       up_triple: []
 - id: '1676391271716'
@@ -383,14 +414,32 @@
         action: light.turn_off
 - id: '1678677703355'
   alias: Inovelli - Family Room Wall Switch
-  description: ''
+  description: The switch is bound to the three ceiling lamps, so it turns them on,
+    sets them to 100% or 10% on a double tap and dims them while held (packages/wall_switches.yaml).
+    A tap up then moves them to the circadian level; a double tap takes the couch
+    lamps and shelf strip to the same level as the ceiling.
   use_blueprint:
     path: starbuck93/z2m-inovelli-blue-series-2-in-1-switch-dimmer.yaml
     input:
       switch: 084c427334a9198f6ddd056a1cfb7921
       config_single: []
+      up_single:
+      - alias: Ceiling lamps to the circadian level (the switch has already turned them
+          on)
+        action: light.turn_on
+        target:
+          entity_id:
+          - light.family_room_ceiling_lamp_01
+          - light.family_room_ceiling_lamp_02
+          - light.family_room_ceiling_lamp_03
+        data:
+          brightness_pct: '{{ states(''sensor.circadian_lighting'') | int(100) }}'
+          color_temp_kelvin: '{{ state_attr(''sensor.circadian_lighting'', ''color_temp_kelvin'')
+            | int(2700) }}'
+          transition: 1
       up_double:
-      - data: {}
+      - data:
+          brightness_pct: 100
         action: light.turn_on
         target:
           device_id:
@@ -398,8 +447,9 @@
           - f4f07fbf0a30a382d3ee8ad97d1c5823
           - 98abadba3ab8ca2c3ad5016e24ba5ee0
       down_double:
-      - data: {}
-        action: light.turn_off
+      - data:
+          brightness_pct: 10
+        action: light.turn_on
         target:
           device_id:
           - f4f07fbf0a30a382d3ee8ad97d1c5823
@@ -542,16 +592,20 @@
         enabled: false
 - id: '1678714957294'
   alias: Inovelli - Upstairs Hallway Wall Switch
-  description: ''
+  description: Config hold flips the Upstairs Hallway zone (the garage door light),
+    and the stairs, living room and dining room with it. All four follow the hallway
+    blocker, so they never end up out of step the way a plain toggle left them.
   use_blueprint:
     path: starbuck93/z2m-inovelli-blue-series-2-in-1-switch-dimmer.yaml
     input:
       switch: a13be523ef31908b308b2e8bd92c0f9a
       config_held:
-      - data: {}
-        action: input_boolean.toggle
-        target:
-          entity_id:
+      - action: script.lighting_set_zone_mode
+        data:
+          mode: "{{ 'auto' if is_state('input_boolean.lighting_automation_blocker_upstairs_hallway',
+            'on') else 'manual' }}"
+          blockers:
+          - input_boolean.lighting_automation_blocker_upstairs_hallway
           - input_boolean.lighting_automation_blocker_stairs
           - input_boolean.lighting_automation_blocker_living_room
           - input_boolean.lighting_automation_blocker_dining_room
@@ -578,12 +632,14 @@
       config_quadruple: []
       config_quintuple: []
       down_double:
-      - data: {}
-        action: light.turn_off
+      - data:
+          brightness_pct: 10
+        action: light.turn_on
         target:
           area_id: office
       up_double:
-      - data: {}
+      - data:
+          brightness_pct: 100
         action: light.turn_on
         target:
           area_id: office
@@ -833,29 +889,6 @@
           icon: sfsymbols:lock.open.fill
           destructive: true
   mode: single
-- id: '1688330235979'
-  alias: Alert - Nightly Garage Door Check
-  description: ''
-  triggers:
-  - at: '21:45:00'
-    trigger: time
-  conditions:
-  - condition: and
-    conditions:
-    - condition: state
-      entity_id: input_boolean.garage_door_notify
-      state: 'on'
-  actions:
-  - service: ticker.notify
-    data:
-      category: Garage Door Events
-      title: Info - Garage Door Open
-      message: 'Garage Door open for {{ relative_time(states.binary_sensor.garage_door_info_alert_active.last_changed)  }}
-        \ Alerts on: {{ expand(''group.garage_doors'') | selectattr(''state'', ''eq'',''on'')
-        | map(attribute=''attributes.friendly_name'') | list | join('', '')  }} \
-        Triggered: {{    as_timestamp(states.binary_sensor.garage_door_info_alert_active.last_changed)
-        |    timestamp_custom(''%A %I:%M%p (%d-%b-%Y)'') }}'
-  mode: single
 - id: '1689691080242'
   alias: Notification - Broadcast by Text Box Entry
   description: When the message box is filled, broadcast the message to any area in
@@ -986,7 +1019,10 @@
       hours: 0
       minutes: 30
       seconds: 0
-  condition: []
+  condition:
+  - condition: state
+    entity_id: input_boolean.lighting_automation_blocker_family_room
+    state: 'off'
   action:
   - service: light.turn_off
     data: {}
@@ -1854,7 +1890,9 @@
   mode: single
 - id: '1695669992618'
   alias: Lighting - Door (front) Lights auto on/off
-  description: ''
+  description: The front door turns on the stairs light. Part of the Stairs zone, so
+    it stays off while the stairs (or whole-house) blocker is on; the stairs switch
+    config hold toggles it.
   triggers:
   - type: opened
     device_id: f051ad8530f7e032278598d77431edb8
@@ -1862,6 +1900,11 @@
     domain: binary_sensor
     trigger: device
   conditions:
+  - condition: state
+    entity_id:
+    - input_boolean.lighting_automation_blocker_stairs
+    - input_boolean.lighting_automation_blocker_all
+    state: 'off'
   - condition: device
     type: is_off
     device_id: a9f0efec55a3d2b05cebb59f9cfa0fb8
@@ -1895,14 +1938,21 @@
   mode: single
 - id: '1695670125699'
   alias: Lighting - Door (garage) hallway lights auto on/off
-  description: ''
+  description: The garage entry door turns on the upstairs hallway light. Part of the
+    Upstairs Hallway zone, so it stays off while the hallway (or whole-house) blocker
+    is on; the hallway switch config hold toggles it.
   trigger:
   - type: opened
     platform: device
     device_id: 334a335cb865e5b6a60e7f61473be415
     entity_id: 21f5b3681b6a10e4321ec2aa99750d47
     domain: binary_sensor
-  condition: []
+  condition:
+  - condition: state
+    entity_id:
+    - input_boolean.lighting_automation_blocker_upstairs_hallway
+    - input_boolean.lighting_automation_blocker_all
+    state: 'off'
   action:
   - service: light.turn_on
     data: {}
@@ -2765,6 +2815,8 @@
       off_include_light_control:
       - use_transition
       off_light_transition_off: 5
+      include_bypass: bypass_enabled_pause_automation
+      trigger_bypass: input_boolean.lighting_automation_blocker_entertainment_center
 - id: '1744836491496'
   alias: Daily Triggers
   description: ''
@@ -3060,7 +3112,9 @@
   mode: single
 - id: '1759446382061'
   alias: Holiday & Away Lighting
-  description: ''
+  description: Outdoor holiday lights. Part of the Outdoor zone, so it stays off while
+    the outdoor (or whole-house) blocker is on; the porch and deck switch config hold
+    toggles it.
   use_blueprint:
     path: Blackshome/holiday-away-lighting.yaml
     input:
@@ -3075,8 +3129,10 @@
       end_time_range: '23:00:00'
       global_conditions:
       - condition: state
-        entity_id: input_boolean.lighting_automation_blocker_outdoor
-        state: 'on'
+        entity_id:
+        - input_boolean.lighting_automation_blocker_outdoor
+        - input_boolean.lighting_automation_blocker_all
+        state: 'off'
 - id: '1759595636520'
   alias: Turn Off Devices When Area Unoccupied - Ethan
   description: ''
@@ -3117,7 +3173,7 @@
       - use_transition
       include_light_colour_control: use_colour_temperature
       light_colour_temperature: 2800
-      include_dynamic_lighting: enable_sun_elevation_colour_lux_brightness_inv
+      include_dynamic_lighting: enable_sun_elevation_colour_brightness
       dynamic_lighting_lux_sensor: sensor.living_room_presence_sensor_light_sensor
       dynamic_lighting_max_lux: 180
       dynamic_lighting_min_lux: 0
@@ -3173,6 +3229,11 @@
       turn_off_switches: true
       turn_off_media: true
       wait_time: 30
+      disable_switches:
+      - input_boolean.lighting_automation_blocker_living_room
+      - input_boolean.lighting_automation_blocker_entertainment_center
+      - input_boolean.lighting_automation_blocker_all
+      - input_boolean.party_mode
 - id: '1759770793725'
   alias: Turn Off Devices When Area Unoccupied - Kitchen
   description: ''
@@ -3185,6 +3246,10 @@
       wait_time: 30
       turn_off_switches: true
       turn_off_media: true
+      disable_switches:
+      - input_boolean.lighting_automation_blocker_kitchen
+      - input_boolean.lighting_automation_blocker_all
+      - input_boolean.party_mode
 - id: '1759770841054'
   alias: Turn Off Devices When Area Unoccupied
   description: ''
@@ -3198,6 +3263,10 @@
       wait_time: 15
       turn_off_switches: true
       turn_off_media: true
+      disable_switches:
+      - input_boolean.lighting_automation_blocker_family_room
+      - input_boolean.lighting_automation_blocker_all
+      - input_boolean.party_mode
 - id: '1760018825253'
   alias: Lighting - Master Bathroom Sensor Light
   description: ''
@@ -3299,6 +3368,7 @@
       leak_sensors:
       - binary_sensor.basement_bathroom_sink_water_leak_detected
       - binary_sensor.crawl_space_water_leak_detected_2
+      - binary_sensor.crawl_space_leak_monitor_water_leak_detected
       - binary_sensor.main_bathroom_sink_water_leak_detected
       - binary_sensor.master_bathroom_toilet_water_leak_detected
       - binary_sensor.flo_basement_bathroom_water_sensor_water_detected
@@ -4040,6 +4110,7 @@
     - sensor.lighting_mode_basement_hallway
     - sensor.lighting_mode_garage
     - sensor.lighting_mode_stairs
+    - sensor.lighting_mode_outdoor
     platform: state
   - entity_id: input_boolean.lighting_automation_blocker_all
     platform: state
@@ -4073,11 +4144,11 @@
       - switch: light.garage_wall_switch
         zone: garage
       - switch: light.basement_deck_wall_switch
-        zone: unmapped
+        zone: outdoor
       - switch: light.upstairs_deck_wall_switch
-        zone: unmapped
+        zone: outdoor
       - switch: light.front_porch_wall_switch
-        zone: unmapped
+        zone: outdoor
       - switch: light.stairs_wall_switch
         zone: stairs
       sequence:
@@ -5072,23 +5143,6 @@
         target:
           entity_id: binary_sensor.openuv_protection_window
   mode: single
-- id: '1791468965573'
-  alias: Ethan's Morning Schedule
-  description: Plays the morning steps from configs/routines.json on workdays.
-  triggers:
-  - trigger: time
-    at: input_datetime.ethan_s_alarm_clock
-  conditions:
-  - condition: state
-    entity_id: binary_sensor.workday_sensor
-    state: 'on'
-  actions:
-  - action: script.routine_run
-    data:
-      routine: morning
-      while_entity: binary_sensor.home_occupied
-      while_state: 'on'
-  mode: single
 - id: '1791471918911'
   alias: Notification - Frigate Camera Health
   description: Alerts when a Frigate camera stream or Frigate itself goes down, with
@@ -5243,6 +5297,37 @@
         target:
           entity_id: light.dinng_room_kitchen_tablet_screen
   mode: restart
+- id: '1793554787594'
+  alias: Kiosk - Reload tablet page behind the screensaver
+  description: The kitchen tablet's page can drop its live connection to Home Assistant
+    and freeze (it did at midnight on Nov 1, 2026). Reloads it every 30 minutes while
+    the screensaver hides it, and once Home Assistant has started.
+  triggers:
+  - trigger: time_pattern
+    minutes: /30
+    id: idle
+  - trigger: homeassistant
+    event: start
+    id: start
+  conditions:
+  - condition: or
+    conditions:
+    - condition: trigger
+      id: start
+    - condition: state
+      entity_id: switch.dinng_room_kitchen_tablet_screensaver_active
+      state: 'on'
+  actions:
+  - if:
+    - condition: trigger
+      id: start
+    then:
+    - delay:
+        minutes: 1
+  - action: button.press
+    target:
+      entity_id: button.dinng_room_kitchen_tablet_reload_page
+  mode: single
 - id: '1792701810261'
   alias: Battery watch - device stopped reporting
   description: Each battery-powered device once, when it has been unavailable for

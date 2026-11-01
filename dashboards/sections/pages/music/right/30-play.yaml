@@ -4,7 +4,12 @@ template: action_tile
 entity: script.music_play_picked
 name: Play
 icon: mdi:play
-label: "[[[ return `${states['input_select.music_playlist'].state} in ${states['input_select.music_room'].state.toLowerCase()}` ]]]"
+# Echo rooms go through Spotify, the rest through Music Assistant (packages/music.yaml).
+label: >-
+  [[[ const room = states['input_select.music_room'].state;
+      const echo = room.endsWith('Echo');
+      const where = room.charAt(0).toLowerCase() + room.slice(1);
+      return `${states['input_select.music_playlist'].state} ${echo ? 'on' : 'in'} ${where} · via ${echo ? 'Spotify' : 'Music Assistant'}` ]]]
 triggers_update:
   - input_select.music_playlist
   - input_select.music_room

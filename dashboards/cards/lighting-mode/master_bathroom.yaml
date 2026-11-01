@@ -4,7 +4,7 @@ type: custom:button-card
 template: lighting_mode
 entity: sensor.lighting_mode_master_bathroom
 grid_options:
-  columns: 24
+  columns: full
 variables:
   blockers:
     - input_boolean.lighting_automation_blocker_master_bathroom

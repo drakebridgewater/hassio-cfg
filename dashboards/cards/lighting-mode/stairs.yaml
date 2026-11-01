@@ -1,0 +1,15 @@
+# Lighting mode for the stairs zone (button-card template lighting_mode): the front
+# door turning on the stairs light. Same blockers and automations as sensor.lighting_mode_stairs.
+type: custom:button-card
+template: lighting_mode
+entity: sensor.lighting_mode_stairs
+grid_options:
+  columns: full
+variables:
+  title: Stairs
+  blockers:
+    - input_boolean.lighting_automation_blocker_stairs
+  automations:
+    - automation.door_front_lights_auto_on_off
+  auto_text: The front door turns on the stairs light.
+  manual_text: The front door leaves the stairs light alone.

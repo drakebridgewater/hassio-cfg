@@ -4,8 +4,8 @@ blueprint:
     a comprehensive Home Assistant blueprint which automatically manages your window
     coverings (such as roller shutters and blinds) based on time, the position of
     the sun, and weather conditions. It adapts intelligently to your preferences,
-    largely eliminating the need for manual adjustments.\n\n**Version**: 2026.10.12
-    V2\n\n### \U0001F517 Resources & Support\n\U0001F4E2 **Latest Changes**: [Changelog](https://hvorragend.github.io/ha-blueprints/CHANGELOG)
+    largely eliminating the need for manual adjustments.\n\n**Version**: 2026.10.23\n\n###
+    \U0001F517 Resources & Support\n\U0001F4E2 **Latest Changes**: [Changelog](https://hvorragend.github.io/ha-blueprints/CHANGELOG)
     | ✨ **Highlights**: [Key Features](https://hvorragend.github.io/ha-blueprints/#key-features)\n\U0001F680
     **Setup**: [Quick Start Guide](https://hvorragend.github.io/ha-blueprints/#quick-start-5-steps)
     | [Prerequisites](https://hvorragend.github.io/ha-blueprints/#essential-prerequisites)\n\U0001F4DA
@@ -2602,7 +2602,7 @@ trigger_variables:
     }}"
   automation_entity: '{{ this.entity_id | default('''') }}'
 variables:
-  version: 2026.10.12 V2
+  version: 2026.10.23
   is_paused: '{{ force_pause != [] and states(force_pause) in [''on'', ''true''] }}'
   blind_entities: '{{ expand(blind) | map(attribute=''entity_id'') | list }}'
   current_position: "{% set source = position_source %} {% if source == 'current_position_attr'
@@ -2885,10 +2885,6 @@ variables:
   manual_reset_event: "{{ helper_state_manual and trigger is defined and\n   trigger.id
     | default('') in ['t_reset_fixedtime', 't_reset_timeout', 't_reset_position']
     }}"
-  recovery_catch_up: "{{ (manual_reset_event and override_expired) or\n   recovery_mode
-    == 'always' or\n   (trigger is defined and trigger.id | default('') == 't_instance_activated')
-    or\n   ((recovery_mode == 'outage' or instance_activated) and not is_restart_run)
-    }}"
   stale_day: "{{ helper_ts_write > 0 and\n   now().strftime('%Y-%m-%d') != helper_ts_write
     | timestamp_custom('%Y-%m-%d') }}"
   override_expired: "{{ helper_state_manual and (\n     instance_activated or (\n
@@ -2898,6 +2894,10 @@ variables:
     and\n          helper_ts_man < as_timestamp(today_at(reset_override_time))) or\n
     \        (is_reset_position and in_reset_override_position)\n       )\n     )\n
     \  ) }}"
+  recovery_catch_up: "{{ (manual_reset_event and override_expired) or\n   recovery_mode
+    == 'always' or\n   (trigger is defined and trigger.id | default('') == 't_instance_activated')
+    or\n   ((recovery_mode == 'outage' or instance_activated) and not is_restart_run)
+    }}"
   helper_state_is_shaded: '{{ helper_json.shd | default(0) | int == 1 and helper_json.pnd
     | default(''non'') != ''beg'' }}'
   helper_state_pending: '{{ helper_json.pnd | default(''non'') }}'
@@ -3630,9 +3630,10 @@ actions:
       - condition: template
         value_template: '{{ not prevent_flags.default_cover_actions }}'
       - condition: template
-        value_template: '{{ not (target_position | default(101) >= current_position
-          | default(101) - position_tolerance | default(0) and target_position | default(101)
-          <= current_position | default(101) + position_tolerance | default(0)) }}'
+        value_template: '{{ cover_in_motion | default(false) or not (target_position
+          | default(101) >= current_position | default(101) - position_tolerance |
+          default(0) and target_position | default(101) <= current_position | default(101)
+          + position_tolerance | default(0)) }}'
       - condition: template
         value_template: '{{ 0 <= target_position | default(101) | int <= 100 }}'
       - condition: template
@@ -3752,9 +3753,10 @@ actions:
         if:
         - "{{ is_tilt_before_position_mode | default(false) and\n   is_cover_tilt_enabled_and_possible
           | default(false) and\n   not prevent_flags.default_cover_actions }}"
-        - '{{ not (target_position | default(101) >= current_position | default(101)
-          - position_tolerance | default(0) and target_position | default(101) <=
-          current_position | default(101) + position_tolerance | default(0)) }}'
+        - '{{ cover_in_motion | default(false) or not (target_position | default(101)
+          >= current_position | default(101) - position_tolerance | default(0) and
+          target_position | default(101) <= current_position | default(101) + position_tolerance
+          | default(0)) }}'
         then:
         - variables:
             drive_dispatched: true
@@ -3898,6 +3900,15 @@ actions:
     apply_transition: &id007
       sequence:
       - variables:
+          cover_in_motion: '{{ states(blind) in [''opening'', ''closing''] }}'
+          current_position: "{% set source = position_source %} {% if source == 'current_position_attr'
+            %}\n  {{ state_attr(blind, 'current_position') | int(default=101) }}\n{%
+            elif source == 'position_attr' %}\n  {{ state_attr(blind, 'position')
+            | int(default=101) }}\n{% elif source == 'custom_sensor' and custom_position_sensor
+            != [] %}\n  {{ states(custom_position_sensor) | int(default=101) }}\n{%
+            else %}\n  {{ 101 }}\n{% endif %}"
+          current_tilt_position: '{{ state_attr(blind, ''current_tilt_position'')
+            | int(default=101) }}'
           target_position: '{{ (drive_plan | default({})).target | default(101) |
             int }}'
           target_tilt_position: '{{ (drive_plan | default({})).target_tilt | default(101)
@@ -3910,12 +3921,12 @@ actions:
             | int -%} {%- set target_tilt = plan.target_tilt | default(101) | int
             -%} {%- set position_relevant = move != 'tilt' and target != 101 -%} {%-
             set tilt_relevant = is_cover_tilt_enabled_and_possible and target_tilt
-            != 101 -%} {%- set position_required = position_relevant and\n      (target
-            - current_position) | abs > position_tolerance | int -%}\n{%- set tilt_required
-            = tilt_relevant and\n      (target_tilt - current_tilt_position) | abs
-            > tilt_position_tolerance | int -%}\n{{ plan.run | default(false) and\n
-            \  (tilt_required if move == 'tilt' else position_required or tilt_required)
-            }}"
+            != 101 -%} {%- set position_required = position_relevant and\n      (cover_in_motion
+            | default(false) or\n       (target - current_position) | abs > position_tolerance
+            | int) -%}\n{%- set tilt_required = tilt_relevant and\n      (target_tilt
+            - current_tilt_position) | abs > tilt_position_tolerance | int -%}\n{{
+            plan.run | default(false) and\n   (tilt_required if move == 'tilt' else
+            position_required or tilt_required) }}"
           drive_dispatched: false
       - if: '{{ drive_required | default(false) }}'
         then:
@@ -3927,6 +3938,15 @@ actions:
           - "{{ not (force_pause != [] and states(force_pause) in ['on', 'true'])
             and\n   (instance_active == [] or states[instance_active] is none or\n
             \   states(instance_active) in instance_active_on_states) }}"
+          - "{{ (auto_up_force == [] or states(auto_up_force) in invalid_states or\n
+            \   (states(auto_up_force) in ['on', 'true']) == is_forced_open) and\n
+            \  (auto_down_force == [] or states(auto_down_force) in invalid_states
+            or\n    (states(auto_down_force) in ['on', 'true']) == is_forced_close)
+            and\n   (auto_shading_start_force == [] or states(auto_shading_start_force)
+            in invalid_states or\n    (states(auto_shading_start_force) in ['on',
+            'true']) == is_forced_shade) and\n   (auto_ventilate_force == [] or states(auto_ventilate_force)
+            in invalid_states or\n    (states(auto_ventilate_force) in ['on', 'true'])
+            == is_forced_vent) }}"
           then:
           - choose:
             - conditions: '{{ (drive_plan | default({})).move | default(''full'')
@@ -3943,9 +3963,10 @@ actions:
           current_position) | abs <= position_tolerance | int -%} {%- set at_tilt
           = (not tilt_relevant) or (current_tilt_position - target_tilt) | abs <=
           tilt_position_tolerance | int -%} {%- set nothing_would_move = (target !=
-          101 or tilt_relevant) and at_position and at_tilt -%} {{ enable_logbook_cover\n
-          \  and (log_user is defined or\n        drive_required | default(plan.run
-          | default(false)))\n   and not nothing_would_move }}"
+          101 or tilt_relevant) and at_position and at_tilt\n                             and
+          not cover_in_motion | default(false) -%}\n{{ enable_logbook_cover\n   and
+          (log_user is defined or\n        drive_required | default(plan.run | default(false)))\n
+          \  and not nothing_would_move }}"
         then:
         - repeat:
             for_each: '{{ blind_entities | list }}'
@@ -3963,9 +3984,19 @@ actions:
                   is over'} -%}\n{%- set why = log_user | default(fallback.get(drive_action_set
                   | default(''), 'status update')) -%} {%- set force_word = (state_labels
                   | default({})).get(helper_state_force, helper_state_force) -%} {%-
-                  set blocked = ' [force pause]' if is_paused\n                  else
-                  ' [manual override]' if helper_state_manual\n                  else
-                  ' [force: ' ~ force_word ~ ']' if helper_state_force != 'non'\n
+                  set force_switched = (auto_up_force != [] and states(auto_up_force)
+                  not in invalid_states and (states(auto_up_force) in ['on', 'true'])
+                  != is_forced_open) or\n                         (auto_down_force
+                  != [] and states(auto_down_force) not in invalid_states and (states(auto_down_force)
+                  in ['on', 'true']) != is_forced_close) or\n                         (auto_shading_start_force
+                  != [] and states(auto_shading_start_force) not in invalid_states
+                  and (states(auto_shading_start_force) in ['on', 'true']) != is_forced_shade)
+                  or\n                         (auto_ventilate_force != [] and states(auto_ventilate_force)
+                  not in invalid_states and (states(auto_ventilate_force) in ['on',
+                  'true']) != is_forced_vent) -%}\n{%- set blocked = ' [force pause]'
+                  if is_paused\n                  else ' [manual override]' if helper_state_manual\n
+                  \                 else ' [force: ' ~ force_word ~ ']' if helper_state_force
+                  != 'non'\n                  else ' [force switched]' if force_switched\n
                   \                 else '' -%}\n{%- set target = plan.target | default(101)
                   | int -%} {%- set target_tilt = plan.target_tilt | default(101)
                   | int -%} {%- set tilt_shown = is_cover_tilt_enabled_and_possible

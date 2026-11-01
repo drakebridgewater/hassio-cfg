@@ -111,35 +111,34 @@
       hold_action:
         action: more-info
 
-- type: conditional
-  conditions: !include ../../visibility/disarmed.yaml
-  card:
-      type: custom:button-card
-      template: status_tile
-      entity: alarm_control_panel.default
-      name: Alarm
-      icon: >-
-        [[[ const s = entity?.state ?? '';
-            return s === 'disarmed' ? 'mdi:shield-off-outline'
-              : s === 'triggered' ? 'mdi:bell-ring'
-              : s.startsWith('armed_') ? 'mdi:shield-check' : 'mdi:shield-alert' ]]]
-      label: >-
-        [[[ return {
-              disarmed: '<span class="phone">Alarm off</span><span class="more">Off</span>', armed_home: 'Armed', armed_away: 'Armed away',
-              armed_night: 'Night', armed_vacation: 'Vacation', arming: 'Arming',
-              pending: 'Entry delay', triggered: 'Triggered',
-            }[entity?.state] ?? 'No signal' ]]]
-      variables:
-        tone: >-
-          [[[ const s = entity?.state ?? '';
-              return s === 'disarmed' ? 'neutral' : s === 'triggered' ? 'alarm'
-                : s.startsWith('armed_') ? 'ok' : ['arming', 'pending'].includes(s) ? 'attention' : 'failed' ]]]
-        pulse: '[[[ return ["triggered", "pending"].includes(entity?.state) ]]]'
-      tap_action:
-        action: navigate
-        navigation_path: /lovelace-main/security
-      hold_action:
-        action: more-info
+# The alarm is never hidden: when it goes off, this tile is how a phone reaches the
+# disarm keypad on Security.
+- type: custom:button-card
+  template: status_tile
+  entity: alarm_control_panel.default
+  name: Alarm
+  icon: >-
+    [[[ const s = entity?.state ?? '';
+        return s === 'disarmed' ? 'mdi:shield-off-outline'
+          : s === 'triggered' ? 'mdi:bell-ring'
+          : s.startsWith('armed_') ? 'mdi:shield-check' : 'mdi:shield-alert' ]]]
+  label: >-
+    [[[ return {
+          disarmed: '<span class="phone">Alarm off</span><span class="more">Off</span>', armed_home: 'Armed', armed_away: 'Armed away',
+          armed_night: 'Night', armed_vacation: 'Vacation', arming: 'Arming',
+          pending: 'Entry delay', triggered: 'Triggered',
+        }[entity?.state] ?? 'No signal' ]]]
+  variables:
+    tone: >-
+      [[[ const s = entity?.state ?? '';
+          return s === 'disarmed' ? 'neutral' : s === 'triggered' ? 'alarm'
+            : s.startsWith('armed_') ? 'ok' : ['arming', 'pending'].includes(s) ? 'attention' : 'failed' ]]]
+    pulse: '[[[ return ["triggered", "pending"].includes(entity?.state) ]]]'
+  tap_action:
+    action: navigate
+    navigation_path: /lovelace-main/security
+  hold_action:
+    action: more-info
 
 - type: conditional
   conditions: !include ../../visibility/disarmed.yaml
@@ -148,18 +147,30 @@
       template: [status_tile, close_up]
       entity: cover.garage_door
       name: Garage
-      icon: '[[[ return entity?.state === "closed" ? "mdi:garage-variant" : "mdi:garage-open-variant" ]]]'
+      triggers_update:
+        - binary_sensor.ratgdov2_925f17_obstruction
+      # blocked: the opener's safety sensors see something in the doorway, so it
+      # won't close. Open and blocked is failed; closed and blocked is attention.
+      icon: >-
+        [[[ return variables.blocked ? 'mdi:garage-alert-variant'
+            : entity?.state === 'closed' ? 'mdi:garage-variant' : 'mdi:garage-open-variant' ]]]
       label: >-
-        [[[ return { closed: 'Closed', open: 'Open', opening: 'Opening', closing: 'Closing' }[entity?.state] ?? 'No signal' ]]]
+        [[[ const s = { closed: 'Closed', open: 'Open', opening: 'Opening', closing: 'Closing' }[entity?.state] ?? 'No signal';
+            if (!variables.blocked) return s;
+            return entity?.state === 'closed'
+              ? '<span class="phone">Sensor blocked</span><span class="more">Closed · sensor blocked</span>'
+              : `<span class="phone">Blocked</span><span class="more">${s} · blocked</span>` ]]]
       variables:
+        blocked: '[[[ return hass.states["binary_sensor.ratgdov2_925f17_obstruction"]?.state === "on" ]]]'
         tone: >-
           [[[ const s = entity?.state;
+              if (variables.blocked) return s === 'closed' ? 'attention' : 'failed';
               return s === 'closed' ? 'ok' : ['open', 'opening', 'closing'].includes(s) ? 'attention' : 'failed' ]]]
         pulse: '[[[ return variables.close_up.garage ]]]'
+      # The garage pop-up (popup/garage.yaml) has the details and the open/close button.
       tap_action:
-        action: toggle
-        confirmation:
-          text: '[[[ return entity?.state === "closed" ? "Open the garage door?" : "Close the garage door?" ]]]'
+        action: navigate
+        navigation_path: '#garage'
       hold_action:
         action: more-info
 

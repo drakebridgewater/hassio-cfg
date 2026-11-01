@@ -1,0 +1,15 @@
+# Lighting mode for the outdoor zone (button-card template lighting_mode).
+# Same blockers and automations as sensor.lighting_mode_outdoor (packages/lighting_mode.yaml).
+type: custom:button-card
+template: lighting_mode
+entity: sensor.lighting_mode_outdoor
+grid_options:
+  columns: full
+variables:
+  blockers:
+    - input_boolean.lighting_automation_blocker_outdoor
+  automations:
+    - automation.holiday_away_lighting
+  auto_text: The holiday lights follow their schedule.
+  manual_text: Automations leave the outside lights alone.
+  note: Hold the config button on the porch or either deck switch to change it.
